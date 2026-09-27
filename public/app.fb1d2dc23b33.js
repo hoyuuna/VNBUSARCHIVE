@@ -2797,7 +2797,7 @@ cleanupState: () => {
               adminContent.style.pointerEvents = 'auto';
               adminContent.style.opacity = '1';
               if (app.currentViewMode === 'admin' && app.admin && typeof app.admin.loadTab === 'function') {
-                  app.admin.loadTab(app.adminTab || 'photos');
+                  app.admin.loadTab(app.adminTab || 'quality');
               }
           }
       }
@@ -3810,6 +3810,7 @@ dropdown.innerHTML = `
                 if (app.auth && app.auth.updateUUIDBox) app.auth.updateUUIDBox();
             }
 });
+
 
 /* --- MODULE: 01_router.js --- */
 // Extracted to 01_router.js
@@ -14242,9 +14243,30 @@ Object.assign(window.app, {
                     pill.classList.remove('hidden');
                     textEl.innerHTML = '<i class="fa-solid fa-spinner fa-spin text-gray-400"></i>';
                     try {
+                        const { data: profile } = await window.sb.from('profiles').select('reputation_score').eq('id', app.user.id).single();
+                        const score = profile?.reputation_score !== undefined ? profile.reputation_score : 100;
+                        const scoreUI = document.getElementById('upload-reputation-score');
+                        const scoreVal = document.getElementById('reputation-score-val');
+                        if (scoreUI && scoreVal) {
+                            scoreVal.innerText = score;
+                            scoreUI.classList.remove('hidden');
+                        }
+                        
+                        let baseLimit = 15;
+                        if (score >= 200) baseLimit = 20;
+                        if (score >= 300) baseLimit = 25;
+                        if (score >= 400) baseLimit = 30;
+                        if (score >= 500) baseLimit = 40;
+                        if (score >= 1000) baseLimit = 50;
+                        if (app.role === 'admin' || app.role === 'manager') baseLimit = 999;
+                        if (score < 100) baseLimit = 10;
+                        if (score < 50) baseLimit = 5;
+                        if (score < 0) baseLimit = 0;
+                        
                         const limitSetting = app.maintenance.settings['upload_quota']?.reason;
                         const hasLimit = limitSetting && limitSetting.trim() !== '';
-                        const limitNum = hasLimit ? parseInt(limitSetting) : null;
+                        const limitNum = hasLimit ? parseInt(limitSetting) : baseLimit;
+                        
                         const last7AM = app.utils.getLast7AM_UTC7();
                         const { count } = await window.sb.from('photos')
                             .select('*', { count: 'exact', head: true })
@@ -14254,7 +14276,8 @@ Object.assign(window.app, {
                         textEl.classList.remove('text-black', 'text-amber-500', 'text-red-600');
                         const totalQueueAssumed = app.upload.uploadQueue.length;
                         const realCount = (count || 0) + totalQueueAssumed;
-                        if (!hasLimit) {
+                        
+                        if (limitNum === 999 && !hasLimit) {
                             textEl.innerText = `${realCount} lượt (Không giới hạn)`;
                             textEl.classList.add('text-black');
                             fileInput.disabled = false;
@@ -17017,7 +17040,7 @@ Object.assign(window.app, {
                                             ${plateKey && plateKey !== '---' && !approvedPlateSet.has(plateKey) ? '<span class="badge-xe-moi"><i class="fa-solid fa-sparkles"></i> XE MỚI</span>' : ''}
                                             ${p.suspected_exif_fraud ? '<span class="bg-red-600 text-white px-1.5 py-0.5 rounded text-[10px] font-bold ml-1 tracking-wider whitespace-nowrap"><i class="fa-solid fa-triangle-exclamation mr-1"></i>Nghi ngờ gian lận</span>' : ''}
                                         </div>
-                                        ${ `<span class="text-xs text-gray-500">${safeUsername}</span><span class="text-xs font-bold bg-gray-100 px-2 py-0.5 rounded ml-2 shadow-sm text-gray-700"><i class="fa-solid fa-star text-yellow-500 mr-1"></i> ${p.profiles?.reputation_score !== undefined ? p.profiles.reputation_score : 100}</span>` }
+                                        <span class="text-xs text-gray-500">${safeUsername}</span><span class="text-xs font-bold bg-gray-100 px-2 py-0.5 rounded ml-2 shadow-sm text-gray-700"><i class="fa-solid fa-star text-yellow-500 mr-1"></i> ${p.profiles?.reputation_score !== undefined ? p.profiles.reputation_score : 100}</span>
                                     </div>
                                     <div class="relative w-full bg-gray-200 border-y border-gray-200 overflow-hidden">
                                         <img loading="lazy" src="${app.utils.getProxiedUrl(p.url)}" class="w-full h-auto object-contain">
@@ -17061,8 +17084,8 @@ Object.assign(window.app, {
                                             <div><span class="admin-label">Vị trí</span><input type="text" id="adm-p-location-${p.id}" value="${location}" class="admin-input" onchange="app.admin.checkDuplicateDateAdmin('${p.id}', '${p.uploader_id}', '${p.taken_at ? p.taken_at.split('T')[0] : ''}')"></div>
                                         </div>
 
-                                        <div><span class="admin-label">Ghi chA</span><textarea id="adm-p-note-${p.id}" rows="2" class="admin-input">${note}</textarea></div>
-                                        <div><span class="admin-label text-red-600">Note kiểm duyệt (Ẩn)</span><textarea id="adm-p-mod-note-${p.id}" rows="2" class="admin-input bg-red-50 text-red-900 border-red-200" disabled>${app.utils.cleanText(p.mod_note || 'Không có')}</textarea></div>
+                                        <div><span class="admin-label">Ghi chú</span><textarea id="adm-p-note-${p.id}" rows="2" class="admin-input">${note}</textarea></div>
+                                            <div><span class="admin-label text-red-600">Note kiểm duyệt (Ẩn)</span><textarea id="adm-p-mod-note-${p.id}" rows="2" class="admin-input bg-red-50 text-red-900 border-red-200" disabled>${app.utils.cleanText(p.mod_note || 'Không có')}</textarea></div>
                                         
                                         <div class="grid grid-cols-2 gap-2 mt-2">
                                             <div><span class="admin-label">Ngày chụp (Gốc)</span><input type="text" class="admin-input bg-gray-50 !text-gray-500" value="${p.taken_at ? p.taken_at.split('T')[0] : 'Không rõ'}" disabled></div>
@@ -17528,21 +17551,20 @@ Object.assign(window.app, {
                     }
                 },
                 loadTab: async (tab = 'photos', forceReload = true, preserveScroll = false) => {
+    if (tab === 'quality' || tab === 'info') {
+        tab = (app.role === 'manager' || (app.user && app.user.subroles && app.user.subroles.includes('quality_aud'))) ? 'quality' : 'info';
+    }
                     if (!app.admin._noteFetched) {
                         app.admin._noteFetched = true;
                         app.admin.fetchAdminNote();
                     }
                     app.adminTab = tab;
-        const btnQuality = document.getElementById('adm-tab-quality');
-        const btnInfo = document.getElementById('adm-tab-info');
-        const isManager = app.role === 'manager';
-        const hasQualityAud = app.user && app.user.subroles && app.user.subroles.includes('quality_aud');
-        if (btnQuality) {
-            btnQuality.classList.toggle('hidden', !(isManager || hasQualityAud));
-        }
-        if (btnInfo) {
-            btnInfo.classList.remove('hidden');
-        }
+                    const btnQuality = document.getElementById('adm-tab-quality');
+                    const btnInfo = document.getElementById('adm-tab-info');
+                    const isManager = app.role === 'manager';
+                    const hasQualityAud = app.user && app.user.subroles && app.user.subroles.includes('quality_aud');
+                    if (btnQuality) btnQuality.classList.toggle('hidden', !(isManager || hasQualityAud));
+                    if (btnInfo) btnInfo.classList.remove('hidden');
                     app.admin.refreshCounts().then(total => app.admin.checkNotification());
                     if (app.admin._activeLoadingTab === tab && app.admin._isTabLoading && !preserveScroll && !forceReload) return;
                     app.admin._activeLoadingTab = tab;
@@ -17591,48 +17613,309 @@ Object.assign(window.app, {
                     });
                     const toggleBar = document.getElementById('adm-photo-grid-toggle-bar');
                     if (tab === 'quality' || tab === 'info') {
-    if (toggleBar) toggleBar.classList.remove('hidden');
-} else {
-    if (toggleBar) toggleBar.classList.add('hidden');
-}
+                        if (toggleBar) toggleBar.classList.remove('hidden');
+                    } else {
+                        if (toggleBar) toggleBar.classList.add('hidden');
+                    }
                     if (app.admin.update3x3UI) app.admin.update3x3UI();
                     if (app.admin.updateRulerUI) app.admin.updateRulerUI();
                     if (app.admin.updateHideMineUI) app.admin.updateHideMineUI();
                     try {
                         if (tab === 'quality' || tab === 'info') {
-        app.adminPendingPage = app.adminPendingPage || 1;
-        const pageSize = 50;
-        const fromRow = (app.adminPendingPage - 1) * pageSize;
-        const toRow = fromRow + pageSize - 1;
-        let totalPending = 0;
-        let rawPhotos = [];
-        let reviewedIds = [];
-        try {
-            if (app.user && app.user.id) {
-                const { data: myReviews } = await window.sb.from('photo_reviews').select('photo_id').eq('admin_id', app.user.id);
-                if (myReviews) reviewedIds = myReviews.map(r => r.photo_id);
-            }
-        } catch(e) {}
-        try {
-            const targetStatus = tab === 'quality' ? 'pending_quality' : 'pending_info';
-            const [sbRes, apiRes] = await Promise.all([
-                window.sb.from('photos').select('*, profiles(username, role, reputation_score), vehicles(model), photo_reviews(action, reason, admin_id)', { count: 'exact' }).eq('status', targetStatus).order('id', { ascending: true }).range(fromRow, toRow).then(r => r).catch(() => ({ data: [], count: 0 })),
-                (async () => {
-                    try {
-                        const sessionRes = await window.sb.auth.getSession();
-                        const token = sessionRes.data.session?.access_token;
-                        if (!token) return { pendingPhotos: [] };
-                        const rs = await fetch('/api/admin/pending?page=' + app.adminPendingPage + '&status=' + targetStatus, {
-                            headers: { 'Authorization': 'Bearer ' + token }
-                        });
-                        return await rs.json();
-                    } catch(e) { return { pendingPhotos: [] }; }
-                })()
-            ]);
-            rawPhotos = (apiRes && apiRes.pendingPhotos) ? apiRes.pendingPhotos : (sbRes.data || []);
-            totalPending = sbRes.count || rawPhotos.length;
-        } catch(e) {}
-    } else if (tab === 'requests') {
+                            app.adminPendingPage = app.adminPendingPage || 1;
+                            const pageSize = 50;
+                            const fromRow = (app.adminPendingPage - 1) * pageSize;
+                            const toRow = fromRow + pageSize - 1;
+                            let totalPending = 0;
+                            let rawPhotos = [];
+                            let reviewedIds = [];
+                            try {
+                                if (app.user && app.user.id) {
+                                    const { data: myReviews } = await window.sb.from('photo_reviews').select('photo_id').eq('admin_id', app.user.id);
+                                    if (myReviews) reviewedIds = myReviews.map(r => r.photo_id);
+                                }
+                            } catch(e) {}
+                            try {
+                                const [sbRes, apiRes] = await Promise.all([
+                                    window.sb.from('photos').select('*, profiles(username, role, reputation_score), vehicles(model), photo_reviews(action, reason, admin_id)', { count: 'exact' }).eq('status', tab === 'quality' ? 'pending_quality' : 'pending_info').order('id', { ascending: true }).range(fromRow, toRow).then(r => r).catch(() => ({ data: [], count: 0 })),
+                                    (async () => {
+                                        try {
+                                            const sessionRes = await window.sb.auth.getSession();
+                                            const token = sessionRes.data.session?.access_token;
+                                            if (token) {
+                                                const res = await fetch(`/api/photo?status=pending&page=${app.adminPendingPage}&limit=${pageSize}&_t=${new Date().getTime()}`, { headers: { 'Authorization': `Bearer ${token}` }, cache: 'no-store' });
+                                                if (res.ok) {
+                                                    const json = await res.json();
+                                                    if (json && json.data && Array.isArray(json.data)) return { data: json.data, count: json.count || 0 };
+                                                }
+                                            }
+                                        } catch (e) { console.warn('Lỗi tải pending API:', e); }
+                                        return { data: [], count: 0 };
+                                    })()
+                                ]);
+                                totalPending = Math.max(sbRes.count || 0, apiRes.count || 0);
+                                const idMap = new Map();
+                                (sbRes.data || []).forEach(p => idMap.set(p.id, p));
+                                (apiRes.data || []).forEach(p => {
+                                    const existing = idMap.get(p.id);
+                                    if (existing) {
+                                        idMap.set(p.id, { ...existing, ...p, vehicles: p.vehicles || existing.vehicles, profiles: p.profiles || existing.profiles, photo_reviews: (p.photo_reviews && p.photo_reviews.length > 0) ? p.photo_reviews : (existing.photo_reviews || p.photo_reviews) });
+                                    } else {
+                                        idMap.set(p.id, p);
+                                    }
+                                });
+                                rawPhotos = Array.from(idMap.values()).sort((a,b) => {
+                                    const getPriority = (photo) => {
+                                        const p = photo.profiles;
+                                        if (p && (p.role === 'admin' || p.role === 'manager')) return 1;
+                                        if (p && p.subroles && Array.isArray(p.subroles)) {
+                                            if (p.subroles.includes('vvbs')) return 2;
+                                            if (p.subroles.includes('dev')) return 2.5;
+                                            if (p.subroles.some(s => s === 'vvcc' || s.startsWith('vvcc|'))) return 3;
+                                        }
+                                        return 4;
+                                    };
+                                    const pA = getPriority(a);
+                                    const pB = getPriority(b);
+                                    if (pA !== pB) return pA - pB;
+                                    return a.id - b.id;
+                                });
+                                rawPhotos.forEach(p => p._isReviewedByMe = reviewedIds.includes(p.id) || (app.admin._localReviewedIds && app.admin._localReviewedIds.has(p.id)) || (p.photo_reviews && p.photo_reviews.some(r => r.admin_id === app.user.id)));
+                            } catch(e) { console.warn('Lỗi fetch pending:', e); }
+                            if (app.admin._activeLoadToken !== currentLoadToken || app.adminTab !== tab) return;
+                            if (!rawPhotos || rawPhotos.length === 0) { content.innerHTML = '<p class="p-4 text-gray-600">Không có ảnh nào chờ duyệt.</p>'; return; }
+                            await app.utils.resolveSandboxUrls(rawPhotos);
+                            if (app.admin._activeLoadToken !== currentLoadToken || app.adminTab !== tab) return;
+                            const addRouteVariants = (set, s) => {
+                                if (!s || s === '---' || s === 'Đang cập nhật') return;
+                                const clean = app.utils.cleanText(s).trim().toLowerCase();
+                                if (!clean) return;
+                                set.add(clean);
+                                const stripped = clean.replace(/^tuyến\s+/i, '').trim();
+                                set.add(stripped);
+                                set.add('tuyến ' + stripped);
+                                if (/^\d+$/.test(stripped)) {
+                                    const num = String(parseInt(stripped, 10));
+                                    const pad = stripped.padStart(2, '0');
+                                    set.add(num); set.add(pad);
+                                    set.add('tuyến ' + num); set.add('tuyến ' + pad);
+                                }
+                            };
+                            const getVariants = (arr) => [...new Set(arr.flatMap(s => {
+                                const clean = app.utils.cleanText(s || '').trim();
+                                const cleanLower = clean.toLowerCase();
+                                const stripped = cleanLower.replace(/^tuyến\s+/i, '').trim();
+                                let res = [clean, cleanLower, clean.toUpperCase(), clean.replace(/\b\w/g, c => c.toUpperCase())];
+                                if (stripped && stripped !== cleanLower) {
+                                    res.push(stripped, stripped.toUpperCase(), 'Tuyến ' + stripped, 'Tuyến ' + stripped.toUpperCase(), 'tuyến ' + stripped);
+                                }
+                                if (/^\d+$/.test(stripped)) {
+                                    const num = String(parseInt(stripped, 10));
+                                    const pad = stripped.padStart(2, '0');
+                                    res.push(num, pad, 'Tuyến ' + num, 'Tuyến ' + pad, 'tuyến ' + num, 'tuyến ' + pad);
+                                }
+                                return res;
+                            }).filter(Boolean))];
+                            let approvedPlateSet = new Set();
+                            let approvedOpSet = new Set();
+                            let approvedRouteSet = new Set();
+                            let approvedModelSet = new Set();
+                            const pendingPlates = [...new Set(rawPhotos.map(p => p.license_plate).filter(Boolean))];
+                            const pendingOps = [...new Set(rawPhotos.map(p => app.utils.cleanText(p.operator || '')).filter(Boolean))];
+                            const pendingRoutes = [...new Set(rawPhotos.map(p => app.utils.cleanText(p.route_no || '')).filter(Boolean))];
+                            const pendingModels = [...new Set(rawPhotos.map(p => app.utils.cleanText(p.vehicles?.model || '')).filter(Boolean))];
+                            const platesVariants = pendingPlates.length > 0 ? getVariants(pendingPlates) : [];
+                            const opsVariants = pendingOps.length > 0 ? getVariants(pendingOps) : [];
+                            const routesVariants = pendingRoutes.length > 0 ? getVariants(pendingRoutes) : [];
+                            const modelsVariants = pendingModels.length > 0 ? getVariants(pendingModels) : [];
+                            await Promise.all([
+                                window.sb.from('operator_info').select('operator_name').then(r => {
+                                    (r.data || []).forEach(o => { if (o.operator_name) approvedOpSet.add(app.utils.cleanText(o.operator_name).trim().toLowerCase()); });
+                                }).catch(() => {}),
+                                platesVariants.length > 0 ? window.sb.from('photos').select('license_plate').eq('status', 'approved').in('license_plate', platesVariants).then(r => {
+                                    (r.data || []).forEach(p => { if (p.license_plate) approvedPlateSet.add(p.license_plate.trim().toUpperCase()); });
+                                }).catch(() => {}) : Promise.resolve(),
+                                platesVariants.length > 0 ? window.sb.from('vehicles').select('license_plate, photos!inner(status)').eq('photos.status', 'approved').in('license_plate', platesVariants).then(r => {
+                                    (r.data || []).forEach(v => { if (v.photos && v.photos.length > 0 && v.license_plate) approvedPlateSet.add(v.license_plate.trim().toUpperCase()); });
+                                }).catch(() => {}) : Promise.resolve(),
+                                opsVariants.length > 0 ? window.sb.from('photos').select('operator').eq('status', 'approved').in('operator', opsVariants).then(r => {
+                                    (r.data || []).forEach(p => { if (p.operator && p.operator !== '---' && p.operator !== 'Đang cập nhật') approvedOpSet.add(app.utils.cleanText(p.operator).trim().toLowerCase()); });
+                                }).catch(() => {}) : Promise.resolve(),
+                                opsVariants.length > 0 ? window.sb.from('operator_info').select('operator_name').in('operator_name', opsVariants).then(r => {
+                                    (r.data || []).forEach(o => { if (o.operator_name) approvedOpSet.add(app.utils.cleanText(o.operator_name).trim().toLowerCase()); });
+                                }).catch(() => {}) : Promise.resolve(),
+                                routesVariants.length > 0 ? window.sb.from('photos').select('route_no').eq('status', 'approved').in('route_no', routesVariants).then(r => {
+                                    (r.data || []).forEach(p => { if (p.route_no && p.route_no !== '---') addRouteVariants(approvedRouteSet, p.route_no); });
+                                }).catch(() => {}) : Promise.resolve(),
+                                modelsVariants.length > 0 ? window.sb.from('vehicles').select('model, photos!inner(status)').eq('photos.status', 'approved').in('model', modelsVariants).then(r => {
+                                    (r.data || []).forEach(v => { if (v.photos && v.photos.length > 0 && v.model && v.model !== '---') approvedModelSet.add(app.utils.cleanText(v.model).trim().toLowerCase()); });
+                                }).catch(() => {}) : Promise.resolve()
+                            ]);
+                            if (app.admin._activeLoadToken !== currentLoadToken || app.adminTab !== tab) return;
+                            app.admin.approvedPlateSet = approvedPlateSet;
+                            app.admin.approvedOpSet = approvedOpSet;
+                            app.admin.approvedRouteSet = approvedRouteSet;
+                            app.admin.approvedModelSet = approvedModelSet;
+                            const photos = rawPhotos.sort((a, b) => {
+                                if (a._isReviewedByMe && !b._isReviewedByMe) return 1;
+                                if (!a._isReviewedByMe && b._isReviewedByMe) return -1;
+                                const aStarted = (a.reviewer_count || 0) > 0;
+                                const bStarted = (b.reviewer_count || 0) > 0;
+                                if (aStarted && !bStarted) return -1;
+                                if (!aStarted && bStarted) return 1;
+                                const roleA = a.profiles?.role || 'user';
+                                const roleB = b.profiles?.role || 'user';
+                                const isPrivilegedA = (roleA === 'admin' || roleA === 'manager') ? 1 : 0;
+                                const isPrivilegedB = (roleB === 'admin' || roleB === 'manager') ? 1 : 0;
+                                if (isPrivilegedA !== isPrivilegedB) {
+                                    return isPrivilegedB - isPrivilegedA;
+                                }
+                                return a.id - b.id;
+                            });
+                            if ((!forceReload || preserveScroll) && content.querySelector('.admin-card') && app.adminTab === 'photos') {
+                                const currentIds = new Set(photos.map(p => String(p.id)));
+                                content.querySelectorAll('.admin-card[data-photo-id]').forEach(card => {
+                                    if (!currentIds.has(card.getAttribute('data-photo-id'))) {
+                                        card.style.transition = 'all 0.3s ease';
+                                        card.style.opacity = '0';
+                                        card.style.transform = 'scale(0.9)';
+                                        setTimeout(() => card.remove(), 300);
+                                    }
+                                });
+                                photos.forEach(p => {
+                                    const existingCard = document.getElementById(`adm-photo-card-${p.id}`);
+                                    if (!existingCard) {
+                                        const tempDiv = document.createElement('div');
+                                        tempDiv.innerHTML = app.admin.renderSinglePhotoCardHTML(p, approvedPlateSet, approvedOpSet, approvedRouteSet, approvedModelSet);
+                                        const newEl = tempDiv.firstElementChild;
+                                        if (newEl && content) {
+                                            content.appendChild(newEl);
+                                        }
+                                    } else {
+                                        if (!existingCard.contains(document.activeElement)) {
+                                            const tempDiv = document.createElement('div');
+                                            tempDiv.innerHTML = app.admin.renderSinglePhotoCardHTML(p, approvedPlateSet, approvedOpSet, approvedRouteSet, approvedModelSet);
+                                            const newEl = tempDiv.firstElementChild;
+                                            if (newEl) {
+                                                existingCard.replaceWith(newEl);
+                                            }
+                                        }
+                                    }
+                                });
+                                if (content.querySelectorAll('.admin-card').length === 0 && photos.length === 0) {
+                                    content.innerHTML = '<p class="p-4 text-gray-600">Không có ảnh nào chờ duyệt.</p>';
+                                }
+                            } else {
+                                content.innerHTML = photos.map(p => app.admin.renderSinglePhotoCardHTML(p, approvedPlateSet, approvedOpSet, approvedRouteSet, approvedModelSet)).join('');
+                            }
+                            app.adminPendingTotalPages = Math.ceil(totalPending / pageSize);
+                            if (app.adminPendingTotalPages > 1) {
+                                const pager = document.createElement('div');
+                                pager.id = 'adm-pending-pager';
+                                pager.className = 'col-span-full mt-6';
+                                content.appendChild(pager);
+                                app.utils.renderPagination('adm-pending-pager', app.adminPendingPage, app.adminPendingTotalPages, (newPage) => {
+                                    app.adminPendingPage = newPage;
+                                    app.admin.loadTab(app.adminTab, true);
+                                });
+                            }
+                            if (app.admin.update3x3UI) app.admin.update3x3UI();
+                            if (app.admin.updateRulerUI) app.admin.updateRulerUI();
+                            if (app.admin.updateHideMineUI) app.admin.updateHideMineUI();
+                        } else if (tab === 'delete') {
+                            let html = '';
+                            if (app.role === 'manager') {
+                                html += `
+                                <div class="col-span-full mb-6 p-5 bg-red-50 border border-red-200 rounded-lg shadow-sm">
+                                    <h3 class="font-bold text-sm mb-3 text-red-700 uppercase"><i class="fa-solid fa-triangle-exclamation"></i> Quản lý Xóa ảnh trực tiếp</h3>
+                                    <div class="flex flex-col md:flex-row gap-3">
+                                        <input type="text" id="adm-direct-delete-id" placeholder="ID ảnh hoặc Link ảnh..." class="flex-1 border border-red-200 p-2.5 text-sm rounded-md outline-none focus:ring-2 focus:ring-red-500">
+                                        <input type="text" id="adm-direct-delete-reason" placeholder="Lý do xóa..." class="flex-1 border border-red-200 p-2.5 text-sm rounded-md outline-none focus:ring-2 focus:ring-red-500">
+                                        <button onclick="app.admin.directDeleteInput(this)" class="bg-red-600 text-white px-6 py-2.5 font-bold rounded-md hover:bg-red-700 transition whitespace-nowrap">Xóa Ngay</button>
+                                    </div>
+                                </div>
+                                `;
+                            }
+                            html += '<div class="col-span-full"><h3 class="font-bold text-sm mb-3 uppercase">Danh sách user yêu cầu xóa</h3></div>';
+                            app.adminDeletePage = app.adminDeletePage || 1;
+                            const pageSize = 20;
+                            const fromRow = (app.adminDeletePage - 1) * pageSize;
+                            const toRow = fromRow + pageSize - 1;
+                            let { data: reqs, count, error } = await window.sb.from('edit_requests').select('*', { count: 'exact' }).eq('status', 'pending').eq('new_data->>request_type', 'delete_photo').range(fromRow, toRow);
+                            if (error) throw error;
+                            if (app.admin._activeLoadToken !== currentLoadToken || app.adminTab !== tab) return;
+                            const deleteReqs = reqs || [];
+                            if (!deleteReqs || deleteReqs.length === 0) {
+                                content.innerHTML = html + '<p class="col-span-full p-4">Không có yêu cầu xóa nào.</p>';
+                                return;
+                            }
+                            const photoIds = deleteReqs.map(r => r.new_data.photo_id);
+                            const { data: photos } = await window.sb.from('photos').select('id, url, license_plate').in('id', photoIds);
+                            if (photos && photos.length > 0) await app.utils.resolveSandboxUrls(photos);
+                            if (app.admin._activeLoadToken !== currentLoadToken || app.adminTab !== tab) return;
+                            const photoMap = {}; if (photos) photos.forEach(p => photoMap[p.id] = p);
+                            const userIds = [...new Set(deleteReqs.map(r => r.requester_id))];
+                            const { data: users } = await window.sb.from('profiles').select('id, username, role').in('id', userIds);
+                            if (app.admin._activeLoadToken !== currentLoadToken || app.adminTab !== tab) return;
+                            const userMap = {}; const roleMap = {};
+                            if (users) users.forEach(u => { userMap[u.id] = u.username; roleMap[u.id] = u.role; });
+                            deleteReqs.sort((a, b) => {
+                                const roleA = roleMap[a.requester_id] || 'user';
+                                const roleB = roleMap[b.requester_id] || 'user';
+                                const isPrivA = (roleA === 'admin' || roleA === 'manager') ? 1 : 0;
+                                const isPrivB = (roleB === 'admin' || roleB === 'manager') ? 1 : 0;
+                                if (isPrivA !== isPrivB) return isPrivB - isPrivA;
+                                return a.id - b.id;
+                            });
+                            html += deleteReqs.map(req => {
+                                const photo = photoMap[req.new_data.photo_id];
+                                const username = app.utils.cleanText(userMap[req.requester_id] || 'Ẩn danh');
+                                const userReason = app.utils.cleanText(req.new_data.reason || 'Không có lý do');
+                                return `
+                                <div class="admin-card overflow-visible">
+                                    <div class="admin-card-header bg-red-50">
+                                        <span class="font-bold text-xs uppercase text-red-600">YÊU CẦU XÓA</span>
+                                        <span class="text-xs text-gray-500">${username}</span>
+                                    </div>
+                                    <div class="relative w-full bg-gray-200 border-y border-gray-200 overflow-hidden">
+                                        <img loading="lazy" src="${app.utils.getProxiedUrl(photo?.url)}" class="w-full h-auto object-contain">
+                                        <div class="admin-photo-grid-overlay grid-3x3-overlay ${app.admin.is3x3Enabled ? '' : 'hidden'}">
+                                            <div class="grid-3x3-line-v" style="left: 33.3333%;"></div>
+                                            <div class="grid-3x3-line-v" style="left: 66.6666%;"></div>
+                                            <div class="grid-3x3-line-h" style="top: 33.3333%;"></div>
+                                            <div class="grid-3x3-line-h" style="top: 66.6666%;"></div>
+                                        </div>
+                                        ${app.admin.getRulerOverlayHTML()}
+                                        <button onclick="app.admin.openZoom('${app.utils.getProxiedUrl(photo?.url)}', false, true)" class="absolute top-2 right-2 bg-black/50 text-white w-8 h-8 rounded hover:bg-black flex items-center justify-center transition z-20" title="Soi ảnh"><i class="fa-solid fa-expand"></i></button>
+                                    </div>
+                                    <div class="admin-card-body text-xs">
+                                        <p class="font-bold text-sm mb-1">${photo?.license_plate || 'Đã mất dữ liệu'}</p>
+                                        <div class="mb-3 mt-2"><span class="admin-label">Lý do user nhập:</span><p class="bg-gray-50 p-2 border rounded text-red-700 italic">"${userReason}"</p></div>
+                                        <div class="flex gap-2 mt-3">
+                                        ${app.role === 'manager' ? `
+                                            <button onclick="app.admin.approveDeleteReq('${req.id}', '${req.new_data.photo_id}', '${req.requester_id}', '${userReason}', this)" class="flex-1 bg-red-600 text-white py-1.5 font-bold rounded hover:bg-red-700">DUYỆT XÓA</button>
+                                            <button onclick="app.admin.denyReq('${req.id}', this)" class="flex-1 bg-gray-600 text-white py-1.5 font-bold rounded hover:bg-gray-700">TỪ CHỐI</button>
+                                        ` : `
+                                            <div class="flex-1 bg-gray-100 text-gray-400 py-1.5 font-bold rounded text-center border border-gray-200 cursor-not-allowed">Chỉ Manager được duyệt</div>
+                                        `}
+                                        </div>
+                                    </div>
+                                </div>`
+                            }).join('');
+                            content.innerHTML = html;
+                            if (count > 0 && Math.ceil(count / pageSize) > 1) {
+                                const pager = document.createElement('div');
+                                pager.id = 'adm-delete-pager';
+                                pager.className = 'mt-6 col-span-full';
+                                content.appendChild(pager);
+                                app.utils.renderPagination('adm-delete-pager', app.adminDeletePage, Math.ceil(count / pageSize), (newPage) => {
+                                    app.adminDeletePage = newPage;
+                                    app.admin.loadTab('delete', true);
+                                });
+                            }
+                            if (app.admin.update3x3UI) app.admin.update3x3UI();
+                            if (app.admin.updateRulerUI) app.admin.updateRulerUI();
+                        } else if (tab === 'requests') {
                             app.adminReqPage = app.adminReqPage || 1;
                             const pageSize = 20;
                             const fromRow = (app.adminReqPage - 1) * pageSize;
@@ -19852,7 +20135,7 @@ const isInfo = app.adminTab === 'info';
 document.querySelectorAll('.deny-quick-cb').forEach(cb => {
     const txt = cb.value;
     const isQualError = txt.includes('B1.3') || txt.includes('B1.4') || txt.includes('B2.1') || txt.includes('B2.2') || txt.includes('B2.3') || txt.includes('B2.4') || txt.includes('B2.5') || txt.includes('B3.1') || txt.includes('B3.2') || txt.includes('B3.4') || txt.includes('B3.5') || txt.includes('B4.2') || txt.includes('B4.3') || txt.includes('B4.4');
-    const isInfoError = txt.includes('B1.1') || txt.includes('B1.2') || txt.includes('B4.1') || txt.includes('B5.1') || txt.includes('B5.2') || txt.includes('B5.3') || txt.includes('B5.4') || txt.includes('li?u');
+    const isInfoError = txt.includes('B1.1') || txt.includes('B1.2') || txt.includes('B4.1') || txt.includes('B5.1') || txt.includes('B5.2') || txt.includes('B5.3') || txt.includes('B5.4') || txt.includes('liệu') || txt.includes('li?u');
     
     let show = true;
     if (isQuality && !isQualError) show = false;
@@ -19861,7 +20144,7 @@ document.querySelectorAll('.deny-quick-cb').forEach(cb => {
     cb.parentElement.style.display = show ? 'flex' : 'none';
 });
 
-app.ui.showDenyPrompt("T? ch?i ?nh", (reason) => {
+app.ui.showDenyPrompt("Từ chối ảnh", (reason) => {
                         if (!reason.trim()) {
                             app.ui.showAlert("Bắt buộc phải nhập lý do!");
                             return;
@@ -20441,8 +20724,6 @@ app.ui.showDenyPrompt("T? ch?i ?nh", (reason) => {
                 }
             }
 });
-
-
 
 /* --- MODULE: page_map.js --- */
 window.app = window.app || {};

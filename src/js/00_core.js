@@ -2795,7 +2795,7 @@ cleanupState: () => {
               adminContent.style.pointerEvents = 'auto';
               adminContent.style.opacity = '1';
               if (app.currentViewMode === 'admin' && app.admin && typeof app.admin.loadTab === 'function') {
-                  app.admin.loadTab(app.adminTab || 'photos');
+                  app.admin.loadTab(app.adminTab || 'quality');
               }
           }
       }
@@ -3808,3 +3808,4 @@ dropdown.innerHTML = `
                 if (app.auth && app.auth.updateUUIDBox) app.auth.updateUUIDBox();
             }
 });
+

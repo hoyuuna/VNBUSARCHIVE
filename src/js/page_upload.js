@@ -2282,9 +2282,30 @@ Object.assign(window.app, {
                     pill.classList.remove('hidden');
                     textEl.innerHTML = '<i class="fa-solid fa-spinner fa-spin text-gray-400"></i>';
                     try {
+                        const { data: profile } = await window.sb.from('profiles').select('reputation_score').eq('id', app.user.id).single();
+                        const score = profile?.reputation_score !== undefined ? profile.reputation_score : 100;
+                        const scoreUI = document.getElementById('upload-reputation-score');
+                        const scoreVal = document.getElementById('reputation-score-val');
+                        if (scoreUI && scoreVal) {
+                            scoreVal.innerText = score;
+                            scoreUI.classList.remove('hidden');
+                        }
+                        
+                        let baseLimit = 15;
+                        if (score >= 200) baseLimit = 20;
+                        if (score >= 300) baseLimit = 25;
+                        if (score >= 400) baseLimit = 30;
+                        if (score >= 500) baseLimit = 40;
+                        if (score >= 1000) baseLimit = 50;
+                        if (app.role === 'admin' || app.role === 'manager') baseLimit = 999;
+                        if (score < 100) baseLimit = 10;
+                        if (score < 50) baseLimit = 5;
+                        if (score < 0) baseLimit = 0;
+                        
                         const limitSetting = app.maintenance.settings['upload_quota']?.reason;
                         const hasLimit = limitSetting && limitSetting.trim() !== '';
-                        const limitNum = hasLimit ? parseInt(limitSetting) : null;
+                        const limitNum = hasLimit ? parseInt(limitSetting) : baseLimit;
+                        
                         const last7AM = app.utils.getLast7AM_UTC7();
                         const { count } = await window.sb.from('photos')
                             .select('*', { count: 'exact', head: true })
@@ -2294,7 +2315,8 @@ Object.assign(window.app, {
                         textEl.classList.remove('text-black', 'text-amber-500', 'text-red-600');
                         const totalQueueAssumed = app.upload.uploadQueue.length;
                         const realCount = (count || 0) + totalQueueAssumed;
-                        if (!hasLimit) {
+                        
+                        if (limitNum === 999 && !hasLimit) {
                             textEl.innerText = `${realCount} lượt (Không giới hạn)`;
                             textEl.classList.add('text-black');
                             fileInput.disabled = false;
