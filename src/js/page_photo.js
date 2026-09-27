@@ -176,7 +176,7 @@ Object.assign(window.app, {
                     const notice = document.getElementById('comment-auth-notice');
                     const input = document.getElementById('comment-input');
                     const warning = document.getElementById('comment-warning');
-                    if (app.currentPhoto && (app.currentPhoto.status === 'pending' || app.currentPhoto.status === 'denied')) {
+                    if (app.currentPhoto && (app.currentPhoto.status.startsWith('pending') || app.currentPhoto.status === 'denied')) {
                         if (form) form.classList.add('hidden');
                         if (notice) {
                             notice.classList.remove('hidden');

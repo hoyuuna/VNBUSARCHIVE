@@ -6997,8 +6997,15 @@ Object.assign(window.app, {
                     let photos, count, error;
                     if (app.views.currentProfileSort === 'most_liked') {
                         let allQuery = window.sb.from('photos').select('id, url, status, views, license_plate, review_progress').eq('uploader_id', app.currentProfileId);
-                        if (!app._isOwnProfile) allQuery = allQuery.eq('status', 'approved');
-                        else if (app.views.currentProfileFilter !== 'all') allQuery = allQuery.eq('status', app.views.currentProfileFilter);
+                        if (!app._isOwnProfile) {
+                            allQuery = allQuery.eq('status', 'approved');
+                        } else if (app.views.currentProfileFilter !== 'all') {
+                            if (app.views.currentProfileFilter === 'pending') {
+                                allQuery = allQuery.in('status', ['pending', 'pending_quality', 'pending_info']);
+                            } else {
+                                allQuery = allQuery.eq('status', app.views.currentProfileFilter);
+                            }
+                        }
                         allQuery = app.preference.applyFilter(allQuery);
                         const { data: allPhotos, error: allErr } = await allQuery;
                         error = allErr;
@@ -7023,8 +7030,15 @@ Object.assign(window.app, {
                         }
                     } else {
                         let query = window.sb.from('photos').select('id, url, status, views, license_plate, review_progress', { count: 'exact' }).eq('uploader_id', app.currentProfileId);
-                        if (!app._isOwnProfile) query = query.eq('status', 'approved');
-                        else if (app.views.currentProfileFilter !== 'all') query = query.eq('status', app.views.currentProfileFilter);
+                        if (!app._isOwnProfile) {
+                            query = query.eq('status', 'approved');
+                        } else if (app.views.currentProfileFilter !== 'all') {
+                            if (app.views.currentProfileFilter === 'pending') {
+                                query = query.in('status', ['pending', 'pending_quality', 'pending_info']);
+                            } else {
+                                query = query.eq('status', app.views.currentProfileFilter);
+                            }
+                        }
                         query = app.preference.applyFilter(query);
                         if (app.views.currentProfileSort === 'newest') query = query.order('id', { ascending: false });
                         else if (app.views.currentProfileSort === 'popular') query = query.order('views', { ascending: false, nullsFirst: false });
@@ -7060,7 +7074,7 @@ Object.assign(window.app, {
 
                             if (p.status === 'approved') {
                                 dotColor = 'bg-green-500';
-                            } else if (p.status === 'pending') {
+                            } else if (p.status.startsWith('pending')) {
                                 dotColor = 'bg-[#f58e27]';
                             } else if (p.status === 'denied') {
                                 dotColor = 'bg-red-500';
@@ -7473,7 +7487,7 @@ Object.assign(window.app, {
                         } catch (e) { }
                     }
                     const isDenied = photo.status === 'denied';
-                    const isPending = photo.status === 'pending';
+                    const isPending = photo.status.startsWith('pending');
                     if (isPending) {
                         if (!app.user || app.user.id !== photo.uploader_id) {
                             app.ui.showAlert("Bạn không có quyền xem ảnh đang chờ duyệt này.");
@@ -7591,7 +7605,7 @@ Object.assign(window.app, {
                             if (progEl) {
                                 progEl.innerText = `Ảnh của bạn đã được ${photo.review_progress || '0/2'} người duyệt.`;
                             }
-                            window.sb.from('photos').select('id, created_at, profiles(role)').eq('status', 'pending')
+                            window.sb.from('photos').select('id, created_at, profiles(role)').in('status', ['pending', 'pending_quality', 'pending_info'])
                                 .then(({ data, error }) => {
                                     if (!error && data) {
                                         let ahead = 0;
@@ -7965,7 +7979,7 @@ Object.assign(window.app, {
                     const btnContainer = document.getElementById('btn-edit-history-container');
                     if(tbody) tbody.innerHTML = '<tr><td colspan="4" class="text-center py-2"><i class="fa-solid fa-spinner fa-spin text-gray-400"></i> Đang tải...</td></tr>';
                     let isLocked = false;
-                    if (tbody && app.currentPhoto && app.currentPhoto.status === 'pending') {
+                    if (tbody && app.currentPhoto && app.currentPhoto.status.startsWith('pending')) {
                         const { count } = await window.sb
                             .from('photos')
                             .select('id', { count: 'exact', head: true })
@@ -15470,7 +15484,7 @@ Object.assign(window.app, {
                     const notice = document.getElementById('comment-auth-notice');
                     const input = document.getElementById('comment-input');
                     const warning = document.getElementById('comment-warning');
-                    if (app.currentPhoto && (app.currentPhoto.status === 'pending' || app.currentPhoto.status === 'denied')) {
+                    if (app.currentPhoto && (app.currentPhoto.status.startsWith('pending') || app.currentPhoto.status === 'denied')) {
                         if (form) form.classList.add('hidden');
                         if (notice) {
                             notice.classList.remove('hidden');
@@ -16990,10 +17004,9 @@ Object.assign(window.app, {
                     const prov = app.utils.cleanText(p.province || '');
                     const note = app.utils.cleanText(p.note);
                     const safeUsername = app.utils.cleanText(p.profiles?.username || 'Ẩn danh');
-                    const docBadge = p.is_documentary ? '<span class="bg-black text-white px-2 py-0.5 rounded text-[10px] font-bold tracking-wider shadow-sm"><i class="fa-solid fa-book-bookmark mr-1"></i>ẢNH TƯ LIỆU</span>' : '';
                     const safePlate = app.utils.cleanText(p.license_plate);
                     if (!app.admin.originalData) app.admin.originalData = {};
-                    app.admin.originalData['photo_' + p.id] = { plate: safePlate, operator: op, type: type, route: route, model: model };
+                    app.admin.originalData['photo_' + p.id] = { plate: safePlate, operator: op, type: type, route: route, model: model, location: location };
                     const tagNew = '<span class="bg-black text-white px-1.5 py-0.5 rounded text-[9px] font-bold ml-1 tracking-wider">MỚI</span>';
                     const opKey = app.utils.cleanText(op || '').trim().toLowerCase();
                     const rawRouteKey = app.utils.cleanText(route || '').trim().toLowerCase();
@@ -17020,7 +17033,6 @@ Object.assign(window.app, {
                                     <div class="admin-card-header relative z-10 bg-white rounded-t-lg">
                                         <div class="flex items-center gap-2 flex-wrap">
                                             <span class="font-bold text-sm">${safePlate}</span>
-                                            ${docBadge}
                                             ${plateKey && plateKey !== '---' && !approvedPlateSet.has(plateKey) ? '<span class="badge-xe-moi"><i class="fa-solid fa-sparkles"></i> XE MỚI</span>' : ''}
                                             ${p.suspected_exif_fraud ? '<span class="bg-red-600 text-white px-1.5 py-0.5 rounded text-[10px] font-bold ml-1 tracking-wider whitespace-nowrap"><i class="fa-solid fa-triangle-exclamation mr-1"></i>Nghi ngờ gian lận</span>' : ''}
                                         </div>
@@ -17080,14 +17092,13 @@ Object.assign(window.app, {
                                         const isOwnPhoto = p.uploader_id === app.user.id;
                                         const canApprove = (!isOwnPhoto || app.role === 'manager') && !p._isReviewedByMe;
                                         const canDeny = (!isOwnPhoto || app.role === 'manager') && !p._isReviewedByMe;
-                                        let extraCheckbox = '';
-                                        if (app.adminTab === 'info') {
-                                            extraCheckbox = `<div class="mt-2 flex items-center justify-between bg-yellow-50 p-2 rounded border border-yellow-200">
-                                                <label for="exif-perfect-${p.id}" class="text-xs font-bold text-yellow-800 cursor-pointer">EXIF Chuẩn 100% (+1 điểm)</label>
-                                                <input type="checkbox" id="exif-perfect-${p.id}" class="w-4 h-4 cursor-pointer text-black focus:ring-black border-gray-300 rounded">
+                                        let docAlert = '';
+                                        if (p.is_documentary) {
+                                            docAlert = `<div class="mt-2 p-2 bg-red-50 border border-red-200 rounded text-center">
+                                                <span class="text-xs font-bold text-red-700">ẢNH TƯ LIỆU, NẾU KHÔNG PHẢI TỪ CHỐI NGAY</span>
                                             </div>`;
                                         }
-                                        let actionButtons = extraCheckbox + '<div class="flex gap-2 mt-2">';
+                                        let actionButtons = docAlert + '<div class="flex gap-2 mt-2">';
                                         if (p._isReviewedByMe) {
                                             actionButtons += `<div class="flex-1 bg-gray-100 text-gray-400 py-1.5 text-xs font-bold rounded text-center border border-gray-200 cursor-not-allowed">
                                                 <i class="fa-solid fa-check mr-1"></i> Bạn đã duyệt
@@ -20064,6 +20075,12 @@ if (cbQuality) newSubroles.push('quality_aud');
                             btn.innerText = "DUYỆT"; btn.disabled = false; btn.classList.remove('btn-loading');
                             return;
                         }
+                        let exif_perfect = false;
+                        const orig = app.admin.originalData && app.admin.originalData['photo_' + id];
+                        if (orig && orig.plate === plate && orig.operator === op && orig.type === type && orig.route === route && orig.model === model && orig.location === location) {
+                            exif_perfect = true;
+                        }
+
                         const res = await fetch('/api/admin/action', {
                             method: 'POST',
                             headers: {
@@ -20073,7 +20090,7 @@ if (cbQuality) newSubroles.push('quality_aud');
                             body: JSON.stringify({
                                 action: 'approve', photoId: id,
                                 plate, op, type, route, model, location, note, province,
-                                exif_perfect: document.getElementById('exif-perfect-' + id)?.checked || false
+                                exif_perfect
                             })
                         });
                         if (!res.ok) {

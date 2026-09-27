@@ -948,8 +948,15 @@ Object.assign(window.app, {
                     let photos, count, error;
                     if (app.views.currentProfileSort === 'most_liked') {
                         let allQuery = window.sb.from('photos').select('id, url, status, views, license_plate, review_progress').eq('uploader_id', app.currentProfileId);
-                        if (!app._isOwnProfile) allQuery = allQuery.eq('status', 'approved');
-                        else if (app.views.currentProfileFilter !== 'all') allQuery = allQuery.eq('status', app.views.currentProfileFilter);
+                        if (!app._isOwnProfile) {
+                            allQuery = allQuery.eq('status', 'approved');
+                        } else if (app.views.currentProfileFilter !== 'all') {
+                            if (app.views.currentProfileFilter === 'pending') {
+                                allQuery = allQuery.in('status', ['pending', 'pending_quality', 'pending_info']);
+                            } else {
+                                allQuery = allQuery.eq('status', app.views.currentProfileFilter);
+                            }
+                        }
                         allQuery = app.preference.applyFilter(allQuery);
                         const { data: allPhotos, error: allErr } = await allQuery;
                         error = allErr;
@@ -974,8 +981,15 @@ Object.assign(window.app, {
                         }
                     } else {
                         let query = window.sb.from('photos').select('id, url, status, views, license_plate, review_progress', { count: 'exact' }).eq('uploader_id', app.currentProfileId);
-                        if (!app._isOwnProfile) query = query.eq('status', 'approved');
-                        else if (app.views.currentProfileFilter !== 'all') query = query.eq('status', app.views.currentProfileFilter);
+                        if (!app._isOwnProfile) {
+                            query = query.eq('status', 'approved');
+                        } else if (app.views.currentProfileFilter !== 'all') {
+                            if (app.views.currentProfileFilter === 'pending') {
+                                query = query.in('status', ['pending', 'pending_quality', 'pending_info']);
+                            } else {
+                                query = query.eq('status', app.views.currentProfileFilter);
+                            }
+                        }
                         query = app.preference.applyFilter(query);
                         if (app.views.currentProfileSort === 'newest') query = query.order('id', { ascending: false });
                         else if (app.views.currentProfileSort === 'popular') query = query.order('views', { ascending: false, nullsFirst: false });
@@ -1011,7 +1025,7 @@ Object.assign(window.app, {
 
                             if (p.status === 'approved') {
                                 dotColor = 'bg-green-500';
-                            } else if (p.status === 'pending') {
+                            } else if (p.status.startsWith('pending')) {
                                 dotColor = 'bg-[#f58e27]';
                             } else if (p.status === 'denied') {
                                 dotColor = 'bg-red-500';
@@ -1424,7 +1438,7 @@ Object.assign(window.app, {
                         } catch (e) { }
                     }
                     const isDenied = photo.status === 'denied';
-                    const isPending = photo.status === 'pending';
+                    const isPending = photo.status.startsWith('pending');
                     if (isPending) {
                         if (!app.user || app.user.id !== photo.uploader_id) {
                             app.ui.showAlert("Bạn không có quyền xem ảnh đang chờ duyệt này.");
@@ -1542,7 +1556,7 @@ Object.assign(window.app, {
                             if (progEl) {
                                 progEl.innerText = `Ảnh của bạn đã được ${photo.review_progress || '0/2'} người duyệt.`;
                             }
-                            window.sb.from('photos').select('id, created_at, profiles(role)').eq('status', 'pending')
+                            window.sb.from('photos').select('id, created_at, profiles(role)').in('status', ['pending', 'pending_quality', 'pending_info'])
                                 .then(({ data, error }) => {
                                     if (!error && data) {
                                         let ahead = 0;
@@ -1916,7 +1930,7 @@ Object.assign(window.app, {
                     const btnContainer = document.getElementById('btn-edit-history-container');
                     if(tbody) tbody.innerHTML = '<tr><td colspan="4" class="text-center py-2"><i class="fa-solid fa-spinner fa-spin text-gray-400"></i> Đang tải...</td></tr>';
                     let isLocked = false;
-                    if (tbody && app.currentPhoto && app.currentPhoto.status === 'pending') {
+                    if (tbody && app.currentPhoto && app.currentPhoto.status.startsWith('pending')) {
                         const { count } = await window.sb
                             .from('photos')
                             .select('id', { count: 'exact', head: true })

@@ -1942,7 +1942,7 @@ html.theme-dark .ct-icon {
             if (stored === 'system') {
                 theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
             }
-            document.write('<link rel="stylesheet" href="/css/' + theme + '.css?v=1790517292230" id="theme-css">');
+            document.write('<link rel="stylesheet" href="/css/' + theme + '.css?v=1790518484991" id="theme-css">');
             document.documentElement.classList.add('theme-' + theme);
             document.documentElement.style.backgroundColor = theme === 'dark' ? '#18181b' : '#fdfcf8';
         })();
@@ -2596,99 +2596,106 @@ html.theme-dark .ct-icon {
                         </button>
 
                         <div id="deny-section-quick"
-                            class="mt-2 p-4 bg-white border border-gray-200 rounded-lg shadow-sm space-y-3 max-h-64 overflow-y-auto block">
+                            class="mt-2 p-4 bg-white border border-gray-200 rounded-lg shadow-sm max-h-[400px] overflow-y-auto block">
                             <input type="text" id="deny-quick-search" oninput="app.ui.filterDenyQuick(this.value)"
-                                class="w-full border border-gray-300 rounded-md p-2 text-sm focus:ring-2 focus:ring-black focus:border-transparent outline-none transition-all mb-3"
+                                class="w-full border border-gray-300 rounded-md p-2 text-sm focus:ring-2 focus:ring-black focus:border-transparent outline-none transition-all mb-4"
                                 placeholder="Tìm kiếm lí do nhanh...">
-                            <label class="flex items-start gap-2 cursor-pointer group">
-                                <input type="checkbox" value="[B1.1] Sai phạm vi địa lý: Phương tiện không đăng ký hoặc không hoạt động tại Việt Nam." class="deny-quick-cb mt-0.5 cursor-pointer accent-red-600">
-                                <span class="text-sm text-gray-700 group-hover:text-black transition leading-snug">[B1.1] Sai phạm vi địa lý: Phương tiện không đăng ký hoặc không hoạt động tại Việt Nam.</span>
-                            </label>
-                            <label class="flex items-start gap-2 cursor-pointer group">
-                                <input type="checkbox" value="[B1.2] Chủ thể không hợp lệ: Không tiếp nhận phương tiện cá nhân, nhỏ lẻ, xe công vụ, hoặc xe đang gặp tai nạn/va chạm." class="deny-quick-cb mt-0.5 cursor-pointer accent-red-600">
-                                <span class="text-sm text-gray-700 group-hover:text-black transition leading-snug">[B1.2] Chủ thể không hợp lệ: Không tiếp nhận phương tiện cá nhân, nhỏ lẻ, xe công vụ, hoặc xe đang gặp tai nạn/va chạm.</span>
-                            </label>
-                            <label class="flex items-start gap-2 cursor-pointer group">
+                            
+                            <h4 class="font-black text-sm text-gray-800 mb-3 uppercase tracking-wider mt-2">Chất lượng hình ảnh</h4>
+                            <div class="space-y-3 mb-6">
+                                <label class="flex items-start gap-2 cursor-pointer group">
                                 <input type="checkbox" value="[B1.3] Bối cảnh không đạt yêu cầu: Khung hình chứa chi tiết phản cảm hoặc dấu hiệu chụp ảnh thiếu chủ đích." class="deny-quick-cb mt-0.5 cursor-pointer accent-red-600">
                                 <span class="text-sm text-gray-700 group-hover:text-black transition leading-snug">[B1.3] Bối cảnh không đạt yêu cầu: Khung hình chứa chi tiết phản cảm hoặc dấu hiệu chụp ảnh thiếu chủ đích.</span>
                             </label>
-                            <label class="flex items-start gap-2 cursor-pointer group">
+                                <label class="flex items-start gap-2 cursor-pointer group">
                                 <input type="checkbox" value="[B1.4] Giá trị Lưu trữ và Thẩm mỹ: Không có giá trị lưu trữ hoặc không đạt chất lượng thị giác chung của hệ thống." class="deny-quick-cb mt-0.5 cursor-pointer accent-red-600">
                                 <span class="text-sm text-gray-700 group-hover:text-black transition leading-snug">[B1.4] Giá trị Lưu trữ và Thẩm mỹ: Không có giá trị lưu trữ hoặc không đạt chất lượng thị giác chung của hệ thống.</span>
                             </label>
-                            <label class="flex items-start gap-2 cursor-pointer group">
+                                <label class="flex items-start gap-2 cursor-pointer group">
                                 <input type="checkbox" value="[B2.1] Khuyết thiếu bộ phận: Chủ thể bị cắt xén các chi tiết cấu thành (đầu, đuôi, nóc, bánh xe hoặc gương chiếu hậu)." class="deny-quick-cb mt-0.5 cursor-pointer accent-red-600">
                                 <span class="text-sm text-gray-700 group-hover:text-black transition leading-snug">[B2.1] Khuyết thiếu bộ phận: Chủ thể bị cắt xén các chi tiết cấu thành (đầu, đuôi, nóc, bánh xe hoặc gương chiếu hậu).</span>
                             </label>
-                            <label class="flex items-start gap-2 cursor-pointer group">
+                                <label class="flex items-start gap-2 cursor-pointer group">
                                 <input type="checkbox" value="[B2.2] Tỷ lệ và vị trí không đạt: Chủ thể vi phạm quy chuẩn kích thước khung hình hoặc bị lệch khỏi vùng trọng tâm." class="deny-quick-cb mt-0.5 cursor-pointer accent-red-600">
                                 <span class="text-sm text-gray-700 group-hover:text-black transition leading-snug">[B2.2] Tỷ lệ và vị trí không đạt: Chủ thể vi phạm quy chuẩn kích thước khung hình hoặc bị lệch khỏi vùng trọng tâm.</span>
                             </label>
-                            <label class="flex items-start gap-2 cursor-pointer group">
+                                <label class="flex items-start gap-2 cursor-pointer group">
                                 <input type="checkbox" value="[B2.3] Sai lệch độ cân bằng: Khung hình không tuân thủ tỷ lệ chuẩn hoặc bị nghiêng so với đường chân trời / kiến trúc nền." class="deny-quick-cb mt-0.5 cursor-pointer accent-red-600">
                                 <span class="text-sm text-gray-700 group-hover:text-black transition leading-snug">[B2.3] Sai lệch độ cân bằng: Khung hình không tuân thủ tỷ lệ chuẩn hoặc bị nghiêng so với đường chân trời / kiến trúc nền.</span>
                             </label>
-                            <label class="flex items-start gap-2 cursor-pointer group">
+                                <label class="flex items-start gap-2 cursor-pointer group">
                                 <input type="checkbox" value="[B2.4] Góc chụp không hợp lệ: Chiều góc chụp không phản ánh đủ góc độ phương tiện theo quy định." class="deny-quick-cb mt-0.5 cursor-pointer accent-red-600">
                                 <span class="text-sm text-gray-700 group-hover:text-black transition leading-snug">[B2.4] Góc chụp không hợp lệ: Chiều góc chụp không phản ánh đủ góc độ phương tiện theo quy định.</span>
                             </label>
-                            <label class="flex items-start gap-2 cursor-pointer group">
+                                <label class="flex items-start gap-2 cursor-pointer group">
                                 <input type="checkbox" value="[B2.5] Vật cản che khuất: Chủ thể bị che chắn bởi phương tiện khác, con người hoặc hạ tầng xung quanh." class="deny-quick-cb mt-0.5 cursor-pointer accent-red-600">
                                 <span class="text-sm text-gray-700 group-hover:text-black transition leading-snug">[B2.5] Vật cản che khuất: Chủ thể bị che chắn bởi phương tiện khác, con người hoặc hạ tầng xung quanh.</span>
                             </label>
-                            <label class="flex items-start gap-2 cursor-pointer group">
+                                <label class="flex items-start gap-2 cursor-pointer group">
                                 <input type="checkbox" value="[B3.1] Chất lượng hình ảnh kém: Tệp tin vi phạm tiêu chuẩn về độ nét, nhòe chuyển động hoặc lỗi ánh sáng." class="deny-quick-cb mt-0.5 cursor-pointer accent-red-600">
                                 <span class="text-sm text-gray-700 group-hover:text-black transition leading-snug">[B3.1] Chất lượng hình ảnh kém: Tệp tin vi phạm tiêu chuẩn về độ nét, nhòe chuyển động hoặc lỗi ánh sáng.</span>
                             </label>
-                            <label class="flex items-start gap-2 cursor-pointer group">
+                                <label class="flex items-start gap-2 cursor-pointer group">
                                 <input type="checkbox" value="[B3.2] Tính nguyên bản & Hậu kỳ: Phát hiện can thiệp AI, hậu kỳ quá đà hoặc xóa/vẽ lại chi tiết hoặc nâng cấp giả tạo." class="deny-quick-cb mt-0.5 cursor-pointer accent-red-600">
                                 <span class="text-sm text-gray-700 group-hover:text-black transition leading-snug">[B3.2] Tính nguyên bản & Hậu kỳ: Phát hiện can thiệp AI, hậu kỳ quá đà hoặc xóa/vẽ lại chi tiết hoặc nâng cấp giả tạo.</span>
                             </label>
-                            <label class="flex items-start gap-2 cursor-pointer group">
+                                <label class="flex items-start gap-2 cursor-pointer group">
                                 <input type="checkbox" value="[B3.4] Mờ đè bản quyền: Tệp tin chứa dấu bản quyền, logo hoặc ký tự chèn thêm của cá nhân / tổ chức thứ ba." class="deny-quick-cb mt-0.5 cursor-pointer accent-red-600">
                                 <span class="text-sm text-gray-700 group-hover:text-black transition leading-snug">[B3.4] Mờ đè bản quyền: Tệp tin chứa dấu bản quyền, logo hoặc ký tự chèn thêm của cá nhân / tổ chức thứ ba.</span>
                             </label>
-                            <label class="flex items-start gap-2 cursor-pointer group">
+                                <label class="flex items-start gap-2 cursor-pointer group">
                                 <input type="checkbox" value="[B3.5] Sai lệch tiêu cự: Sử dụng camera góc siêu rộng (tiêu cự quá nhỏ) làm móp méo, biến dạng tỷ lệ thân xe." class="deny-quick-cb mt-0.5 cursor-pointer accent-red-600">
                                 <span class="text-sm text-gray-700 group-hover:text-black transition leading-snug">[B3.5] Sai lệch tiêu cự: Sử dụng camera góc siêu rộng (tiêu cự quá nhỏ) làm móp méo, biến dạng tỷ lệ thân xe.</span>
                             </label>
-                            <label class="flex items-start gap-2 cursor-pointer group">
-                                <input type="checkbox" value="[B4.1] Lỗi định danh phương tiện: Biển kiểm soát bị mờ, lóa hoặc không thể nhận diện bằng mắt thường." class="deny-quick-cb mt-0.5 cursor-pointer accent-red-600">
-                                <span class="text-sm text-gray-700 group-hover:text-black transition leading-snug">[B4.1] Lỗi định danh phương tiện: Biển kiểm soát bị mờ, lóa hoặc không thể nhận diện bằng mắt thường.</span>
-                            </label>
-                            <label class="flex items-start gap-2 cursor-pointer group">
+                                <label class="flex items-start gap-2 cursor-pointer group">
                                 <input type="checkbox" value="[B4.2] Vi phạm quyền riêng tư: Chưa thực hiện che chắn / làm mờ khuôn mặt của tài xế hoặc hành khách." class="deny-quick-cb mt-0.5 cursor-pointer accent-red-600">
                                 <span class="text-sm text-gray-700 group-hover:text-black transition leading-snug">[B4.2] Vi phạm quyền riêng tư: Chưa thực hiện che chắn / làm mờ khuôn mặt của tài xế hoặc hành khách.</span>
                             </label>
-                            <label class="flex items-start gap-2 cursor-pointer group">
-                                <input type="checkbox" value="[B4.3] Xử lý vùng mờ sai quy chuẩn: Lạm dụng vùng che mờ có kích thước quá lớn, thiếu chính xác hoặc làm đè lấn lên các chi tiết của phương tiện." class="deny-quick-cb mt-0.5 cursor-pointer accent-red-600">
-                                <span class="text-sm text-gray-700 group-hover:text-black transition leading-snug">[B4.3] Xử lý vùng mờ sai quy chuẩn: Lạm dụng vùng che mờ có kích thước quá lớn, thiếu chính xác hoặc làm đè lấn lên các chi tiết của phương tiện.</span>
-                            </label>
-                            <label class="flex items-start gap-2 cursor-pointer group">
+                                <label class="flex items-start gap-2 cursor-pointer group">
                                 <input type="checkbox" value="[B4.4] Bỏ sót vùng làm mờ: Bắt buộc che/làm mờ BKS nếu phương tiện khác xuất hiện trong ảnh đang có hành vi vi phạm giao thông." class="deny-quick-cb mt-0.5 cursor-pointer accent-red-600">
                                 <span class="text-sm text-gray-700 group-hover:text-black transition leading-snug">[B4.4] Bỏ sót vùng làm mờ: Bắt buộc che/làm mờ BKS nếu phương tiện khác xuất hiện trong ảnh đang có hành vi vi phạm giao thông.</span>
                             </label>
-                            <label class="flex items-start gap-2 cursor-pointer group">
+                            </div>
+                            
+                            <h4 class="font-black text-sm text-gray-800 mb-3 uppercase tracking-wider mt-4">Thông tin & Vi phạm</h4>
+                            <div class="space-y-3">
+                                <label class="flex items-start gap-2 cursor-pointer group">
+                                <input type="checkbox" value="[B1.1] Sai phạm vi địa lý: Phương tiện không đăng ký hoặc không hoạt động tại Việt Nam." class="deny-quick-cb mt-0.5 cursor-pointer accent-red-600">
+                                <span class="text-sm text-gray-700 group-hover:text-black transition leading-snug">[B1.1] Sai phạm vi địa lý: Phương tiện không đăng ký hoặc không hoạt động tại Việt Nam.</span>
+                            </label>
+                                <label class="flex items-start gap-2 cursor-pointer group">
+                                <input type="checkbox" value="[B1.2] Chủ thể không hợp lệ: Không tiếp nhận phương tiện cá nhân, nhỏ lẻ, xe công vụ, hoặc xe đang gặp tai nạn/va chạm." class="deny-quick-cb mt-0.5 cursor-pointer accent-red-600">
+                                <span class="text-sm text-gray-700 group-hover:text-black transition leading-snug">[B1.2] Chủ thể không hợp lệ: Không tiếp nhận phương tiện cá nhân, nhỏ lẻ, xe công vụ, hoặc xe đang gặp tai nạn/va chạm.</span>
+                            </label>
+                                <label class="flex items-start gap-2 cursor-pointer group">
+                                <input type="checkbox" value="[B4.1] Lỗi định danh phương tiện: Biển kiểm soát bị mờ, lóa hoặc không thể nhận diện bằng mắt thường." class="deny-quick-cb mt-0.5 cursor-pointer accent-red-600">
+                                <span class="text-sm text-gray-700 group-hover:text-black transition leading-snug">[B4.1] Lỗi định danh phương tiện: Biển kiểm soát bị mờ, lóa hoặc không thể nhận diện bằng mắt thường.</span>
+                            </label>
+                                <label class="flex items-start gap-2 cursor-pointer group">
+                                <input type="checkbox" value="[B4.3] Xử lý vùng mờ sai quy chuẩn: Lạm dụng vùng che mờ có kích thước quá lớn, thiếu chính xác hoặc làm đè lấn lên các chi tiết của phương tiện." class="deny-quick-cb mt-0.5 cursor-pointer accent-red-600">
+                                <span class="text-sm text-gray-700 group-hover:text-black transition leading-snug">[B4.3] Xử lý vùng mờ sai quy chuẩn: Lạm dụng vùng che mờ có kích thước quá lớn, thiếu chính xác hoặc làm đè lấn lên các chi tiết của phương tiện.</span>
+                            </label>
+                                <label class="flex items-start gap-2 cursor-pointer group">
                                 <input type="checkbox" value="[B5.1] Vi phạm bản quyền: Dữ liệu hình ảnh không thuộc quyền sở hữu trực tiếp của tài khoản tải lên." class="deny-quick-cb mt-0.5 cursor-pointer accent-red-600">
                                 <span class="text-sm text-gray-700 group-hover:text-black transition leading-snug">[B5.1] Vi phạm bản quyền: Dữ liệu hình ảnh không thuộc quyền sở hữu trực tiếp của tài khoản tải lên.</span>
                             </label>
-                            <label class="flex items-start gap-2 cursor-pointer group">
+                                <label class="flex items-start gap-2 cursor-pointer group">
                                 <input type="checkbox" value="[B5.2] Vi phạm an ninh khu vực: Hình ảnh thu thập tại các khu vực hạn chế, bến bãi nội bộ hoặc tài sản tư nhân chưa được cấp phép." class="deny-quick-cb mt-0.5 cursor-pointer accent-red-600">
                                 <span class="text-sm text-gray-700 group-hover:text-black transition leading-snug">[B5.2] Vi phạm an ninh khu vực: Hình ảnh thu thập tại các khu vực hạn chế, bến bãi nội bộ hoặc tài sản tư nhân chưa được cấp phép.</span>
                             </label>
-                            <label class="flex items-start gap-2 cursor-pointer group">
+                                <label class="flex items-start gap-2 cursor-pointer group">
                                 <input type="checkbox" value="[B5.3] Vi phạm khu vực cấm: Hình ảnh thu thập tại các vị trí an ninh quốc gia hoặc có biển cấm chụp hình." class="deny-quick-cb mt-0.5 cursor-pointer accent-red-600">
                                 <span class="text-sm text-gray-700 group-hover:text-black transition leading-snug">[B5.3] Vi phạm khu vực cấm: Hình ảnh thu thập tại các vị trí an ninh quốc gia hoặc có biển cấm chụp hình.</span>
                             </label>
-                            <label class="flex items-start gap-2 cursor-pointer group">
+                                <label class="flex items-start gap-2 cursor-pointer group">
                                 <input type="checkbox" value="[B5.4] Vi phạm an toàn giao thông: Vị trí tác nghiệp của người chụp gây nguy hiểm hoặc cản trở giao thông." class="deny-quick-cb mt-0.5 cursor-pointer accent-red-600">
                                 <span class="text-sm text-gray-700 group-hover:text-black transition leading-snug">[B5.4] Vi phạm an toàn giao thông: Vị trí tác nghiệp của người chụp gây nguy hiểm hoặc cản trở giao thông.</span>
                             </label>
-<label class="flex items-start gap-2 cursor-pointer group">
+                                <label class="flex items-start gap-2 cursor-pointer group">
     <input type="checkbox" value="Lạm dụng Đánh dấu ảnh này là ảnh tư liệu" class="deny-quick-cb mt-0.5 cursor-pointer accent-red-600">
     <span class="text-sm text-gray-700 group-hover:text-black transition leading-snug">Lạm dụng Đánh dấu ảnh này là ảnh tư liệu (Cố tình bỏ qua kiểm duyệt chất lượng)</span>
 </label>
-
+                            </div>
                         </div>
                     </div>
 
@@ -6940,7 +6947,7 @@ html.theme-dark .ct-icon {
 
     <!-- KHAY CHỨA TOAST Z-INDEX CAO NHẤT -->
     <div id="toast-container" class="fixed left-0 w-full flex flex-col items-center gap-2 pointer-events-none z-[99999]" style="z-index: 99999 !important;"></div>
-<script src="/app.ef1b66733c7e.js"></script>
+<script src="/app.6d15a50f18f1.js"></script>
 </body>
 </html>
 
