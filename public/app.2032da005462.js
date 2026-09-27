@@ -19880,20 +19880,6 @@ const isInfo = app.adminTab === 'info';
 document.querySelectorAll('.deny-quick-cb').forEach(cb => {
     const txt = cb.value;
     const isQualError = txt.includes('B1.3') || txt.includes('B1.4') || txt.includes('B2.1') || txt.includes('B2.2') || txt.includes('B2.3') || txt.includes('B2.4') || txt.includes('B2.5') || txt.includes('B3.1') || txt.includes('B3.2') || txt.includes('B3.4') || txt.includes('B3.5') || txt.includes('B4.2') || txt.includes('B4.3') || txt.includes('B4.4');
-    const isInfoError = txt.includes('B1.1') || txt.includes('B1.2') || txt.includes('B4.1') || txt.includes('B5.1') || txt.includes('B5.2') || txt.includes('B5.3') || txt.includes('B5.4') || txt.includes('li?u');
-    
-    let show = true;
-    if (isQuality && !isQualError) show = false;
-    if (isInfo && !isInfoError) show = false;
-    
-    cb.parentElement.style.display = show ? 'flex' : 'none';
-});
-
-const isQuality = app.adminTab === 'quality';
-const isInfo = app.adminTab === 'info';
-document.querySelectorAll('.deny-quick-cb').forEach(cb => {
-    const txt = cb.value;
-    const isQualError = txt.includes('B1.3') || txt.includes('B1.4') || txt.includes('B2.1') || txt.includes('B2.2') || txt.includes('B2.3') || txt.includes('B2.4') || txt.includes('B2.5') || txt.includes('B3.1') || txt.includes('B3.2') || txt.includes('B3.4') || txt.includes('B3.5') || txt.includes('B4.2') || txt.includes('B4.3') || txt.includes('B4.4');
     const isInfoError = txt.includes('B1.1') || txt.includes('B1.2') || txt.includes('B4.1') || txt.includes('B5.1') || txt.includes('B5.2') || txt.includes('B5.3') || txt.includes('B5.4') || txt.includes('liệu') || txt.includes('li?u');
     
     let show = true;
