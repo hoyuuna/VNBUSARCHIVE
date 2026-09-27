@@ -1,0 +1,5 @@
+User-agent: *
+Disallow: /api/
+Allow: /
+Crawl-delay: 10
+Sitemap: https://api.vnbusarchive.io.vn/sitemap.xml
