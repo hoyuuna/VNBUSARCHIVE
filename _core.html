@@ -1,4 +1,4 @@
-<!-- 
+﻿<!-- 
 ====================================================================================================
 ⚠️ CRITICAL INITIALIZATION PROTOCOL: AGENT READ THIS BEFORE PROCEEDING ⚠️
 **MANDATORY FIRST STEP:** Before responding to the user, answering any questions, or writing any code, you MUST read ALL markdown documents located in the `.agents/` directory (`AGENTS.md`, `js_map.md`, `security.md`).
@@ -2676,6 +2676,11 @@ html.theme-dark .ct-icon {
                                 <input type="checkbox" value="[B5.4] Vi phạm an toàn giao thông: Vị trí tác nghiệp của người chụp gây nguy hiểm hoặc cản trở giao thông." class="deny-quick-cb mt-0.5 cursor-pointer accent-red-600">
                                 <span class="text-sm text-gray-700 group-hover:text-black transition leading-snug">[B5.4] Vi phạm an toàn giao thông: Vị trí tác nghiệp của người chụp gây nguy hiểm hoặc cản trở giao thông.</span>
                             </label>
+<label class="flex items-start gap-2 cursor-pointer group">
+    <input type="checkbox" value="Lạm dụng Đánh dấu ảnh này là ảnh tư liệu" class="deny-quick-cb mt-0.5 cursor-pointer accent-red-600">
+    <span class="text-sm text-gray-700 group-hover:text-black transition leading-snug">Lạm dụng Đánh dấu ảnh này là ảnh tư liệu (Cố tình bỏ qua kiểm duyệt chất lượng)</span>
+</label>
+
                         </div>
                     </div>
 
@@ -4863,10 +4868,23 @@ html.theme-dark .ct-icon {
                                     </div>
                                 </div>
                                 <div class="md:col-span-2">
-                                    <label class="text-xs text-gray-500 font-bold block mb-1.5 uppercase">Ghi chú
-                                        ảnh</label>
-                                    <textarea id="up-note" rows="2" tabindex="7"
-                                        class="w-full border border-gray-300 p-2.5 text-sm rounded-md focus:ring-2 focus:ring-black focus:border-transparent outline-none transition"></textarea>
+                                    <label class="text-xs text-gray-500 font-bold block mb-1.5 uppercase">Ghi chú ảnh</label>
+                                    <textarea id="up-note" rows="2" tabindex="7" class="w-full border border-gray-300 p-2.5 text-sm rounded-md focus:ring-2 focus:ring-black focus:border-transparent outline-none transition"></textarea>
+                                    <p class="text-[11px] text-gray-500 italic mt-1">Note có thể sẽ xuất hiện công khai.</p>
+                                </div>
+                                <div class="md:col-span-2 mt-2">
+                                    <label class="text-xs text-gray-500 font-bold block mb-1.5 uppercase">Note dành cho kiểm duyệt</label>
+                                    <textarea id="up-mod-note" rows="2" tabindex="8" class="w-full border border-gray-300 p-2.5 text-sm rounded-md focus:ring-2 focus:ring-black focus:border-transparent outline-none transition"></textarea>
+                                    <p class="text-[11px] text-gray-500 italic mt-1">Note sẽ chỉ xuất hiện cho kiểm duyệt, không xuất hiện công khai.</p>
+                                </div>
+                                <div class="md:col-span-2 mt-3 bg-gray-50 p-3 rounded-lg border border-gray-200">
+                                    <div class="flex items-center justify-between">
+                                        <label class="text-sm font-bold text-gray-700 cursor-pointer select-none flex-1" for="up-is-documentary">Đánh dấu ảnh này là ảnh tư liệu</label>
+                                        <label class="relative inline-flex items-center cursor-pointer shrink-0 ml-4 self-center">
+                                            <input type="checkbox" id="up-is-documentary" class="sr-only peer">
+                                            <div class="w-11 h-6 bg-gray-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-black"></div>
+                                        </label>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -4892,9 +4910,8 @@ html.theme-dark .ct-icon {
                 </div>
 
                 <div class="flex gap-3 mb-6 overflow-x-auto pb-2">
-                    <button onclick="app.admin.loadTab('photos')" id="adm-tab-photos"
-                        class="px-5 py-2 bg-black text-white font-bold rounded-md text-sm shadow-sm transition whitespace-nowrap">Duyệt
-                        ảnh (<span id="count-photos">0</span>)</button>
+                    <button onclick="app.admin.loadTab('quality')" id="adm-tab-quality" class="hidden px-5 py-2 bg-black text-white font-bold rounded-md text-sm shadow-sm transition whitespace-nowrap">Duyệt chất lượng (<span id="count-quality">0</span>)</button>
+                    <button onclick="app.admin.loadTab('info')" id="adm-tab-info" class="hidden px-5 py-2 bg-white border border-gray-300 text-gray-600 font-bold rounded-md text-sm hover:bg-gray-50 transition whitespace-nowrap">Duyệt thông tin (<span id="count-info">0</span>)</button>
                     <button onclick="app.admin.loadTab('requests')" id="adm-tab-requests"
                         class="px-5 py-2 bg-white border border-gray-300 text-gray-600 font-bold rounded-md text-sm hover:bg-gray-50 transition whitespace-nowrap">Duyệt
                         yêu cầu sửa (<span id="count-requests">0</span>)</button>
@@ -6906,4 +6923,5 @@ html.theme-dark .ct-icon {
     <div id="toast-container" class="fixed left-0 w-full flex flex-col items-center gap-2 pointer-events-none z-[99999]" style="z-index: 99999 !important;"></div>
 </body>
 </html>
+
 

@@ -2031,6 +2031,8 @@ Object.assign(window.app, {
                     };
                     const provinceValue = document.getElementById('up-province')?.value || '';
                     const noteValue = document.getElementById('up-note')?.value || '';
+                    const modNoteValue = document.getElementById('up-mod-note')?.value || '';
+                    const isDocValue = document.getElementById('up-is-documentary')?.checked || false;
                     const bgWebpPromise = new Promise((resolve, reject) => {
                         setTimeout(async () => {
                             try {
@@ -2119,6 +2121,8 @@ Object.assign(window.app, {
                         uploadData.append('meta_location', app.utils.fixUnicode(valLoc));
                         uploadData.append('meta_province', app.utils.fixUnicode(provinceValue));
                         uploadData.append('meta_note', app.utils.fixUnicode(noteValue));
+                        uploadData.append('meta_mod_note', app.utils.fixUnicode(modNoteValue));
+                        uploadData.append('meta_is_documentary', isDocValue ? 'true' : 'false');
                         uploadData.append('meta_taken_at', valDate);
                         uploadData.append('meta_username', username);
                         uploadData.append('meta_camera_model', exifSnapshot.camera);

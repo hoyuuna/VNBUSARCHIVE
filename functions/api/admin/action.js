@@ -57,7 +57,7 @@ export async function onRequestPost(context) {
         
         const sbAdmin = env.SUPABASE_SERVICE_ROLE_KEY ? createClient(env.SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY) : sb;
         
-        const { data: profiles } = await sbAdmin.from('profiles').select('role').eq('id', user.id);
+        const { data: profiles } = await sbAdmin.from('profiles').select('role, subroles').eq('id', user.id);
         
         if (!profiles || profiles.length === 0 || !['admin', 'manager'].includes(profiles[0].role)) {
             return new Response(JSON.stringify({ error: 'Forbidden: Admin access required' }), { status: 403 });
@@ -82,56 +82,47 @@ export async function onRequestPost(context) {
         let finalDenialReason = reason || 'Từ chối ảnh';
 
         const userRole = profiles[0].role;
-        if (userRole === 'admin') {
-            if (photo.status !== 'pending') {
-                return new Response(JSON.stringify({ error: 'Quyền bị từ chối: Chỉ Manager mới có quyền ghi đè (duyệt lại/từ chối lại) ảnh đã có kết quả.' }), { status: 403 });
-            }
+        const subroles = profiles[0].subroles || [];
+        const isManager = userRole === 'manager';
+        const hasQualityAud = isManager || subroles.includes('quality_aud');
+
+        if (photo.status === 'pending_quality' && !hasQualityAud) {
+            return new Response(JSON.stringify({ error: 'Quyền bị từ chối: Cần role quality_aud để duyệt chất lượng.' }), { status: 403 });
         }
 
-        // Ảnh đã được duyệt/từ chối thì được phép Ghi đè (override) bằng 1 click
         if (photo.status === 'approved' || photo.status === 'denied') {
+            if (!isManager) {
+                return new Response(JSON.stringify({ error: 'Quyền bị từ chối: Chỉ Manager mới có quyền ghi đè (duyệt lại/từ chối lại) ảnh đã có kết quả.' }), { status: 403 });
+            }
             if (action === 'approve') isFinalApprove = true;
             if (action === 'deny') {
                 isFinalDeny = true;
                 finalDenialReason = reason || 'Admin/Manager ghi đè: Từ chối ảnh';
             }
-            
-            // Ghi nhận review của người thực hiện ghi đè
             await sbAdmin.from('photo_reviews').upsert({
                 photo_id: photoId, admin_id: user.id, action: action, reason: reason || null
             }, { onConflict: 'photo_id,admin_id' });
-            
-            // Nếu ghi đè, có thể giữ nguyên progress cũ hoặc set thành 1/1 (tuỳ chọn)
-            newProgress = photo.review_progress;
-            newReviewerCount = photo.reviewer_count;
         } else {
-            // Ghi nhận review
+            // New logic: single approval per phase
             await sbAdmin.from('photo_reviews').upsert({
                 photo_id: photoId, admin_id: user.id, action: action, reason: reason || null
             }, { onConflict: 'photo_id,admin_id' });
 
-            // Đếm số lượng review
-            const { data: rawReviews } = await sbAdmin.from('photo_reviews').select('action, reason, admin_id').eq('photo_id', photoId);
-            
-            // Lọc trùng lặp admin_id phòng trường hợp double click nếu database chưa set unique key
-            const uniqueReviewsMap = new Map();
-            if (rawReviews) {
-                rawReviews.forEach(r => uniqueReviewsMap.set(r.admin_id, r));
-            }
-            const reviews = Array.from(uniqueReviewsMap.values());
-            
-            const approves = reviews.filter(r => r.action === 'approve').length;
-            const denies = reviews.filter(r => r.action === 'deny').length;
-
-            if (approves >= 2) isFinalApprove = true;
-            else if (denies >= 2) {
-                isFinalDeny = true;
-                const denyReviews = reviews.filter(r => r.action === 'deny');
-                finalDenialReason = denyReviews.map((r, i) => `#${i + 1}: ${r.reason || 'Không có lý do'}`).join('\n');
-            } else if (approves === 1 && denies === 1) {
-                newReviewerCount = 2; needsThird = true; newProgress = '2/2 (+1)';
-            } else {
-                newReviewerCount = approves + denies; newProgress = `${newReviewerCount}/2`;
+            if (photo.status === 'pending_quality') {
+                if (action === 'approve') {
+                    // Chuyển sang duyệt thông tin
+                    const { error: qErr } = await sbAdmin.from('photos').update({ status: 'pending_info', review_progress: 'Passed Quality' }).eq('id', photoId);
+                    if (qErr) return new Response(JSON.stringify({ error: `Lỗi cập nhật trạng thái: ${qErr.message}` }), { status: 500 });
+                    return new Response(JSON.stringify({ success: true }), { status: 200, headers: { 'Content-Type': 'application/json' } });
+                } else if (action === 'deny') {
+                    isFinalDeny = true;
+                }
+            } else if (photo.status === 'pending_info' || photo.status === 'pending') {
+                if (action === 'approve') {
+                    isFinalApprove = true;
+                } else if (action === 'deny') {
+                    isFinalDeny = true;
+                }
             }
         }
 
@@ -434,7 +425,47 @@ export async function onRequestPost(context) {
             });
         }
 
-        return new Response(JSON.stringify({ success: true, isFinal: isFinalApprove || isFinalDeny }), {
+        
+            // Reputation Points Logic
+            const uploaderId = photo.uploader_id;
+            if (uploaderId && (isFinalApprove || isFinalDeny)) {
+                const { data: uploader } = await sbAdmin.from('profiles').select('reputation_score').eq('id', uploaderId).single();
+                let currentScore = (uploader && uploader.reputation_score !== null) ? uploader.reputation_score : 100;
+                let change = 0;
+                
+                if (isFinalApprove) {
+                    change = photo.is_documentary ? 6 : 3;
+                    if (body.exif_perfect) change += 1;
+                } else if (isFinalDeny) {
+                    let penalty = 0;
+                    if (finalDenialReason && finalDenialReason.includes('tư liệu')) {
+                        penalty += 15;
+                    }
+                    const codes = finalDenialReason ? (finalDenialReason.match(/B\d\.\d|C\d/g) || []) : [];
+                    for (const code of codes) {
+                        if (['B1.4', 'B2.3', 'C1', 'C2', 'C3'].includes(code)) penalty += 3;
+                        else if (['B2.1', 'B3.1', 'B4.3', 'B2.2', 'B2.4', 'B2.5', 'B3.4', 'B3.5', 'B4.2', 'B4.4'].includes(code)) penalty += 5;
+                        else if (['B1.2', 'B3.2', 'B1.3', 'B1.1', 'B4.1', 'B5.3'].includes(code)) penalty += 10;
+                        else if (['B5.1', 'B5.2', 'B5.4'].includes(code)) penalty += 15;
+                    }
+                    if (penalty === 0 && codes.length === 0) penalty = 5;
+                    if (penalty > 15) penalty = 15;
+                    change = -penalty;
+                }
+                
+                let newScore = currentScore + change;
+                if (newScore > 220) newScore = 220;
+                
+                await sbAdmin.from('profiles').update({ reputation_score: newScore }).eq('id', uploaderId);
+                await sbAdmin.from('reputation_logs').insert({
+                    user_id: uploaderId,
+                    photo_id: photoId,
+                    change_amount: change,
+                    reason: isFinalApprove ? (photo.is_documentary ? 'Ảnh tư liệu duyệt thành công' : 'Ảnh duyệt thành công') : finalDenialReason
+                });
+            }
+
+            return new Response(JSON.stringify({ success: true, isFinal: isFinalApprove || isFinalDeny }), {
             headers: { 'Content-Type': 'application/json' }
         });
         
