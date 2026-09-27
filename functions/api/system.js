@@ -23,14 +23,14 @@ function validateOriginAndReferer(request) {
 
 function handleConfig(request, env) {
     if (!validateOriginAndReferer(request)) {
-        return new Response(JSON.stringify({ error: 'Forbidden - Domain không h?p l?' }), { status: 403, headers: { 'Content-Type': 'application/json' }});
+        return new Response(JSON.stringify({ error: 'Forbidden - Domain khï¿½ng h?p l?' }), { status: 403, headers: { 'Content-Type': 'application/json' }});
     }
 
     return new Response(JSON.stringify({
         FIREBASE_URL: env.FIREBASE_URL,
         SUPABASE_URL: env.SUPABASE_URL,
         SUPABASE_KEY: env.SUPABASE_KEY
-    }), { status: 200, headers: { 'Content-Type': 'application/json' }});
+    }), { status: 200, headers: { 'Content-Type': 'application/json', 'Cache-Control': 'public, max-age=86400, s-maxage=86400' }});
 }
 
 async function handleQrLoginGenerate(request, env) {
