@@ -1,4 +1,4 @@
-// Extracted to page_help.js
+﻿// Extracted to page_help.js
 Object.assign(window.app, {
     newsboard: {
             data: [],

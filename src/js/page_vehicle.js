@@ -1,4 +1,4 @@
-// Extracted to page_vehicle.js
+﻿// Extracted to page_vehicle.js
 Object.assign(window.app, {
     vehicle: {
                 currentHistoryData: [],

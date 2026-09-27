@@ -1,4 +1,4 @@
-// Extracted to page_upload.js
+﻿// Extracted to page_upload.js
 Object.assign(window.app, {
     upload: {
                  currentQuota: { limit: null, count: 0 },

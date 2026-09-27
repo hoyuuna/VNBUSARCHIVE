@@ -1,4 +1,4 @@
-// Extracted to page_leaderboard.js
+﻿// Extracted to page_leaderboard.js
 Object.assign(window.app, {
     topUploaders: {},
 

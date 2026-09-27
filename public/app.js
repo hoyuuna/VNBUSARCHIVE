@@ -1,6 +1,6 @@
 
 /* --- MODULE: 00_core.js --- */
-window.app = window.app || {};
+﻿window.app = window.app || {};
 window.addEventListener('unhandledrejection', function(event) {
     if (event.reason && event.reason.message && event.reason.message.includes("Unexpected token '<'")) {
         if (window.app && window.app.toast) {
@@ -3541,7 +3541,7 @@ cleanupState: () => {
                     let profileSelect = (filterType === 'uploader' || (filterType === 'advanced' && (app.search.advancedFilters || []).some(f => f.field === 'uploader'))) 
                         ? 'profiles!inner(id, username, role, subroles, ban_status)' 
                         : 'profiles(id, username, role, subroles, ban_status)';
-                    let photoQuery = window.sb.from('photos').select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, borrowed_route, camera_model, location, status, denial_reason, views, ${profileSelect}, vehicles${needsModelJoin ? '!inner' : ''}(model)`, { count: 'exact' }).eq('status', 'approved');
+                    let photoQuery = window.sb.from('photos').select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, borrowed_route, camera_model, location, status, denial_reason, is_documentary, views, ${profileSelect}, vehicles${needsModelJoin ? '!inner' : ''}(model)`, { count: 'exact' }).eq('status', 'approved');
                     photoQuery = app.preference.applyFilter(photoQuery);
                     if (filterType === 'route') {
                         const prefix = prefixToUrl;
@@ -3655,7 +3655,7 @@ cleanupState: () => {
                     let finalAvatar = user.user_metadata?.avatar_url || user.user_metadata?.picture || null;
                     let currentAvatar = finalAvatar;
                     try {
-                        const { data: profile } = await window.sb.from('profiles').select('username, avatar_url, role, preferences, ban_status').eq('id', user.id).maybeSingle();
+                        const { data: profile } = await window.sb.from('profiles').select('username, avatar_url, role, subroles, preferences, ban_status').eq('id', user.id).maybeSingle();
                         if (profile) currentAvatar = profile.avatar_url || finalAvatar;
                         if (profile && profile.ban_status) {
                             let banInfo = null;
@@ -3720,6 +3720,7 @@ cleanupState: () => {
                         } else {
                             app.username = profile.username;
                             app.role = profile.role || 'user';
+                            app.subroles = profile.subroles || [];
                             if (app.role === 'manager') {
                                 sessionStorage.setItem('VNBA_SESS_AUTH', 'active');
                             } else {
@@ -3812,7 +3813,7 @@ dropdown.innerHTML = `
 });
 
 /* --- MODULE: 01_router.js --- */
-// Extracted to 01_router.js
+﻿// Extracted to 01_router.js
 Object.assign(window.app, {
     init: async () => {
         window.onpopstate = () => app.handleRoute();
@@ -4251,7 +4252,7 @@ window.addEventListener('pointerdown', checkIpBanLazy, { once: true });
 window.addEventListener('keydown', checkIpBanLazy, { once: true });
 
 /* --- MODULE: 02_settings.js --- */
-// Extracted to 02_settings.js
+﻿// Extracted to 02_settings.js
 Object.assign(window.app, {
     notifications: { init: ()=>{}, add: async ()=>{} },
 
@@ -4796,7 +4797,7 @@ grid.innerHTML = tiers.map(tier => {
 });
 
 /* --- MODULE: 03_auth.js --- */
-// Extracted to 03_auth.js
+﻿// Extracted to 03_auth.js
 Object.assign(window.app, {
     auth: {
                 mode: 'login',
@@ -6272,7 +6273,7 @@ Object.assign(window.app, {
                     if (!topPhotos || topPhotos.length === 0) {
                         let topQuery = window.sb
                             .from('photos')
-                            .select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, borrowed_route, camera_model, location, status, denial_reason, views, profiles(id, username, role, subroles, ban_status), vehicles(model)`)
+                            .select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, borrowed_route, camera_model, location, status, denial_reason, is_documentary, views, profiles(id, username, role, subroles, ban_status), vehicles(model)`)
                             .eq('status', 'approved')
                             .order('views', { ascending: false, nullsFirst: false })
                             .limit(5);
@@ -6337,7 +6338,7 @@ Object.assign(window.app, {
                     const homeSize = 20;
                     let gridQuery = window.sb
                         .from('photos')
-                        .select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, borrowed_route, camera_model, location, status, denial_reason, views, profiles(id, username, role, subroles, ban_status), vehicles(model)`, { count: 'exact' })
+                        .select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, borrowed_route, camera_model, location, status, denial_reason, is_documentary, views, profiles(id, username, role, subroles, ban_status), vehicles(model)`, { count: 'exact' })
                         .eq('status', 'approved')
                         .order('created_at', { ascending: false })
                         .range(0, homeSize - 1);
@@ -6486,7 +6487,7 @@ Object.assign(window.app, {
                     try {
                         const filterType = app.currentFilter;
                         const profileSelect = (filterType === 'uploader') ? 'profiles!inner(id, username, role, subroles, ban_status)' : 'profiles(id, username, role, subroles, ban_status)';
-                        let sQuery = window.sb.from('photos').select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, borrowed_route, camera_model, location, status, denial_reason, views, ${profileSelect}, vehicles${filterType === 'model' ? '!inner' : ''}(model)`).eq('status', 'approved');
+                        let sQuery = window.sb.from('photos').select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, borrowed_route, camera_model, location, status, denial_reason, is_documentary, views, ${profileSelect}, vehicles${filterType === 'model' ? '!inner' : ''}(model)`).eq('status', 'approved');
                         sQuery = app.preference.applyFilter(sQuery);
                         const query = (document.getElementById('page-search-input') || document.getElementById('search-input'))?.value.trim() || '';
                         const searchWords = query.toLowerCase().split(/\s+/).filter(w => w.length > 0);
@@ -6577,7 +6578,7 @@ Object.assign(window.app, {
                     try {
                         let moreQuery = window.sb
                             .from('photos')
-                            .select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, borrowed_route, camera_model, location, status, denial_reason, views, profiles(id, username, role, subroles, ban_status), vehicles(model)`)
+                            .select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, borrowed_route, camera_model, location, status, denial_reason, is_documentary, views, profiles(id, username, role, subroles, ban_status), vehicles(model)`)
                             .eq('status', 'approved')
                             .order('created_at', { ascending: false })
                             .range(fromRow, toRow);
@@ -7438,7 +7439,7 @@ Object.assign(window.app, {
                     if (fbCommentsWrapper) fbCommentsWrapper.innerHTML = '';
                     let { data: photo } = await window.sb
                         .from('photos')
-                        .select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, borrowed_route, camera_model, location, status, denial_reason, audit_date, views, review_progress, reviewer_count, profiles(id, username, avatar_url, role, subroles, ban_status, preferences), vehicles(model)`)
+                        .select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, borrowed_route, camera_model, location, status, denial_reason, is_documentary, audit_date, views, review_progress, reviewer_count, profiles(id, username, avatar_url, role, subroles, ban_status, preferences), vehicles(model)`)
                         .eq('id', photoId)
                         .single();
                     if (!photo && app.user) {
@@ -8090,7 +8091,7 @@ Object.assign(window.app, {
                         }
                         const historyPlates = historyRes.data ? historyRes.data.map(h => h.plate).filter(Boolean) : [];
                         const allPlatesToFetch = [...new Set([plate, ...historyPlates])];
-                        let pQuery = window.sb.from('photos').select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, borrowed_route, camera_model, location, status, denial_reason, views, profiles(id, username, role, subroles, ban_status), vehicles(model)`)
+                        let pQuery = window.sb.from('photos').select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, borrowed_route, camera_model, location, status, denial_reason, is_documentary, views, profiles(id, username, role, subroles, ban_status), vehicles(model)`)
                                 .in('license_plate', allPlatesToFetch)
                                 .eq('status', 'approved');
                         pQuery = app.preference.applyFilter(pQuery);
@@ -8732,7 +8733,7 @@ let currentRouteProvName = null;
                         app.currentOperatorResolved = resolvedOperator;
                         app.views.operatorCurrentPage = 1;
                         const opSize = app.views.OPERATOR_PAGE_SIZE || 12;
-                        let pQuery = window.sb.from('photos').select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, borrowed_route, camera_model, location, status, denial_reason, views, profiles(id, username, role, subroles, ban_status), vehicles(model)`, { count: 'exact' })
+                        let pQuery = window.sb.from('photos').select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, borrowed_route, camera_model, location, status, denial_reason, is_documentary, views, profiles(id, username, role, subroles, ban_status), vehicles(model)`, { count: 'exact' })
                             .eq('status', 'approved')
                             .ilike('operator', resolvedOperator)
                             .or('route_no.neq."Dừng hoạt động",route_no.is.null')
@@ -8786,7 +8787,7 @@ let currentRouteProvName = null;
                     try {
                         const childPhotosHtml = [];
                         for (const child of pageChildOps) {
-                            let cQuery = window.sb.from('photos').select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, borrowed_route, camera_model, location, status, denial_reason, views, profiles(id, username, role, subroles, ban_status), vehicles(model)`)
+                            let cQuery = window.sb.from('photos').select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, borrowed_route, camera_model, location, status, denial_reason, is_documentary, views, profiles(id, username, role, subroles, ban_status), vehicles(model)`)
                                 .eq('status', 'approved')
                                 .ilike('operator', child.operator_name)
                                 .or('route_no.neq."Dừng hoạt động",route_no.is.null')
@@ -8860,7 +8861,7 @@ let currentRouteProvName = null;
                     grid.style.opacity = '0.5';
                     grid.style.pointerEvents = 'none';
                     try {
-                        let pQuery = window.sb.from('photos').select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, borrowed_route, camera_model, location, status, denial_reason, views, profiles(id, username, role, subroles, ban_status), vehicles(model)`)
+                        let pQuery = window.sb.from('photos').select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, borrowed_route, camera_model, location, status, denial_reason, is_documentary, views, profiles(id, username, role, subroles, ban_status), vehicles(model)`)
                             .eq('status', 'approved')
                             .ilike('operator', app.currentOperatorResolved)
                             .or('route_no.neq."Dừng hoạt động",route_no.is.null')
@@ -8912,7 +8913,7 @@ let currentRouteProvName = null;
                     grid.style.opacity = '0.5';
                     grid.style.pointerEvents = 'none';
                     try {
-                        let pQuery = window.sb.from('photos').select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, borrowed_route, camera_model, location, status, denial_reason, views, profiles(id, username, role, subroles, ban_status), vehicles!inner(model)`)
+                        let pQuery = window.sb.from('photos').select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, borrowed_route, camera_model, location, status, denial_reason, is_documentary, views, profiles(id, username, role, subroles, ban_status), vehicles!inner(model)`)
                             .eq('status', 'approved')
                             .eq('vehicles.model', app.model.currentModel)
                             .order('taken_at', { ascending: false, nullsFirst: false })
@@ -8963,7 +8964,7 @@ let currentRouteProvName = null;
                     grid.style.opacity = '0.5';
                     grid.style.pointerEvents = 'none';
                     try {
-                        let pQuery = window.sb.from('photos').select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, borrowed_route, camera_model, location, status, denial_reason, views, profiles(id, username, role, subroles, ban_status), vehicles(model)`)
+                        let pQuery = window.sb.from('photos').select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, borrowed_route, camera_model, location, status, denial_reason, is_documentary, views, profiles(id, username, role, subroles, ban_status), vehicles(model)`)
                             .eq('status', 'approved')
                             .eq('route_no', app.route.currentRoute)
                             .order('taken_at', { ascending: false, nullsFirst: false })
@@ -9096,12 +9097,12 @@ app.feed.renderProgressTracker = function(photo, queueCount) {
     let qStatus = 'gray', iStatus = 'gray', pStatus = 'gray';
     let qText = 'Đang chờ kiểm duyệt ảnh...', iText = 'Đang chờ kiểm duyệt thông tin...', pText = 'Ảnh được công khai!';
     
-    if (photo.status.startsWith('pending') || photo.status === 'pending_quality') {
-        qStatus = 'yellow';
-    } else if (photo.status === 'pending_info') {
+    if (photo.status === 'pending_info') {
         qStatus = 'green';
-        qText = 'Kiểm duyệt ảnh hoàn tất';
+        qText = isDoc ? 'Miễn kiểm duyệt ảnh (Ảnh tư liệu)' : 'Kiểm duyệt ảnh hoàn tất';
         iStatus = 'yellow';
+    } else if (photo.status === 'pending' || photo.status === 'pending_quality') {
+        qStatus = 'yellow';
     } else if (isDenied) {
         qStatus = 'red';
         qText = 'Ảnh bị từ chối';
@@ -9155,7 +9156,7 @@ app.feed.renderProgressTracker = function(photo, queueCount) {
 };
 
 /* --- MODULE: page_search.js --- */
-// Extracted to page_search.js
+﻿// Extracted to page_search.js
 Object.assign(window.app, {
     search: {
                 advancedFilters: [],
@@ -9852,7 +9853,7 @@ Object.assign(window.app, {
 });
 
 /* --- MODULE: page_leaderboard.js --- */
-// Extracted to page_leaderboard.js
+﻿// Extracted to page_leaderboard.js
 Object.assign(window.app, {
     topUploaders: {},
 
@@ -10093,7 +10094,7 @@ Object.assign(window.app, {
 });
 
 /* --- MODULE: page_help.js --- */
-// Extracted to page_help.js
+﻿// Extracted to page_help.js
 Object.assign(window.app, {
     newsboard: {
             data: [],
@@ -10921,7 +10922,7 @@ Object.assign(window.app, {
 });
 
 /* --- MODULE: page_reference.js --- */
-// Extracted to page_reference.js
+﻿// Extracted to page_reference.js
 Object.assign(window.app, {
     operator: {
                 modelStatsData: [],
@@ -11284,7 +11285,7 @@ Object.assign(window.app, {
                         document.getElementById('mdl-stat-views').innerText = app.utils.formatCompact(totalViews);
                         app.views.modelCurrentPage = 1;
                         const mdlSize = app.views.MODEL_PAGE_SIZE || 12;
-                        let pQuery = window.sb.from('photos').select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, borrowed_route, camera_model, location, status, denial_reason, views, profiles(id, username, role, subroles, ban_status), vehicles!inner(model)`, { count: 'exact' })
+                        let pQuery = window.sb.from('photos').select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, borrowed_route, camera_model, location, status, denial_reason, is_documentary, views, profiles(id, username, role, subroles, ban_status), vehicles!inner(model)`, { count: 'exact' })
                             .eq('status', 'approved')
                             .eq('vehicles.model', modelName)
                             .order('taken_at', { ascending: false, nullsFirst: false })
@@ -11592,7 +11593,7 @@ if (!decodedProvince || decodedProvince.trim() === '') {
                     }
                     
                     try {
-                        let pQuery = window.sb.from('photos').select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, borrowed_route, camera_model, location, status, denial_reason, views, profiles(id, username, role, subroles, ban_status), vehicles(model)`)
+                        let pQuery = window.sb.from('photos').select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, borrowed_route, camera_model, location, status, denial_reason, is_documentary, views, profiles(id, username, role, subroles, ban_status), vehicles(model)`)
                             .eq('status', 'approved')
                             .eq('route_no', decodedRoute);
                             
@@ -12059,7 +12060,7 @@ window.app.views.selectRouteIcon = function(val, label) {
 };
 
 /* --- MODULE: page_upload.js --- */
-// Extracted to page_upload.js
+﻿// Extracted to page_upload.js
 Object.assign(window.app, {
     upload: {
                  currentQuota: { limit: null, count: 0 },
@@ -15393,7 +15394,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 /* --- MODULE: page_photo.js --- */
-// Extracted to page_photo.js
+﻿// Extracted to page_photo.js
 Object.assign(window.app, {
     photo: {
                 downloadImage: async (e) => {
@@ -16195,7 +16196,7 @@ Object.assign(window.app, {
 });
 
 /* --- MODULE: page_vehicle.js --- */
-// Extracted to page_vehicle.js
+﻿// Extracted to page_vehicle.js
 Object.assign(window.app, {
     vehicle: {
                 currentHistoryData: [],
@@ -16763,7 +16764,7 @@ Object.assign(window.app, {
 });
 
 /* --- MODULE: page_admin.js --- */
-// Extracted to page_admin.js
+﻿// Extracted to page_admin.js
 Object.assign(window.app, {
     admin: {
                 adminInterval: null,
@@ -17647,7 +17648,7 @@ Object.assign(window.app, {
                 loadTab: async (tab = 'photos', forceReload = true, preserveScroll = false) => {
                     const isManager = app.role === 'manager';
                     const isAdmin = app.role === 'admin';
-                    const hasQualityAud = app.user && app.user.subroles && app.user.subroles.includes('quality_aud');
+                    const hasQualityAud = app.subroles && app.subroles.includes('quality_aud');
                     const canSeeQuality = isManager || (isAdmin && hasQualityAud);
                     const canSeeInfo = isManager || (isAdmin && !hasQualityAud);
 
@@ -20871,7 +20872,7 @@ app.ui.showDenyPrompt("Từ chối ảnh", (reason) => {
 
 
 /* --- MODULE: page_map.js --- */
-window.app = window.app || {};
+﻿window.app = window.app || {};
 
 app.map = {
     instance: null,

@@ -1,4 +1,4 @@
-window.app = window.app || {};
+﻿window.app = window.app || {};
 window.addEventListener('unhandledrejection', function(event) {
     if (event.reason && event.reason.message && event.reason.message.includes("Unexpected token '<'")) {
         if (window.app && window.app.toast) {
@@ -3539,7 +3539,7 @@ cleanupState: () => {
                     let profileSelect = (filterType === 'uploader' || (filterType === 'advanced' && (app.search.advancedFilters || []).some(f => f.field === 'uploader'))) 
                         ? 'profiles!inner(id, username, role, subroles, ban_status)' 
                         : 'profiles(id, username, role, subroles, ban_status)';
-                    let photoQuery = window.sb.from('photos').select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, borrowed_route, camera_model, location, status, denial_reason, views, ${profileSelect}, vehicles${needsModelJoin ? '!inner' : ''}(model)`, { count: 'exact' }).eq('status', 'approved');
+                    let photoQuery = window.sb.from('photos').select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, borrowed_route, camera_model, location, status, denial_reason, is_documentary, views, ${profileSelect}, vehicles${needsModelJoin ? '!inner' : ''}(model)`, { count: 'exact' }).eq('status', 'approved');
                     photoQuery = app.preference.applyFilter(photoQuery);
                     if (filterType === 'route') {
                         const prefix = prefixToUrl;
@@ -3653,7 +3653,7 @@ cleanupState: () => {
                     let finalAvatar = user.user_metadata?.avatar_url || user.user_metadata?.picture || null;
                     let currentAvatar = finalAvatar;
                     try {
-                        const { data: profile } = await window.sb.from('profiles').select('username, avatar_url, role, preferences, ban_status').eq('id', user.id).maybeSingle();
+                        const { data: profile } = await window.sb.from('profiles').select('username, avatar_url, role, subroles, preferences, ban_status').eq('id', user.id).maybeSingle();
                         if (profile) currentAvatar = profile.avatar_url || finalAvatar;
                         if (profile && profile.ban_status) {
                             let banInfo = null;
@@ -3718,6 +3718,7 @@ cleanupState: () => {
                         } else {
                             app.username = profile.username;
                             app.role = profile.role || 'user';
+                            app.subroles = profile.subroles || [];
                             if (app.role === 'manager') {
                                 sessionStorage.setItem('VNBA_SESS_AUTH', 'active');
                             } else {

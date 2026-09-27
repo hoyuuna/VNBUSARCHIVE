@@ -1,4 +1,4 @@
-// Extracted to 03_auth.js
+﻿// Extracted to 03_auth.js
 Object.assign(window.app, {
     auth: {
                 mode: 'login',

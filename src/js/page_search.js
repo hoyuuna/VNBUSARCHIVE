@@ -1,4 +1,4 @@
-// Extracted to page_search.js
+﻿// Extracted to page_search.js
 Object.assign(window.app, {
     search: {
                 advancedFilters: [],

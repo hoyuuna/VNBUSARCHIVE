@@ -1,4 +1,4 @@
-// Extracted to 01_router.js
+﻿// Extracted to 01_router.js
 Object.assign(window.app, {
     init: async () => {
         window.onpopstate = () => app.handleRoute();

@@ -1,4 +1,4 @@
-// Extracted to page_admin.js
+﻿// Extracted to page_admin.js
 Object.assign(window.app, {
     admin: {
                 adminInterval: null,
@@ -882,7 +882,7 @@ Object.assign(window.app, {
                 loadTab: async (tab = 'photos', forceReload = true, preserveScroll = false) => {
                     const isManager = app.role === 'manager';
                     const isAdmin = app.role === 'admin';
-                    const hasQualityAud = app.user && app.user.subroles && app.user.subroles.includes('quality_aud');
+                    const hasQualityAud = app.subroles && app.subroles.includes('quality_aud');
                     const canSeeQuality = isManager || (isAdmin && hasQualityAud);
                     const canSeeInfo = isManager || (isAdmin && !hasQualityAud);
 
