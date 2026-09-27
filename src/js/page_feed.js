@@ -1,4 +1,4 @@
-// Extracted to page_feed.js
+﻿// Extracted to page_feed.js
 Object.assign(window.app, {
     views: {
                 currentProfileSort: 'newest',
@@ -1450,8 +1450,8 @@ Object.assign(window.app, {
                             app.ui.showAlert("Bạn không có quyền xem ảnh bị từ chối này.");
                             return app.views.loadHome();
                         }
-                        document.getElementById('denial-reason-box').classList.remove('hidden');
-                        document.getElementById('denial-reason-text').innerText = photo.denial_reason || 'Không rõ lý do';
+                        // removed
+                        // removed
                         if (photo.audit_date && photo.url !== 'https://cdn.vnbusarchive.io.vn/file/daonguyenthanhnhan') {
                             const auditDate = new Date(photo.audit_date);
                             auditDate.setDate(auditDate.getDate() + 7);

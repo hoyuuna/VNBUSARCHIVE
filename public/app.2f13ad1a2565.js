@@ -6048,7 +6048,7 @@ changePassword: async () => {
 });
 
 /* --- MODULE: page_feed.js --- */
-// Extracted to page_feed.js
+﻿// Extracted to page_feed.js
 Object.assign(window.app, {
     views: {
                 currentProfileSort: 'newest',
@@ -7500,8 +7500,8 @@ Object.assign(window.app, {
                             app.ui.showAlert("Bạn không có quyền xem ảnh bị từ chối này.");
                             return app.views.loadHome();
                         }
-                        document.getElementById('denial-reason-box').classList.remove('hidden');
-                        document.getElementById('denial-reason-text').innerText = photo.denial_reason || 'Không rõ lý do';
+                        // removed
+                        // removed
                         if (photo.audit_date && photo.url !== 'https://cdn.vnbusarchive.io.vn/file/daonguyenthanhnhan') {
                             const auditDate = new Date(photo.audit_date);
                             auditDate.setDate(auditDate.getDate() + 7);
@@ -20300,7 +20300,7 @@ if (cbQuality) newSubroles.push('quality_aud');
                     document.querySelectorAll('.deny-quick-cb').forEach(cb => {
                         const txt = cb.value;
                         const isQualError = txt.includes('B1.3') || txt.includes('B1.4') || txt.includes('B2.1') || txt.includes('B2.2') || txt.includes('B2.3') || txt.includes('B2.4') || txt.includes('B2.5') || txt.includes('B3.1') || txt.includes('B3.2') || txt.includes('B3.4') || txt.includes('B3.5') || txt.includes('B4.2') || txt.includes('B4.3') || txt.includes('B4.4');
-                        const isInfoError = txt.includes('B1.1') || txt.includes('B1.2') || txt.includes('B4.1') || txt.includes('B5.1') || txt.includes('B5.2') || txt.includes('B5.3') || txt.includes('B5.4') || txt.includes('tư liệu') || txt.includes('tu lieu') || txt.includes('liệu') || txt.includes('li?u');
+                        const isInfoError = txt.includes('B1.1') || txt.includes('B1.2') || txt.includes('B4.1') || txt.includes('B4.2') || txt.includes('B5.1') || txt.includes('B5.2') || txt.includes('B5.3') || txt.includes('B5.4') || txt.includes('tư liệu') || txt.includes('tu lieu') || txt.includes('liệu') || txt.includes('li?u');
                         
                         let show = true;
                         if (isQuality && !isQualError) show = false;

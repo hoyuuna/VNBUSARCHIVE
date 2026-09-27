@@ -1942,7 +1942,7 @@ html.theme-dark .ct-icon {
             if (stored === 'system') {
                 theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
             }
-            document.write('<link rel="stylesheet" href="/css/' + theme + '.css?v=1790521918446" id="theme-css">');
+            document.write('<link rel="stylesheet" href="/css/' + theme + '.css?v=1790522586824" id="theme-css">');
             document.documentElement.classList.add('theme-' + theme);
             document.documentElement.style.backgroundColor = theme === 'dark' ? '#18181b' : '#fdfcf8';
         })();
@@ -2670,6 +2670,10 @@ html.theme-dark .ct-icon {
                                 <label class="flex items-start gap-2 cursor-pointer group">
                                 <input type="checkbox" value="[B4.1] Lỗi định danh phương tiện: Biển kiểm soát bị mờ, lóa hoặc không thể nhận diện bằng mắt thường." class="deny-quick-cb mt-0.5 cursor-pointer accent-red-600">
                                 <span class="text-sm text-gray-700 group-hover:text-black transition leading-snug">[B4.1] Lỗi định danh phương tiện: Biển kiểm soát bị mờ, lóa hoặc không thể nhận diện bằng mắt thường.</span>
+                            </label>
+                                <label class="flex items-start gap-2 cursor-pointer group">
+                                <input type="checkbox" value="[B4.2] Vi phạm quyền riêng tư: Chưa thực hiện che chắn / làm mờ khuôn mặt của tài xế hoặc hành khách." class="deny-quick-cb mt-0.5 cursor-pointer accent-red-600">
+                                <span class="text-sm text-gray-700 group-hover:text-black transition leading-snug">[B4.2] Vi phạm quyền riêng tư: Chưa thực hiện che chắn / làm mờ khuôn mặt của tài xế hoặc hành khách.</span>
                             </label>
                                 <label class="flex items-start gap-2 cursor-pointer group">
                                 <input type="checkbox" value="[B4.3] Xử lý vùng mờ sai quy chuẩn: Lạm dụng vùng che mờ có kích thước quá lớn, thiếu chính xác hoặc làm đè lấn lên các chi tiết của phương tiện." class="deny-quick-cb mt-0.5 cursor-pointer accent-red-600">
@@ -3574,33 +3578,6 @@ html.theme-dark .ct-icon {
                             </div>
                         </div>
 
-                        <div id="denial-reason-box"
-                            class="hidden bg-red-50 p-4 rounded-md border border-red-200 mt-4 mb-6 shadow-sm">
-                            <div class="flex items-center gap-2 text-red-700 font-bold text-sm mb-1">
-                                <i class="fa-solid fa-circle-exclamation text-lg"></i>
-                                <span>Lý do từ chối:</span>
-                            </div>
-                            <div id="denial-reason-text" class="text-red-800 text-sm ml-6 mb-3 whitespace-pre-wrap"></div>
-
-                            <!-- Thêm dòng chữ mới vào đây -->
-                            <p class="text-xs font-semibold text-red-700 ml-6 mb-1.5">
-                                Không sao cả, bạn thử lại với một bức ảnh khác chất lượng hơn nhé! Cảm ơn đóng góp của bạn.
-                            </p>
-
-                            <p class="text-xs text-red-600 ml-6">
-                                Bạn có thể tham khảo <a
-                                    href="/ar" class="font-bold underline hover:text-red-800">Quy định kiểm duyệt</a> tại đây. Nếu cần giải thích thêm hoặc khiếu nại, hãy <a href="javascript:void(0)" onclick="app.utils.navigate('/contact')"
-                                    class="font-bold underline hover:text-red-800">Gửi yêu cầu hỗ trợ</a> cho tụi mình nhé! Bạn vui lòng không xóa ảnh nếu có nhu cầu kháng cáo!
-                            </p>
-                        </div>
-
-                        <div id="denial-delete-warning-box" class="hidden bg-yellow-50 p-4 rounded-md border border-yellow-200 mt-4 mb-6 shadow-sm">
-                            <div class="flex items-start gap-2 text-yellow-800 text-xs">
-                                <i class="fa-solid fa-triangle-exclamation text-base mt-0.5"></i>
-                                <span><span class="font-bold">Ảnh của bạn sẽ bị xóa tự động vào ngày <span id="denial-delete-date">...</span>.</span> Vui lòng gửi yêu cầu kháng cáo trước thời hạn này. Sau khi ảnh bị xóa, bạn sẽ không thể thực hiện kháng cáo.</span>
-                            </div>
-                        </div>
-
                         <div id="photo-progress-tracker" class="hidden mb-6 mt-4">
                             <div class="bg-white dark:bg-zinc-950 border border-black dark:border-white rounded-md p-4">
                                 <div class="font-bold mb-4 text-sm text-black dark:text-white" id="tracker-header">Trạng thái ảnh: Đang chờ duyệt</div>
@@ -3613,6 +3590,13 @@ html.theme-dark .ct-icon {
                                 </div>
                                 <div id="tracker-footer" class="mt-4 text-xs text-black dark:text-white italic">
                                 </div>
+                            </div>
+                        </div>
+
+                        <div id="denial-delete-warning-box" class="hidden bg-yellow-50 p-4 rounded-md border border-yellow-200 mb-6 shadow-sm">
+                            <div class="flex items-start gap-2 text-yellow-800 text-xs">
+                                <i class="fa-solid fa-triangle-exclamation text-base mt-0.5"></i>
+                                <span><span class="font-bold">Ảnh của bạn sẽ bị xóa tự động vào ngày <span id="denial-delete-date">...</span>.</span> Vui lòng gửi yêu cầu kháng cáo trước thời hạn này. Sau khi ảnh bị xóa, bạn sẽ không thể thực hiện kháng cáo.</span>
                             </div>
                         </div>
 
@@ -4893,6 +4877,7 @@ html.theme-dark .ct-icon {
                                             <div class="w-11 h-6 bg-black rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white dark:after:bg-black after:border-gray-300 dark:after:border-black after:border after:rounded-full after:h-5 after:w-5 after:transition-all shadow-inner"></div>
                                         </label>
                                     </div>
+                                    <p class="text-xs text-gray-500 mt-2">Ảnh đủ điều kiện nếu không bật sẽ bị tính là ảnh thường (có thể sẽ không được ưu tiên) và không được cộng điểm thưởng.</p>
                                     <div id="up-doc-alert" class="hidden mt-3 p-3 bg-red-50 border border-red-200 rounded-md">
                                         <p class="text-red-700 text-sm font-bold mb-2">Các trường hợp áp dụng ưu tiên (Chỉ áp dụng đối với XE BUÝT, KHÔNG áp dụng cho XE KHÁCH):</p>
                                         <ul class="list-disc pl-5 text-sm text-red-600 mb-2 space-y-1">
@@ -6939,7 +6924,7 @@ html.theme-dark .ct-icon {
 
     <!-- KHAY CHỨA TOAST Z-INDEX CAO NHẤT -->
     <div id="toast-container" class="fixed left-0 w-full flex flex-col items-center gap-2 pointer-events-none z-[99999]" style="z-index: 99999 !important;"></div>
-<script src="/app.b053d4131915.js"></script>
+<script src="/app.2f13ad1a2565.js"></script>
 </body>
 </html>
 
