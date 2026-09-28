@@ -2504,7 +2504,9 @@ Object.assign(window.app, {
                         let queueCount = '?';
                         let newPhotoId = null;
                         try {
-                            const { data: pendingData } = await window.sb.from('photos').select('id, uploader_id, created_at, profiles(role)').eq('status', 'pending');
+                            const { data: pendingData } = await window.sb.from('photos')
+                                .select('id, uploader_id, created_at, profiles(role)')
+                                .in('status', ['pending', 'pending_quality', 'pending_info']);
                             if (pendingData) {
                                 let ahead = 0;
                                 const isMePrivileged = (app.role === 'admin' || app.role === 'manager');
