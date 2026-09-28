@@ -1,32 +1,27 @@
-import { createClient } from '@supabase/supabase-js';
-
 /**
  * /api/auth/verify
  *
- * Handles Supabase email verification links that use the legacy "token" format:
+ * Supabase email links arrive at this endpoint in the format:
  *   ?token=<otp>&type=<magiclink|recovery|signup>&redirect_to=<url>
  *
- * This endpoint:
- * 1. Receives the OTP token and type from Supabase email links
- * 2. Verifies it using Supabase Admin (verifyOtp)
- * 3. Redirects the browser to the target page with the session injected
- *    as hash params (#access_token=...&refresh_token=...&type=...)
- *    so the Supabase JS client can detect the session automatically.
+ * Strategy: proxy the request to Supabase's real /auth/v1/verify endpoint,
+ * intercept the redirect, and forward the browser to the destination URL.
+ * Supabase appends #access_token=...&type=... to the redirect_to URL,
+ * which the Supabase JS client detects and uses to establish the session.
  */
 export async function onRequest(context) {
     const { request, env } = context;
 
-    // Only allow GET requests (email link clicks)
     if (request.method !== 'GET') {
         return new Response('Method Not Allowed', { status: 405 });
     }
 
     const url = new URL(request.url);
     const token = url.searchParams.get('token');
-    const type = url.searchParams.get('type');
-    const redirectTo = url.searchParams.get('redirect_to') || url.origin + '/auth';
+    const type  = url.searchParams.get('type');
+    const redirectTo = url.searchParams.get('redirect_to') || (url.origin + '/auth');
 
-    // Validate params
+    // Basic validation
     if (!token || !type) {
         return Response.redirect(url.origin + '/auth?error=missing_params', 302);
     }
@@ -36,70 +31,53 @@ export async function onRequest(context) {
         return Response.redirect(url.origin + '/auth?error=invalid_type', 302);
     }
 
-    // Validate redirect_to is within our domain (prevent open redirect)
+    // Validate redirect_to stays within our own domain to prevent open redirects
     try {
-        const redirectUrl = new URL(redirectTo);
+        const rUrl = new URL(redirectTo);
         const host = request.headers.get('host') || '';
-        const allowedHosts = ['vnbusarchive.io.vn', 'www.vnbusarchive.io.vn'];
-        // Also allow Cloudflare Pages preview URLs
-        const isAllowed = allowedHosts.includes(redirectUrl.hostname)
-            || redirectUrl.hostname.endsWith('.pages.dev')
-            || redirectUrl.hostname === 'localhost'
-            || redirectUrl.hostname === host;
-        if (!isAllowed) {
-            return Response.redirect(url.origin + '/auth?error=invalid_redirect', 302);
-        }
-    } catch (e) {
+        const ok = ['vnbusarchive.io.vn', 'www.vnbusarchive.io.vn'].includes(rUrl.hostname)
+            || rUrl.hostname.endsWith('.pages.dev')
+            || rUrl.hostname === 'localhost'
+            || rUrl.hostname === host;
+        if (!ok) return Response.redirect(url.origin + '/auth?error=invalid_redirect', 302);
+    } catch {
         return Response.redirect(url.origin + '/auth?error=invalid_redirect', 302);
     }
 
+    const supabaseUrl  = env.SUPABASE_URL;
+    const supabaseKey  = env.SUPABASE_KEY; // anon / public key is enough for /verify
+
+    if (!supabaseUrl || !supabaseKey) {
+        return Response.redirect(url.origin + '/auth?error=server_config', 302);
+    }
+
+    // Build the real Supabase Auth verify URL
+    const verifyUrl = new URL(`${supabaseUrl}/auth/v1/verify`);
+    verifyUrl.searchParams.set('token', token);
+    verifyUrl.searchParams.set('type', type);
+    verifyUrl.searchParams.set('redirect_to', redirectTo);
+
     try {
-        const supabaseUrl = env.SUPABASE_URL;
-        const supabaseServiceRole = env.SUPABASE_SERVICE_ROLE_KEY;
-
-        if (!supabaseUrl || !supabaseServiceRole) {
-            throw new Error('Server configuration error');
-        }
-
-        const supabaseAdmin = createClient(supabaseUrl, supabaseServiceRole, {
-            auth: {
-                autoRefreshToken: false,
-                persistSession: false,
-            }
+        // Call Supabase's verify endpoint without following its redirect so we
+        // can inspect and forward it to the browser.
+        const resp = await fetch(verifyUrl.toString(), {
+            method: 'GET',
+            headers: { 'apikey': supabaseKey },
+            redirect: 'manual',
         });
 
-        // Exchange the OTP token for a session
-        const otpType = type === 'magiclink' ? 'magiclink' : type;
-        const { data, error } = await supabaseAdmin.auth.verifyOtp({
-            token_hash: token,
-            type: otpType,
-        });
-
-        if (error || !data?.session) {
-            console.error('[verify] verifyOtp error:', error?.message);
-            // Redirect back to auth with error
-            const errRedirect = new URL(redirectTo);
-            errRedirect.searchParams.set('error', 'invalid_token');
-            return Response.redirect(errRedirect.toString(), 302);
+        // Supabase returns 302 → location contains redirect_to#access_token=...
+        const location = resp.headers.get('location');
+        if ((resp.status === 301 || resp.status === 302 || resp.status === 303) && location) {
+            return Response.redirect(location, 302);
         }
 
-        const { access_token, refresh_token, expires_in } = data.session;
-
-        // Build the redirect URL with session in the hash fragment
-        // so the Supabase JS SDK (implicit flow) can detect and restore the session
-        const finalRedirect = new URL(redirectTo);
-        finalRedirect.hash = [
-            `access_token=${encodeURIComponent(access_token)}`,
-            `refresh_token=${encodeURIComponent(refresh_token)}`,
-            `expires_in=${expires_in || 3600}`,
-            `token_type=bearer`,
-            `type=${type}`,
-        ].join('&');
-
-        return Response.redirect(finalRedirect.toString(), 302);
+        // Non-redirect response = verification failed
+        console.error('[verify] Unexpected Supabase response:', resp.status);
+        return Response.redirect(url.origin + '/auth?error=verify_failed', 302);
 
     } catch (err) {
-        console.error('[verify] Unexpected error:', err.message);
+        console.error('[verify] Fetch error:', err.message);
         return Response.redirect(url.origin + '/auth?error=server_error', 302);
     }
 }
