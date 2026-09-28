@@ -5913,7 +5913,13 @@ html.theme-dark .ct-icon {
                 };
                 // -------------------------
 
-                window.sb = window.supabase.createClient(config.SUPABASE_URL, config.SUPABASE_KEY);
+                window.sb = window.supabase.createClient(config.SUPABASE_URL, config.SUPABASE_KEY, {
+                    auth: {
+                        detectSessionInUrl: true,
+                        autoRefreshToken: true,
+                        persistSession: true,
+                    }
+                });
 
                 if (sessionStorage.getItem('VNBA_SESS_AUTH') === 'active' && typeof _pInt !== 'undefined') clearInterval(_pInt);
 
