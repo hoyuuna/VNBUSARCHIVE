@@ -1136,20 +1136,21 @@ html.theme-dark .ct-icon {
             background: rgba(255, 255, 255, 0.1);
         }
 
-        /* 4 corner resize handles — visible only when panel is active */
+        /* 4 corner resize handles — scale down with panel, centered on each corner */
         .blur-panel .resize-handle {
             position: absolute;
-            width: 10px;
-            height: 10px;
+            width: min(10px, 25%);
+            height: min(10px, 25%);
             background: #ffffff;
             border: 1.5px solid rgba(0, 0, 0, 0.45);
             border-radius: 2px;
             z-index: 20;
         }
-        .blur-panel .resize-nw { top: -5px;    left: -5px;  cursor: nw-resize; }
-        .blur-panel .resize-ne { top: -5px;    right: -5px; cursor: ne-resize; }
-        .blur-panel .resize-sw { bottom: -5px; left: -5px;  cursor: sw-resize; }
-        .blur-panel .resize-se { bottom: -5px; right: -5px; cursor: se-resize; }
+        /* Centered on each corner via transform so they never cover interior content */
+        .blur-panel .resize-nw { top: 0; left: 0;     transform: translate(-50%, -50%); cursor: nw-resize; }
+        .blur-panel .resize-ne { top: 0; right: 0;    transform: translate(50%,  -50%); cursor: ne-resize; }
+        .blur-panel .resize-sw { bottom: 0; left: 0;  transform: translate(-50%, 50%);  cursor: sw-resize; }
+        .blur-panel .resize-se { bottom: 0; right: 0; transform: translate(50%,  50%);  cursor: se-resize; }
 
         .markdown-body {
             color: #18181b;
@@ -1941,7 +1942,7 @@ html.theme-dark .ct-icon {
             if (stored === 'system') {
                 theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
             }
-            document.write('<link rel="stylesheet" href="/css/' + theme + '.css?v=1790593375029" id="theme-css">');
+            document.write('<link rel="stylesheet" href="/css/' + theme + '.css?v=1790593701574" id="theme-css">');
             document.documentElement.classList.add('theme-' + theme);
             document.documentElement.style.backgroundColor = theme === 'dark' ? '#18181b' : '#fdfcf8';
         })();
