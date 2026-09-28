@@ -1040,19 +1040,19 @@ html.theme-dark .ct-icon {
             z-index: 15;
         }
 
-        /* Ẩn 2 nút công cụ và góc kéo khi ô làm mờ không được chọn (.active) */
+        /* Ẩn nút công cụ và vùng kéo khi ô làm mờ không được chọn (.active) */
         .blur-panel .delete-blur,
         .blur-panel .move-blur,
-        .blur-panel .resize-handle {
+        .blur-panel .rz-handle {
             opacity: 0;
             pointer-events: none;
             transition: opacity 0.15s ease, transform 0.15s ease, left 0.15s ease, right 0.15s ease, top 0.15s ease, bottom 0.15s ease;
         }
 
-        /* Chỉ khi được chọn (.active) mới hiện 2 nút công cụ và góc kéo */
+        /* Chỉ khi được chọn (.active) mới hiện nút công cụ và bật vùng kéo */
         .blur-panel.active .delete-blur,
         .blur-panel.active .move-blur,
-        .blur-panel.active .resize-handle {
+        .blur-panel.active .rz-handle {
             opacity: 1;
             pointer-events: auto;
         }
@@ -1136,21 +1136,18 @@ html.theme-dark .ct-icon {
             background: rgba(255, 255, 255, 0.1);
         }
 
-        /* 4 corner resize handles — scale down with panel, centered on each corner */
-        .blur-panel .resize-handle {
-            position: absolute;
-            width: min(10px, 25%);
-            height: min(10px, 25%);
-            background: #ffffff;
-            border: 1.5px solid rgba(0, 0, 0, 0.45);
-            border-radius: 2px;
-            z-index: 20;
-        }
-        /* Centered on each corner via transform so they never cover interior content */
-        .blur-panel .resize-nw { top: 0; left: 0;     transform: translate(-50%, -50%); cursor: nw-resize; }
-        .blur-panel .resize-ne { top: 0; right: 0;    transform: translate(50%,  -50%); cursor: ne-resize; }
-        .blur-panel .resize-sw { bottom: 0; left: 0;  transform: translate(-50%, 50%);  cursor: sw-resize; }
-        .blur-panel .resize-se { bottom: 0; right: 0; transform: translate(50%,  50%);  cursor: se-resize; }
+        /* Invisible resize zones — entire perimeter is draggable, no visual squares */
+        .blur-panel .rz-handle { position: absolute; z-index: 20; }
+        /* Edge strips: thin zones along each side */
+        .blur-panel .rz-n  { top: -5px;    left: 10px;  right: 10px; height: 10px; cursor: n-resize;  }
+        .blur-panel .rz-s  { bottom: -5px; left: 10px;  right: 10px; height: 10px; cursor: s-resize;  }
+        .blur-panel .rz-w  { left: -5px;   top: 10px;   bottom: 10px; width: 10px; cursor: w-resize;  }
+        .blur-panel .rz-e  { right: -5px;  top: 10px;   bottom: 10px; width: 10px; cursor: e-resize;  }
+        /* Corner zones: 14×14px at each corner, slightly outside the panel */
+        .blur-panel .rz-nw { top: -5px;    left: -5px;   width: 14px; height: 14px; cursor: nw-resize; }
+        .blur-panel .rz-ne { top: -5px;    right: -5px;  width: 14px; height: 14px; cursor: ne-resize; }
+        .blur-panel .rz-sw { bottom: -5px; left: -5px;   width: 14px; height: 14px; cursor: sw-resize; }
+        .blur-panel .rz-se { bottom: -5px; right: -5px;  width: 14px; height: 14px; cursor: se-resize; }
 
         .markdown-body {
             color: #18181b;

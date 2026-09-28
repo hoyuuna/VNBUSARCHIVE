@@ -560,10 +560,14 @@ Object.assign(window.app, {
                      panel.innerHTML = `
                          <button type="button" class="delete-blur" onclick="app.upload.removeBlurPanel('${id}')" title="Xóa vùng này"><i class="fa-solid fa-xmark"></i></button>
                          <button type="button" class="move-blur" title="Giữ và kéo để di chuyển vùng làm mờ"><i class="fa-solid fa-arrows-up-down-left-right"></i></button>
-                         <div class="resize-handle resize-nw" data-corner="nw"></div>
-                         <div class="resize-handle resize-ne" data-corner="ne"></div>
-                         <div class="resize-handle resize-sw" data-corner="sw"></div>
-                         <div class="resize-handle resize-se" data-corner="se"></div>
+                         <div class="rz-handle rz-n"  data-dir="n"></div>
+                         <div class="rz-handle rz-s"  data-dir="s"></div>
+                         <div class="rz-handle rz-w"  data-dir="w"></div>
+                         <div class="rz-handle rz-e"  data-dir="e"></div>
+                         <div class="rz-handle rz-nw" data-dir="nw"></div>
+                         <div class="rz-handle rz-ne" data-dir="ne"></div>
+                         <div class="rz-handle rz-sw" data-dir="sw"></div>
+                         <div class="rz-handle rz-se" data-dir="se"></div>
                      `;
                     const selectPanel = (e) => {
                         if (!panel.classList.contains('active')) {
@@ -595,7 +599,7 @@ Object.assign(window.app, {
                     };
                     const startDrag = (e) => {
                         selectPanel(e);
-                        if (e.target.closest('.delete-blur') || e.target.closest('.resize-handle')) return;
+                        if (e.target.closest('.delete-blur') || e.target.closest('.rz-handle')) return;
                         e.stopPropagation();
                         if (e.type === 'touchstart') e.preventDefault();
                         isDragging = true;
@@ -606,9 +610,10 @@ Object.assign(window.app, {
                     };
                     panel.addEventListener('mousedown', startDrag);
                     panel.addEventListener('touchstart', startDrag, { passive: false });
-                    // Anchor-based 4-corner resize: no minimum size, supports flip-over
+                    // 8-directional anchor-based resize: no min size, axis-constrained edges, flip-over at zero
                     let isResizing = false;
                     let resizeStartX, resizeStartY, anchorX, anchorY, initialDragX, initialDragY;
+                    let resizeDirX = true, resizeDirY = true;
                     const startResize = (e) => {
                         selectPanel(e);
                         e.stopPropagation();
@@ -616,16 +621,21 @@ Object.assign(window.app, {
                         isResizing = true;
                         resizeStartX = e.clientX || (e.touches && e.touches[0].clientX);
                         resizeStartY = e.clientY || (e.touches && e.touches[0].clientY);
-                        const corner = e.currentTarget.dataset.corner;
+                        const dir = e.currentTarget.dataset.dir;
                         const pL = panel.offsetLeft, pT = panel.offsetTop;
                         const pR = pL + panel.offsetWidth, pB = pT + panel.offsetHeight;
-                        // Anchor = opposite corner (stays fixed); drag point = this corner (moves)
-                        if      (corner === 'se') { anchorX = pL; anchorY = pT; initialDragX = pR; initialDragY = pB; }
-                        else if (corner === 'sw') { anchorX = pR; anchorY = pT; initialDragX = pL; initialDragY = pB; }
-                        else if (corner === 'ne') { anchorX = pL; anchorY = pB; initialDragX = pR; initialDragY = pT; }
-                        else if (corner === 'nw') { anchorX = pR; anchorY = pB; initialDragX = pL; initialDragY = pT; }
+                        // Anchor = fixed edge/corner; drag point = moving edge/corner
+                        // resizeDirX/Y: whether that axis is free to move
+                        if      (dir==='se') { anchorX=pL; anchorY=pT; initialDragX=pR; initialDragY=pB; resizeDirX=true;  resizeDirY=true;  }
+                        else if (dir==='sw') { anchorX=pR; anchorY=pT; initialDragX=pL; initialDragY=pB; resizeDirX=true;  resizeDirY=true;  }
+                        else if (dir==='ne') { anchorX=pL; anchorY=pB; initialDragX=pR; initialDragY=pT; resizeDirX=true;  resizeDirY=true;  }
+                        else if (dir==='nw') { anchorX=pR; anchorY=pB; initialDragX=pL; initialDragY=pT; resizeDirX=true;  resizeDirY=true;  }
+                        else if (dir==='n')  { anchorX=pL; anchorY=pB; initialDragX=pR; initialDragY=pT; resizeDirX=false; resizeDirY=true;  }
+                        else if (dir==='s')  { anchorX=pL; anchorY=pT; initialDragX=pR; initialDragY=pB; resizeDirX=false; resizeDirY=true;  }
+                        else if (dir==='w')  { anchorX=pR; anchorY=pT; initialDragX=pL; initialDragY=pB; resizeDirX=true;  resizeDirY=false; }
+                        else if (dir==='e')  { anchorX=pL; anchorY=pT; initialDragX=pR; initialDragY=pB; resizeDirX=true;  resizeDirY=false; }
                     };
-                    panel.querySelectorAll('.resize-handle').forEach(h => {
+                    panel.querySelectorAll('.rz-handle').forEach(h => {
                         h.addEventListener('mousedown', startResize);
                         h.addEventListener('touchstart', startResize, { passive: false });
                     });
@@ -645,9 +655,9 @@ Object.assign(window.app, {
                         } else if (isResizing) {
                             const dx = clientX - resizeStartX;
                             const dy = clientY - resizeStartY;
-                            // Clamp drag point within container bounds
-                            const dragX = Math.max(0, Math.min(container.offsetWidth,  initialDragX + dx));
-                            const dragY = Math.max(0, Math.min(container.offsetHeight, initialDragY + dy));
+                            // Axis-constrained drag point, clamped inside container
+                            const dragX = resizeDirX ? Math.max(0, Math.min(container.offsetWidth,  initialDragX + dx)) : initialDragX;
+                            const dragY = resizeDirY ? Math.max(0, Math.min(container.offsetHeight, initialDragY + dy)) : initialDragY;
                             // Rect = bounding box of anchor & drag point — handles flip naturally
                             panel.style.left   = Math.min(anchorX, dragX) + 'px';
                             panel.style.top    = Math.min(anchorY, dragY) + 'px';
