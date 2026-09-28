@@ -210,8 +210,12 @@ export async function onRequestPost(context) {
             }
 
             const specialRoutes = ['Ngoài giờ hoạt động', 'Chưa hoạt động'];
-            const isSpecialRoute = specialRoutes.includes(route);
+            const isSpecialRoute = specialRoutes.some(s => (route || '').trim().toLowerCase() === s.toLowerCase());
             const isSameRoute = (r1, r2) => (r1 || '').trim().toLowerCase() === (r2 || '').trim().toLowerCase();
+            const isStoppedRoute = (r) => {
+                const s = (r || '').trim().toLowerCase();
+                return s.includes('d\u01b0\u0301ng ho\u1ea1t \u0111\u1ed9ng') || s.includes('ng\u01b0\u0301ng ho\u1ea1t \u0111\u1ed9ng') || s.includes('thanh l\u00fd') || s.includes('thu h\u1ed3i');
+            };
 
             if (!isSpecialRoute) {
                 // Lấy lịch sử theo thứ tự TĂNG DẦN (cũ nhất -> mới nhất)
@@ -225,8 +229,7 @@ export async function onRequestPost(context) {
                 const takenDateString = takenDateObj.toISOString().split('T')[0];
 
                 if (latestHist) {
-                    const textCheck = `${latestHist.route || ''} ${latestHist.operator || ''} ${latestHist.note || ''}`.toLowerCase();
-                    const isStopped = textCheck.includes('dừng hoạt động') || textCheck.includes('ngừng hoạt động') || textCheck.includes('thanh lý') || textCheck.includes('thu hồi');
+                    const isStopped = isStoppedRoute(latestHist.route) || isStoppedRoute(latestHist.operator) || isStoppedRoute(latestHist.note);
                     const latestHistDate = latestHist.effective_date ? new Date(latestHist.effective_date) : new Date();
                     
                     // Chỉ xóa lịch sử dừng hoạt động nếu ảnh mới chứng minh xe hoạt động SAU hoặc BẰNG ngày dừng
