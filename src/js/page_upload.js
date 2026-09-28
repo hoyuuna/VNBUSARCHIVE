@@ -1,4 +1,4 @@
-﻿// Extracted to page_upload.js
+// Extracted to page_upload.js
 Object.assign(window.app, {
     upload: {
                  currentQuota: { limit: null, count: 0 },
@@ -2303,7 +2303,9 @@ Object.assign(window.app, {
                         
                         const limitSetting = app.maintenance.settings['upload_quota']?.reason;
                         const hasLimit = limitSetting && limitSetting.trim() !== '';
-                        const limitNum = hasLimit ? parseInt(limitSetting) : baseLimit;
+                        const globalCap = hasLimit ? parseInt(limitSetting) : null;
+                        // Global cap can only reduce the dynamic score-based limit, never override it upward
+                        const limitNum = (globalCap !== null && globalCap < baseLimit) ? globalCap : baseLimit;
                         
                         const last7AM = app.utils.getLast7AM_UTC7();
                         const { count } = await window.sb.from('photos')

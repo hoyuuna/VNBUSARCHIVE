@@ -1,6 +1,6 @@
 
 /* --- MODULE: 00_core.js --- */
-﻿window.app = window.app || {};
+window.app = window.app || {};
 window.addEventListener('unhandledrejection', function(event) {
     if (event.reason && event.reason.message && event.reason.message.includes("Unexpected token '<'")) {
         if (window.app && window.app.toast) {
@@ -695,10 +695,10 @@ Object.assign(window.app, {
                     }
                 },
                 showQuotaInfo: () => {
-                    const limitStr = app.maintenance.settings['upload_quota']?.reason;
-                    const limitTxt = (limitStr && limitStr.trim() !== '') ? limitStr : 'không giới hạn';
+                    const q = app.upload?.currentQuota;
+                    const limitTxt = (q && q.limit !== null) ? `${q.limit}` : 'không giới hạn';
                     app.ui.showAlert(
-                        `Nhằm bảo vệ hạ tầng máy chủ và dung lượng lưu trữ, hệ thống giới hạn mỗi người dùng chỉ được tải lên tối đa <b>${limitTxt} ảnh</b> hàng ngày.<br><br>Chu kỳ sẽ được tự động đặt lại vào mỗi <b>7 giờ sáng (Giờ Việt Nam)</b>.`,
+                        `Nhằm bảo vệ hạ tầng máy chủ và dung lượng lưu trữ, hệ thống giới hạn mỗi người dùng chỉ được tải lên tối đa <b>${limitTxt} ảnh</b> hàng ngày.<br><br>Giới hạn này được tính động theo <b>điểm uy tín</b> của bạn.<br><br>Chu kỳ sẽ được tự động đặt lại vào mỗi <b>7 giờ sáng (Giờ Việt Nam)</b>.`,
                         null, null, { title: "Chính sách giới hạn đăng tải", btnOkText: "Đã hiểu" }
                     );
                 },
@@ -12086,7 +12086,7 @@ window.app.views.selectRouteIcon = function(val, label) {
 };
 
 /* --- MODULE: page_upload.js --- */
-﻿// Extracted to page_upload.js
+// Extracted to page_upload.js
 Object.assign(window.app, {
     upload: {
                  currentQuota: { limit: null, count: 0 },
@@ -14391,7 +14391,9 @@ Object.assign(window.app, {
                         
                         const limitSetting = app.maintenance.settings['upload_quota']?.reason;
                         const hasLimit = limitSetting && limitSetting.trim() !== '';
-                        const limitNum = hasLimit ? parseInt(limitSetting) : baseLimit;
+                        const globalCap = hasLimit ? parseInt(limitSetting) : null;
+                        // Global cap can only reduce the dynamic score-based limit, never override it upward
+                        const limitNum = (globalCap !== null && globalCap < baseLimit) ? globalCap : baseLimit;
                         
                         const last7AM = app.utils.getLast7AM_UTC7();
                         const { count } = await window.sb.from('photos')
