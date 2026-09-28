@@ -1,4 +1,4 @@
-﻿// Extracted to page_admin.js
+// Extracted to page_admin.js
 Object.assign(window.app, {
     admin: {
                 adminInterval: null,
@@ -3157,23 +3157,6 @@ if (cbQuality) newSubroles.push('quality_aud');
                             <div class="mt-4 text-right"><button onclick="app.admin.saveManagerSetting('${cfg.id}', this)" class="bg-black text-white px-5 py-2 text-xs font-bold rounded shadow-sm">Lưu thông tin</button></div>
                         </div>`;
                      });
-                    const quotaData = app.maintenance.settings['upload_quota'] || { reason: '' };
-                    html += `
-                    <div class="border border-blue-200 rounded-lg p-5 bg-blue-50/50 mt-6 relative shadow-sm">
-                        <div class="flex items-center gap-2 mb-3">
-                            <i class="fa-solid fa-cloud-arrow-up text-blue-600 text-lg"></i>
-                            <h3 class="font-bold text-blue-800 uppercase text-sm">Giới hạn Upload hàng ngày (Quota)</h3>
-                        </div>
-                        <p class="text-xs text-blue-700 mb-4 leading-relaxed">Giới hạn TỔNG số lượng ảnh <b>toàn hệ thống</b> được phép tiếp nhận trong vòng 24h. Tự động làm mới vào <b>7:00 Sáng giờ Việt Nam</b>.</p>
-                        <div class="flex items-end gap-3">
-                            <div class="flex-1">
-                                <label class="text-xs font-bold text-blue-900 block mb-1">Số lượng ảnh (Để trống = Không giới hạn, 0 = Tạm dừng nhận)</label>
-                                <input type="number" min="0" id="mt-quota-value" value="${quotaData.reason}" placeholder="Trống = Không giới hạn" class="w-full border border-blue-300 p-2.5 text-sm rounded outline-none focus:ring-2 focus:ring-blue-500 bg-white">
-                            </div>
-                            <button onclick="app.admin.saveQuotaSetting(this)" class="bg-blue-600 text-white px-6 py-2.5 text-xs font-bold rounded hover:bg-blue-700 transition shadow-sm h-[42px] whitespace-nowrap"><i class="fa-solid fa-floppy-disk mr-1"></i> Lưu thông tin</button>
-                        </div>
-                    </div>
-                    `;
                     container.innerHTML = html;
                 },
                 saveManagerSetting: async (sysId, btn) => {
@@ -3193,29 +3176,6 @@ if (cbQuality) newSubroles.push('quality_aud');
                         app.ui.showAlert(`Đã lưu thông tin cho ${sysId.toUpperCase()}`);
                     } catch (e) { app.ui.showAlert("Lỗi: " + e.message); }
                     finally { btn.innerHTML = originalHTML; btn.disabled = false; }
-                },
-                saveQuotaSetting: async (btn) => {
-                    if (app.role !== 'manager') return;
-                    const originalHTML = btn.innerHTML;
-                    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang lưu...';
-                    btn.disabled = true;
-                    const val = document.getElementById('mt-quota-value').value.trim();
-                    try {
-                        const { error } = await window.sb.from('system_settings').update({
-                            reason: val,
-                            updated_by: app.user.id,
-                            updated_at: new Date().toISOString()
-                        }).eq('id', 'upload_quota');
-                        if (error) throw error;
-                        await app.maintenance.fetch();
-                        app.admin.logAction('update_upload_quota', 'upload_quota', { new_limit: val || 'Không giới hạn' });
-                        app.ui.showAlert(`Đã cập nhật Giới hạn Upload thành: ${val === '' ? 'Không giới hạn' : val + ' ảnh/ngày'}!`);
-                    } catch (e) {
-                        app.ui.showAlert("Lỗi: " + e.message);
-                    } finally {
-                        btn.innerHTML = originalHTML;
-                        btn.disabled = false;
-                    }
                 },
                 renderCustomToasts: async () => {
                     const list = document.getElementById('mgr-toasts-list');

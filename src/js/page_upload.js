@@ -2301,11 +2301,7 @@ Object.assign(window.app, {
                         else if (score <= 199) baseLimit = 40;
                         else baseLimit = 50;
                         
-                        const limitSetting = app.maintenance.settings['upload_quota']?.reason;
-                        const hasLimit = limitSetting && limitSetting.trim() !== '';
-                        const globalCap = hasLimit ? parseInt(limitSetting) : null;
-                        // Global cap can only reduce the dynamic score-based limit, never override it upward
-                        const limitNum = (globalCap !== null && globalCap < baseLimit) ? globalCap : baseLimit;
+                        const limitNum = baseLimit;
                         
                         const last7AM = app.utils.getLast7AM_UTC7();
                         const { count } = await window.sb.from('photos')
@@ -2317,24 +2313,16 @@ Object.assign(window.app, {
                         const totalQueueAssumed = app.upload.uploadQueue.length;
                         const realCount = (count || 0) + totalQueueAssumed;
                         
-                        if (limitNum === 999 && !hasLimit) {
-                            textEl.innerText = `${realCount} lượt (Không giới hạn)`;
-                            textEl.classList.add('text-black');
-                            fileInput.disabled = false;
-                            fileInput.classList.remove('opacity-50', 'cursor-not-allowed');
-                            if (qrBtn) { qrBtn.disabled = false; qrBtn.classList.remove('opacity-50', 'cursor-not-allowed'); qrBtn.classList.add('hover:bg-gray-50'); }
-                            if (dropZone) dropZone.style.pointerEvents = 'auto';
-                        } else {
-                            textEl.innerText = `${realCount}/${limitNum} lượt hôm nay`;
+                        textEl.innerText = `${realCount}/${limitNum} lượt hôm nay`;
                             const remaining = limitNum - realCount;
-                            if (limitNum === 0 || remaining <= 0) {
+                            if (remaining <= 0) {
                                 textEl.classList.add('text-red-600');
                                 fileInput.disabled = true;
                                 if (btnSubmit) btnSubmit.disabled = true;
                                 fileInput.classList.add('opacity-50', 'cursor-not-allowed');
                                 if (qrBtn) { qrBtn.disabled = true; qrBtn.classList.add('opacity-50', 'cursor-not-allowed'); qrBtn.classList.remove('hover:bg-gray-50'); }
                                 if (dropZone) dropZone.style.pointerEvents = 'none';
-                                textEl.innerText = limitNum === 0 ? `Hệ thống tạm đóng upload` : `Hết slot hôm nay (${realCount}/${limitNum})`;
+                                textEl.innerText = `Hết slot hôm nay (${realCount}/${limitNum})`;
                             } else if (remaining <= 3) {
                                 textEl.classList.add('text-amber-500');
                                 fileInput.disabled = false;
@@ -2348,7 +2336,6 @@ Object.assign(window.app, {
                                 if (qrBtn) { qrBtn.disabled = false; qrBtn.classList.remove('opacity-50', 'cursor-not-allowed'); qrBtn.classList.add('hover:bg-gray-50'); }
                                 if (dropZone) dropZone.style.pointerEvents = 'auto';
                             }
-                        }
                     } catch (e) {
                         textEl.innerText = "Lỗi kiểm tra giới hạn";
                         textEl.classList.add('text-red-500');
