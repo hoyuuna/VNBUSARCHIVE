@@ -123,15 +123,15 @@ export async function onRequest(context) {
             let rawSrc = uploadResult[0].src;
             try {
                 const fileNameFromUrl = rawSrc.split('/').pop();
-                const checkRes = await fetch(`https://cdn.vnbusarchive.io.vn/api/manage/check/${fileNameFromUrl}`, {
+                const checkRes = await fetch(`https://cdn.vnbusarchive.io.vn/api/manage/list?search=${encodeURIComponent(fileNameFromUrl)}`, {
                     headers: { 'Authorization': `Bearer ${env.CF_IMGBED_TOKEN}` }
                 });
                 if (!checkRes.ok) {
                     throw new Error('CDN trả về lỗi ' + checkRes.status + ' khi kiểm tra ảnh');
                 }
                 const checkData = await checkRes.json();
-                if (checkData.success === false || checkData.result === false || checkData.exists === false) {
-                    throw new Error('CDN xác nhận ảnh không tồn tại');
+                if (!checkData.files || checkData.files.length === 0 || checkData.totalCount === 0) {
+                    throw new Error('CDN xác nhận ảnh không tồn tại trong hệ thống');
                 }
             } catch (e) {
                 console.error('[CDN VERIFY ERROR]:', e);
@@ -189,15 +189,15 @@ export async function onRequest(context) {
             let rawSrc = uploadResult[0].src;
             try {
                 const fileNameFromUrl = rawSrc.split('/').pop();
-                const checkRes = await fetch(`https://cdn.vnbusarchive.io.vn/api/manage/check/${fileNameFromUrl}`, {
+                const checkRes = await fetch(`https://cdn.vnbusarchive.io.vn/api/manage/list?search=${encodeURIComponent(fileNameFromUrl)}`, {
                     headers: { 'Authorization': `Bearer ${env.CF_IMGBED_TOKEN}` }
                 });
                 if (!checkRes.ok) {
                     throw new Error('CDN trả về lỗi ' + checkRes.status + ' khi kiểm tra ảnh');
                 }
                 const checkData = await checkRes.json();
-                if (checkData.success === false || checkData.result === false || checkData.exists === false) {
-                    throw new Error('CDN xác nhận ảnh không tồn tại');
+                if (!checkData.files || checkData.files.length === 0 || checkData.totalCount === 0) {
+                    throw new Error('CDN xác nhận ảnh không tồn tại trong hệ thống');
                 }
             } catch (e) {
                 console.error('[CDN VERIFY ERROR]:', e);
