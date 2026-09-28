@@ -1025,8 +1025,8 @@ html.theme-dark .ct-icon {
             -webkit-backdrop-filter: blur(10px);
             border: 1.5px dashed rgba(255, 255, 255, 0.6);
             box-shadow: 0 0 8px rgba(0, 0, 0, 0.3);
-            min-width: 2%;
-            min-height: 2%;
+            min-width: 0;
+            min-height: 0;
             width: 15%;
             height: 10%;
             z-index: 5;
@@ -1136,21 +1136,20 @@ html.theme-dark .ct-icon {
             background: rgba(255, 255, 255, 0.1);
         }
 
-        /* Chỉ hiển thị hình tam giác đổi kích thước khi ô được chọn (.active) */
-        .blur-panel::after {
-            content: '◢';
+        /* 4 corner resize handles — visible only when panel is active */
+        .blur-panel .resize-handle {
             position: absolute;
-            bottom: 0px;
-            right: 2px;
-            font-size: 10px;
-            color: white;
-            pointer-events: none;
-            opacity: 0;
-            transition: opacity 0.15s ease;
+            width: 10px;
+            height: 10px;
+            background: #ffffff;
+            border: 1.5px solid rgba(0, 0, 0, 0.45);
+            border-radius: 2px;
+            z-index: 20;
         }
-        .blur-panel.active::after {
-            opacity: 0.8;
-        }
+        .blur-panel .resize-nw { top: -5px;    left: -5px;  cursor: nw-resize; }
+        .blur-panel .resize-ne { top: -5px;    right: -5px; cursor: ne-resize; }
+        .blur-panel .resize-sw { bottom: -5px; left: -5px;  cursor: sw-resize; }
+        .blur-panel .resize-se { bottom: -5px; right: -5px; cursor: se-resize; }
 
         .markdown-body {
             color: #18181b;

@@ -1025,8 +1025,8 @@ html.theme-dark .ct-icon {
             -webkit-backdrop-filter: blur(10px);
             border: 1.5px dashed rgba(255, 255, 255, 0.6);
             box-shadow: 0 0 8px rgba(0, 0, 0, 0.3);
-            min-width: 2%;
-            min-height: 2%;
+            min-width: 0;
+            min-height: 0;
             width: 15%;
             height: 10%;
             z-index: 5;
@@ -1136,21 +1136,20 @@ html.theme-dark .ct-icon {
             background: rgba(255, 255, 255, 0.1);
         }
 
-        /* Chỉ hiển thị hình tam giác đổi kích thước khi ô được chọn (.active) */
-        .blur-panel::after {
-            content: '◢';
+        /* 4 corner resize handles — visible only when panel is active */
+        .blur-panel .resize-handle {
             position: absolute;
-            bottom: 0px;
-            right: 2px;
-            font-size: 10px;
-            color: white;
-            pointer-events: none;
-            opacity: 0;
-            transition: opacity 0.15s ease;
+            width: 10px;
+            height: 10px;
+            background: #ffffff;
+            border: 1.5px solid rgba(0, 0, 0, 0.45);
+            border-radius: 2px;
+            z-index: 20;
         }
-        .blur-panel.active::after {
-            opacity: 0.8;
-        }
+        .blur-panel .resize-nw { top: -5px;    left: -5px;  cursor: nw-resize; }
+        .blur-panel .resize-ne { top: -5px;    right: -5px; cursor: ne-resize; }
+        .blur-panel .resize-sw { bottom: -5px; left: -5px;  cursor: sw-resize; }
+        .blur-panel .resize-se { bottom: -5px; right: -5px; cursor: se-resize; }
 
         .markdown-body {
             color: #18181b;
@@ -1942,7 +1941,7 @@ html.theme-dark .ct-icon {
             if (stored === 'system') {
                 theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
             }
-            document.write('<link rel="stylesheet" href="/css/' + theme + '.css?v=1790591919898" id="theme-css">');
+            document.write('<link rel="stylesheet" href="/css/' + theme + '.css?v=1790593375029" id="theme-css">');
             document.documentElement.classList.add('theme-' + theme);
             document.documentElement.style.backgroundColor = theme === 'dark' ? '#18181b' : '#fdfcf8';
         })();
@@ -6924,7 +6923,7 @@ html.theme-dark .ct-icon {
 
     <!-- KHAY CHỨA TOAST Z-INDEX CAO NHẤT -->
     <div id="toast-container" class="fixed left-0 w-full flex flex-col items-center gap-2 pointer-events-none z-[99999]" style="z-index: 99999 !important;"></div>
-<script src="/app.cba71f5df77d.js"></script>
+<script src="/app.6e760f7f4fd5.js"></script>
 </body>
 </html>
 
