@@ -1939,7 +1939,7 @@ html.theme-dark .ct-icon {
             if (stored === 'system') {
                 theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
             }
-            document.write('<link rel="stylesheet" href="/css/' + theme + '.css?v=1790594201945" id="theme-css">');
+            document.write('<link rel="stylesheet" href="/css/' + theme + '.css?v=1790600102229" id="theme-css">');
             document.documentElement.classList.add('theme-' + theme);
             document.documentElement.style.backgroundColor = theme === 'dark' ? '#18181b' : '#fdfcf8';
         })();
@@ -4880,8 +4880,12 @@ html.theme-dark .ct-icon {
                                         <ul class="list-disc pl-5 text-sm text-red-600 mb-2 space-y-1">
                                             <li>Dòng xe đã không còn hoạt động/khai thác trên thị trường.</li>
                                             <li>Tuyến xe buýt đã ngừng hoạt động hoàn toàn.</li>
-                                            <li>Tuyến xe buýt đã chuyển giao đơn vị vận hành (ảnh ghi lại thời điểm xe còn thuộc đơn vị vận hành cũ).</li>
-                                            <li>Tuyến xe buýt đã thay đổi dòng xe (ảnh ghi lại thời điểm tuyến còn sử dụng dòng xe cũ).</li>
+                                            <li>Tuyến/xe buýt đã chuyển giao đơn vị vận hành hoặc bán/thanh lý/chuyển nhượng (ảnh ghi lại thời điểm còn thuộc đơn vị vận hành cũ).</li>
+                                            <li>Tuyến xe buýt đã thay đổi dòng xe/lô xe (ảnh ghi lại thời điểm tuyến còn sử dụng dòng xe/lô xe cũ).</li>
+                                            <li>Tuyến/xe buýt đã thay đổi biển số/số hiệu xe (ảnh ghi lại thời điểm còn dùng biển số/số hiệu cũ).</li>
+                                            <li>Tuyến/xe buýt đã thay đổi màu sơn/nhận diện thương hiệu (ảnh ghi lại thời điểm còn dùng màu sơn/logo cũ).</li>
+                                            <li>Tuyến/xe buýt đã hết niên hạn sử dụng/bị loại biên.</li>
+                                            <li>Tuyến/xe buýt chỉ hoạt động theo hợp đồng/sự kiện tạm thời (ảnh ghi lại thời điểm tăng cường).</li>
                                         </ul>
                                         <p class="text-red-700 text-sm font-bold">Nếu ảnh của bạn không thuộc bất cứ trường hợp nào phía trên vui lòng tắt công tắc này NGAY LẬP TỨC. Nếu sử dụng sai có thể bị phạt tới 50 điểm.</p>
                                     </div>
@@ -6921,7 +6925,7 @@ html.theme-dark .ct-icon {
 
     <!-- KHAY CHỨA TOAST Z-INDEX CAO NHẤT -->
     <div id="toast-container" class="fixed left-0 w-full flex flex-col items-center gap-2 pointer-events-none z-[99999]" style="z-index: 99999 !important;"></div>
-<script src="/app.eb554626fa47.js"></script>
+<script src="/app.5e2466b2a764.js"></script>
 </body>
 </html>
 

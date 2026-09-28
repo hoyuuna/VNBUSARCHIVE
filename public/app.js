@@ -3813,7 +3813,10 @@ dropdown.innerHTML = `
 });
 
 /* --- MODULE: 01_router.js --- */
-﻿// Extracted to 01_router.js
+// Extracted to 01_router.js
+// Capture URL params BEFORE Supabase SDK clears them (PKCE flow removes token_hash after exchange)
+window.INITIAL_SEARCH = window.location.search;
+window.INITIAL_HASH = window.location.hash;
 Object.assign(window.app, {
     init: async () => {
         window.onpopstate = () => app.handleRoute();
@@ -3878,7 +3881,14 @@ Object.assign(window.app, {
                 window.sb.auth.onAuthStateChange(async (event, session) => {
                         console.log("DEBUG: onAuthStateChange fired! Event:", event, "Session:", session);
                         if (event === 'PASSWORD_RECOVERY') {
-    if (window.location.hash.includes('type=recovery')) {
+    // Support both old hash-based flow and new PKCE query-param flow
+    const _initSearch = window.INITIAL_SEARCH || window.location.search;
+    const _initHash = window.INITIAL_HASH || window.location.hash;
+    const _searchParams = new URLSearchParams(_initSearch);
+    const _isRecovery = _searchParams.get('type') === 'recovery'
+                     || _initHash.includes('type=recovery')
+                     || true; // PASSWORD_RECOVERY event always means recovery intent
+    if (_isRecovery) {
         app.auth.mode = 'recovery';
         if (window.location.pathname !== '/auth') {
             app.utils.navigate('/auth');
@@ -3905,12 +3915,13 @@ Object.assign(window.app, {
                                 await app.setUser(session.user);
                             }
                             const hash = window.INITIAL_HASH || window.location.hash;
-                            if (hash && hash.includes('type=signup')) {
+                            const searchType = new URLSearchParams(window.INITIAL_SEARCH || window.location.search).get('type');
+                            if ((hash && hash.includes('type=signup')) || searchType === 'signup') {
                                 setTimeout(() => {
                                     app.ui.showAlert("Xác thực Email thành công! Chào mừng bạn đến với hệ thống.");
                                     window.history.replaceState(null, null, window.location.pathname);
                                 }, 500);
-                            } else if (hash && hash.includes('type=magiclink')) {
+                            } else if ((hash && hash.includes('type=magiclink')) || searchType === 'magiclink') {
                                 setTimeout(() => {
                                     app.toast.show('success', 'Thành công', 'Đăng nhập thành công!');
                                     window.history.replaceState(null, null, window.location.pathname);

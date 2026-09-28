@@ -14,8 +14,12 @@ VNBUSARCHIVE là thư viện tư liệu, không phải nền tảng chia sẻ �
 * **Các trường hợp áp dụng ưu tiên (Chỉ áp dụng đối với XE BUÝT, KHÔNG áp dụng cho XE KHÁCH):**
   * Dòng xe đã không còn hoạt động/khai thác trên thị trường.
   * Tuyến xe buýt đã ngừng hoạt động hoàn toàn.
-  * Tuyến xe buýt đã chuyển giao đơn vị vận hành (ảnh ghi lại thời điểm xe còn thuộc đơn vị vận hành cũ).
-  * Tuyến xe buýt đã thay đổi dòng xe (ảnh ghi lại thời điểm tuyến còn sử dụng dòng xe cũ).
+  * Tuyến/xe buýt đã chuyển giao đơn vị vận hành hoặc bán/thanh lý/chuyển nhượng (ảnh ghi lại thời điểm còn thuộc đơn vị vận hành cũ).
+  * Tuyến xe buýt đã thay đổi dòng xe/lô xe (ảnh ghi lại thời điểm tuyến còn sử dụng dòng xe/lô xe cũ).
+  * Tuyến/xe buýt đã thay đổi biển số/số hiệu xe (ảnh ghi lại thời điểm còn dùng biển số/số hiệu cũ).
+  * Tuyến/xe buýt đã thay đổi màu sơn/nhận diện thương hiệu (ảnh ghi lại thời điểm còn dùng màu sơn/logo cũ).
+  * Tuyến/xe buýt đã hết niên hạn sử dụng/bị loại biên.
+  * Tuyến/xe buýt chỉ hoạt động theo hợp đồng/sự kiện tạm thời (ảnh ghi lại thời điểm tăng cường).
 * **Phạm vi châm chước:** 
   * **CHỈ CHẤP NHẬN** châm chước các hạn chế về **kỹ thuật bối cảnh/quang học** (độ nét, ánh sáng, thời tiết, v..v..).
   * **TUYỆT ĐỐI KHÔNG** áp dụng ưu tiên đối với các lỗi nghiêm trọng xuất phát từ **thao tác chủ quan của người dùng** (vi phạm quy tắc làm mờ ở B4.2, B4.3, v..v..).
