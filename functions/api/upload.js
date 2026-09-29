@@ -122,20 +122,28 @@ export async function onRequest(context) {
             }
             let rawSrc = uploadResult[0].src;
             try {
-                const fileNameFromUrl = rawSrc.split('/').pop();
-                const checkRes = await fetch(`https://cdn.vnbusarchive.io.vn/api/manage/list?search=${encodeURIComponent(fileNameFromUrl)}`, {
-                    headers: { 'Authorization': `Bearer ${env.CF_IMGBED_TOKEN}` }
+                const checkUrl = uploadResult[0].src.startsWith('/') ? 'https://cdn.vnbusarchive.io.vn' + uploadResult[0].src : uploadResult[0].src;
+                const antiCacheUrl = new URL(checkUrl);
+                antiCacheUrl.searchParams.set('nocache', Date.now().toString());
+                const checkRes = await fetch(antiCacheUrl.toString(), {
+                    method: 'HEAD',
+                    cache: 'no-store',
+                    headers: {
+                        'Cache-Control': 'no-cache, no-store, must-revalidate',
+                        'Pragma': 'no-cache',
+                        'Expires': '0'
+                    }
                 });
                 if (!checkRes.ok) {
-                    throw new Error('CDN trả về lỗi ' + checkRes.status + ' khi kiểm tra ảnh');
+                    throw new Error('CDN trả về lỗi ' + checkRes.status + ' (Ảnh 404 hoặc không tồn tại)');
                 }
-                const checkData = await checkRes.json();
-                if (!checkData.files || checkData.files.length === 0 || checkData.totalCount === 0) {
-                    throw new Error('CDN xác nhận ảnh không tồn tại trong hệ thống');
+                const size = checkRes.headers.get('content-length');
+                if (size && parseInt(size, 10) < 100) {
+                    throw new Error('Ảnh trả về là ảnh trống hoặc quá nhỏ');
                 }
             } catch (e) {
                 console.error('[CDN VERIFY ERROR]:', e);
-                throw new Error('Lỗi xác minh ảnh qua API sau tải lên: ' + e.message);
+                throw new Error('Lỗi xác minh ảnh sau tải lên: ' + e.message);
             }
 
             finalOptimizedUrl = rawSrc.startsWith('/') ? `https://cdn.vnbusarchive.io.vn${rawSrc}` : rawSrc;
@@ -188,20 +196,28 @@ export async function onRequest(context) {
             }
             let rawSrc = uploadResult[0].src;
             try {
-                const fileNameFromUrl = rawSrc.split('/').pop();
-                const checkRes = await fetch(`https://cdn.vnbusarchive.io.vn/api/manage/list?search=${encodeURIComponent(fileNameFromUrl)}`, {
-                    headers: { 'Authorization': `Bearer ${env.CF_IMGBED_TOKEN}` }
+                const checkUrl = uploadResult[0].src.startsWith('/') ? 'https://cdn.vnbusarchive.io.vn' + uploadResult[0].src : uploadResult[0].src;
+                const antiCacheUrl = new URL(checkUrl);
+                antiCacheUrl.searchParams.set('nocache', Date.now().toString());
+                const checkRes = await fetch(antiCacheUrl.toString(), {
+                    method: 'HEAD',
+                    cache: 'no-store',
+                    headers: {
+                        'Cache-Control': 'no-cache, no-store, must-revalidate',
+                        'Pragma': 'no-cache',
+                        'Expires': '0'
+                    }
                 });
                 if (!checkRes.ok) {
-                    throw new Error('CDN trả về lỗi ' + checkRes.status + ' khi kiểm tra ảnh');
+                    throw new Error('CDN trả về lỗi ' + checkRes.status + ' (Ảnh 404 hoặc không tồn tại)');
                 }
-                const checkData = await checkRes.json();
-                if (!checkData.files || checkData.files.length === 0 || checkData.totalCount === 0) {
-                    throw new Error('CDN xác nhận ảnh không tồn tại trong hệ thống');
+                const size = checkRes.headers.get('content-length');
+                if (size && parseInt(size, 10) < 100) {
+                    throw new Error('Ảnh trả về là ảnh trống hoặc quá nhỏ');
                 }
             } catch (e) {
                 console.error('[CDN VERIFY ERROR]:', e);
-                throw new Error('Lỗi xác minh ảnh qua API sau tải lên: ' + e.message);
+                throw new Error('Lỗi xác minh ảnh sau tải lên: ' + e.message);
             }
 
             finalOptimizedUrl = rawSrc.startsWith('/') ? `https://cdn.vnbusarchive.io.vn${rawSrc}` : rawSrc;
