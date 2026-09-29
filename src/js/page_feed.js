@@ -2213,7 +2213,10 @@ let currentRouteProvName = null;
                                         </div>
                                         <div class="flex flex-col sm:flex-1 min-w-0" id="veh-hist-new-op-wrapper">
                                             <span class="sm:hidden font-bold text-gray-500 mb-1">Đơn vị</span>
-                                            <input type="text" id="veh-hist-new-op" placeholder="Đơn vị" class="hist-input" oninput="app.utils.formatNoPunctuation(this)">
+                                            <div class="relative w-full h-full">
+                                                <input type="text" id="veh-hist-new-op" placeholder="Đơn vị" class="hist-input w-full" autocomplete="off" oninput="app.utils.formatNoPunctuation(this); app.utils.triggerSuggestion('veh-hist-new-op', 'veh-sug-hist-new-op', this.value, 'operator')">
+                                                <div id="veh-sug-hist-new-op" class="suggestion-box"></div>
+                                            </div>
                                         </div>
                                         <div class="flex flex-col sm:flex-1 min-w-0">
                                             <span class="sm:hidden font-bold text-gray-500 mb-1">Tuyến</span>

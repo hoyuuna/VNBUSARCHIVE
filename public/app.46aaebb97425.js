@@ -8274,7 +8274,10 @@ let currentRouteProvName = null;
                                         </div>
                                         <div class="flex flex-col sm:flex-1 min-w-0" id="veh-hist-new-op-wrapper">
                                             <span class="sm:hidden font-bold text-gray-500 mb-1">Đơn vị</span>
-                                            <input type="text" id="veh-hist-new-op" placeholder="Đơn vị" class="hist-input" oninput="app.utils.formatNoPunctuation(this)">
+                                            <div class="relative w-full h-full">
+                                                <input type="text" id="veh-hist-new-op" placeholder="Đơn vị" class="hist-input w-full" autocomplete="off" oninput="app.utils.formatNoPunctuation(this); app.utils.triggerSuggestion('veh-hist-new-op', 'veh-sug-hist-new-op', this.value, 'operator')">
+                                                <div id="veh-sug-hist-new-op" class="suggestion-box"></div>
+                                            </div>
                                         </div>
                                         <div class="flex flex-col sm:flex-1 min-w-0">
                                             <span class="sm:hidden font-bold text-gray-500 mb-1">Tuyến</span>
@@ -16246,7 +16249,7 @@ Object.assign(window.app, {
 });
 
 /* --- MODULE: page_vehicle.js --- */
-﻿// Extracted to page_vehicle.js
+// Extracted to page_vehicle.js
 Object.assign(window.app, {
     vehicle: {
                 currentHistoryData: [],
@@ -16420,7 +16423,10 @@ Object.assign(window.app, {
                                 </div>
                                 <div id="${prefix}hist-op-wrapper-${index}" class="flex flex-col sm:flex-1 min-w-0 ${isStopped ? 'hidden' : ''}">
                                       <span class="sm:hidden font-bold text-gray-500 mb-1">Đơn vị</span>
-                                      <input id="${prefix}hist-op-input-${index}" type="text" value="${app.utils.escapeAttr(h.operator)}" placeholder="Đơn vị" oninput="app.utils.formatNoPunctuation(this)" onchange="app.vehicle.updateHistoryItem(${index}, 'operator', this.value, '${prefix}')" class="hist-input ${isStopped ? 'bg-gray-100 cursor-not-allowed opacity-60' : ''}" ${isStopped ? 'disabled' : ''}>
+                                      <div class="relative w-full h-full">
+                                          <input id="${prefix}hist-op-input-${index}" type="text" value="${app.utils.escapeAttr(h.operator)}" placeholder="Đơn vị" autocomplete="off" oninput="app.utils.formatNoPunctuation(this); app.utils.triggerSuggestion('${prefix}hist-op-input-${index}', '${prefix}hist-sug-op-${index}', this.value, 'operator')" onchange="app.vehicle.updateHistoryItem(${index}, 'operator', this.value, '${prefix}')" class="hist-input w-full ${isStopped ? 'bg-gray-100 cursor-not-allowed opacity-60' : ''}" ${isStopped ? 'disabled' : ''}>
+                                          <div id="${prefix}hist-sug-op-${index}" class="suggestion-box"></div>
+                                      </div>
                                   </div>
                                   <div class="flex flex-col sm:flex-1 min-w-0">
                                       <span class="sm:hidden font-bold text-gray-500 mb-1">Tuyến</span>
