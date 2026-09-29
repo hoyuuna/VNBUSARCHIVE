@@ -123,6 +123,7 @@ export async function onRequest(context) {
             let rawSrc = uploadResult[0].src;
             try {
                 const checkUrl = uploadResult[0].src.startsWith('/') ? 'https://cdn.vnbusarchive.io.vn' + uploadResult[0].src : uploadResult[0].src;
+                await new Promise(r => setTimeout(r, 1500));
                 const antiCacheUrl = new URL(checkUrl);
                 antiCacheUrl.searchParams.set('nocache', Date.now().toString());
                 const checkRes = await fetch(antiCacheUrl.toString(), {
@@ -197,6 +198,7 @@ export async function onRequest(context) {
             let rawSrc = uploadResult[0].src;
             try {
                 const checkUrl = uploadResult[0].src.startsWith('/') ? 'https://cdn.vnbusarchive.io.vn' + uploadResult[0].src : uploadResult[0].src;
+                await new Promise(r => setTimeout(r, 1500));
                 const antiCacheUrl = new URL(checkUrl);
                 antiCacheUrl.searchParams.set('nocache', Date.now().toString());
                 const checkRes = await fetch(antiCacheUrl.toString(), {
