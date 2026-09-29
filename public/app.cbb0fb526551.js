@@ -6059,7 +6059,7 @@ changePassword: async () => {
 });
 
 /* --- MODULE: page_feed.js --- */
-﻿// Extracted to page_feed.js
+// Extracted to page_feed.js
 Object.assign(window.app, {
     views: {
                 currentProfileSort: 'newest',
@@ -8099,7 +8099,7 @@ Object.assign(window.app, {
                         if (vehicleRes.data && vehicleRes.data.note) {
                             const match = vehicleRes.data.note.match(/\[MERGED_INTO:([^\]]+)\]/);
                             if (match && match[1]) {
-                                app.toast.show('info', 'Chuyển hướng', `Hồ sơ xe này đã được ẩn và gộp chung vào xe ${match[1]}`);
+                                app.toast.show('info', 'Chuyển hướng', `Xe ${plate} hiện nay đã là xe ${match[1]}!`);
                                 return app.views.loadVehiclePage(match[1], forceRefresh);
                             }
                         }
