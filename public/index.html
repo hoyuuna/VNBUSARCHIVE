@@ -1939,7 +1939,7 @@ html.theme-dark .ct-icon {
             if (stored === 'system') {
                 theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
             }
-            document.write('<link rel="stylesheet" href="/css/' + theme + '.css?v=1790684685549" id="theme-css">');
+            document.write('<link rel="stylesheet" href="/css/' + theme + '.css?v=1790685241618" id="theme-css">');
             document.documentElement.classList.add('theme-' + theme);
             document.documentElement.style.backgroundColor = theme === 'dark' ? '#18181b' : '#fdfcf8';
         })();
@@ -3758,7 +3758,10 @@ html.theme-dark .ct-icon {
                                     </div>
                                     <div class="flex flex-col sm:flex-1 min-w-0" id="hist-new-op-wrapper">
                                         <span class="sm:hidden font-bold text-gray-500 mb-1">Đơn vị</span>
-                                        <input type="text" id="hist-new-op" placeholder="Đơn vị" class="hist-input" oninput="app.utils.formatNoPunctuation(this)">
+                                        <div class="relative w-full h-full">
+                                            <input type="text" id="hist-new-op" placeholder="Đơn vị" class="hist-input w-full" autocomplete="off" oninput="app.utils.formatNoPunctuation(this); app.utils.triggerSuggestion('hist-new-op', 'sug-hist-new-op', this.value, 'operator')">
+                                            <div id="sug-hist-new-op" class="suggestion-box"></div>
+                                        </div>
                                     </div>
                                     <div class="flex flex-col sm:flex-1 min-w-0">
                                         <span class="sm:hidden font-bold text-gray-500 mb-1">Tuyến</span>
