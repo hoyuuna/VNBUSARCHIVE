@@ -14362,6 +14362,20 @@ Object.assign(window.app, {
                             el.addEventListener('change', clearError);
                         }
                     });
+                    
+                    const isDocCheckbox = document.getElementById('up-is-documentary');
+                    const modNoteLabel = document.getElementById('up-mod-note-label');
+                    if (isDocCheckbox && modNoteLabel) {
+                        isDocCheckbox.addEventListener('change', () => {
+                            if (isDocCheckbox.checked) {
+                                if (!modNoteLabel.innerHTML.includes('<span')) {
+                                    modNoteLabel.innerHTML = 'Ghi chú dành cho kiểm duyệt <span class="text-red-500">*</span>';
+                                }
+                            } else {
+                                modNoteLabel.innerHTML = 'Ghi chú dành cho kiểm duyệt';
+                            }
+                        });
+                    }
                 },
                 checkQuota: async () => {
                     if (!app.user) return;
@@ -15545,7 +15559,7 @@ Object.assign(window.app, {
                                     try { await app.captcha.request(); } catch (err) { if (err.message !== "CAPTCHA_CANCELLED") app.ui.showAlert("Lỗi xác thực Captcha."); return; }
                                     const { data: { session } } = await window.sb.auth.getSession();
                                     if (session && p.url) {
-                                        await fetch('/api/delete-image', {
+                                        const res = await fetch('/api/delete-image', {
                                             method: 'POST',
                                             headers: {
                                                 'Content-Type': 'application/json',
@@ -15553,8 +15567,14 @@ Object.assign(window.app, {
                                             },
                                             body: JSON.stringify({ imageUrl: p.url, photoId: p.id })
                                         });
+                                        if (!res.ok) {
+                                            console.warn("Lỗi khi xóa ảnh trên CDN, tiếp tục xóa DB:", await res.text());
+                                        }
                                     }
-                                    await window.sb.from('photos').delete().eq('id', p.id);
+                                    const { error: delErr } = await window.sb.from('photos').delete().eq('id', p.id);
+                                    if (delErr) {
+                                        throw new Error(delErr.message);
+                                    }
                                     await app.vehicle.cleanupVehicle(p.license_plate);
                                     app.toast.show('success', 'Thành công', 'Ảnh đã được xóa vĩnh viễn khỏi hệ thống.');
                                     app.views.loadHome();

@@ -119,7 +119,7 @@ Object.assign(window.app, {
                                     try { await app.captcha.request(); } catch (err) { if (err.message !== "CAPTCHA_CANCELLED") app.ui.showAlert("Lỗi xác thực Captcha."); return; }
                                     const { data: { session } } = await window.sb.auth.getSession();
                                     if (session && p.url) {
-                                        await fetch('/api/delete-image', {
+                                        const res = await fetch('/api/delete-image', {
                                             method: 'POST',
                                             headers: {
                                                 'Content-Type': 'application/json',
@@ -127,8 +127,14 @@ Object.assign(window.app, {
                                             },
                                             body: JSON.stringify({ imageUrl: p.url, photoId: p.id })
                                         });
+                                        if (!res.ok) {
+                                            console.warn("Lỗi khi xóa ảnh trên CDN, tiếp tục xóa DB:", await res.text());
+                                        }
                                     }
-                                    await window.sb.from('photos').delete().eq('id', p.id);
+                                    const { error: delErr } = await window.sb.from('photos').delete().eq('id', p.id);
+                                    if (delErr) {
+                                        throw new Error(delErr.message);
+                                    }
                                     await app.vehicle.cleanupVehicle(p.license_plate);
                                     app.toast.show('success', 'Thành công', 'Ảnh đã được xóa vĩnh viễn khỏi hệ thống.');
                                     app.views.loadHome();

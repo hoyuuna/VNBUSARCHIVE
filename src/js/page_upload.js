@@ -2263,6 +2263,20 @@ Object.assign(window.app, {
                             el.addEventListener('change', clearError);
                         }
                     });
+                    
+                    const isDocCheckbox = document.getElementById('up-is-documentary');
+                    const modNoteLabel = document.getElementById('up-mod-note-label');
+                    if (isDocCheckbox && modNoteLabel) {
+                        isDocCheckbox.addEventListener('change', () => {
+                            if (isDocCheckbox.checked) {
+                                if (!modNoteLabel.innerHTML.includes('<span')) {
+                                    modNoteLabel.innerHTML = 'Ghi chú dành cho kiểm duyệt <span class="text-red-500">*</span>';
+                                }
+                            } else {
+                                modNoteLabel.innerHTML = 'Ghi chú dành cho kiểm duyệt';
+                            }
+                        });
+                    }
                 },
                 checkQuota: async () => {
                     if (!app.user) return;

@@ -1939,7 +1939,7 @@ html.theme-dark .ct-icon {
             if (stored === 'system') {
                 theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
             }
-            document.write('<link rel="stylesheet" href="/css/' + theme + '.css?v=1790675057136" id="theme-css">');
+            document.write('<link rel="stylesheet" href="/css/' + theme + '.css?v=1790676947874" id="theme-css">');
             document.documentElement.classList.add('theme-' + theme);
             document.documentElement.style.backgroundColor = theme === 'dark' ? '#18181b' : '#fdfcf8';
         })();
@@ -4862,7 +4862,7 @@ html.theme-dark .ct-icon {
                                     <p class="text-[11px] text-gray-500 italic mt-1">Ghi chú có thể sẽ xuất hiện công khai.</p>
                                 </div>
                                 <div class="md:col-span-2 mt-2">
-                                    <label class="text-xs text-gray-500 font-bold block mb-1.5 uppercase">Ghi chú dành cho kiểm duyệt</label>
+                                    <label id="up-mod-note-label" class="text-xs text-gray-500 font-bold block mb-1.5 uppercase">Ghi chú dành cho kiểm duyệt</label>
                                     <textarea id="up-mod-note" rows="2" tabindex="8" class="w-full border border-gray-300 p-2.5 text-sm rounded-md focus:ring-2 focus:ring-black focus:border-transparent outline-none transition"></textarea>
                                     <p class="text-[11px] text-gray-500 italic mt-1">Ghi chú sẽ chỉ xuất hiện cho kiểm duyệt, không xuất hiện công khai. Sẽ được yêu cầu nhập bắt buộc nếu ảnh được đánh dấu là ảnh tư liệu.</p>
                                 </div>
@@ -6931,7 +6931,7 @@ html.theme-dark .ct-icon {
 
     <!-- KHAY CHỨA TOAST Z-INDEX CAO NHẤT -->
     <div id="toast-container" class="fixed left-0 w-full flex flex-col items-center gap-2 pointer-events-none z-[99999]" style="z-index: 99999 !important;"></div>
-<script src="/app.15a1cece39ef.js"></script>
+<script src="/app.756f0098d021.js"></script>
 </body>
 </html>
 
