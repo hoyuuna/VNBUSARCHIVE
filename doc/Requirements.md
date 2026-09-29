@@ -19,7 +19,7 @@ VNBUSARCHIVE là thư viện tư liệu, không phải nền tảng chia sẻ �
   * Tuyến/xe buýt đã thay đổi biển số/số hiệu xe (ảnh ghi lại thời điểm còn dùng biển số/số hiệu cũ).
   * Tuyến/xe buýt đã thay đổi màu sơn/nhận diện thương hiệu (ảnh ghi lại thời điểm còn dùng màu sơn/logo cũ).
   * Tuyến/xe buýt đã hết niên hạn sử dụng/bị loại biên.
-  * Tuyến/xe buýt chỉ hoạt động theo hợp đồng/sự kiện tạm thời (ảnh ghi lại thời điểm tăng cường).
+  * Tuyến/xe buýt vận hành theo hợp đồng/sự kiện tạm thời đã ngừng hoạt động (ảnh ghi lại thời điểm tăng cường).
 * **Phạm vi châm chước:** 
   * **CHỈ CHẤP NHẬN** châm chước các hạn chế về **kỹ thuật bối cảnh/quang học** (độ nét, ánh sáng, thời tiết, v..v..).
   * **TUYỆT ĐỐI KHÔNG** áp dụng ưu tiên đối với các lỗi nghiêm trọng xuất phát từ **thao tác chủ quan của người dùng** (vi phạm quy tắc làm mờ ở B4.2, B4.3, v..v..).

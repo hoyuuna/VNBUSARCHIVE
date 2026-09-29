@@ -2003,6 +2003,11 @@ Object.assign(window.app, {
                     if (!valOp) missingFields.push("Đơn vị vận hành");
                     if (!valModel) missingFields.push("Dòng xe (Model)");
                     if (!valLoc) missingFields.push("Vị trí chụp");
+                    const isDocValueCheck = document.getElementById('up-is-documentary')?.checked || false;
+                    const modNoteValueCheck = document.getElementById('up-mod-note')?.value.trim() || '';
+                    if (isDocValueCheck && !modNoteValueCheck) {
+                        missingFields.push("Ghi chú dành cho kiểm duyệt");
+                    }
                     if (missingFields.length > 0) {
                         app.upload.triggerEmptyWarnings();
                         let msg = `Vui lòng điền đủ các trường bắt buộc: <b>${missingFields.join(', ')}</b>.`;
