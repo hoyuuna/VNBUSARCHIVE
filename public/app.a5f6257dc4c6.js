@@ -8227,21 +8227,13 @@ let currentRouteProvName = null;
                                             ${historyData.map((h, idx) => {
                                                 let displayPlate = h.plate || h.license_plate || vehicle.license_plate;
                                                 let displayNote = h.note || '';
-                                                let isMerged = false;
                                                 const match = displayNote.match(/BKS cũ:\s*([A-Z0-9.-]+)/i);
                                                 if (match) {
                                                     displayPlate = match[1];
                                                     displayNote = displayNote.replace(match[0], '').trim();
                                                 }
                                                 displayNote = displayNote.replace(/^[-,]\s*/, '').trim();
-                                                
-                                                if (h.plate && h.plate !== vehicle.license_plate) {
-                                                    isMerged = true;
-                                                }
-
                                                 const safePlate = app.utils.cleanText(displayPlate);
-                                                const splitBtn = isMerged ? `<br><button onclick="app.vehicle.requestSplit('${vehicle.license_plate}', '${safePlate}')" class="mt-1 text-[10px] bg-white border border-gray-300 text-gray-700 px-1.5 py-0.5 rounded hover:bg-gray-100 font-medium transition whitespace-nowrap"><i class="fa-solid fa-scissors mr-1 text-red-500"></i>Tách xe</button>` : '';
-
                                                 let safeOp = app.utils.cleanText(h.operator);
                                                 if ((h.route || '').trim() === 'Dừng hoạt động') safeOp = '';
                                                 const safeRoute = app.utils.cleanText(h.route || '-');
@@ -8252,10 +8244,7 @@ let currentRouteProvName = null;
                                                 const barColor = !isLatest ? '#9ca3af' : (isStopped ? '#ef4444' : '#22c55e');
                                                 return `
                                                 <tr>
-                                                    <td class="font-bold border-r border-gray-200" style="border-left: 4px solid ${barColor} !important;">
-                                                        ${safePlate}
-                                                        ${splitBtn}
-                                                    </td>
+                                                    <td class="font-bold border-r border-gray-200" style="border-left: 4px solid ${barColor} !important;">${safePlate}</td>
                                                     <td class="border-r border-gray-200">${safeOp}</td>
                                                     <td class="border-r border-gray-200">${safeRoute}</td>
                                                     <td class="text-xs text-gray-500 whitespace-pre-wrap break-words">${app.utils.linkify(safeNote)}</td>
@@ -16451,7 +16440,7 @@ Object.assign(window.app, {
                                 </div>
                                 <div class="flex justify-end gap-2 mt-2 sm:mt-0 w-full sm:w-auto h-full">
                                     ${ (h.plate && h.plate !== app.currentPlate) ? 
-                                    `<button type="button" onclick="app.vehicle.requestSplit('${app.currentPlate}', '${app.utils.cleanText(h.plate)}')" class="text-red-500 hover:text-white hover:bg-red-500 border border-red-200 rounded-md px-3 py-2 font-bold transition min-h-[42px] whitespace-nowrap" title="Tách xe này ra khỏi lịch sử"><i class="fa-solid fa-scissors"></i></button>` : '' }
+                                    `<button type="button" onclick="app.vehicle.requestSplit('${app.currentPlate}', '${app.utils.cleanText(h.plate)}')" class="text-gray-700 hover:text-white hover:bg-black border border-gray-300 rounded-md px-3 py-2 font-bold transition min-h-[42px] whitespace-nowrap" title="Tách xe này ra khỏi lịch sử"><i class="fa-solid fa-scissors"></i></button>` : '' }
                                     <button type="button" onclick="app.vehicle.duplicateHistoryItem(${index}, '${prefix}')" class="text-gray-700 hover:text-white hover:bg-black border border-gray-300 rounded-md px-3 py-2 font-bold transition min-h-[42px]" title="Nhân bản"><i class="fa-solid fa-copy"></i></button>
                                     <button type="button" onclick="app.vehicle.removeHistoryItem(${index}, '${prefix}')" class="text-gray-700 hover:text-white hover:bg-black border border-gray-300 rounded-md px-3 py-2 font-bold transition min-h-[42px]" title="Xóa"><i class="fa-solid fa-trash"></i></button>
                                 </div>
@@ -16748,7 +16737,7 @@ Object.assign(window.app, {
                 requestSplit: (currentPlate, oldPlate) => {
                     if (!app.user) return app.auth.check();
                     app.ui.showPrompt(
-                        `Bạn có chắc chắn muốn đề xuất TÁCH biển số [${oldPlate}] ra khỏi xe [${currentPlate}] không?<br><br><span class="text-xs font-normal text-gray-500">Lịch sử gộp sẽ bị xóa, và 2 xe sẽ được tách riêng biệt. Yêu cầu này sẽ được gửi cho Admin duyệt.</span>`, 
+                        `Bạn có chắc chắn muốn đề xuất TÁCH biển số [${oldPlate}] ra khỏi xe [${currentPlate}] không? Lịch sử gộp sẽ bị xóa, và 2 xe sẽ được tách riêng biệt. Yêu cầu này sẽ được gửi cho Admin duyệt.`, 
                         "Nhập lý do tách xe (Tùy chọn):", 
                         async (reason) => {
                             try {

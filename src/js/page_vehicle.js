@@ -189,7 +189,7 @@ Object.assign(window.app, {
                                 </div>
                                 <div class="flex justify-end gap-2 mt-2 sm:mt-0 w-full sm:w-auto h-full">
                                     ${ (h.plate && h.plate !== app.currentPlate) ? 
-                                    `<button type="button" onclick="app.vehicle.requestSplit('${app.currentPlate}', '${app.utils.cleanText(h.plate)}')" class="text-red-500 hover:text-white hover:bg-red-500 border border-red-200 rounded-md px-3 py-2 font-bold transition min-h-[42px] whitespace-nowrap" title="Tách xe này ra khỏi lịch sử"><i class="fa-solid fa-scissors"></i></button>` : '' }
+                                    `<button type="button" onclick="app.vehicle.requestSplit('${app.currentPlate}', '${app.utils.cleanText(h.plate)}')" class="text-gray-700 hover:text-white hover:bg-black border border-gray-300 rounded-md px-3 py-2 font-bold transition min-h-[42px] whitespace-nowrap" title="Tách xe này ra khỏi lịch sử"><i class="fa-solid fa-scissors"></i></button>` : '' }
                                     <button type="button" onclick="app.vehicle.duplicateHistoryItem(${index}, '${prefix}')" class="text-gray-700 hover:text-white hover:bg-black border border-gray-300 rounded-md px-3 py-2 font-bold transition min-h-[42px]" title="Nhân bản"><i class="fa-solid fa-copy"></i></button>
                                     <button type="button" onclick="app.vehicle.removeHistoryItem(${index}, '${prefix}')" class="text-gray-700 hover:text-white hover:bg-black border border-gray-300 rounded-md px-3 py-2 font-bold transition min-h-[42px]" title="Xóa"><i class="fa-solid fa-trash"></i></button>
                                 </div>
@@ -486,7 +486,7 @@ Object.assign(window.app, {
                 requestSplit: (currentPlate, oldPlate) => {
                     if (!app.user) return app.auth.check();
                     app.ui.showPrompt(
-                        `Bạn có chắc chắn muốn đề xuất TÁCH biển số [${oldPlate}] ra khỏi xe [${currentPlate}] không?<br><br><span class="text-xs font-normal text-gray-500">Lịch sử gộp sẽ bị xóa, và 2 xe sẽ được tách riêng biệt. Yêu cầu này sẽ được gửi cho Admin duyệt.</span>`, 
+                        `Bạn có chắc chắn muốn đề xuất TÁCH biển số [${oldPlate}] ra khỏi xe [${currentPlate}] không? Lịch sử gộp sẽ bị xóa, và 2 xe sẽ được tách riêng biệt. Yêu cầu này sẽ được gửi cho Admin duyệt.`, 
                         "Nhập lý do tách xe (Tùy chọn):", 
                         async (reason) => {
                             try {

@@ -2166,21 +2166,13 @@ let currentRouteProvName = null;
                                             ${historyData.map((h, idx) => {
                                                 let displayPlate = h.plate || h.license_plate || vehicle.license_plate;
                                                 let displayNote = h.note || '';
-                                                let isMerged = false;
                                                 const match = displayNote.match(/BKS cũ:\s*([A-Z0-9.-]+)/i);
                                                 if (match) {
                                                     displayPlate = match[1];
                                                     displayNote = displayNote.replace(match[0], '').trim();
                                                 }
                                                 displayNote = displayNote.replace(/^[-,]\s*/, '').trim();
-                                                
-                                                if (h.plate && h.plate !== vehicle.license_plate) {
-                                                    isMerged = true;
-                                                }
-
                                                 const safePlate = app.utils.cleanText(displayPlate);
-                                                const splitBtn = isMerged ? `<br><button onclick="app.vehicle.requestSplit('${vehicle.license_plate}', '${safePlate}')" class="mt-1 text-[10px] bg-white border border-gray-300 text-gray-700 px-1.5 py-0.5 rounded hover:bg-gray-100 font-medium transition whitespace-nowrap"><i class="fa-solid fa-scissors mr-1 text-red-500"></i>Tách xe</button>` : '';
-
                                                 let safeOp = app.utils.cleanText(h.operator);
                                                 if ((h.route || '').trim() === 'Dừng hoạt động') safeOp = '';
                                                 const safeRoute = app.utils.cleanText(h.route || '-');
@@ -2191,10 +2183,7 @@ let currentRouteProvName = null;
                                                 const barColor = !isLatest ? '#9ca3af' : (isStopped ? '#ef4444' : '#22c55e');
                                                 return `
                                                 <tr>
-                                                    <td class="font-bold border-r border-gray-200" style="border-left: 4px solid ${barColor} !important;">
-                                                        ${safePlate}
-                                                        ${splitBtn}
-                                                    </td>
+                                                    <td class="font-bold border-r border-gray-200" style="border-left: 4px solid ${barColor} !important;">${safePlate}</td>
                                                     <td class="border-r border-gray-200">${safeOp}</td>
                                                     <td class="border-r border-gray-200">${safeRoute}</td>
                                                     <td class="text-xs text-gray-500 whitespace-pre-wrap break-words">${app.utils.linkify(safeNote)}</td>
