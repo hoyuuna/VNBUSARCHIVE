@@ -1,4 +1,4 @@
-﻿// Extracted to page_leaderboard.js
+// Extracted to page_leaderboard.js
 Object.assign(window.app, {
     topUploaders: {},
 
@@ -22,19 +22,23 @@ Object.assign(window.app, {
                 await app.utils.fetchTopUploaders();
                 const counts = app.topUploadersCounts || {};
                 let allApprovedPhotos = [];
-                let fromIndex = 0;
-                let batchSize = 999;
+                let lastCreatedAt = null;
                 let hasMore = true;
                 while (hasMore) {
-                    const { data, error: phErr } = await window.sb
+                    let query = window.sb
                         .from('photos')
-                        .select('uploader_id, views')
+                        .select('uploader_id, views, created_at')
                         .eq('status', 'approved')
-                        .range(fromIndex, fromIndex + batchSize);
-                    if (phErr || !data) break;
+                        .order('created_at', { ascending: false })
+                        .limit(1000);
+                    if (lastCreatedAt) {
+                        query = query.lt('created_at', lastCreatedAt);
+                    }
+                    const { data, error: phErr } = await query;
+                    if (phErr || !data || data.length === 0) break;
                     allApprovedPhotos.push(...data);
-                    if (data.length <= batchSize) hasMore = false;
-                    fromIndex += batchSize + 1;
+                    if (data.length < 1000) hasMore = false;
+                    else lastCreatedAt = data[data.length - 1].created_at;
                 }
                 const viewCounts = {};
                 allApprovedPhotos.forEach(p => {

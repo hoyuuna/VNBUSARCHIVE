@@ -326,12 +326,17 @@ Object.assign(window.app, {
                         if (uniquePlates === null || uniqueRoutes === null) {
                             const plateSet = new Set();
                             const routeSet = new Set();
-                            let from = 0; const step = 999; let fetchMore = true;
+                            let lastCreatedAt = null;
+                            let fetchMore = true;
                             while (fetchMore) {
                                 let statsQuery = window.sb.from('photos')
-                                    .select('license_plate, route_no')
+                                    .select('license_plate, route_no, created_at')
                                     .eq('status', 'approved')
-                                    .range(from, from + step);
+                                    .order('created_at', { ascending: false })
+                                    .limit(1000);
+                                if (lastCreatedAt) {
+                                    statsQuery = statsQuery.lt('created_at', lastCreatedAt);
+                                }
                                 statsQuery = app.preference.applyFilter(statsQuery);
                                 const { data, error } = await statsQuery;
                                 if (error || !data || data.length === 0) break;
@@ -339,7 +344,8 @@ Object.assign(window.app, {
                                     if (item.license_plate) plateSet.add(item.license_plate.trim().toUpperCase());
                                     if (item.route_no && item.route_no !== '---') routeSet.add(item.route_no.trim().toLowerCase());
                                 });
-                                if (data.length <= step) fetchMore = false; else from += step + 1;
+                                if (data.length < 1000) fetchMore = false;
+                                else lastCreatedAt = data[data.length - 1].created_at;
                             }
                             uniquePlates = plateSet.size;
                             uniqueRoutes = routeSet.size;
