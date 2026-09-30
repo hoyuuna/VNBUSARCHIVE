@@ -2395,14 +2395,14 @@ Object.assign(window.app, {
                                 }
                                 if (!result.success) {
                                     console.error('[EXHAUSTIVE UPLOAD LOG - SERVER RETURNED FAILURE]:', JSON.stringify(result, null, 2));
-                                    let errorDetail = result.error;
-                                    if (typeof errorDetail === 'object' && errorDetail !== null) {
-                                        errorDetail = errorDetail.message || JSON.stringify(errorDetail);
+                                    let uiError = result.error || 'Máy chủ từ chối yêu cầu Upload.';
+                                    if (typeof uiError === 'object' && uiError !== null) {
+                                        uiError = uiError.message || JSON.stringify(uiError);
                                     }
-                                    if (result.details) errorDetail += ` | Details: ${result.details}`;
-                                    if (result.code) errorDetail += ` | Code: ${result.code}`;
-                                    if (result.hint) errorDetail += ` | Hint: ${result.hint}`;
-                                    lastUploadErr = new Error(errorDetail || 'Máy chủ từ chối yêu cầu Upload.');
+                                    if (result.details) console.error('[EXHAUSTIVE UPLOAD LOG] Details:', result.details);
+                                    if (result.code) console.error('[EXHAUSTIVE UPLOAD LOG] Code:', result.code);
+                                    if (result.hint) console.error('[EXHAUSTIVE UPLOAD LOG] Hint:', result.hint);
+                                    lastUploadErr = new Error(uiError);
                                     break;
                                 }
                                 break;
@@ -3337,3 +3337,4 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }, 500);
 });
+
