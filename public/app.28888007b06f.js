@@ -17316,6 +17316,11 @@ Object.assign(window.app, {
                                             }
                                         }
                                         actionButtons += '</div>';
+                                        if (p.status === 'pending_info' || p.status === 'pending') {
+                                            actionButtons += `<div class="flex mt-2">
+                                                <button onclick="app.admin.requestQualityRecheck('${p.id}', this)" class="w-full bg-black text-white border border-black dark:border-white dark:bg-white dark:text-black py-2.5 text-xs font-bold rounded-md hover:bg-gray-800 dark:hover:bg-gray-200 active:scale-[0.98] transition-all">Yêu cầu kiểm tra lại chất lượng</button>
+                                            </div>`;
+                                        }
                                         return actionButtons;
                                     })()}
                                     </div>
@@ -20341,6 +20346,40 @@ if (cbQuality) newSubroles.push('quality_aud');
                         }
                         btn.innerText = "DUYỆT"; btn.disabled = false; btn.classList.remove('btn-loading');
                     }
+                },
+                requestQualityRecheck: async (id, btn) => {
+                    if (app.isRealtimeConnected === false) {
+                        return app.ui.showAlert("Mất kết nối Realtime với máy chủ! Đã tạm khóa tính năng này để tránh lệch dữ liệu.");
+                    }
+                    app.ui.showAlert("Bạn có chắc chắn muốn trả ảnh này về bước Duyệt chất lượng?", async () => {
+                        const originalHtml = btn.innerHTML;
+                        btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i>';
+                        btn.disabled = true;
+                        try {
+                            const res = await fetch('/api/admin/action', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'Authorization': `Bearer ${app.session.access_token}`
+                                },
+                                body: JSON.stringify({ action: 'recheck_quality', photoId: id })
+                            });
+                            const data = await res.json();
+                            if (!res.ok) throw new Error(data.error || 'Lỗi hệ thống');
+                            const cardEl = btn.closest('.bg-white, .dark\\:bg-neutral-800, .bg-gray-50');
+                            if (cardEl) {
+                                cardEl.style.transition = 'all 0.3s ease';
+                                cardEl.style.opacity = '0';
+                                cardEl.style.transform = 'scale(0.9)';
+                                setTimeout(() => cardEl.remove(), 300);
+                            }
+                            app.ui.showToast("Đã đá trả về bước Duyệt chất lượng", "success");
+                        } catch (err) {
+                            app.ui.showToast(err.message, "error");
+                            btn.innerHTML = originalHtml;
+                            btn.disabled = false;
+                        }
+                    }, () => {});
                 },
                 denyPhoto: async (id, uploaderId, btn) => {
                     if (app.isRealtimeConnected === false) {

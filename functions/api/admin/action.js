@@ -94,6 +94,29 @@ export async function onRequestPost(context) {
             return new Response(JSON.stringify({ error: 'Quyền bị từ chối: Cần role quality_aud để duyệt chất lượng.' }), { status: 403 });
         }
 
+        if (action === 'recheck_quality') {
+            if (photo.status !== 'pending_info' && photo.status !== 'pending') {
+                return new Response(JSON.stringify({ error: 'Chỉ có thể yêu cầu kiểm tra lại chất lượng khi ảnh đang ở bước Duyệt thông tin.' }), { status: 400 });
+            }
+            await sbAdmin.from('photo_reviews').delete().eq('photo_id', photoId);
+            const { error: updErr } = await sbAdmin.from('photos').update({
+                status: 'pending_quality',
+                review_progress: null,
+                reviewer_count: 0
+            }).eq('id', photoId);
+            
+            if (updErr) return new Response(JSON.stringify({ error: updErr.message }), { status: 500 });
+            
+            await sbAdmin.from('admin_logs').insert({
+                admin_id: user.id,
+                target_user_id: photo.uploader_id,
+                action_type: 'recheck_quality',
+                details: JSON.stringify({ photoId, note: 'Đá lại duyệt chất lượng' })
+            });
+            
+            return new Response(JSON.stringify({ success: true, message: 'Đã trả về bước Duyệt chất lượng.' }), { status: 200, headers: { 'Content-Type': 'application/json' } });
+        }
+
         if (photo.status === 'approved' || photo.status === 'denied') {
             if (!isManager) {
                 return new Response(JSON.stringify({ error: 'Quyền bị từ chối: Chỉ Manager mới có quyền ghi đè (duyệt lại/từ chối lại) ảnh đã có kết quả.' }), { status: 403 });
