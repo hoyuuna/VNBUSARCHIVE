@@ -20360,7 +20360,7 @@ if (cbQuality) newSubroles.push('quality_aud');
                                 method: 'POST',
                                 headers: {
                                     'Content-Type': 'application/json',
-                                    'Authorization': `Bearer ${app.session.access_token}`
+                                    'Authorization': `Bearer ${(await window.sb.auth.getSession()).data.session?.access_token}`
                                 },
                                 body: JSON.stringify({ action: 'recheck_quality', photoId: id })
                             });
