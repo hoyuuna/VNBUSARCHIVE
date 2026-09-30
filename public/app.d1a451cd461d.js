@@ -20373,9 +20373,9 @@ if (cbQuality) newSubroles.push('quality_aud');
                                 cardEl.style.transform = 'scale(0.9)';
                                 setTimeout(() => cardEl.remove(), 300);
                             }
-                            app.ui.showToast("Đã đá trả về bước Duyệt chất lượng", "success");
+                            app.toast.show('success', 'Thành công', 'Đã đá trả về bước Duyệt chất lượng');
                         } catch (err) {
-                            app.ui.showToast(err.message, "error");
+                            app.toast.show('error', 'Lỗi', err.message);
                             btn.innerHTML = originalHtml;
                             btn.disabled = false;
                         }
