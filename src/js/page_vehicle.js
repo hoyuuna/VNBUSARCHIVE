@@ -188,6 +188,8 @@ Object.assign(window.app, {
                                     <textarea placeholder="Ghi chú" oninput="this.style.height = 'auto'; this.style.height = (this.scrollHeight + (this.offsetHeight - this.clientHeight)) + 'px'" onchange="app.vehicle.updateHistoryItem(${index}, 'note', this.value, '${prefix}')" class="hist-input resize-y min-h-[50px] p-2 overflow-hidden w-full">${app.utils.escapeHtml(h.note || '')}</textarea>
                                 </div>
                                 <div class="flex justify-end gap-2 mt-2 sm:mt-0 w-full sm:w-auto h-full">
+                                    ${ (h.plate && h.plate !== app.currentPlate) ? 
+                                    `<button type="button" onclick="app.vehicle.requestSplit('${app.currentPlate}', '${app.utils.cleanText(h.plate)}')" class="text-red-500 hover:text-white hover:bg-red-500 border border-red-200 rounded-md px-3 py-2 font-bold transition min-h-[42px] whitespace-nowrap" title="Tách xe này ra khỏi lịch sử"><i class="fa-solid fa-scissors"></i></button>` : '' }
                                     <button type="button" onclick="app.vehicle.duplicateHistoryItem(${index}, '${prefix}')" class="text-gray-700 hover:text-white hover:bg-black border border-gray-300 rounded-md px-3 py-2 font-bold transition min-h-[42px]" title="Nhân bản"><i class="fa-solid fa-copy"></i></button>
                                     <button type="button" onclick="app.vehicle.removeHistoryItem(${index}, '${prefix}')" class="text-gray-700 hover:text-white hover:bg-black border border-gray-300 rounded-md px-3 py-2 font-bold transition min-h-[42px]" title="Xóa"><i class="fa-solid fa-trash"></i></button>
                                 </div>
@@ -595,3 +597,5 @@ Object.assign(window.app, {
                 }
             }
 });
+
+

@@ -1436,6 +1436,28 @@ if (app.admin._activeLoadToken !== currentLoadToken || app.adminTab !== tab) ret
                                             </div>
                                         </div>
                                     </div>`;
+                                } else if (type === 'unmerge_vehicle') {
+                                    let details = `<div class="p-3 bg-red-50 border border-red-200 rounded text-red-800 text-sm">
+                                        <p class="font-bold mb-1"><i class="fa-solid fa-scissors mr-1"></i> Yêu cầu tách xe</p>
+                                        <p>Đề xuất tách biển số <strong>${app.utils.escapeAttr(d.target_plate)}</strong> ra khỏi xe <strong>${app.utils.escapeAttr(r.license_plate)}</strong>.</p>
+                                        ${d.reason ? `<p class="mt-2 text-xs italic text-red-600">Lý do: ${app.utils.escapeAttr(d.reason)}</p>` : ''}
+                                    </div>`;
+                                    
+                                    return `
+                                    <div class="admin-card">
+                                        <div class="flex justify-between items-start mb-3 border-b border-gray-100 pb-2">
+                                            <div>
+                                                <div class="text-xs text-gray-500 mb-1"><i class="fa-solid fa-user-pen mr-1"></i> ${app.utils.escapeAttr(username)}</div>
+                                                <h4 class="font-bold text-gray-900 text-sm">Tách Lịch sử Xe</h4>
+                                            </div>
+                                            <span class="text-xs bg-red-100 text-red-800 px-2 py-1 rounded font-bold">TÁCH XE</span>
+                                        </div>
+                                        <div class="mb-4">${details}</div>
+                                        <div class="flex gap-2">
+                                            <button onclick="app.admin.approveRequest('${r.id}', 'unmerge_vehicle')" class="flex-1 bg-black text-white px-3 py-2 text-xs font-bold rounded-md hover:bg-gray-800 transition">DUYỆT</button>
+                                            <button onclick="app.admin.denyRequest('${r.id}')" class="bg-white border border-gray-300 text-gray-700 px-3 py-2 text-xs font-bold rounded-md hover:bg-gray-50 transition">TỪ CHỐI</button>
+                                        </div>
+                                    </div>`;
                                 } else if (type === 'update_history') {
                                     if (!app.admin.originalData) app.admin.originalData = {};
                                     const oldHistories = hMap[r.license_plate] || [];
