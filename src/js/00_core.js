@@ -2674,19 +2674,25 @@ cleanupState: () => {
                 fetchTopUploaders: async () => {
                     try {
                         let allUploaders = [];
-                        let from = 0;
-                        let step = 999;
+                        let lastCreatedAt = null;
                         let fetchMore = true;
                         while (fetchMore) {
-                            const { data, error } = await window.sb
+                            let query = window.sb
                                 .from('photos')
-                                .select('uploader_id')
+                                .select('uploader_id, created_at')
                                 .eq('status', 'approved')
-                                .range(from, from + step);
-                            if (error || !data) break;
+                                .order('created_at', { ascending: false })
+                                .limit(1000);
+                            
+                            if (lastCreatedAt) {
+                                query = query.lt('created_at', lastCreatedAt);
+                            }
+                            
+                            const { data, error } = await query;
+                            if (error || !data || data.length === 0) break;
                             allUploaders.push(...data);
-                            if (data.length <= step) fetchMore = false;
-                            from += step + 1;
+                            if (data.length < 1000) fetchMore = false;
+                            lastCreatedAt = data[data.length - 1].created_at;
                         }
                         const counts = {};
                         allUploaders.forEach(p => {
