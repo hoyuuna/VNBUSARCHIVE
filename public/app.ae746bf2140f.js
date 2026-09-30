@@ -20366,12 +20366,15 @@ if (cbQuality) newSubroles.push('quality_aud');
                             });
                             const data = await res.json();
                             if (!res.ok) throw new Error(data.error || 'Lỗi hệ thống');
-                            const cardEl = btn.closest('.bg-white, .dark\\:bg-neutral-800, .bg-gray-50');
+                            const cardEl = btn ? btn.closest('.admin-card') : document.getElementById(`adm-photo-card-${id}`);
                             if (cardEl) {
                                 cardEl.style.transition = 'all 0.3s ease';
                                 cardEl.style.opacity = '0';
                                 cardEl.style.transform = 'scale(0.9)';
                                 setTimeout(() => cardEl.remove(), 300);
+                            } else {
+                                btn.innerHTML = originalHtml;
+                                btn.disabled = false;
                             }
                             app.toast.show('success', 'Thành công', 'Đã đá trả về bước Duyệt chất lượng');
                         } catch (err) {
