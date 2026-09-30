@@ -3,7 +3,7 @@
     "build": "node build-core.js && echo \"const FIREBASE_URL = '$FIREBASE_BUS_URL';\" > public/token.js"
   },
   "dependencies": {
-    "@supabase/supabase-js": "^2.89.0",
+    "@supabase/supabase-js": "^2.117.2",
     "jsdom": "^29.1.1",
     "marked": "^15.0.0",
     "resend": "^4.0.0"

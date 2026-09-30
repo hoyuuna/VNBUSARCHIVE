@@ -481,6 +481,34 @@ Object.assign(window.app, {
                         await app.vehicle.cleanupVehicle(plate);
                     } catch (e) { console.error("Lỗi sync lịch sử:", e); }
                 },
+                requestSplit: (currentPlate, oldPlate) => {
+                    if (!app.user) return app.auth.check();
+                    app.ui.showPrompt(
+                        `Bạn có chắc chắn muốn đề xuất TÁCH biển số [${oldPlate}] ra khỏi xe [${currentPlate}] không?<br><br><span class="text-xs font-normal text-gray-500">Lịch sử gộp sẽ bị xóa, và 2 xe sẽ được tách riêng biệt. Yêu cầu này sẽ được gửi cho Admin duyệt.</span>`, 
+                        "Nhập lý do tách xe (Tùy chọn):", 
+                        async (reason) => {
+                            try {
+                                const { count, error: checkErr } = await window.sb.from('edit_requests').select('*', { count: 'exact', head: true }).eq('license_plate', currentPlate).eq('status', 'pending').contains('new_data', { request_type: 'unmerge_vehicle' });
+                                if (count > 0) return app.ui.showAlert("Đã có một yêu cầu tách xe khác đang chờ duyệt cho xe này.");
+                                
+                                const { error } = await window.sb.from('edit_requests').insert({
+                                    requester_id: app.user.id,
+                                    license_plate: currentPlate,
+                                    new_data: { 
+                                        request_type: 'unmerge_vehicle', 
+                                        target_plate: oldPlate,
+                                        reason: reason || ''
+                                    },
+                                    status: 'pending'
+                                });
+                                if (error) throw error;
+                                app.ui.showAlert("Yêu cầu Tách xe đã được gửi và đang chờ Admin duyệt.");
+                            } catch (err) {
+                                app.ui.showAlert("Lỗi: " + err.message);
+                            }
+                        }
+                    );
+                },
                 toggleVehiclePageEdit: (plate) => {
                     if (!app.user) return app.auth.check();
                     const fields = ['vehicle-edit-model', 'vehicle-edit-note'];
