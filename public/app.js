@@ -16496,7 +16496,6 @@ Object.assign(window.app, {
                             app.ui.showAlert("NgÃ y khÃ´ng há»£p lá»‡! Vui lÃ²ng nháº­p Ä‘Ãºng Ä‘á»‹nh dáº¡ng DD/MM/YYYY (vÃ­ dá»¥: 15/08/2023).");
                             return app.vehicle.renderEditList(prefix);
                         }
-                    }
                         app.vehicle.tempHistory[index][field] = parsed || '';
                     } else {
                         app.vehicle.tempHistory[index][field] = value;
@@ -16566,6 +16565,7 @@ Object.assign(window.app, {
                         if(document.getElementById(prefix + 'hist-new-route')) document.getElementById(prefix + 'hist-new-route').value = '';
                         
                         app.vehicle.renderEditList(prefix);
+                        }
                     }
 
                     const btnSaveHist = document.getElementById(prefix === 'veh-' ? 'btn-save-veh-history' : 'btn-save-history');
