@@ -1067,16 +1067,12 @@ closeCustomRolePrompt: () => {
                         // Update notices if any
                         const ops = app.maintenance.settings['admin_ops'];
                         const opsNotice1 = document.getElementById('contact-admin-ops-notice');
-                        const opsNotice2 = document.getElementById('tracker-admin-ops-notice');
                         if (ops && ops.is_active && ops.reason) {
                             const times = ops.reason.split('|');
                             const textContact = `Chúng mình sẽ tạm ngưng tiếp nhận và xử lý yêu cầu trong khung giờ ${times[0] || '22:00'} - ${times[1] || '08:00'} hàng ngày. Các yêu cầu gửi trong thời gian này sẽ được ưu tiên xử lý vào ngày làm việc tiếp theo.`;
-                            const textTracker = `Thời gian phê duyệt sẽ linh hoạt tùy theo lượng ảnh, độ khó và tâm trạng admin (*^▽^*) thường sẽ kéo dài từ 1-12 tiếng mỗi ảnh. Cảm ơn bạn đã kiên nhẫn chờ đợi. Chúng mình sẽ tạm ngưng tiếp nhận và xử lý yêu cầu trong khung giờ ${times[0] || '22:00'} - ${times[1] || '08:00'} hàng ngày. Các yêu cầu gửi trong thời gian này sẽ được ưu tiên xử lý vào ngày làm việc tiếp theo.`;
                             if (opsNotice1) { opsNotice1.innerText = textContact; opsNotice1.classList.remove('hidden'); }
-                            if (opsNotice2) { opsNotice2.innerText = textTracker; opsNotice2.classList.remove('hidden'); }
                         } else {
                             if (opsNotice1) opsNotice1.classList.add('hidden');
-                            if (opsNotice2) opsNotice2.classList.add('hidden');
                         }
 
                     } catch (e) { console.error("Lỗi lấy thông tin bảo trì", e); }
@@ -9192,7 +9188,13 @@ app.feed.renderProgressTracker = function(photo, queueCount) {
             Không sao cả, bạn thử lại với một bức ảnh khác chất lượng hơn nhé! Cảm ơn đóng góp của bạn.<br>Bạn có thể tham khảo <a href="/ar" class="underline font-bold">Quy định kiểm duyệt</a> tại đây. Nếu cần giải thích thêm hoặc khiếu nại, hãy <a href="https://www.facebook.com/vnbusarchive" target="_blank" class="underline font-bold">Gửi yêu cầu hỗ trợ</a> cho tụi mình nhé! Bạn vui lòng không xóa ảnh nếu có nhu cầu kháng cáo!
         `;
     } else {
-        footerEl.innerText = 'Thời gian phê duyệt sẽ linh hoạt tùy theo lượng ảnh, độ khó và tâm trạng admin (*^▽^*) thường sẽ kéo dài từ 1-12 tiếng mỗi ảnh. Cảm ơn bạn đã kiên nhẫn chờ đợi.';
+        let baseText = 'Thời gian phê duyệt sẽ linh hoạt tùy theo lượng ảnh, độ khó và tâm trạng admin (*^▽^*) thường sẽ kéo dài từ 1-12 tiếng mỗi ảnh. Cảm ơn bạn đã kiên nhẫn chờ đợi.';
+        const opsData = app.maintenance.settings['admin_ops'];
+        if (opsData && opsData.is_active && opsData.reason) {
+            const times = opsData.reason.split('|');
+            baseText += ` Chúng mình sẽ tạm ngưng tiếp nhận và xử lý yêu cầu trong khung giờ ${times[0] || '22:00'} - ${times[1] || '08:00'} hàng ngày. Các yêu cầu gửi trong thời gian này sẽ được ưu tiên xử lý vào ngày làm việc tiếp theo.`;
+        }
+        footerEl.innerText = baseText;
     }
     
     let qStatus = 'gray', iStatus = 'gray', pStatus = 'gray';
