@@ -2241,7 +2241,7 @@ let currentRouteProvName = null;
                                 </div>
                                 <div class="mt-3 flex justify-end gap-3">
                                     <button onclick="app.vehicle.toggleEditHistory('veh-')" class="text-xs text-gray-500 hover:text-black font-medium">Hủy bỏ</button>
-                                    <button onclick="app.vehicle.saveHistory()" class="bg-black text-white px-4 py-2 text-xs font-bold rounded-md hover:bg-gray-800 transition shadow-sm">Lưu thông tin</button>
+                                    <button id="btn-save-veh-history" onclick="app.vehicle.saveHistory()" class="bg-black text-white px-4 py-2 text-xs font-bold rounded-md hover:bg-gray-800 transition shadow-sm">Lưu thông tin</button>
                                 </div>
                             </div>
                         `;

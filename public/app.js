@@ -8308,7 +8308,7 @@ let currentRouteProvName = null;
                                 </div>
                                 <div class="mt-3 flex justify-end gap-3">
                                     <button onclick="app.vehicle.toggleEditHistory('veh-')" class="text-xs text-gray-500 hover:text-black font-medium">Hủy bỏ</button>
-                                    <button onclick="app.vehicle.saveHistory()" class="bg-black text-white px-4 py-2 text-xs font-bold rounded-md hover:bg-gray-800 transition shadow-sm">Lưu thông tin</button>
+                                    <button id="btn-save-veh-history" onclick="app.vehicle.saveHistory()" class="bg-black text-white px-4 py-2 text-xs font-bold rounded-md hover:bg-gray-800 transition shadow-sm">Lưu thông tin</button>
                                 </div>
                             </div>
                         `;
@@ -16266,7 +16266,7 @@ Object.assign(window.app, {
 });
 
 /* --- MODULE: page_vehicle.js --- */
-// Extracted to page_vehicle.js
+﻿// Extracted to page_vehicle.js
 Object.assign(window.app, {
     vehicle: {
                 currentHistoryData: [],
@@ -16291,10 +16291,10 @@ Object.assign(window.app, {
                         if (photos && photos.length > 0) {
                             if (grid) grid.innerHTML = photos.map(p => app.views.renderPhotoCard(p)).join('');
                         } else {
-                            if (grid) grid.innerHTML = '<div class="col-span-full text-center py-10 text-gray-500">Không tìm thấy ảnh nào.</div>';
+                            if (grid) grid.innerHTML = '<div class="col-span-full text-center py-10 text-gray-500">KhÃ´ng tÃ¬m tháº¥y áº£nh nÃ o.</div>';
                         }
                     } catch (err) {
-                        console.error("Lỗi tải trang ảnh xe:", err);
+                        console.error("Lá»—i táº£i trang áº£nh xe:", err);
                     } finally {
                         if (grid) {
                             grid.style.opacity = '1';
@@ -16335,7 +16335,7 @@ Object.assign(window.app, {
                         }
                         const { data: history } = await window.sb.from('vehicle_history').select('*').eq('license_plate', plate);
                         if (!history || history.length === 0) return;
-                        const specialRoutes = ['Ngoài giờ hoạt động', 'Chưa hoạt động'];
+                        const specialRoutes = ['NgoÃ i giá» hoáº¡t Ä‘á»™ng', 'ChÆ°a hoáº¡t Ä‘á»™ng'];
                         const activePhotos = approvedPhotos.filter(p => !specialRoutes.includes(p.route_no));
                         const isSameRoute = (r1, r2) => (r1 || '').trim().toLowerCase() === (r2 || '').trim().toLowerCase();
                         for (const h of history) {
@@ -16347,7 +16347,7 @@ Object.assign(window.app, {
                             }
                         }
 
-                        // Gộp các mốc lịch sử liền kề có cùng số tuyến
+                        // Gá»™p cÃ¡c má»‘c lá»‹ch sá»­ liá»n ká» cÃ³ cÃ¹ng sá»‘ tuyáº¿n
                         let { data: freshHistory } = await window.sb.from('vehicle_history')
                             .select('*').eq('license_plate', plate).order('effective_date', { ascending: true });
                         if (freshHistory && freshHistory.length > 1) {
@@ -16362,7 +16362,7 @@ Object.assign(window.app, {
                             }
                         }
                     } catch (e) {
-                        console.error("Lỗi dọn dẹp lịch sử xe:", e);
+                        console.error("Lá»—i dá»n dáº¹p lá»‹ch sá»­ xe:", e);
                     }
                 },
                 toggleEditHistory: (prefix = '') => {
@@ -16386,7 +16386,7 @@ Object.assign(window.app, {
                         app.vehicle.renderEditList(prefix);
                         const btnSaveHist = document.getElementById(prefix ? 'btn-save-veh-history' : 'btn-save-history');
                         if (btnSaveHist) {
-                            btnSaveHist.innerText = "Lưu thông tin";
+                            btnSaveHist.innerText = "LÆ°u thÃ´ng tin";
                         }
                     } else {
                         ui.classList.add('hidden');
@@ -16412,13 +16412,13 @@ Object.assign(window.app, {
                     const toRemove = new Set();
                     for (let i = 0; i < sorted.length; i++) {
                         const h = sorted[i];
-                        if ((h.route || '').trim() === 'Dừng hoạt động') {
+                        if ((h.route || '').trim() === 'Dá»«ng hoáº¡t Ä‘á»™ng') {
                             const stopDate = h.effective_date ? new Date(h.effective_date).getTime() : 0;
                             if (!stopDate) continue;
                             for (let j = i + 1; j < sorted.length; j++) {
                                 const later = sorted[j];
                                 const laterDate = later.effective_date ? new Date(later.effective_date).getTime() : 0;
-                                if ((later.route || '').trim() !== 'Dừng hoạt động' && laterDate > stopDate) {
+                                if ((later.route || '').trim() !== 'Dá»«ng hoáº¡t Ä‘á»™ng' && laterDate > stopDate) {
                                     toRemove.add(h);
                                     break;
                                 }
@@ -16431,42 +16431,42 @@ Object.assign(window.app, {
                     const container = document.getElementById(prefix + 'sortable-history');
                     container.innerHTML = '';
                     app.vehicle.tempHistory.forEach((h, index) => {
-                        const isStopped = (h.route || '').trim() === 'Dừng hoạt động';
+                        const isStopped = (h.route || '').trim() === 'Dá»«ng hoáº¡t Ä‘á»™ng';
                         if (isStopped) h.operator = 'N/A';
                         const div = document.createElement('div');
                         div.className = "flex flex-col gap-2 bg-white p-3 border border-gray-200 rounded-md text-xs mb-2";
                         div.innerHTML = `
                             <div class="flex flex-col sm:flex-row gap-2 items-stretch sm:items-center">
                                 <div class="flex flex-col sm:flex-1 min-w-0">
-                                    <span class="sm:hidden font-bold text-gray-500 mb-1">Biển số</span>
-                                    <input type="text" value="${app.utils.escapeAttr(h.plate || app.currentPlate || '')}" placeholder="Biển số" oninput="app.utils.formatPlateInput(this)" onchange="app.vehicle.updateHistoryItem(${index}, 'plate', this.value, '${prefix}')" class="hist-input">
+                                    <span class="sm:hidden font-bold text-gray-500 mb-1">Biá»ƒn sá»‘</span>
+                                    <input type="text" value="${app.utils.escapeAttr(h.plate || app.currentPlate || '')}" placeholder="Biá»ƒn sá»‘" oninput="app.utils.formatPlateInput(this)" onchange="app.vehicle.updateHistoryItem(${index}, 'plate', this.value, '${prefix}')" class="hist-input">
                                 </div>
                                 <div class="flex flex-col sm:flex-1 min-w-0">
-                                    <span class="sm:hidden font-bold text-gray-500 mb-1">Ngày áp dụng</span>
+                                    <span class="sm:hidden font-bold text-gray-500 mb-1">NgÃ y Ã¡p dá»¥ng</span>
                                     <input type="text" placeholder="DD/MM/YYYY" maxlength="10" oninput="app.utils.formatDateInput(this)" value="${app.utils.escapeAttr(app.utils.formatDateToDDMMYYYY(h.effective_date) || '')}" onchange="app.vehicle.updateHistoryItem(${index}, 'effective_date', this.value, '${prefix}')" class="hist-input text-center font-mono w-28">
                                 </div>
                                 <div id="${prefix}hist-op-wrapper-${index}" class="flex flex-col sm:flex-1 min-w-0 ${isStopped ? 'hidden' : ''}">
-                                      <span class="sm:hidden font-bold text-gray-500 mb-1">Đơn vị</span>
+                                      <span class="sm:hidden font-bold text-gray-500 mb-1">ÄÆ¡n vá»‹</span>
                                       <div class="relative w-full h-full">
-                                          <input id="${prefix}hist-op-input-${index}" type="text" value="${app.utils.escapeAttr(h.operator)}" placeholder="Đơn vị" autocomplete="off" oninput="app.utils.formatNoPunctuation(this); app.utils.triggerSuggestion('${prefix}hist-op-input-${index}', '${prefix}hist-sug-op-${index}', this.value, 'operator')" onchange="app.vehicle.updateHistoryItem(${index}, 'operator', this.value, '${prefix}')" class="hist-input w-full ${isStopped ? 'bg-gray-100 cursor-not-allowed opacity-60' : ''}" ${isStopped ? 'disabled' : ''}>
+                                          <input id="${prefix}hist-op-input-${index}" type="text" value="${app.utils.escapeAttr(h.operator)}" placeholder="ÄÆ¡n vá»‹" autocomplete="off" oninput="app.utils.formatNoPunctuation(this); app.utils.triggerSuggestion('${prefix}hist-op-input-${index}', '${prefix}hist-sug-op-${index}', this.value, 'operator')" onchange="app.vehicle.updateHistoryItem(${index}, 'operator', this.value, '${prefix}')" class="hist-input w-full ${isStopped ? 'bg-gray-100 cursor-not-allowed opacity-60' : ''}" ${isStopped ? 'disabled' : ''}>
                                           <div id="${prefix}hist-sug-op-${index}" class="suggestion-box"></div>
                                       </div>
                                   </div>
                                   <div class="flex flex-col sm:flex-1 min-w-0">
-                                      <span class="sm:hidden font-bold text-gray-500 mb-1">Tuyến</span>
-                                      <input type="text" value="${app.utils.escapeAttr(h.route || '')}" placeholder="Tuyến" oninput="app.utils.checkRouteStatus(this.value, '${prefix}hist-op-input-${index}', '${prefix}hist-op-wrapper-${index}')" onchange="app.vehicle.updateHistoryItem(${index}, 'route', this.value, '${prefix}'); app.vehicle.updateHistoryItem(${index}, 'operator', document.getElementById('${prefix}hist-op-input-${index}').value, '${prefix}')" class="hist-input">
+                                      <span class="sm:hidden font-bold text-gray-500 mb-1">Tuyáº¿n</span>
+                                      <input type="text" value="${app.utils.escapeAttr(h.route || '')}" placeholder="Tuyáº¿n" oninput="app.utils.checkRouteStatus(this.value, '${prefix}hist-op-input-${index}', '${prefix}hist-op-wrapper-${index}')" onchange="app.vehicle.updateHistoryItem(${index}, 'route', this.value, '${prefix}'); app.vehicle.updateHistoryItem(${index}, 'operator', document.getElementById('${prefix}hist-op-input-${index}').value, '${prefix}')" class="hist-input">
                                   </div>
                             </div>
                             <div class="flex flex-col sm:flex-row gap-2 items-start mt-1">
                                 <div class="flex flex-col flex-1 min-w-0 w-full">
-                                    <span class="sm:hidden font-bold text-gray-500 mb-1">Ghi chú</span>
-                                    <textarea placeholder="Ghi chú" oninput="this.style.height = 'auto'; this.style.height = (this.scrollHeight + (this.offsetHeight - this.clientHeight)) + 'px'" onchange="app.vehicle.updateHistoryItem(${index}, 'note', this.value, '${prefix}')" class="hist-input resize-y min-h-[50px] p-2 overflow-hidden w-full">${app.utils.escapeHtml(h.note || '')}</textarea>
+                                    <span class="sm:hidden font-bold text-gray-500 mb-1">Ghi chÃº</span>
+                                    <textarea placeholder="Ghi chÃº" oninput="this.style.height = 'auto'; this.style.height = (this.scrollHeight + (this.offsetHeight - this.clientHeight)) + 'px'" onchange="app.vehicle.updateHistoryItem(${index}, 'note', this.value, '${prefix}')" class="hist-input resize-y min-h-[50px] p-2 overflow-hidden w-full">${app.utils.escapeHtml(h.note || '')}</textarea>
                                 </div>
                                 <div class="flex justify-end gap-2 mt-2 sm:mt-0 w-full sm:w-auto h-full">
                                     ${ (h.plate && h.plate !== app.currentPlate) ? 
-                                    `<button type="button" onclick="app.vehicle.requestSplit('${app.currentPlate}', '${app.utils.cleanText(h.plate)}')" class="text-gray-700 hover:text-white hover:bg-black border border-gray-300 rounded-md px-3 py-2 font-bold transition min-h-[42px] whitespace-nowrap" title="Tách xe này ra khỏi lịch sử"><i class="fa-solid fa-scissors"></i></button>` : '' }
-                                    <button type="button" onclick="app.vehicle.duplicateHistoryItem(${index}, '${prefix}')" class="text-gray-700 hover:text-white hover:bg-black border border-gray-300 rounded-md px-3 py-2 font-bold transition min-h-[42px]" title="Nhân bản"><i class="fa-solid fa-copy"></i></button>
-                                    <button type="button" onclick="app.vehicle.removeHistoryItem(${index}, '${prefix}')" class="text-gray-700 hover:text-white hover:bg-black border border-gray-300 rounded-md px-3 py-2 font-bold transition min-h-[42px]" title="Xóa"><i class="fa-solid fa-trash"></i></button>
+                                    `<button type="button" onclick="app.vehicle.requestSplit('${app.currentPlate}', '${app.utils.cleanText(h.plate)}')" class="text-gray-700 hover:text-white hover:bg-black border border-gray-300 rounded-md px-3 py-2 font-bold transition min-h-[42px] whitespace-nowrap" title="TÃ¡ch xe nÃ y ra khá»i lá»‹ch sá»­"><i class="fa-solid fa-scissors"></i></button>` : '' }
+                                    <button type="button" onclick="app.vehicle.duplicateHistoryItem(${index}, '${prefix}')" class="text-gray-700 hover:text-white hover:bg-black border border-gray-300 rounded-md px-3 py-2 font-bold transition min-h-[42px]" title="NhÃ¢n báº£n"><i class="fa-solid fa-copy"></i></button>
+                                    <button type="button" onclick="app.vehicle.removeHistoryItem(${index}, '${prefix}')" class="text-gray-700 hover:text-white hover:bg-black border border-gray-300 rounded-md px-3 py-2 font-bold transition min-h-[42px]" title="XÃ³a"><i class="fa-solid fa-trash"></i></button>
                                 </div>
                             </div>
                         `;
@@ -16493,9 +16493,10 @@ Object.assign(window.app, {
                     if (field === 'effective_date') {
                         const parsed = app.utils.parseDDMMYYYYToDate(value);
                         if (!parsed && value.trim() !== '') {
-                            app.ui.showAlert("Ngày không hợp lệ! Vui lòng nhập đúng định dạng DD/MM/YYYY (ví dụ: 15/08/2023).");
+                            app.ui.showAlert("NgÃ y khÃ´ng há»£p lá»‡! Vui lÃ²ng nháº­p Ä‘Ãºng Ä‘á»‹nh dáº¡ng DD/MM/YYYY (vÃ­ dá»¥: 15/08/2023).");
                             return app.vehicle.renderEditList(prefix);
                         }
+                    }
                         app.vehicle.tempHistory[index][field] = parsed || '';
                     } else {
                         app.vehicle.tempHistory[index][field] = value;
@@ -16513,8 +16514,8 @@ Object.assign(window.app, {
                     const route = document.getElementById(prefix + 'hist-new-route').value;
                     const note = document.getElementById(prefix + 'hist-new-note') ? document.getElementById(prefix + 'hist-new-note').value : '';
                     const plate = document.getElementById(prefix + 'hist-new-plate') ? document.getElementById(prefix + 'hist-new-plate').value.trim() : '';
-                    if(!rawDate || !op) return app.ui.showAlert("Vui lòng nhập Ngày áp dụng và Đơn vị vận hành!");
-                    if(!dateVal) return app.ui.showAlert("Ngày không hợp lệ! Vui lòng nhập đúng định dạng DD/MM/YYYY.");
+                    if(!rawDate || !op) return app.ui.showAlert("Vui lÃ²ng nháº­p NgÃ y Ã¡p dá»¥ng vÃ  ÄÆ¡n vá»‹ váº­n hÃ nh!");
+                    if(!dateVal) return app.ui.showAlert("NgÃ y khÃ´ng há»£p lá»‡! Vui lÃ²ng nháº­p Ä‘Ãºng Ä‘á»‹nh dáº¡ng DD/MM/YYYY.");
                     app.vehicle.tempHistory.push({
                         license_plate: app.currentPlate,
                         plate: plate || app.currentPlate || null,
@@ -16543,8 +16544,7 @@ Object.assign(window.app, {
                         const rawDate = dateInput.value.trim();
                         const op = opInput.value.trim();
                         const dateVal = app.utils.parseDDMMYYYYToDate(rawDate);
-                        if (!rawDate || !op) return app.ui.showAlert("Vui lòng nhập Ngày áp dụng và Đơn vị vận hành cho mục mới đang nhập dở!");
-                        if (!dateVal) return app.ui.showAlert("Ngày đang nhập dở không hợp lệ! Vui lòng nhập đúng định dạng DD/MM/YYYY.");
+                        if (!rawDate || !op || !dateVal) { /* Silently ignore incomplete new item */ } else {
                         
                         const route = document.getElementById(prefix + 'hist-new-route') ? document.getElementById(prefix + 'hist-new-route').value.trim() : '';
                         const note = document.getElementById(prefix + 'hist-new-note') ? document.getElementById(prefix + 'hist-new-note').value.trim() : '';
@@ -16568,24 +16568,37 @@ Object.assign(window.app, {
                         app.vehicle.renderEditList(prefix);
                     }
 
+                    const btnSaveHist = document.getElementById(prefix === 'veh-' ? 'btn-save-veh-history' : 'btn-save-history');
+                    if (btnSaveHist) {
+                        btnSaveHist.disabled = true;
+                        btnSaveHist.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang lưu...';
+                    }
+
+                    const resetBtn = () => {
+                        if (btnSaveHist) {
+                            btnSaveHist.disabled = false;
+                            btnSaveHist.innerHTML = 'Lưu thông tin';
+                        }
+                    };
+
                     const proceedSave = async () => {
                         app.vehicle.sortTempHistory();
-                        // Tự động xóa mốc "Dừng hoạt động" nếu có mốc lịch sử khác sau ngày dừng hoạt động
+                        // Tá»± Ä‘á»™ng xÃ³a má»‘c "Dá»«ng hoáº¡t Ä‘á»™ng" náº¿u cÃ³ má»‘c lá»‹ch sá»­ khÃ¡c sau ngÃ y dá»«ng hoáº¡t Ä‘á»™ng
                         app.vehicle.tempHistory = app.vehicle.autoRemoveStoppedAfterNewer(app.vehicle.tempHistory);
                         for (let i = 1; i < app.vehicle.tempHistory.length; i++) {
                             const prev = app.vehicle.tempHistory[i - 1];
                             const curr = app.vehicle.tempHistory[i];
                             if (prev.operator === curr.operator && prev.route === curr.route && prev.note === curr.note && (prev.plate || '') === (curr.plate || '')) {
-                                return app.ui.showAlert(`Lỗi: Có 2 mốc lịch sử cạnh nhau có thông tin (Biển số, Đơn vị, Tuyến, Ghi chú) giống hệt nhau. Hệ thống đã chặn để tránh rác dữ liệu. Vui lòng gộp chung hoặc xóa bớt 1 mục.`);
+                                return app.ui.showAlert(`Lá»—i: CÃ³ 2 má»‘c lá»‹ch sá»­ cáº¡nh nhau cÃ³ thÃ´ng tin (Biá»ƒn sá»‘, ÄÆ¡n vá»‹, Tuyáº¿n, Ghi chÃº) giá»‘ng há»‡t nhau. Há»‡ thá»‘ng Ä‘Ã£ cháº·n Ä‘á»ƒ trÃ¡nh rÃ¡c dá»¯ liá»‡u. Vui lÃ²ng gá»™p chung hoáº·c xÃ³a bá»›t 1 má»¥c.`);
                             }
                         }
                         const origClean = JSON.stringify((app.vehicle.currentHistoryData || []).map(h => ({op: h.operator, rt: h.route, nt: h.note, dt: h.effective_date, pl: h.plate || ''})));
                         const tempClean = JSON.stringify(app.vehicle.tempHistory.map(h => ({op: h.operator, rt: h.route, nt: h.note, dt: h.effective_date, pl: h.plate || ''})));
                         if (origClean === tempClean) {
-                            return app.ui.showAlert("Không có sự thay đổi nào so với dữ liệu gốc. Yêu cầu bị hủy.");
+                            return app.ui.showAlert("KhÃ´ng cÃ³ sá»± thay Ä‘á»•i nÃ o so vá»›i dá»¯ liá»‡u gá»‘c. YÃªu cáº§u bá»‹ há»§y.");
                         }
                         if (app.role !== 'admin' && app.role !== 'manager') {
-                            try { await app.captcha.request(); } catch (err) { if (err.message !== "CAPTCHA_CANCELLED") app.ui.showAlert("Lỗi xác thực Captcha."); return; }
+                            try { await app.captcha.request(); } catch (err) { if (err.message !== "CAPTCHA_CANCELLED") app.ui.showAlert("Lá»—i xÃ¡c thá»±c Captcha."); return; }
                         }
                         const payload = app.vehicle.tempHistory.map((h, i) => {
                             let ed = h.effective_date || null;
@@ -16610,7 +16623,7 @@ Object.assign(window.app, {
                                         if (!newHistoryPlates.includes(v.license_plate)) {
                                             const newNote = (v.note || '').replace(`[MERGED_INTO:${currentPlate}]`, '').trim();
                                             await window.sb.from('vehicles').update({ note: newNote }).eq('license_plate', v.license_plate);
-                                            app.toast.show('info', 'Đã tách xe', `Hồ sơ xe ${v.license_plate} đã được khôi phục thành hồ sơ độc lập.`);
+                                            app.toast.show('info', 'ÄÃ£ tÃ¡ch xe', `Há»“ sÆ¡ xe ${v.license_plate} Ä‘Ã£ Ä‘Æ°á»£c khÃ´i phá»¥c thÃ nh há»“ sÆ¡ Ä‘á»™c láº­p.`);
                                         }
                                     }
                                 }
@@ -16622,7 +16635,7 @@ Object.assign(window.app, {
                                             if (!noteStr.includes(`[MERGED_INTO:${currentPlate}]`)) {
                                                 const newNote = (noteStr + ` [MERGED_INTO:${currentPlate}]`).trim();
                                                 await window.sb.from('vehicles').update({ note: newNote }).eq('license_plate', v.license_plate);
-                                                app.toast.show('info', 'Đã gộp xe', `Dữ liệu từ xe ${v.license_plate} đã được tự động gộp sang xe này.`);
+                                                app.toast.show('info', 'ÄÃ£ gá»™p xe', `Dá»¯ liá»‡u tá»« xe ${v.license_plate} Ä‘Ã£ Ä‘Æ°á»£c tá»± Ä‘á»™ng gá»™p sang xe nÃ y.`);
                                             }
                                         }
                                     }
@@ -16632,7 +16645,7 @@ Object.assign(window.app, {
                                     const { error: insErr } = await window.sb.from('vehicle_history').insert(payload);
                                     if (insErr) throw insErr;
                                 }
-                                app.toast.show('success', 'Đã cập nhật', 'Lịch sử hoạt động của xe đã được lưu thành công.');
+                                app.toast.show('success', 'ÄÃ£ cáº­p nháº­t', 'Lá»‹ch sá»­ hoáº¡t Ä‘á»™ng cá»§a xe Ä‘Ã£ Ä‘Æ°á»£c lÆ°u thÃ nh cÃ´ng.');
                                 app.vehicle.toggleEditHistory(app.vehicle.currentHistoryPrefix);
                                 if (window.location.pathname.startsWith('/vehicle/')) {
                                     app.views.loadVehiclePage(app.currentPlate, true);
@@ -16640,12 +16653,12 @@ Object.assign(window.app, {
                                     app.views.loadHistory(app.currentPlate);
                                 }
                             } catch (err) {
-                                app.ui.showAlert("Lỗi khi lưu: " + err.message);
+                                app.ui.showAlert("Lá»—i khi lÆ°u: " + err.message);
                             }
                         } else {
                             try {
                                 const { count, error: checkErr } = await window.sb.from('edit_requests').select('*', { count: 'exact', head: true }).eq('license_plate', app.currentPlate).eq('status', 'pending').contains('new_data', { request_type: 'update_history' });
-                                if (count > 0) return app.ui.showAlert("Có yêu cầu chỉnh sửa lịch sử khác đang chờ duyệt cho xe này. Vui lòng thử lại sau.");
+                                if (count > 0) return app.ui.showAlert("CÃ³ yÃªu cáº§u chá»‰nh sá»­a lá»‹ch sá»­ khÃ¡c Ä‘ang chá» duyá»‡t cho xe nÃ y. Vui lÃ²ng thá»­ láº¡i sau.");
                                 const reqData = {
                                     requester_id: app.user.id,
                                     license_plate: app.currentPlate,
@@ -16654,19 +16667,19 @@ Object.assign(window.app, {
                                 };
                                 const { error } = await window.sb.from('edit_requests').insert(reqData);
                                 if (error) throw error;
-                                app.ui.showAlert("Yêu cầu cập nhật lịch sử đã được gửi và chờ Admin duyệt. Bạn có thể kiểm tra trạng thái trong trang Hồ sơ của tôi.");
+                                app.ui.showAlert("YÃªu cáº§u cáº­p nháº­t lá»‹ch sá»­ Ä‘Ã£ Ä‘Æ°á»£c gá»­i vÃ  chá» Admin duyá»‡t. Báº¡n cÃ³ thá»ƒ kiá»ƒm tra tráº¡ng thÃ¡i trong trang Há»“ sÆ¡ cá»§a tÃ´i.");
                                 app.vehicle.toggleEditHistory(app.vehicle.currentHistoryPrefix);
                             } catch (err) {
-                                app.ui.showAlert("Lỗi gửi yêu cầu: " + err.message);
+                                app.ui.showAlert("Lá»—i gá»­i yÃªu cáº§u: " + err.message);
                             }
                         }
                     };
                     if (app.vehicle.tempHistory.length === 0) {
                         app.ui.showAlert(
-                            "Danh sách lịch sử đang trống. Bạn có muốn xóa hết lịch sử không?",
+                            "Danh sÃ¡ch lá»‹ch sá»­ Ä‘ang trá»‘ng. Báº¡n cÃ³ muá»‘n xÃ³a háº¿t lá»‹ch sá»­ khÃ´ng?",
                             () => { proceedSave(); },
                             () => {},
-                            { title: "Xác nhận xóa", btnOkText: "Đồng ý", btnCancelText: "Hủy bỏ" }
+                            { title: "XÃ¡c nháº­n xÃ³a", btnOkText: "Äá»“ng Ã½", btnCancelText: "Há»§y bá»" }
                         );
                     } else {
                         proceedSave();
@@ -16676,7 +16689,7 @@ Object.assign(window.app, {
                     if (!takenAtIso || !plate) return;
                     if (!isPlateChanged && oldData.operator === newData.operator && oldData.route_no === newData.route_no) return;
                     const targetDate = takenAtIso.split('T')[0];
-                    const specialRoutes = ['Ngoài giờ hoạt động', 'Chưa hoạt động'];
+                    const specialRoutes = ['NgoÃ i giá» hoáº¡t Ä‘á»™ng', 'ChÆ°a hoáº¡t Ä‘á»™ng'];
                     const isSpecial = specialRoutes.includes(newData.route_no);
                     const isSameRoute = (r1, r2) => (r1 || '').trim().toLowerCase() === (r2 || '').trim().toLowerCase();
                     try {
@@ -16706,7 +16719,7 @@ Object.assign(window.app, {
                             const route = newData.route_no;
                             const op = newData.operator;
 
-                            // 1. Tìm mốc quá khứ gần nhất (H_cov) so với targetDate
+                            // 1. TÃ¬m má»‘c quÃ¡ khá»© gáº§n nháº¥t (H_cov) so vá»›i targetDate
                             let H_cov = null;
                             for (let i = allHistory.length - 1; i >= 0; i--) {
                                 const hDate = allHistory[i].effective_date;
@@ -16735,30 +16748,30 @@ Object.assign(window.app, {
                                 } else {
                                     // H_cov.effective_date < targetDate
                                     if (isSameRoute(H_cov.route, route)) {
-                                        // Cùng số tuyến với mốc cũ hơn -> Gộp vào mốc cũ hơn, không tạo mới
+                                        // CÃ¹ng sá»‘ tuyáº¿n vá»›i má»‘c cÅ© hÆ¡n -> Gá»™p vÃ o má»‘c cÅ© hÆ¡n, khÃ´ng táº¡o má»›i
                                         needInsert = false;
                                     } else {
-                                        // Khác tuyến mốc bên cạnh trong lịch sử -> Tạo mới
+                                        // KhÃ¡c tuyáº¿n má»‘c bÃªn cáº¡nh trong lá»‹ch sá»­ -> Táº¡o má»›i
                                         needInsert = true;
                                     }
                                 }
                             } else {
-                                // targetDate cũ hơn tất cả các mốc đang có
+                                // targetDate cÅ© hÆ¡n táº¥t cáº£ cÃ¡c má»‘c Ä‘ang cÃ³
                                 if (allHistory.length > 0) {
                                     const H_oldest = allHistory[0];
                                     if (isSameRoute(H_oldest.route, route)) {
-                                        // Cùng tuyến với mốc cổ nhất -> Mở rộng mốc cũ hơn về quá khứ
+                                        // CÃ¹ng tuyáº¿n vá»›i má»‘c cá»• nháº¥t -> Má»Ÿ rá»™ng má»‘c cÅ© hÆ¡n vá» quÃ¡ khá»©
                                         await window.sb.from('vehicle_history').update({
                                             effective_date: targetDate,
                                             operator: op || H_oldest.operator
                                         }).eq('id', H_oldest.id);
                                         needInsert = false;
                                     } else {
-                                        // Khác tuyến mốc bên cạnh -> Tạo mới
+                                        // KhÃ¡c tuyáº¿n má»‘c bÃªn cáº¡nh -> Táº¡o má»›i
                                         needInsert = true;
                                     }
                                 } else {
-                                    // Lịch sử trống -> Tạo mới
+                                    // Lá»‹ch sá»­ trá»‘ng -> Táº¡o má»›i
                                     needInsert = true;
                                 }
                             }
@@ -16774,7 +16787,7 @@ Object.assign(window.app, {
                                 });
                             }
 
-                            // 2. Chống phân mảnh: Tự động gộp các mốc liền kề có cùng số tuyến
+                            // 2. Chá»‘ng phÃ¢n máº£nh: Tá»± Ä‘á»™ng gá»™p cÃ¡c má»‘c liá»n ká» cÃ³ cÃ¹ng sá»‘ tuyáº¿n
                             let { data: freshHistory } = await window.sb.from('vehicle_history')
                                 .select('*')
                                 .eq('license_plate', plate)
@@ -16791,17 +16804,17 @@ Object.assign(window.app, {
                             }
                         }
                         await app.vehicle.cleanupVehicle(plate);
-                    } catch (e) { console.error("Lỗi sync lịch sử:", e); }
+                    } catch (e) { console.error("Lá»—i sync lá»‹ch sá»­:", e); }
                 },
                 requestSplit: (currentPlate, oldPlate) => {
                     if (!app.user) return app.auth.check();
                     app.ui.showPrompt(
-                        `Bạn có chắc chắn muốn đề xuất TÁCH biển số [${oldPlate}] ra khỏi xe [${currentPlate}] không? Lịch sử gộp sẽ bị xóa, và 2 xe sẽ được tách riêng biệt. Yêu cầu này sẽ được gửi cho Admin duyệt.`, 
-                        "Nhập lý do tách xe (Tùy chọn):", 
+                        `Báº¡n cÃ³ cháº¯c cháº¯n muá»‘n Ä‘á» xuáº¥t TÃCH biá»ƒn sá»‘ [${oldPlate}] ra khá»i xe [${currentPlate}] khÃ´ng? Lá»‹ch sá»­ gá»™p sáº½ bá»‹ xÃ³a, vÃ  2 xe sáº½ Ä‘Æ°á»£c tÃ¡ch riÃªng biá»‡t. YÃªu cáº§u nÃ y sáº½ Ä‘Æ°á»£c gá»­i cho Admin duyá»‡t.`, 
+                        "Nháº­p lÃ½ do tÃ¡ch xe (TÃ¹y chá»n):", 
                         async (reason) => {
                             try {
                                 const { count, error: checkErr } = await window.sb.from('edit_requests').select('*', { count: 'exact', head: true }).eq('license_plate', currentPlate).eq('status', 'pending').contains('new_data', { request_type: 'unmerge_vehicle' });
-                                if (count > 0) return app.ui.showAlert("Đã có một yêu cầu tách xe khác đang chờ duyệt cho xe này.");
+                                if (count > 0) return app.ui.showAlert("ÄÃ£ cÃ³ má»™t yÃªu cáº§u tÃ¡ch xe khÃ¡c Ä‘ang chá» duyá»‡t cho xe nÃ y.");
                                 
                                 const { error } = await window.sb.from('edit_requests').insert({
                                     requester_id: app.user.id,
@@ -16814,9 +16827,9 @@ Object.assign(window.app, {
                                     status: 'pending'
                                 });
                                 if (error) throw error;
-                                app.ui.showAlert("Yêu cầu Tách xe đã được gửi và đang chờ Admin duyệt.");
+                                app.ui.showAlert("YÃªu cáº§u TÃ¡ch xe Ä‘Ã£ Ä‘Æ°á»£c gá»­i vÃ  Ä‘ang chá» Admin duyá»‡t.");
                             } catch (err) {
-                                app.ui.showAlert("Lỗi: " + err.message);
+                                app.ui.showAlert("Lá»—i: " + err.message);
                             }
                         }
                     );
@@ -16854,7 +16867,7 @@ Object.assign(window.app, {
                         actionsDiv.classList.remove('hidden');
                         actionsDiv.classList.add('flex');
                         if (triggerContainer) triggerContainer.classList.add('hidden');
-                        if (app.role === 'admin' || app.role === 'manager') document.getElementById('btn-vehicle-save').innerText = "Lưu thông tin";
+                        if (app.role === 'admin' || app.role === 'manager') document.getElementById('btn-vehicle-save').innerText = "LÆ°u thÃ´ng tin";
                     } else {
                         actionsDiv.classList.add('hidden');
                         actionsDiv.classList.remove('flex');
@@ -16864,49 +16877,50 @@ Object.assign(window.app, {
                 saveVehiclePageChanges: async (plate) => {
                     const btnSave = document.getElementById('btn-vehicle-save');
                     btnSave.disabled = true;
-                    btnSave.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang lưu...';
+                    btnSave.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Äang lÆ°u...';
                     const newData = {
                         model: document.getElementById('vehicle-edit-model').value.trim(),
                         note: document.getElementById('vehicle-edit-note').value.trim()
                     };
                     if (app.currentVehicle && newData.model === (app.currentVehicle.model || '') && newData.note === (app.currentVehicle.note || '')) {
-                        btnSave.disabled = false; btnSave.innerHTML = 'Lưu thông tin';
-                        return app.ui.showAlert("Không có sự thay đổi nào so với dữ liệu gốc. Yêu cầu bị hủy.");
+                        btnSave.disabled = false; btnSave.innerHTML = 'LÆ°u thÃ´ng tin';
+                        return app.ui.showAlert("KhÃ´ng cÃ³ sá»± thay Ä‘á»•i nÃ o so vá»›i dá»¯ liá»‡u gá»‘c. YÃªu cáº§u bá»‹ há»§y.");
                     }
                     if (app.role !== 'admin' && app.role !== 'manager') {
                         try { await app.captcha.request(); } catch (err) {
-                            if (err.message !== "CAPTCHA_CANCELLED") app.ui.showAlert("Lỗi xác thực Captcha.");
-                            btnSave.disabled = false; btnSave.innerHTML = 'Lưu thông tin';
+                            if (err.message !== "CAPTCHA_CANCELLED") app.ui.showAlert("Lá»—i xÃ¡c thá»±c Captcha.");
+                            btnSave.disabled = false; btnSave.innerHTML = 'LÆ°u thÃ´ng tin';
                             return;
                         }
                     }
                     try {
                         if (newData.model && await app.utils.checkModelDuplicatePolicy(plate, newData.model)) {
-                            btnSave.disabled = false; btnSave.innerHTML = 'Lưu thông tin';
+                            btnSave.disabled = false; btnSave.innerHTML = 'LÆ°u thÃ´ng tin';
                             return;
                         }
                         if (app.role === 'admin' || app.role === 'manager') {
                             const { error } = await window.sb.from('vehicles').upsert({ license_plate: plate, ...newData }, { onConflict: 'license_plate' });
                             if (error) throw error;
-                            app.toast.show('success', 'Đã lưu thay đổi', 'Thông tin xe đã được cập nhật thành công.');
+                            app.toast.show('success', 'ÄÃ£ lÆ°u thay Ä‘á»•i', 'ThÃ´ng tin xe Ä‘Ã£ Ä‘Æ°á»£c cáº­p nháº­t thÃ nh cÃ´ng.');
                             app.views.loadVehiclePage(plate, true);
                         } else {
                             const { count } = await window.sb.from('edit_requests').select('*', { count: 'exact', head: true }).eq('license_plate', plate).eq('status', 'pending').contains('new_data', { request_type: 'update_vehicle_details' });
                             if (count > 0) {
-                                btnSave.disabled = false; btnSave.innerHTML = 'Lưu thông tin';
-                                return app.ui.showAlert("Có yêu cầu chỉnh sửa hồ sơ khác đang chờ duyệt cho xe này. Vui lòng thử lại sau.");
+                                btnSave.disabled = false; btnSave.innerHTML = 'LÆ°u thÃ´ng tin';
+                                return app.ui.showAlert("CÃ³ yÃªu cáº§u chá»‰nh sá»­a há»“ sÆ¡ khÃ¡c Ä‘ang chá» duyá»‡t cho xe nÃ y. Vui lÃ²ng thá»­ láº¡i sau.");
                             }
                             const { error } = await window.sb.from('edit_requests').insert({
                                 requester_id: app.user.id, license_plate: plate, new_data: { ...newData, request_type: 'update_vehicle_details' }, status: 'pending'
                             });
                             if (error) throw error;
-                            app.ui.showAlert("Đã gửi yêu cầu chỉnh sửa và đang chờ Admin duyệt. Bạn có thể kiểm tra trạng thái trong trang Hồ sơ của tôi.");
+                            app.ui.showAlert("ÄÃ£ gá»­i yÃªu cáº§u chá»‰nh sá»­a vÃ  Ä‘ang chá» Admin duyá»‡t. Báº¡n cÃ³ thá»ƒ kiá»ƒm tra tráº¡ng thÃ¡i trong trang Há»“ sÆ¡ cá»§a tÃ´i.");
                             app.vehicle.toggleVehiclePageEdit(plate);
                         }
-                    } catch (err) { app.ui.showAlert("Lỗi: " + err.message); } finally { btnSave.disabled = false; btnSave.innerHTML = 'Lưu thông tin'; }
+                    } catch (err) { app.ui.showAlert("Lá»—i: " + err.message); } finally { btnSave.disabled = false; btnSave.innerHTML = 'LÆ°u thÃ´ng tin'; }
                 }
             }
 });
+
 
 
 
