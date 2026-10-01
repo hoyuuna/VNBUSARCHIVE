@@ -1939,7 +1939,7 @@ html.theme-dark .ct-icon {
             if (stored === 'system') {
                 theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
             }
-            document.write('<link rel="stylesheet" href="/css/' + theme + '.css?v=1790784159681" id="theme-css">');
+            document.write('<link rel="stylesheet" href="/css/' + theme + '.css?v=1790851581619" id="theme-css">');
             document.documentElement.classList.add('theme-' + theme);
             document.documentElement.style.backgroundColor = theme === 'dark' ? '#18181b' : '#fdfcf8';
         })();
@@ -2951,7 +2951,7 @@ html.theme-dark .ct-icon {
     </button>
 
     <!-- Các nút Social -->
-    <div class="flex gap-2" x-show="mode === 'login' || mode === 'register'" x-cloak>
+    <div class="flex gap-2" x-show="mode === 'login'" x-cloak>
         <button type="button" onclick="app.auth.signInWithProvider('google')" class="flex-1 flex items-center justify-center gap-1.5 bg-white border border-gray-300/80 py-3 rounded-xl hover:bg-gray-50 transition font-bold text-gray-700 shadow-sm  text-xs sm:text-sm">
             <i class="fa-brands fa-google text-red-500 text-base"></i> Google
         </button>
