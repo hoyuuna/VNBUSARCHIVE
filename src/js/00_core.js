@@ -1068,9 +1068,10 @@ closeCustomRolePrompt: () => {
                         const opsNotice2 = document.getElementById('tracker-admin-ops-notice');
                         if (ops && ops.is_active && ops.reason) {
                             const times = ops.reason.split('|');
-                            const text = `Chúng mình sẽ tạm ngưng tiếp nhận và xử lý yêu cầu trong khung giờ ${times[0] || '22:00'} - ${times[1] || '08:00'} hàng ngày. Các yêu cầu gửi trong thời gian này sẽ được ưu tiên xử lý vào ngày làm việc tiếp theo.`;
-                            if (opsNotice1) { opsNotice1.innerText = text; opsNotice1.classList.remove('hidden'); }
-                            if (opsNotice2) { opsNotice2.innerText = text; opsNotice2.classList.remove('hidden'); }
+                            const textContact = `Chúng mình sẽ tạm ngưng tiếp nhận và xử lý yêu cầu trong khung giờ ${times[0] || '22:00'} - ${times[1] || '08:00'} hàng ngày. Các yêu cầu gửi trong thời gian này sẽ được ưu tiên xử lý vào ngày làm việc tiếp theo.`;
+                            const textTracker = `Thời gian phê duyệt sẽ linh hoạt tùy theo lượng ảnh, độ khó và tâm trạng admin (*^▽^*) thường sẽ kéo dài từ 1-12 tiếng mỗi ảnh. Cảm ơn bạn đã kiên nhẫn chờ đợi. Chúng mình sẽ tạm ngưng tiếp nhận và xử lý yêu cầu trong khung giờ ${times[0] || '22:00'} - ${times[1] || '08:00'} hàng ngày. Các yêu cầu gửi trong thời gian này sẽ được ưu tiên xử lý vào ngày làm việc tiếp theo.`;
+                            if (opsNotice1) { opsNotice1.innerText = textContact; opsNotice1.classList.remove('hidden'); }
+                            if (opsNotice2) { opsNotice2.innerText = textTracker; opsNotice2.classList.remove('hidden'); }
                         } else {
                             if (opsNotice1) opsNotice1.classList.add('hidden');
                             if (opsNotice2) opsNotice2.classList.add('hidden');
