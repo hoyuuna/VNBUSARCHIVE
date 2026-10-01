@@ -258,6 +258,8 @@ Object.assign(window.app, {
                     document.getElementById(prefix + 'hist-new-date').value = '';
                     if(document.getElementById(prefix + 'hist-new-plate')) document.getElementById(prefix + 'hist-new-plate').value = '';
                     if(document.getElementById(prefix + 'hist-new-note')) document.getElementById(prefix + 'hist-new-note').value = '';
+                    if(document.getElementById(prefix + 'hist-new-op')) document.getElementById(prefix + 'hist-new-op').value = '';
+                    if(document.getElementById(prefix + 'hist-new-route')) document.getElementById(prefix + 'hist-new-route').value = '';
                     app.vehicle.renderEditList(prefix);
                 },
                 removeHistoryItem: (index, prefix) => {
