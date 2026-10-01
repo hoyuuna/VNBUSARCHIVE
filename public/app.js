@@ -16376,6 +16376,13 @@ Object.assign(window.app, {
                         if (tableContainer) tableContainer.classList.add('hidden');
                         if (btnContainer) btnContainer.classList.add('hidden');
                         app.vehicle.tempHistory = JSON.parse(JSON.stringify(app.vehicle.currentHistoryData));
+                        
+                        if(document.getElementById(prefix + 'hist-new-date')) document.getElementById(prefix + 'hist-new-date').value = '';
+                        if(document.getElementById(prefix + 'hist-new-op')) document.getElementById(prefix + 'hist-new-op').value = '';
+                        if(document.getElementById(prefix + 'hist-new-route')) document.getElementById(prefix + 'hist-new-route').value = '';
+                        if(document.getElementById(prefix + 'hist-new-plate')) document.getElementById(prefix + 'hist-new-plate').value = '';
+                        if(document.getElementById(prefix + 'hist-new-note')) document.getElementById(prefix + 'hist-new-note').value = '';
+
                         app.vehicle.renderEditList(prefix);
                         const btnSaveHist = document.getElementById(prefix ? 'btn-save-veh-history' : 'btn-save-history');
                         if (btnSaveHist) {
@@ -16526,6 +16533,39 @@ Object.assign(window.app, {
                     app.vehicle.renderEditList(prefix);
                 },
                 saveHistory: async () => {
+                    const prefix = app.vehicle.currentHistoryPrefix || '';
+                    const dateInput = document.getElementById(prefix + 'hist-new-date');
+                    const opInput = document.getElementById(prefix + 'hist-new-op');
+                    
+                    if (dateInput && opInput && (dateInput.value.trim() !== '' || opInput.value.trim() !== '')) {
+                        const rawDate = dateInput.value.trim();
+                        const op = opInput.value.trim();
+                        const dateVal = app.utils.parseDDMMYYYYToDate(rawDate);
+                        if (!rawDate || !op) return app.ui.showAlert("Vui lòng nhập Ngày áp dụng và Đơn vị vận hành cho mục mới đang nhập dở!");
+                        if (!dateVal) return app.ui.showAlert("Ngày đang nhập dở không hợp lệ! Vui lòng nhập đúng định dạng DD/MM/YYYY.");
+                        
+                        const route = document.getElementById(prefix + 'hist-new-route') ? document.getElementById(prefix + 'hist-new-route').value.trim() : '';
+                        const note = document.getElementById(prefix + 'hist-new-note') ? document.getElementById(prefix + 'hist-new-note').value.trim() : '';
+                        const plate = document.getElementById(prefix + 'hist-new-plate') ? document.getElementById(prefix + 'hist-new-plate').value.trim() : '';
+                        
+                        app.vehicle.tempHistory.push({
+                            license_plate: app.currentPlate,
+                            plate: plate || app.currentPlate || null,
+                            effective_date: dateVal,
+                            operator: op,
+                            route: route,
+                            note: note
+                        });
+                        
+                        dateInput.value = '';
+                        opInput.value = '';
+                        if(document.getElementById(prefix + 'hist-new-plate')) document.getElementById(prefix + 'hist-new-plate').value = '';
+                        if(document.getElementById(prefix + 'hist-new-note')) document.getElementById(prefix + 'hist-new-note').value = '';
+                        if(document.getElementById(prefix + 'hist-new-route')) document.getElementById(prefix + 'hist-new-route').value = '';
+                        
+                        app.vehicle.renderEditList(prefix);
+                    }
+
                     const proceedSave = async () => {
                         app.vehicle.sortTempHistory();
                         // Tự động xóa mốc "Dừng hoạt động" nếu có mốc lịch sử khác sau ngày dừng hoạt động
