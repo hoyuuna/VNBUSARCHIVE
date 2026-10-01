@@ -1,4 +1,4 @@
-﻿// Extracted to 02_settings.js
+// Extracted to 02_settings.js
 Object.assign(window.app, {
     notifications: { init: ()=>{}, add: async ()=>{} },
 
@@ -235,7 +235,7 @@ Object.assign(window.app, {
                         const renderProvider = (name, iconClass, colorClass, providerKey) => {
                             const isLinked = providers.includes(providerKey);
                             const identity = identities.find(id => id.provider === providerKey);
-                            const identityId = identity ? identity.identity_id : null;
+                            const identityId = identity ? (identity.id || identity.identity_id) : null;
                             return `
                             <div class="flex flex-col sm:flex-row sm:items-center justify-between p-3 border border-gray-200 rounded-md bg-gray-50 gap-3">
                                 <div class="flex items-center gap-3">
