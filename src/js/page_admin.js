@@ -3184,7 +3184,49 @@ if (cbQuality) newSubroles.push('quality_aud');
                             <div class="mt-4 text-right"><button onclick="app.admin.saveManagerSetting('${cfg.id}', this)" class="bg-black text-white px-5 py-2 text-xs font-bold rounded shadow-sm">Lưu thông tin</button></div>
                         </div>`;
                      });
-                    container.innerHTML = html;
+                    
+                      // Th�m block Gi? ho?t d?ng Admin
+                      const opsData = app.maintenance.settings['admin_ops'] || { is_active: false, reason: '22:00|08:00' };
+                      const opsTimes = opsData.reason ? opsData.reason.split('|') : ['22:00', '08:00'];
+                      const startNghi = opsTimes[0] || '22:00';
+                      const startHoatDong = opsTimes[1] || '08:00';
+
+                      html += `<div class="border border-gray-200 rounded-lg p-5 bg-white mb-4">
+                            <div class="flex justify-between items-center mb-4">
+                                <h3 class="font-bold text-purple-600 uppercase text-sm"><i class="fa-solid fa-clock mr-2"></i>Gi? ho?t d?ng Admin (Ki?m duy?t)</h3>
+                                <label class="relative inline-flex items-center cursor-pointer">
+                                    <input type="checkbox" id="mt-active-admin_ops" class="sr-only peer" ${opsData.is_active ? 'checked' : ''}>
+                                    <div class="w-11 h-6 bg-gray-200 rounded-full peer peer-checked:after:translate-x-full peer-checked:bg-purple-600 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all"></div>
+                                </label>
+                            </div>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div><label class="text-xs text-gray-500 font-bold block mb-1">Gi? b?t d?u ngh? (h ngh?)</label><input type="time" id="mt-break-start" value="${app.utils.escapeAttr(startNghi)}" class="w-full border p-2.5 text-sm rounded"></div>
+                                <div><label class="text-xs text-gray-500 font-bold block mb-1">Gi? b?t d?u ho?t d?ng (h ho?t d?ng)</label><input type="time" id="mt-break-end" value="${app.utils.escapeAttr(startHoatDong)}" class="w-full border p-2.5 text-sm rounded"></div>
+                            </div>
+                            <p class="text-[11px] text-gray-500 mt-2">Khi b?t, ngo�i khung gi? ho?t d?ng, nh�n vi�n v�o trang Admin s? b? ch?n b?i m�n h�nh b?o tr�. Manager v?n c� th? vu?t qua.</p>
+                            <div class="mt-4 text-right"><button onclick="app.admin.saveAdminOpsSetting(this)" class="bg-black text-white px-5 py-2 text-xs font-bold rounded shadow-sm">Luu c�i d?t gi?</button></div>
+                        </div>`;
+
+                      container.innerHTML = html;
+
+                },
+                
+                saveAdminOpsSetting: async (btn) => {
+                    const originalHTML = btn.innerHTML;
+                    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>'; btn.disabled = true;
+                    const isActive = document.getElementById('mt-active-admin_ops').checked;
+                    const startNghi = document.getElementById('mt-break-start').value || '22:00';
+                    const startHoatDong = document.getElementById('mt-break-end').value || '08:00';
+                    const reason = startNghi + '|' + startHoatDong;
+                    try {
+                        const { error } = await window.sb.from('system_settings').upsert({
+                            id: 'admin_ops', is_active: isActive, reason: reason, updated_by: app.user.id
+                        });
+                        if (error) throw error;
+                        await app.maintenance.fetch();
+                        app.ui.showAlert('�� luu c�i d?t Gi? ho?t d?ng Admin');
+                    } catch (e) { app.ui.showAlert("L?i: " + e.message); }
+                    finally { btn.innerHTML = originalHTML; btn.disabled = false; }
                 },
                 saveManagerSetting: async (sysId, btn) => {
                     const originalHTML = btn.innerHTML;

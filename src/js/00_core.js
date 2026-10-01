@@ -1061,9 +1061,60 @@ closeCustomRolePrompt: () => {
                         if (data) {
                             data.forEach(item => { app.maintenance.settings[item.id] = item; });
                         }
-                    } catch (e) { console.error("Lỗi lấy thông tin bảo trì", e); }
+                        
+                        // Update notices if any
+                        const ops = app.maintenance.settings['admin_ops'];
+                        const opsNotice1 = document.getElementById('contact-admin-ops-notice');
+                        const opsNotice2 = document.getElementById('tracker-admin-ops-notice');
+                        if (ops && ops.is_active && ops.reason) {
+                            const times = ops.reason.split('|');
+                            const text = `Ch�ng m�nh s? t?m ngung ti?p nh?n v� x? l� y�u c?u trong khung gi? ${times[0] || '22:00'} - ${times[1] || '08:00'} h�ng ng�y. C�c y�u c?u g?i trong th?i gian n�y s? du?c uu ti�n x? l� v�o ng�y l�m vi?c ti?p theo.`;
+                            if (opsNotice1) { opsNotice1.innerText = text; opsNotice1.classList.remove('hidden'); }
+                            if (opsNotice2) { opsNotice2.innerText = text; opsNotice2.classList.remove('hidden'); }
+                        } else {
+                            if (opsNotice1) opsNotice1.classList.add('hidden');
+                            if (opsNotice2) opsNotice2.classList.add('hidden');
+                        }
+
+                    } catch (e) { console.error("L?i l?y th�ng tin b?o tr�", e); }
+                },,
+                
+                checkAdminHours: () => {
+                    if (app.maintenance.isBypassed) return false;
+                    const ops = app.maintenance.settings['admin_ops'];
+                    if (!ops || !ops.is_active) return false;
+                    const times = (ops.reason || '22:00|08:00').split('|');
+                    const startStr = times[0] || '22:00';
+                    const endStr = times[1] || '08:00';
+
+                    const now = new Date();
+                    const currentMins = now.getHours() * 60 + now.getMinutes();
+
+                    const parseMins = (t) => {
+                        const p = t.split(':');
+                        return parseInt(p[0]) * 60 + parseInt(p[1]);
+                    };
+                    const startMins = parseMins(startStr);
+                    const endMins = parseMins(endStr);
+
+                    let isBreak = false;
+                    if (startMins <= endMins) {
+                        isBreak = currentMins >= startMins && currentMins < endMins;
+                    } else {
+                        isBreak = currentMins >= startMins || currentMins < endMins;
+                    }
+
+                    if (isBreak) {
+                        return {
+                            is_active: false,
+                            reason: `Ch�ng m�nh s? t?m ngung ti?p nh?n v� x? l� y�u c?u trong khung gi? ${startStr} - ${endStr} h�ng ng�y. C�c y�u c?u g?i trong th?i gian n�y s? du?c uu ti�n x? l� v�o ng�y l�m vi?c ti?p theo.`,
+                            auto_reactivate_at: null
+                        };
+                    }
+                    return false;
                 },
                 check: (sysId) => {
+
                     if (app.maintenance.isBypassed) return false; 
                     const target = app.maintenance.settings['global']?.is_active === false
                                  ? app.maintenance.settings['global']

@@ -71,6 +71,7 @@ Object.assign(window.app, {
                     if (['home', 'search', 'detail', 'vehicle', 'account'].includes(id)) mtCheck = app.maintenance.check('global');
                     else if (id === 'auth') mtCheck = app.maintenance.check('auth');
                     else if (id === 'upload') mtCheck = app.maintenance.check('upload');
+                    else if (id === 'admin') mtCheck = app.maintenance.checkAdminHours();
                     if (mtCheck) {
                         app.maintenance.showScreen(mtCheck);
                         return; 
