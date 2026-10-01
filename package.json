@@ -4,6 +4,7 @@
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.117.2",
+    "iconv-lite": "^0.7.3",
     "jsdom": "^29.1.1",
     "marked": "^15.0.0",
     "resend": "^4.0.0"
