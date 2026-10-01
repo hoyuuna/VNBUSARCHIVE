@@ -1068,7 +1068,7 @@ closeCustomRolePrompt: () => {
                         const opsNotice2 = document.getElementById('tracker-admin-ops-notice');
                         if (ops && ops.is_active && ops.reason) {
                             const times = ops.reason.split('|');
-                            const text = `Ch�ng m�nh s? t?m ngung ti?p nh?n v� x? l� y�u c?u trong khung gi? ${times[0] || '22:00'} - ${times[1] || '08:00'} h�ng ng�y. C�c y�u c?u g?i trong th?i gian n�y s? du?c uu ti�n x? l� v�o ng�y l�m vi?c ti?p theo.`;
+                            const text = `Chúng mình sẽ tạm ngưng tiếp nhận và xử lý yêu cầu trong khung giờ ${times[0] || '22:00'} - ${times[1] || '08:00'} hàng ngày. Các yêu cầu gửi trong thời gian này sẽ được ưu tiên xử lý vào ngày làm việc tiếp theo.`;
                             if (opsNotice1) { opsNotice1.innerText = text; opsNotice1.classList.remove('hidden'); }
                             if (opsNotice2) { opsNotice2.innerText = text; opsNotice2.classList.remove('hidden'); }
                         } else {
@@ -1076,9 +1076,8 @@ closeCustomRolePrompt: () => {
                             if (opsNotice2) opsNotice2.classList.add('hidden');
                         }
 
-                    } catch (e) { console.error("L?i l?y th�ng tin b?o tr�", e); }
-                },,
-                
+                    } catch (e) { console.error("Lỗi lấy thông tin bảo trì", e); }
+                },
                 checkAdminHours: () => {
                     if (app.maintenance.isBypassed) return false;
                     const ops = app.maintenance.settings['admin_ops'];
@@ -1107,7 +1106,7 @@ closeCustomRolePrompt: () => {
                     if (isBreak) {
                         return {
                             is_active: false,
-                            reason: `Ch�ng m�nh s? t?m ngung ti?p nh?n v� x? l� y�u c?u trong khung gi? ${startStr} - ${endStr} h�ng ng�y. C�c y�u c?u g?i trong th?i gian n�y s? du?c uu ti�n x? l� v�o ng�y l�m vi?c ti?p theo.`,
+                            reason: `Chúng mình sẽ tạm ngưng tiếp nhận và xử lý yêu cầu trong khung giờ ${startStr} - ${endStr} hàng ngày. Các yêu cầu gửi trong thời gian này sẽ được ưu tiên xử lý vào ngày làm việc tiếp theo.`,
                             auto_reactivate_at: null
                         };
                     }
