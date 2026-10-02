@@ -271,7 +271,7 @@ Object.assign(window.app, {
                     const dateInput = document.getElementById(prefix + 'hist-new-date');
                     const opInput = document.getElementById(prefix + 'hist-new-op');
                     
-                    if (dateInput && opInput && (dateInput.value.trim() !== '' || opInput.value.trim() !== '')) {
+                    if (dateInput && opInput && (dateInput.value.trim() !== '' || (document.getElementById(prefix + 'hist-new-note') && document.getElementById(prefix + 'hist-new-note').value.trim() !== ''))) {
                         const rawDate = dateInput.value.trim();
                         const op = opInput.value.trim();
                         const dateVal = app.utils.parseDDMMYYYYToDate(rawDate);
