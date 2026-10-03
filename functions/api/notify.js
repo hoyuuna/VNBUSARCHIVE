@@ -39,7 +39,7 @@ async function handleSendEmail(request, env, body) {
     if (authErr || !user) return new Response(JSON.stringify({ error: 'Invalid token' }), { status: 401, headers: { 'Content-Type': 'application/json' }});
 
     const { data: profile } = await supabaseAdmin.from('profiles').select('username, role').eq('id', user.id).single();
-    if (!profile || profile.role !== 'manager') {
+    if (!profile || !['admin', 'manager'].includes(profile.role)) {
         return new Response(JSON.stringify({ error: 'Bạn không có quyền thực hiện hành động này.' }), { status: 403, headers: { 'Content-Type': 'application/json' }});
     }
 
@@ -63,8 +63,10 @@ async function handleSendEmail(request, env, body) {
         return new Response(JSON.stringify({ error: 'Địa chỉ Email không hợp lệ.' }), { status: 400, headers: { 'Content-Type': 'application/json' }});
     }
 
-    const adminName = escapeHtml(isAnonymous ? 'Quản trị VNBUSARCHIVE' : profile.username);
-    const senderLine = isAnonymous ? 'VNBUSARCHIVE <noreply@vnbusarchive.io.vn>' : `${adminName} via VNBUSARCHIVE <noreply@vnbusarchive.io.vn>`;
+    const rawAdminName = isAnonymous ? 'Quản trị VNBUSARCHIVE' : profile.username;
+    const safeAdminName = String(rawAdminName).replace(/[<>,;"']/g, '').trim();
+    const adminName = escapeHtml(rawAdminName);
+    const senderLine = isAnonymous ? 'VNBUSARCHIVE <noreply@vnbusarchive.io.vn>' : `${safeAdminName} via VNBUSARCHIVE <noreply@vnbusarchive.io.vn>`;
 
     const htmlContent = formatEmailMarkdown(markdownContent);
 
