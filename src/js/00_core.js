@@ -1439,6 +1439,15 @@ cleanupState: () => {
                     if (document.getElementById('upload-form')) {
                         document.getElementById('upload-form').reset();
                         document.querySelectorAll('.upload-req-err').forEach(el => el.classList.add('hidden'));
+                        const docAlert = document.getElementById('up-doc-alert');
+                        if (docAlert) docAlert.classList.add('hidden');
+                        const modNoteLabel = document.getElementById('up-mod-note-label');
+                        if (modNoteLabel) modNoteLabel.innerHTML = 'Ghi chú dành cho kiểm duyệt';
+                        const plateMsg = document.getElementById('plate-msg');
+                        if (plateMsg) {
+                            plateMsg.innerHTML = '';
+                            plateMsg.className = 'text-xs mt-1';
+                        }
                         ['up-plate', 'up-route', 'up-operator', 'up-model', 'up-location'].forEach(id => {
                             const el = document.getElementById(id);
                             if (el) {

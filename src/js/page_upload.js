@@ -26,6 +26,11 @@ Object.assign(window.app, {
                          } else {
                              labelEl.classList.remove('text-black');
                              labelEl.classList.add('text-gray-400');
+                               if (provBtn) {
+                                   provBtn.classList.remove('border-red-500', 'focus:ring-red-500');
+                                   provBtn.classList.add('border-gray-300', 'focus:ring-black');
+                               }
+                               if (provErr) provErr.classList.add('hidden');
                          }
                      }
                      document.querySelectorAll('#up-province-menu .filter-item').forEach(item => {
