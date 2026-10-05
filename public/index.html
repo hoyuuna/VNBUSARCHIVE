@@ -1939,7 +1939,7 @@ html.theme-dark .ct-icon {
             if (stored === 'system') {
                 theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
             }
-            document.write('<link rel="stylesheet" href="/css/' + theme + '.css?v=1790919567769" id="theme-css">');
+            document.write('<link rel="stylesheet" href="/css/' + theme + '.css?v=1791204463853" id="theme-css">');
             document.documentElement.classList.add('theme-' + theme);
             document.documentElement.style.backgroundColor = theme === 'dark' ? '#18181b' : '#fdfcf8';
         })();
@@ -5922,6 +5922,22 @@ html.theme-dark .ct-icon {
                         detectSessionInUrl: true,
                         autoRefreshToken: true,
                         persistSession: true,
+                    },
+                    global: {
+                        fetch: async (url, options) => {
+                            try {
+                                const response = await window.fetch(url, options);
+                                if (!response.ok && response.status >= 500) {
+                                    console.error("[DB Server Error] Status:", response.status, "URL:", url);
+                                    throw new Error("VNBUSARCHIVE hiện đang quá tải vì có quá nhiều người sử dụng. Bạn thử lại sau nhé!");
+                                }
+                                return response;
+                            } catch (err) {
+                                if (err.message === "VNBUSARCHIVE hiện đang quá tải vì có quá nhiều người sử dụng. Bạn thử lại sau nhé!") throw err;
+                                console.error("[DB Connection Error] Details:", err);
+                                throw new Error("VNBUSARCHIVE hiện đang quá tải vì có quá nhiều người sử dụng. Bạn thử lại sau nhé!");
+                            }
+                        }
                     }
                 });
 
