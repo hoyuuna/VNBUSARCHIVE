@@ -168,26 +168,59 @@ export async function onRequest(context) {
             
             if (banError) throw banError;
 
+            // Helper t?o / xo Cloudflare WAF rule
+            async function cfBanIp(ip, banReason, env) {
+                if (!env.CF_ZONE_ID || !env.CF_API_TOKEN) return;
+                try {
+                    await fetch(`https://api.cloudflare.com/client/v4/zones/${env.CF_ZONE_ID}/firewall/access_rules/rules`, {
+                        method: 'POST',
+                        headers: { 'Authorization': `Bearer ${env.CF_API_TOKEN}`, 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ mode: 'block', configuration: { target: 'ip', value: ip }, notes: banReason.substring(0, 100) })
+                    });
+                } catch(e){}
+            }
+
+            async function cfUnbanIp(ip, env) {
+                if (!env.CF_ZONE_ID || !env.CF_API_TOKEN) return;
+                try {
+                    const searchRes = await fetch(`https://api.cloudflare.com/client/v4/zones/${env.CF_ZONE_ID}/firewall/access_rules/rules?configuration.target=ip&configuration.value=${ip}`, {
+                        headers: { 'Authorization': `Bearer ${env.CF_API_TOKEN}` }
+                    });
+                    const searchData = await searchRes.json();
+                    if (searchData.result && searchData.result.length > 0) {
+                        for (const rule of searchData.result) {
+                            await fetch(`https://api.cloudflare.com/client/v4/zones/${env.CF_ZONE_ID}/firewall/access_rules/rules/${rule.id}`, {
+                                method: 'DELETE',
+                                headers: { 'Authorization': `Bearer ${env.CF_API_TOKEN}` }
+                            });
+                        }
+                    }
+                } catch(e){}
+            }
+
             // Cập nhật toàn bộ IP đã truy cập của tài khoản vào bảng banned_ips
             const { data: targetProfile } = await supabaseAdmin.from('profiles').select('known_ips').eq('id', targetUserId).single();
             if (targetProfile && Array.isArray(targetProfile.known_ips)) {
                 if (action === 'ban') {
                     for (const ip of targetProfile.known_ips) {
                         if (ip) {
-                            try { await supabaseAdmin.from('banned_ips').upsert({ ip: ip, reason: `Tài khoản ID ${targetUserId} bị cấm: ${reason || ''}` }, { onConflict: 'ip' }); } catch(err){}
+                            const banReason = `Tài khoản ID ${targetUserId} bị cấm: ${reason || ''}`;
+                            try { await supabaseAdmin.from('banned_ips').upsert({ ip: ip, reason: banReason }, { onConflict: 'ip' }); } catch(err){}
+                            await cfBanIp(ip, banReason, env);
                         }
                     }
                 } else {
                     for (const ip of targetProfile.known_ips) {
                         if (ip) {
                             try { await supabaseAdmin.from('banned_ips').delete().eq('ip', ip); } catch(err){}
+                            await cfUnbanIp(ip, env);
                         }
                     }
                     try { await supabaseAdmin.from('banned_ips').delete().like('reason', `%ID ${targetUserId}%`); } catch(err){}
                 }
             }
 
-            return new Response(JSON.stringify({ success: true, message: action === 'ban' ? "Đã cấm tài khoản và toàn bộ IP truy cập thành công!" : "Đã gỡ cấm tài khoản và gỡ cấm các IP liên quan thành công!" }), { status: 200, headers: { 'Content-Type': 'application/json' }});
+            return new Response(JSON.stringify({ success: true, message: action === 'ban' ? "Đã cấm tài khoản, lưu IP vào CSDL và cập nhật Cloudflare WAF thành công!" : "Đã gỡ cấm tài khoản và gỡ Cloudflare WAF thành công!" }), { status: 200, headers: { 'Content-Type': 'application/json' }});
         }
 
         if (action === 'delete_user') {
