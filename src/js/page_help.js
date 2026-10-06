@@ -262,11 +262,9 @@ Object.assign(window.app, {
                                     const formattedDate = ("0" + dateObj.getDate()).slice(-2) + "/" + ("0" + (dateObj.getMonth() + 1)).slice(-2) + "/" + dateObj.getFullYear();
                                     
                                     const updateBlock = `
-                                        <div class="border border-black dark:border-white p-4 rounded-md mb-6 flex flex-wrap gap-2 items-center justify-between text-sm bg-white dark:bg-[#18181b] text-black dark:text-white">
-                                            <div class="font-medium"><i class="fa-solid fa-clock-rotate-left mr-2"></i>Thay đổi lần cuối: ${formattedDate}</div>
-                                            <a href="https://github.com/hoyuuna/VNBUSARCHIVE/commit/${commitHash}" target="_blank" class="text-xs font-bold uppercase tracking-wider bg-black dark:bg-white text-white dark:text-black px-3 py-1.5 rounded-md hover:opacity-80 transition-opacity">
-                                                Xem thay đổi
-                                            </a>
+                                        <div class="border border-black dark:border-white p-3 rounded-md mb-6 text-sm bg-white dark:bg-[#18181b] text-black dark:text-white font-medium">
+                                            <i class="fa-solid fa-clock-rotate-left mr-2"></i>Thay đổi lần cuối: ${formattedDate} 
+                                            <a href="https://github.com/hoyuuna/VNBUSARCHIVE/commit/${commitHash}" target="_blank" class="text-black dark:text-white underline hover:opacity-80 transition-opacity ml-1">(xem thay đổi)</a>
                                         </div>
                                     `;
                                     
