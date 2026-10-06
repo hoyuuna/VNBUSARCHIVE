@@ -38,30 +38,7 @@ async function handleCore(request, env, body) {
     try {
         const clientIp = (request.headers.get('CF-Connecting-IP') || request.headers.get('x-real-ip') || (request.headers.get('x-forwarded-for') || '').split(',')[0]).trim();
         const isLocalOrInvalidIp = !clientIp || clientIp === '127.0.0.1' || clientIp === '::1' || clientIp === 'localhost';
-        const supabaseUrl = env.SUPABASE_URL;
-        const supabaseServiceRole = env.SUPABASE_SERVICE_ROLE_KEY || env.SUPABASE_KEY;
-
-        if (!isLocalOrInvalidIp && supabaseUrl && supabaseServiceRole) {
-            const supabaseAdmin = createClient(supabaseUrl, supabaseServiceRole);
-            
-            const { data: ipBan } = await supabaseAdmin.from('banned_ips').select('ip, reason').eq('ip', clientIp).maybeSingle();
-            if (ipBan) {
-                return new Response(JSON.stringify({ ip_banned: true, reason: ipBan.reason || '�?a ch? IP n�y thu?c danh s�ch h?n ch? truy c?p.' }), { status: 403, headers: { 'Content-Type': 'application/json' }});
-            }
-
-            const { data: bannedProfiles } = await supabaseAdmin.from('profiles').select('ban_status').contains('known_ips', [clientIp]);
-            if (bannedProfiles && bannedProfiles.length > 0) {
-                const isIpBanned = bannedProfiles.some(p => {
-                    if (!p.ban_status) return false;
-                    const b = typeof p.ban_status === 'string' ? JSON.parse(p.ban_status) : p.ban_status;
-                    return b && b.banned;
-                });
-                if (isIpBanned) {
-                    await supabaseAdmin.from('banned_ips').upsert({ ip: clientIp, reason: 'IP thu?c t�i kho?n b? c?m' }, { onConflict: 'ip' }).catch(()=>{});
-                    return new Response(JSON.stringify({ ip_banned: true, reason: 'IP thu?c t�i kho?n b? c?m' }), { status: 403, headers: { 'Content-Type': 'application/json' }});
-                }
-            }
-        }
+        
         return new Response(JSON.stringify({ status: 'ok' }), { headers: { 'Content-Type': 'application/json' } });
     } catch (e) {
         return new Response(JSON.stringify({ status: 'ok' }), { headers: { 'Content-Type': 'application/json' } });
@@ -140,3 +117,4 @@ export async function onRequest(context) {
     
     return new Response(JSON.stringify({ error: 'Method not allowed' }), { status: 405 });
 }
+

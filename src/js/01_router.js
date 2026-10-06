@@ -413,36 +413,3 @@ Object.assign(window.app, {
             }
 });
 
-
-// --- IP BAN LAZY CHECK ---
-function checkIpBanLazy() {
-    if (sessionStorage.getItem('VNBA_IP_BAN_CHECKED')) return;
-    sessionStorage.setItem('VNBA_IP_BAN_CHECKED', 'true');
-    fetch('/api/system', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'core' })
-    }).then(res => {
-        if (res.status === 403) {
-            res.json().then(data => {
-                if (data.ip_banned) {
-                    for (let i = 0; i < localStorage.length; i++) {
-                        const key = localStorage.key(i);
-                        if (key && key.startsWith('sb-') && key.endsWith('-auth-token')) localStorage.removeItem(key);
-                    }
-                    sessionStorage.removeItem('VNBA_SESS_AUTH');
-                    let banReason = data.reason || '�?a ch? IP c?a b?n n?m trong danh s�ch h?n ch? truy c?p.';
-                    window.renderModernStatusScreen({
-                        title: 'TRUY C?P �� B? H?N CH?',
-                        label: 'L� DO H?N CH? TRUY C?P / BAN LOG',
-                        reason: banReason,
-                        contactSuffix: 'n?u b?n nghi d�y l� m?t sai l?m! Xin c?m on.',
-                        iconSvg: '<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#18181b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><line x1="9" y1="9" x2="15" y2="15"/><line x1="15" y1="9" x2="9" y2="15"/></svg>'
-                    });
-                }
-            }).catch(()=>{});
-        }
-    }).catch(()=>{});
-}
-window.addEventListener('pointerdown', checkIpBanLazy, { once: true });
-window.addEventListener('keydown', checkIpBanLazy, { once: true });
