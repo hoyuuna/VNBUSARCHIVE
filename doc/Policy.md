@@ -1,7 +1,5 @@
 # CHÍNH SÁCH BẢO MẬT & ĐIỀU KHOẢN DỊCH VỤ - VNBUSARCHIVE
 
-**👉 LƯU Ý: Cập nhật lần cuối 31/08/2026**
-
 Chào mừng bạn đến với VNBUSARCHIVE. Đây là một dự án cộng đồng phi lợi nhuận được lập ra với mục đích lưu trữ, bảo tồn hình ảnh và dữ liệu lịch sử của các phương tiện giao thông công cộng tại Việt Nam.
 
 Bằng việc truy cập, đăng ký tài khoản, sử dụng hệ thống giao tiếp lập trình hoặc đóng góp hình ảnh và dữ liệu, bạn đồng ý tuân thủ toàn bộ các Điều khoản Dịch vụ và Chính sách Bảo mật được quy định chi tiết dưới đây. Vui lòng đọc kỹ trước khi sử dụng. Nếu bạn không đồng ý với bất kỳ điều khoản nào, vui lòng ngừng sử dụng hệ thống của chúng tôi.
