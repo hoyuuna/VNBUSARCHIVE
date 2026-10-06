@@ -261,18 +261,18 @@ Object.assign(window.app, {
                                     const dateObj = new Date(commitData[0].commit.author.date);
                                     const formattedDate = ("0" + dateObj.getDate()).slice(-2) + "/" + ("0" + (dateObj.getMonth() + 1)).slice(-2) + "/" + dateObj.getFullYear();
                                     
-                                    const updateBlock = \`
+                                    const updateBlock = `
                                         <div class="border border-black dark:border-white p-4 rounded-md mb-6 flex flex-wrap gap-2 items-center justify-between text-sm bg-white dark:bg-[#18181b] text-black dark:text-white">
-                                            <div class="font-medium"><i class="fa-solid fa-clock-rotate-left mr-2"></i>Thay đổi lần cuối: \${formattedDate}</div>
-                                            <a href="https://github.com/hoyuuna/VNBUSARCHIVE/commit/\${commitHash}" target="_blank" class="text-xs font-bold uppercase tracking-wider bg-black dark:bg-white text-white dark:text-black px-3 py-1.5 rounded-md hover:opacity-80 transition-opacity">
+                                            <div class="font-medium"><i class="fa-solid fa-clock-rotate-left mr-2"></i>Thay đổi lần cuối: ${formattedDate}</div>
+                                            <a href="https://github.com/hoyuuna/VNBUSARCHIVE/commit/${commitHash}" target="_blank" class="text-xs font-bold uppercase tracking-wider bg-black dark:bg-white text-white dark:text-black px-3 py-1.5 rounded-md hover:opacity-80 transition-opacity">
                                                 Xem thay đổi
                                             </a>
                                         </div>
-                                    \`;
+                                    `;
                                     
                                     const body = document.getElementById('policy-detail-body');
                                     // Remove inline 'LƯU Ý' if it still exists
-                                    text = text.replace(/\\*\\*👉 LƯU Ý: Cập nhật lần cuối.*?\\*\\*\\n*/, '');
+                                    text = text.replace(/\*\*👉 LƯU Ý: Cập nhật lần cuối.*?\*\*\n*/, '');
                                     
                                     body.innerHTML = DOMPurify.sanitize(updateBlock, { ADD_ATTR: ['target'] }) + DOMPurify.sanitize(marked.parse(text));
                                     
@@ -287,7 +287,7 @@ Object.assign(window.app, {
                         } catch(err) {}
 
                         // Fallback logic if API fails
-                        text = text.replace(/\\*\\*👉 LƯU Ý: Cập nhật lần cuối.*?\\*\\*\\n*/, '');
+                        text = text.replace(/\*\*👉 LƯU Ý: Cập nhật lần cuối.*?\*\*\n*/, '');
                         const body = document.getElementById('policy-detail-body');
                         body.innerHTML = DOMPurify.sanitize(marked.parse(text));
                         const firstH1 = body.querySelector('h1');
