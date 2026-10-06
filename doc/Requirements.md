@@ -48,7 +48,10 @@ VNBUSARCHIVE là thư viện tư liệu, không phải nền tảng chia sẻ �
 * **B2.2. Khoảng lề:** Phải duy trì không gian cân đối giữa các viền ngoài cùng của xe với cạnh bức ảnh. Chủ thể không được nằm quá sát mép ảnh hoặc chiếm tỷ lệ quá nhỏ.
 * **B2.3. Định dạng và Độ cân bằng:** 
   * Tỉ lệ khung hình ngang chuẩn: `4:3`, `3:2` hoặc `16:9`. 
-  * Đường chân trời, mặt đường hoặc các đường thẳng kiến trúc làm nền (cột điện, tòa nhà) phải được cân bằng (xoay thẳng). Từ chối ảnh bị nghiêng lệch góc (Ngoại trừ góc chụp đặc thù từ trên cao).
+  * Khung hình phải được xoay thẳng và cân bằng tuyệt đối. Từ chối xuất bản các bức ảnh bị nghiêng lệch góc máy. Tiêu chuẩn hệ quy chiếu để căn góc:
+    * **Ảnh chụp ngang tầm mắt:** Đường tham chiếu dọc phải được căn song song với các phương thẳng đứng ở hậu cảnh (cột điện, biển báo, mép tòa nhà...).
+    * **Ảnh chụp từ trên cao (Góc chúi xuống):** Lấy thân xe làm hệ quy chiếu thẳng, hai mép thành xe (hai bên mạn sườn) bắt buộc phải song song với lề dọc của bức ảnh hoặc đường lưới (Grid).
+    * **Đường chân trời / Mặt đường:** Bắt buộc phải song song tuyệt đối với thước canh ngang hoặc lưới tham chiếu ngang trên khung hình thiết bị.
 * **B2.4. Góc chụp:** Ưu tiên lấy được 2 phía (trước, sau, trái, phải) của xe tương đối rõ ràng. Chấp nhận góc chụp 1 phía với thân xe. Từ chối góc chụp 1 phía chỉ thấy đầu xe/đuôi xe (kể cả khi chụp từ góc nhìn từ trên xuống dưới hay từ dưới lên trên). (Quy định này sẽ không áp dụng cho ảnh chụp 1 phía đầu xe có chủ thể từ 2 xe trở lên).
 * **B2.5. Vật cản:** Chủ thể không bị che khuất bởi phương tiện khác, con người, hoặc cảnh quan (cây cối, cột điện...).
 
