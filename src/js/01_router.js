@@ -1,4 +1,3 @@
-// Extracted to 01_router.js
 // Capture URL params BEFORE Supabase SDK clears them (PKCE flow removes token_hash after exchange)
 window.INITIAL_SEARCH = window.location.search;
 window.INITIAL_HASH = window.location.hash;

@@ -3875,7 +3875,6 @@ dropdown.innerHTML = `
 });
 
 /* --- MODULE: 01_router.js --- */
-// Extracted to 01_router.js
 // Capture URL params BEFORE Supabase SDK clears them (PKCE flow removes token_hash after exchange)
 window.INITIAL_SEARCH = window.location.search;
 window.INITIAL_HASH = window.location.hash;
@@ -4292,7 +4291,7 @@ Object.assign(window.app, {
 
 
 /* --- MODULE: 02_settings.js --- */
-﻿// Extracted to 02_settings.js
+﻿
 Object.assign(window.app, {
     notifications: { init: ()=>{}, add: async ()=>{} },
 
@@ -4837,7 +4836,7 @@ grid.innerHTML = tiers.map(tier => {
 });
 
 /* --- MODULE: 03_auth.js --- */
-﻿// Extracted to 03_auth.js
+﻿
 Object.assign(window.app, {
     auth: {
                 mode: 'login',
@@ -6088,7 +6087,6 @@ changePassword: async () => {
 });
 
 /* --- MODULE: page_feed.js --- */
-// Extracted to page_feed.js
 Object.assign(window.app, {
     views: {
                 currentProfileSort: 'newest',
@@ -9238,7 +9236,7 @@ app.feed.renderProgressTracker = function(photo, queueCount) {
 };
 
 /* --- MODULE: page_search.js --- */
-﻿// Extracted to page_search.js
+﻿
 Object.assign(window.app, {
     search: {
                 advancedFilters: [],
@@ -9935,7 +9933,6 @@ Object.assign(window.app, {
 });
 
 /* --- MODULE: page_leaderboard.js --- */
-// Extracted to page_leaderboard.js
 Object.assign(window.app, {
     topUploaders: {},
 
@@ -10180,7 +10177,6 @@ Object.assign(window.app, {
 });
 
 /* --- MODULE: page_help.js --- */
-// Extracted to page_help.js
 Object.assign(window.app, {
     newsboard: {
             data: [],
@@ -10451,7 +10447,6 @@ Object.assign(window.app, {
                                     `;
                                     
                                     const body = document.getElementById('policy-detail-body');
-                                    // Remove inline 'LƯU Ý' if it still exists
                                     text = text.replace(/\*\*👉 LƯU Ý: Cập nhật lần cuối.*?\*\*\n*/, '');
                                     
                                     body.innerHTML = DOMPurify.sanitize(updateBlock, { ADD_ATTR: ['target'] }) + DOMPurify.sanitize(marked.parse(text));
@@ -10461,12 +10456,11 @@ Object.assign(window.app, {
                                     loading.classList.add('hidden');
                                     container.classList.remove('hidden');
                                     app.loadingBar.finish();
-                                    return; // Return early because we already rendered
+                                    return;
                                 }
                             }
                         } catch(err) {}
 
-                        // Fallback logic if API fails
                         text = text.replace(/\*\*👉 LƯU Ý: Cập nhật lần cuối.*?\*\*\n*/, '');
                         const body = document.getElementById('policy-detail-body');
                         body.innerHTML = DOMPurify.sanitize(marked.parse(text));
@@ -11044,7 +11038,7 @@ Object.assign(window.app, {
 });
 
 /* --- MODULE: page_reference.js --- */
-﻿// Extracted to page_reference.js
+﻿
 Object.assign(window.app, {
     operator: {
                 modelStatsData: [],
@@ -12182,7 +12176,6 @@ window.app.views.selectRouteIcon = function(val, label) {
 };
 
 /* --- MODULE: page_upload.js --- */
-// Extracted to page_upload.js
 Object.assign(window.app, {
     upload: {
                  currentQuota: { limit: null, count: 0 },
@@ -12844,8 +12837,6 @@ Object.assign(window.app, {
                         const dir = e.currentTarget.dataset.dir;
                         const pL = panel.offsetLeft, pT = panel.offsetTop;
                         const pR = pL + panel.offsetWidth, pB = pT + panel.offsetHeight;
-                        // Anchor = fixed edge/corner; drag point = moving edge/corner
-                        // resizeDirX/Y: whether that axis is free to move
                         if      (dir==='se') { anchorX=pL; anchorY=pT; initialDragX=pR; initialDragY=pB; resizeDirX=true;  resizeDirY=true;  }
                         else if (dir==='sw') { anchorX=pR; anchorY=pT; initialDragX=pL; initialDragY=pB; resizeDirX=true;  resizeDirY=true;  }
                         else if (dir==='ne') { anchorX=pL; anchorY=pB; initialDragX=pR; initialDragY=pT; resizeDirX=true;  resizeDirY=true;  }
@@ -12875,10 +12866,8 @@ Object.assign(window.app, {
                         } else if (isResizing) {
                             const dx = clientX - resizeStartX;
                             const dy = clientY - resizeStartY;
-                            // Axis-constrained drag point, clamped inside container
                             const dragX = resizeDirX ? Math.max(0, Math.min(container.offsetWidth,  initialDragX + dx)) : initialDragX;
                             const dragY = resizeDirY ? Math.max(0, Math.min(container.offsetHeight, initialDragY + dy)) : initialDragY;
-                            // Rect = bounding box of anchor & drag point — handles flip naturally
                             panel.style.left   = Math.min(anchorX, dragX) + 'px';
                             panel.style.top    = Math.min(anchorY, dragY) + 'px';
                             panel.style.width  = Math.abs(dragX - anchorX) + 'px';
@@ -13732,7 +13721,6 @@ Object.assign(window.app, {
                             const helpLinkHTML = `<br><br><a href="javascript:void(0)" onclick="app.ui.closeAlert(true); setTimeout(() => app.utils.navigate('/help/1516371307481272330'), 300)" class="text-black font-bold hover:text-gray-700 hover:underline transition-colors inline-flex items-center gap-1.5"><i class="fa-solid fa-circle-info"></i> Tìm hiểu thêm & hướng dẫn khắc phục</a>`;
                             const errExifInvalid = "EXIF ảnh không hợp lệ. Bạn vui lòng chọn file ảnh gốc nhé!" + helpLinkHTML;
                             
-                            // EXIF Consistency check disabled by user request
 
                             let model = tags.Model;
                             const make = tags.Make;
@@ -13938,7 +13926,7 @@ Object.assign(window.app, {
                                     }
                                 }
                                 const targetMime = app.utils.getTargetMimeType();
-                                let convertedBlob = fileToCompress; // Removed early compression to allow full res crop
+                                let convertedBlob = fileToCompress;
                                 const newUrl = URL.createObjectURL(convertedBlob);
                                 const newImg = new Image();
                                 newImg.onload = () => {
@@ -15423,7 +15411,6 @@ Object.assign(window.app, {
                     btnDark.className = cur === 'dark' ? active : inactive;
                     if (btnSystem) btnSystem.className = cur === 'system' ? active : inactive;
 
-                    // Dynamically swap the "Thiết Bị" theme icon based on user's actual device
                     // (laptop icon for PC users, mobile phone icon for mobile users)
                     const systemIcon = document.getElementById('set-theme-system-icon');
                     if (systemIcon) {
@@ -15561,7 +15548,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 /* --- MODULE: page_photo.js --- */
-// Extracted to page_photo.js
 Object.assign(window.app, {
     photo: {
                 downloadImage: async (e) => {
@@ -16369,7 +16355,6 @@ Object.assign(window.app, {
 });
 
 /* --- MODULE: page_vehicle.js --- */
-// Extracted to page_vehicle.js
 Object.assign(window.app, {
     vehicle: {
                 currentHistoryData: [],
@@ -17018,7 +17003,6 @@ Object.assign(window.app, {
 
 
 /* --- MODULE: page_admin.js --- */
-// Extracted to page_admin.js
 Object.assign(window.app, {
     admin: {
                 adminInterval: null,

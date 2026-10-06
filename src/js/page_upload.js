@@ -1,4 +1,3 @@
-// Extracted to page_upload.js
 Object.assign(window.app, {
     upload: {
                  currentQuota: { limit: null, count: 0 },
@@ -660,8 +659,6 @@ Object.assign(window.app, {
                         const dir = e.currentTarget.dataset.dir;
                         const pL = panel.offsetLeft, pT = panel.offsetTop;
                         const pR = pL + panel.offsetWidth, pB = pT + panel.offsetHeight;
-                        // Anchor = fixed edge/corner; drag point = moving edge/corner
-                        // resizeDirX/Y: whether that axis is free to move
                         if      (dir==='se') { anchorX=pL; anchorY=pT; initialDragX=pR; initialDragY=pB; resizeDirX=true;  resizeDirY=true;  }
                         else if (dir==='sw') { anchorX=pR; anchorY=pT; initialDragX=pL; initialDragY=pB; resizeDirX=true;  resizeDirY=true;  }
                         else if (dir==='ne') { anchorX=pL; anchorY=pB; initialDragX=pR; initialDragY=pT; resizeDirX=true;  resizeDirY=true;  }
@@ -691,10 +688,8 @@ Object.assign(window.app, {
                         } else if (isResizing) {
                             const dx = clientX - resizeStartX;
                             const dy = clientY - resizeStartY;
-                            // Axis-constrained drag point, clamped inside container
                             const dragX = resizeDirX ? Math.max(0, Math.min(container.offsetWidth,  initialDragX + dx)) : initialDragX;
                             const dragY = resizeDirY ? Math.max(0, Math.min(container.offsetHeight, initialDragY + dy)) : initialDragY;
-                            // Rect = bounding box of anchor & drag point — handles flip naturally
                             panel.style.left   = Math.min(anchorX, dragX) + 'px';
                             panel.style.top    = Math.min(anchorY, dragY) + 'px';
                             panel.style.width  = Math.abs(dragX - anchorX) + 'px';
@@ -1548,7 +1543,6 @@ Object.assign(window.app, {
                             const helpLinkHTML = `<br><br><a href="javascript:void(0)" onclick="app.ui.closeAlert(true); setTimeout(() => app.utils.navigate('/help/1516371307481272330'), 300)" class="text-black font-bold hover:text-gray-700 hover:underline transition-colors inline-flex items-center gap-1.5"><i class="fa-solid fa-circle-info"></i> Tìm hiểu thêm & hướng dẫn khắc phục</a>`;
                             const errExifInvalid = "EXIF ảnh không hợp lệ. Bạn vui lòng chọn file ảnh gốc nhé!" + helpLinkHTML;
                             
-                            // EXIF Consistency check disabled by user request
 
                             let model = tags.Model;
                             const make = tags.Make;
@@ -1754,7 +1748,7 @@ Object.assign(window.app, {
                                     }
                                 }
                                 const targetMime = app.utils.getTargetMimeType();
-                                let convertedBlob = fileToCompress; // Removed early compression to allow full res crop
+                                let convertedBlob = fileToCompress;
                                 const newUrl = URL.createObjectURL(convertedBlob);
                                 const newImg = new Image();
                                 newImg.onload = () => {
@@ -3239,7 +3233,6 @@ Object.assign(window.app, {
                     btnDark.className = cur === 'dark' ? active : inactive;
                     if (btnSystem) btnSystem.className = cur === 'system' ? active : inactive;
 
-                    // Dynamically swap the "Thiết Bị" theme icon based on user's actual device
                     // (laptop icon for PC users, mobile phone icon for mobile users)
                     const systemIcon = document.getElementById('set-theme-system-icon');
                     if (systemIcon) {

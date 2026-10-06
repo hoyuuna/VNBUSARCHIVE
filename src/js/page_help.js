@@ -1,4 +1,3 @@
-// Extracted to page_help.js
 Object.assign(window.app, {
     newsboard: {
             data: [],
@@ -269,7 +268,6 @@ Object.assign(window.app, {
                                     `;
                                     
                                     const body = document.getElementById('policy-detail-body');
-                                    // Remove inline 'LƯU Ý' if it still exists
                                     text = text.replace(/\*\*👉 LƯU Ý: Cập nhật lần cuối.*?\*\*\n*/, '');
                                     
                                     body.innerHTML = DOMPurify.sanitize(updateBlock, { ADD_ATTR: ['target'] }) + DOMPurify.sanitize(marked.parse(text));
@@ -279,12 +277,11 @@ Object.assign(window.app, {
                                     loading.classList.add('hidden');
                                     container.classList.remove('hidden');
                                     app.loadingBar.finish();
-                                    return; // Return early because we already rendered
+                                    return;
                                 }
                             }
                         } catch(err) {}
 
-                        // Fallback logic if API fails
                         text = text.replace(/\*\*👉 LƯU Ý: Cập nhật lần cuối.*?\*\*\n*/, '');
                         const body = document.getElementById('policy-detail-body');
                         body.innerHTML = DOMPurify.sanitize(marked.parse(text));

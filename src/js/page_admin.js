@@ -1,4 +1,3 @@
-// Extracted to page_admin.js
 Object.assign(window.app, {
     admin: {
                 adminInterval: null,

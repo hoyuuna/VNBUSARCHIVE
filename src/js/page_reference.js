@@ -1,4 +1,4 @@
-﻿// Extracted to page_reference.js
+﻿
 Object.assign(window.app, {
     operator: {
                 modelStatsData: [],

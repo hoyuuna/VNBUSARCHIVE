@@ -1,4 +1,3 @@
-// Extracted to page_photo.js
 Object.assign(window.app, {
     photo: {
                 downloadImage: async (e) => {

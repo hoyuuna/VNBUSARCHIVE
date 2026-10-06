@@ -1,4 +1,4 @@
-﻿// Extracted to 02_settings.js
+﻿
 Object.assign(window.app, {
     notifications: { init: ()=>{}, add: async ()=>{} },
 
