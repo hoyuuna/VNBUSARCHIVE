@@ -264,7 +264,7 @@ Object.assign(window.app, {
                                     const updateBlock = `
                                         <div class="border border-black dark:border-white p-3 rounded-md mb-6 text-sm bg-white dark:bg-[#18181b] text-black dark:text-white font-medium">
                                             <i class="fa-solid fa-clock-rotate-left mr-2"></i>Thay đổi lần cuối: ${formattedDate} 
-                                            <a href="https://github.com/hoyuuna/VNBUSARCHIVE/commit/${commitHash}" target="_blank" class="!text-black dark:!text-white underline hover:opacity-80 transition-opacity ml-1">(xem thay đổi)</a>
+                                            <a href="https://github.com/hoyuuna/VNBUSARCHIVE/commits/main/doc/${fileName}" target="_blank" class="!text-black dark:!text-white underline hover:opacity-80 transition-opacity ml-1">(xem thay đổi)</a>
                                         </div>
                                     `;
                                     
