@@ -10180,7 +10180,7 @@ Object.assign(window.app, {
 });
 
 /* --- MODULE: page_help.js --- */
-﻿// Extracted to page_help.js
+// Extracted to page_help.js
 Object.assign(window.app, {
     newsboard: {
             data: [],
@@ -10431,7 +10431,21 @@ Object.assign(window.app, {
                     try {
                         const res = await fetch(policy.url);
                         if (!res.ok) throw new Error('Không thể tải nội dung tài liệu.');
-                        const text = await res.text();
+                        let text = await res.text();
+                        
+                        try {
+                            const fileName = policy.url.split('/').pop();
+                            const commitRes = await fetch(`https://api.github.com/repos/hoyuuna/VNBUSARCHIVE/commits?path=doc/${fileName}&page=1&per_page=1`);
+                            if (commitRes.ok) {
+                                const commitData = await commitRes.json();
+                                if (commitData && commitData.length > 0) {
+                                    const dateObj = new Date(commitData[0].commit.author.date);
+                                    const formattedDate = ("0" + dateObj.getDate()).slice(-2) + "/" + ("0" + (dateObj.getMonth() + 1)).slice(-2) + "/" + dateObj.getFullYear();
+                                    text = text.replace(/\*\*👉 LƯU Ý: Cập nhật lần cuối.*?\*\*/, `**👉 LƯU Ý: Cập nhật lần cuối ${formattedDate} (Tự động đồng bộ)**`);
+                                }
+                            }
+                        } catch(err) {}
+
                         const body = document.getElementById('policy-detail-body');
                         body.innerHTML = DOMPurify.sanitize(marked.parse(text));
                         const firstH1 = body.querySelector('h1');
