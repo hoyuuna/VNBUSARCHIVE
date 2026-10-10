@@ -1640,6 +1640,10 @@ html.theme-dark .ct-icon {
 
         textarea.info-input {
             white-space: pre-wrap;
+            resize: none;
+            overflow: hidden;
+            field-sizing: content;
+            min-height: 38px;
         }
 
         /* Thêm wrapper cuộn ngang cho bảng lịch sử để không vỡ layout */
@@ -1939,7 +1943,7 @@ html.theme-dark .ct-icon {
             if (stored === 'system') {
                 theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
             }
-            document.write('<link rel="stylesheet" href="/css/' + theme + '.css?v=1791623484034" id="theme-css">');
+            document.write('<link rel="stylesheet" href="/css/' + theme + '.css?v=1791623776391" id="theme-css">');
             document.documentElement.classList.add('theme-' + theme);
             document.documentElement.style.backgroundColor = theme === 'dark' ? '#18181b' : '#fdfcf8';
         })();
@@ -3631,7 +3635,7 @@ html.theme-dark .ct-icon {
                                     <table class="info-table border-gray-200 w-full" style="margin-bottom: 0 !important;">
                                         <tr>
                                             <td class="label bg-gray-50 border-r border-b border-gray-200">Biển kiểm soát</td>
-                                            <td class="value-cell border-b border-gray-200"><input type="text" id="info-plate" class="info-input clickable-search" readonly oninput="app.utils.formatPlateInput(this)"></td>
+                                            <td class="value-cell border-b border-gray-200"><textarea rows="1" id="info-plate" class="info-input clickable-search" readonly oninput="app.utils.formatPlateInput(this)"></textarea></td>
                                         </tr>
                                         <tr id="tr-info-date">
                                             <td class="label bg-gray-50 border-r border-b border-gray-200">Ngày chụp</td>
@@ -3641,7 +3645,7 @@ html.theme-dark .ct-icon {
                                             <td class="label bg-gray-50 border-r border-b border-gray-200">Đơn vị vận hành</td>
                                             <td class="value-cell border-b border-gray-200" x-data>
                                                 <div class="relative w-full h-full">
-                                                    <input type="text" id="info-operator" class="info-input clickable-search text-gray-700" readonly autocomplete="off" oninput="app.utils.formatNoPunctuation(this)" x-on:input.debounce.300ms="app.utils.triggerSuggestion('info-operator', 'info-operator-suggestions', $el.value, 'operator')">
+                                                    <textarea rows="1" id="info-operator" class="info-input clickable-search text-gray-700" readonly autocomplete="off" oninput="app.utils.formatNoPunctuation(this)" x-on:input.debounce.300ms="app.utils.triggerSuggestion('info-operator', 'info-operator-suggestions', $el.value, 'operator')"></textarea>
                                                     <div id="info-operator-suggestions" class="suggestion-box"></div>
                                                 </div>
                                             </td>
@@ -3659,7 +3663,7 @@ html.theme-dark .ct-icon {
                                             <td class="label bg-gray-50 border-r border-b border-gray-200" id="lbl-detail-route">Tuyến</td>
                                             <td class="value-cell border-b border-gray-200" x-data>
                                                 <div class="relative w-full h-full">
-                                                    <input type="text" id="info-route" autocomplete="off" class="info-input clickable-search text-gray-700" readonly onfocus="if(!this.readOnly) app.utils.triggerRouteSuggestion('info-route', 'info-route-suggestions', '')" oninput="app.utils.triggerRouteSuggestion('info-route', 'info-route-suggestions', this.value); app.utils.checkRouteStatus(this.value, 'info-operator', 'info-operator-row')">
+                                                    <textarea rows="1" id="info-route" autocomplete="off" class="info-input clickable-search text-gray-700" readonly onfocus="if(!this.readOnly) app.utils.triggerRouteSuggestion('info-route', 'info-route-suggestions', '')" oninput="app.utils.triggerRouteSuggestion('info-route', 'info-route-suggestions', this.value); app.utils.checkRouteStatus(this.value, 'info-operator', 'info-operator-row')"></textarea>
                                                     <div id="info-route-suggestions" class="suggestion-box"></div>
                                                 </div>
                                             </td>
@@ -3668,7 +3672,7 @@ html.theme-dark .ct-icon {
                                             <td class="label bg-gray-50 border-r border-b border-gray-200">Dòng xe</td>
                                             <td class="value-cell border-b border-gray-200" x-data>
                                                 <div class="relative w-full h-full">
-                                                    <input type="text" id="info-model" class="info-input clickable-search text-gray-700" readonly autocomplete="off" onfocus="if(!this.readOnly) app.utils.triggerSuggestion('info-model', 'info-model-suggestions', this.value, 'model')" x-on:input.debounce.300ms="app.utils.triggerSuggestion('info-model', 'info-model-suggestions', $el.value)">
+                                                    <textarea rows="1" id="info-model" class="info-input clickable-search text-gray-700" readonly autocomplete="off" onfocus="if(!this.readOnly) app.utils.triggerSuggestion('info-model', 'info-model-suggestions', this.value, 'model')" x-on:input.debounce.300ms="app.utils.triggerSuggestion('info-model', 'info-model-suggestions', $el.value)"></textarea>
                                                     <div id="info-model-suggestions" class="suggestion-box"></div>
                                                 </div>
                                             </td>
@@ -3676,7 +3680,7 @@ html.theme-dark .ct-icon {
                                         <tr>
                                             <td class="label bg-gray-50 border-r border-b border-gray-200">Vị trí chụp</td>
                                             <td class="value-cell border-b border-gray-200">
-                                                <input type="text" id="info-location" class="info-input text-gray-700" readonly>
+                                                <textarea rows="1" id="info-location" class="info-input text-gray-700" readonly></textarea>
                                             </td>
                                         </tr>
 
@@ -3846,13 +3850,13 @@ html.theme-dark .ct-icon {
                                 <tr>
                                     <td class="label bg-gray-50 border-r border-b border-gray-200">Thiết bị</td>
                                     <td class="value-cell border-b border-gray-200">
-                                        <input type="text" id="info-camera" class="info-input clickable-search text-gray-700" readonly>
+                                        <textarea rows="1" id="info-camera" class="info-input clickable-search text-gray-700" readonly></textarea>
                                     </td>
                                 </tr>
                                 <tr>
                                     <td class="label bg-gray-50 border-r border-gray-200">Thông số</td>
                                     <td class="value-cell">
-                                        <input type="text" id="info-exif-params" class="info-input text-gray-700" readonly>
+                                        <textarea rows="1" id="info-exif-params" class="info-input text-gray-700" readonly></textarea>
                                     </td>
                                 </tr>
                             </table>
