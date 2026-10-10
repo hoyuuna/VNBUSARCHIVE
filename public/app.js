@@ -3906,10 +3906,11 @@ app.utils.updateUptime = function() {
     
     let parts = [];
     if (years > 0) parts.push(`${years} năm`);
-    if (months > 0 || years > 0) parts.push(`${months} tháng`);
-    if (days > 0 || months > 0 || years > 0) parts.push(`${days} ngày`);
-    parts.push(`${hours} giờ`);
-    parts.push(`${minutes} phút`);
+    if (months > 0) parts.push(`${months} tháng`);
+    if (days > 0) parts.push(`${days} ngày`);
+    if (hours > 0) parts.push(`${hours} giờ`);
+    if (minutes > 0) parts.push(`${minutes} phút`);
+    if (parts.length === 0) parts.push('0 phút');
     
     uptimeEl.innerText = parts.join(', ') + '.';
 };
