@@ -3911,7 +3911,7 @@ app.utils.updateUptime = function() {
     parts.push(`${hours} giờ`);
     parts.push(`${minutes} phút`);
     
-    uptimeEl.innerText = parts.join(', ');
+    uptimeEl.innerText = parts.join(', ') + '.';
 };
 setInterval(app.utils.updateUptime, 60000);
 setTimeout(app.utils.updateUptime, 500);
