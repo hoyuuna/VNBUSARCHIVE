@@ -18674,7 +18674,7 @@ if (app.admin._activeLoadToken !== currentLoadToken || app.adminTab !== tab) ret
                             <div class="col-span-full">
                                 <h3 class="font-bold mb-4 uppercase tracking-widest text-sm text-gray-500">Quản lý bình luận toàn hệ thống</h3>
                                 <div class="overflow-x-auto border border-gray-200 rounded-md">
-                                    <table class="w-full text-left text-sm whitespace-nowrap">
+                                    <table class="w-full text-left text-sm">
                                         <thead class="bg-gray-50 border-b border-gray-200 text-gray-600 uppercase text-[11px] tracking-wider">
                                             <tr>
                                                 <th class="p-3">Thời gian</th>
@@ -18727,7 +18727,7 @@ if (app.admin._activeLoadToken !== currentLoadToken || app.adminTab !== tab) ret
                                             <input type="text" placeholder="Tìm kiếm nhật ký..." class="w-full py-2.5 bg-transparent outline-none text-sm" oninput="app.admin.filterManagerData('logs', this.value)">
                                         </div>
                                         <div class="overflow-x-auto border border-gray-200 rounded-md">
-                                            <table class="w-full text-left text-sm whitespace-nowrap">
+                                            <table class="w-full text-left text-sm">
                                                 <thead class="bg-gray-50 border-b border-gray-200 text-gray-600 uppercase text-[11px] tracking-wider">
                                                     <tr>
                                                         <th class="p-3">Thời gian</th>
@@ -18803,7 +18803,7 @@ if (app.admin._activeLoadToken !== currentLoadToken || app.adminTab !== tab) ret
                                              </div>
                                          </div>
                                          <div class="overflow-x-auto border border-gray-200 rounded-md">
-                                             <table class="w-full text-left text-sm whitespace-nowrap">
+                                             <table class="w-full text-left text-sm">
                                                  <thead class="bg-gray-50 border-b border-gray-200 text-gray-600 uppercase text-[11px] tracking-wider">
                                                      <tr>
                                                          <th class="p-3">Người dùng</th>
