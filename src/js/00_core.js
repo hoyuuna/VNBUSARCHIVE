@@ -3396,7 +3396,7 @@ cleanupState: () => {
                                     const info = opInfoMap[op.toLowerCase()] || {};
                                     const logo = info.logo_url ? app.utils.escapeAttr(info.logo_url.includes('wsrv.nl') ? info.logo_url : 'https://wsrv.nl/?url=' + encodeURIComponent(info.logo_url)) : '';
                                     const iconHtml = logo 
-                                        ? `<img src="${logo}" class="w-12 h-12 object-contain shrink-0 rounded-lg border border-gray-200 p-[2px] bg-white" onerror="this.outerHTML='<div class=&quot;w-12 h-12 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center font-bold text-xl shrink-0 border border-gray-200&quot;><i class=&quot;fa-solid fa-building&quot;></i></div>';">` 
+                                        ? `<img src="${logo}" class="w-12 h-12 object-contain shrink-0 rounded-lg border border-gray-200" onerror="this.outerHTML='<div class=&quot;w-12 h-12 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center font-bold text-xl shrink-0 border border-gray-200&quot;><i class=&quot;fa-solid fa-building&quot;></i></div>';">` 
                                         : `<div class="w-12 h-12 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center font-bold text-xl shrink-0 border border-gray-200"><i class="fa-solid fa-building"></i></div>`;
                                     operatorCards.push(`
                                         <div class="bg-white border border-gray-200 rounded-md p-4 flex items-center gap-4 cursor-pointer hover:shadow-md transition" onclick="app.views.loadOperatorPage('${app.utils.escapeAttr(op)}')">
@@ -3469,7 +3469,7 @@ cleanupState: () => {
                                         }
                                     }
                                     const iconHtml = logo 
-                                        ? `<img src="${logo}" class="w-12 h-12 object-contain shrink-0 rounded-lg border border-gray-200 p-[2px] bg-white" onerror="this.outerHTML='<div class=&quot;w-12 h-12 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center font-bold text-xl shrink-0 border border-gray-200&quot;><i class=&quot;fa-solid fa-layer-group&quot;></i></div>';">` 
+                                        ? `<img src="${logo}" class="w-12 h-12 object-contain shrink-0 rounded-lg border border-gray-200" onerror="this.outerHTML='<div class=&quot;w-12 h-12 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center font-bold text-xl shrink-0 border border-gray-200&quot;><i class=&quot;fa-solid fa-layer-group&quot;></i></div>';">` 
                                         : `<div class="w-12 h-12 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center font-bold text-xl shrink-0 border border-gray-200"><i class="fa-solid fa-layer-group"></i></div>`;
                                     modelCards.push(`
                                         <div class="bg-white border border-gray-200 rounded-md p-4 flex items-center gap-4 cursor-pointer hover:shadow-md transition" onclick="app.model.loadModelPage('${app.utils.escapeAttr(m)}')">
