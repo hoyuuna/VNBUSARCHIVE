@@ -191,10 +191,13 @@ input:focus, textarea:focus, select:focus {
 }
 
 /* ===== FIX: ZOOM TOOLBAR button text color ===== */
-#zoom-toolbar button {
+#zoom-toolbar button:not(.bg-black) {
     color: #18181b !important;
 }
-#zoom-toolbar button:hover {
+#zoom-toolbar button:hover,
+#zoom-toolbar button.bg-black,
+#zoom-toolbar button.bg-black i,
+#zoom-toolbar button.bg-black span {
     color: #ffffff !important;
 }
 
