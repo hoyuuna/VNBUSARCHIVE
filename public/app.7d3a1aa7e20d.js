@@ -3404,7 +3404,7 @@ cleanupState: () => {
                                         <div class="bg-white border border-gray-200 rounded-md p-4 flex items-center gap-4 cursor-pointer hover:shadow-md transition" onclick="app.views.loadOperatorPage('${app.utils.escapeAttr(op)}')">
                                             ${iconHtml}
                                             <div class="overflow-hidden min-w-0 flex-1">
-                                                <div class="font-bold text-black text-sm overflow-x-auto whitespace-nowrap no-scrollbar">${app.utils.cleanText(op)}</div>
+                                                <div class="font-bold text-black text-sm">${app.utils.cleanText(op)}</div>
                                                 <div class="text-[10px] text-gray-500 uppercase tracking-widest mt-0.5 font-bold">Đơn vị vận hành</div>
                                             </div>
                                         </div>
@@ -3477,7 +3477,7 @@ cleanupState: () => {
                                         <div class="bg-white border border-gray-200 rounded-md p-4 flex items-center gap-4 cursor-pointer hover:shadow-md transition" onclick="app.model.loadModelPage('${app.utils.escapeAttr(m)}')">
                                             ${iconHtml}
                                             <div class="overflow-hidden min-w-0 flex-1">
-                                                <div class="font-bold text-black text-sm overflow-x-auto whitespace-nowrap no-scrollbar">${app.utils.cleanText(m)}</div>
+                                                <div class="font-bold text-black text-sm">${app.utils.cleanText(m)}</div>
                                                 <div class="text-[10px] text-gray-500 uppercase tracking-widest mt-0.5 font-bold">Dòng xe</div>
                                             </div>
                                         </div>
@@ -3549,7 +3549,7 @@ cleanupState: () => {
                                             <div class="bg-white border border-gray-200 rounded-md p-4 flex items-center gap-4 cursor-pointer hover:shadow-md transition" onclick="app.utils.navigate('${routeUrl.replace(/'/g, "\\'")}')">
                                                 <div class="${iconClass}">${iconHtml}</div>
                                                 <div class="overflow-hidden min-w-0 flex-1">
-                                                    <div class="font-bold text-black text-sm overflow-x-auto whitespace-nowrap no-scrollbar">${displayR}</div>
+                                                    <div class="font-bold text-black text-sm">${displayR}</div>
                                                     <div class="text-[10px] text-gray-500 uppercase tracking-widest mt-0.5 font-bold">Tuyến xe</div>
                                                 </div>
                                             </div>
@@ -8346,7 +8346,7 @@ let currentRouteProvName = null;
                             <div class="text-[11px] sm:text-xs text-gray-500 mb-4 bg-white px-3 py-2 border border-vbs-border rounded-md shadow-sm flex items-center gap-1.5 sm:gap-2 w-max max-w-full">
                                 <span class="crumb-back cursor-pointer hover:text-black font-medium transition-colors truncate shrink min-w-0" onclick="app.views.loadHome()">Trang chủ</span>
                                 <i class="fa-solid fa-chevron-right text-[8px] sm:text-[10px] shrink-0 text-gray-400"></i>
-                                <span id="crumb-vehicle-profile" class="font-bold text-black overflow-x-auto whitespace-nowrap no-scrollbar shrink min-w-0 block">${app.utils.displayPlate(vehicle.license_plate)}</span>
+                                <span id="crumb-vehicle-profile" class="font-bold text-black shrink min-w-0 block">${app.utils.displayPlate(vehicle.license_plate)}</span>
                             </div>
                             <div class="bg-white border border-vbs-border shadow-sm rounded-lg p-6 md:p-8 mb-6 relative overflow-hidden">
                                 <div class="flex items-center gap-4 sm:gap-6 w-full min-w-0 max-w-full mb-6">
@@ -8359,7 +8359,7 @@ let currentRouteProvName = null;
                                     `}
                                     <div class="overflow-hidden min-w-0 flex-1 text-left">
                                         <p class="text-[10px] md:text-xs text-gray-500 uppercase tracking-widest font-bold mb-1">${isCoach ? 'Xe khách' : 'Xe buýt'}</p>
-                                        <h2 class="text-xl md:text-3xl font-black uppercase text-black tracking-tight leading-tight overflow-x-auto whitespace-nowrap no-scrollbar block w-full">${app.utils.displayPlate(vehicle.license_plate)}</h2>
+                                        <h2 class="text-xl md:text-3xl font-black uppercase text-black tracking-tight leading-tight block w-full">${app.utils.displayPlate(vehicle.license_plate)}</h2>
                                     </div>
                                 </div>
                                 <div class="mb-8">
@@ -11054,7 +11054,7 @@ Object.assign(window.app, {
                     tbody.innerHTML = displayData.map(m => `
                         <tr class="hover:bg-gray-50 transition group">
                             <td class="font-medium text-gray-700 max-w-[200px] border-r border-gray-200" title="${app.utils.cleanText(m.name)}">
-                                <div class="overflow-x-auto whitespace-nowrap no-scrollbar">
+                                <div class="">
                                     <span onclick="app.utils.navigate('/model/${encodeURIComponent(m.name)}')" class="cursor-pointer hover:text-black hover:underline font-bold transition">
                                         ${app.utils.cleanText(m.name)}
                                     </span>
@@ -11109,7 +11109,7 @@ Object.assign(window.app, {
                     tbody.innerHTML = displayData.map(r => `
                         <tr class="hover:bg-gray-50 transition group">
                             <td class="font-medium text-gray-700 max-w-[200px] border-r border-gray-200" title="${app.utils.cleanText(r.displayName || r.route)}">
-                                <div class="overflow-x-auto whitespace-nowrap no-scrollbar">
+                                <div class="">
                                     <span onclick="if(${r.isCoach ? 'true' : 'false'}) { app.searchRedirect('${app.utils.escapeAttr(r.route)}', 'route'); } else { app.utils.navigate('${r.prov ? '/route/' + encodeURIComponent(r.prov) + '/' + encodeURIComponent(r.route) : '/route/' + encodeURIComponent(r.route)}'); }" class="cursor-pointer hover:underline font-bold transition text-black">
                                         ${app.utils.cleanText(r.displayName || r.route)}
                                     </span>
@@ -11117,7 +11117,7 @@ Object.assign(window.app, {
                             </td>
                             <td class="text-center font-bold text-black border-r border-gray-200">${r.vehicleCount}</td>
                             <td class="text-center text-black max-w-[150px]" title="${r.mainModel || 'Chưa xác định'}">
-                                <div class="overflow-x-auto whitespace-nowrap no-scrollbar">
+                                <div class="">
                                     <span onclick="if('${r.mainModel || 'Chưa xác định'}' !== 'Chưa xác định') app.utils.navigate('/model/${encodeURIComponent(r.mainModel || '')}')" class="${r.mainModel && r.mainModel !== 'Chưa xác định' ? 'cursor-pointer hover:underline transition' : ''}">
                                         ${r.mainModel || 'Chưa xác định'}
                                     </span>

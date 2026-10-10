@@ -14,7 +14,7 @@ Object.assign(window.app, {
                     tbody.innerHTML = displayData.map(m => `
                         <tr class="hover:bg-gray-50 transition group">
                             <td class="font-medium text-gray-700 max-w-[200px] border-r border-gray-200" title="${app.utils.cleanText(m.name)}">
-                                <div class="overflow-x-auto whitespace-nowrap no-scrollbar">
+                                <div class="">
                                     <span onclick="app.utils.navigate('/model/${encodeURIComponent(m.name)}')" class="cursor-pointer hover:text-black hover:underline font-bold transition">
                                         ${app.utils.cleanText(m.name)}
                                     </span>
@@ -69,7 +69,7 @@ Object.assign(window.app, {
                     tbody.innerHTML = displayData.map(r => `
                         <tr class="hover:bg-gray-50 transition group">
                             <td class="font-medium text-gray-700 max-w-[200px] border-r border-gray-200" title="${app.utils.cleanText(r.displayName || r.route)}">
-                                <div class="overflow-x-auto whitespace-nowrap no-scrollbar">
+                                <div class="">
                                     <span onclick="if(${r.isCoach ? 'true' : 'false'}) { app.searchRedirect('${app.utils.escapeAttr(r.route)}', 'route'); } else { app.utils.navigate('${r.prov ? '/route/' + encodeURIComponent(r.prov) + '/' + encodeURIComponent(r.route) : '/route/' + encodeURIComponent(r.route)}'); }" class="cursor-pointer hover:underline font-bold transition text-black">
                                         ${app.utils.cleanText(r.displayName || r.route)}
                                     </span>
@@ -77,7 +77,7 @@ Object.assign(window.app, {
                             </td>
                             <td class="text-center font-bold text-black border-r border-gray-200">${r.vehicleCount}</td>
                             <td class="text-center text-black max-w-[150px]" title="${r.mainModel || 'Chưa xác định'}">
-                                <div class="overflow-x-auto whitespace-nowrap no-scrollbar">
+                                <div class="">
                                     <span onclick="if('${r.mainModel || 'Chưa xác định'}' !== 'Chưa xác định') app.utils.navigate('/model/${encodeURIComponent(r.mainModel || '')}')" class="${r.mainModel && r.mainModel !== 'Chưa xác định' ? 'cursor-pointer hover:underline transition' : ''}">
                                         ${r.mainModel || 'Chưa xác định'}
                                     </span>

@@ -2257,7 +2257,7 @@ let currentRouteProvName = null;
                             <div class="text-[11px] sm:text-xs text-gray-500 mb-4 bg-white px-3 py-2 border border-vbs-border rounded-md shadow-sm flex items-center gap-1.5 sm:gap-2 w-max max-w-full">
                                 <span class="crumb-back cursor-pointer hover:text-black font-medium transition-colors truncate shrink min-w-0" onclick="app.views.loadHome()">Trang chủ</span>
                                 <i class="fa-solid fa-chevron-right text-[8px] sm:text-[10px] shrink-0 text-gray-400"></i>
-                                <span id="crumb-vehicle-profile" class="font-bold text-black overflow-x-auto whitespace-nowrap no-scrollbar shrink min-w-0 block">${app.utils.displayPlate(vehicle.license_plate)}</span>
+                                <span id="crumb-vehicle-profile" class="font-bold text-black shrink min-w-0 block">${app.utils.displayPlate(vehicle.license_plate)}</span>
                             </div>
                             <div class="bg-white border border-vbs-border shadow-sm rounded-lg p-6 md:p-8 mb-6 relative overflow-hidden">
                                 <div class="flex items-center gap-4 sm:gap-6 w-full min-w-0 max-w-full mb-6">
@@ -2270,7 +2270,7 @@ let currentRouteProvName = null;
                                     `}
                                     <div class="overflow-hidden min-w-0 flex-1 text-left">
                                         <p class="text-[10px] md:text-xs text-gray-500 uppercase tracking-widest font-bold mb-1">${isCoach ? 'Xe khách' : 'Xe buýt'}</p>
-                                        <h2 class="text-xl md:text-3xl font-black uppercase text-black tracking-tight leading-tight overflow-x-auto whitespace-nowrap no-scrollbar block w-full">${app.utils.displayPlate(vehicle.license_plate)}</h2>
+                                        <h2 class="text-xl md:text-3xl font-black uppercase text-black tracking-tight leading-tight block w-full">${app.utils.displayPlate(vehicle.license_plate)}</h2>
                                     </div>
                                 </div>
                                 <div class="mb-8">
