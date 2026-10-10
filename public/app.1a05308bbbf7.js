@@ -3873,6 +3873,48 @@ dropdown.innerHTML = `
                 if (app.auth && app.auth.updateUUIDBox) app.auth.updateUUIDBox();
             }
 });
+// UPTIME TIMER
+app.utils.updateUptime = function() {
+    const uptimeEl = document.getElementById('uptime-timer');
+    if (!uptimeEl) return;
+    const start = new Date('2026-01-06T21:39:00+07:00');
+    const now = new Date();
+    
+    let years = now.getFullYear() - start.getFullYear();
+    let months = now.getMonth() - start.getMonth();
+    let days = now.getDate() - start.getDate();
+    let hours = now.getHours() - start.getHours();
+    let minutes = now.getMinutes() - start.getMinutes();
+
+    if (minutes < 0) {
+        minutes += 60;
+        hours--;
+    }
+    if (hours < 0) {
+        hours += 24;
+        days--;
+    }
+    if (days < 0) {
+        const prevMonth = new Date(now.getFullYear(), now.getMonth(), 0);
+        days += prevMonth.getDate();
+        months--;
+    }
+    if (months < 0) {
+        months += 12;
+        years--;
+    }
+    
+    let parts = [];
+    if (years > 0) parts.push(`${years} năm`);
+    if (months > 0 || years > 0) parts.push(`${months} tháng`);
+    if (days > 0 || months > 0 || years > 0) parts.push(`${days} ngày`);
+    parts.push(`${hours} giờ`);
+    parts.push(`${minutes} phút`);
+    
+    uptimeEl.innerText = parts.join(', ');
+};
+setInterval(app.utils.updateUptime, 60000);
+setTimeout(app.utils.updateUptime, 500);
 
 /* --- MODULE: 01_router.js --- */
 // Capture URL params BEFORE Supabase SDK clears them (PKCE flow removes token_hash after exchange)
