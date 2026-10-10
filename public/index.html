@@ -1643,7 +1643,6 @@ html.theme-dark .ct-icon {
             resize: none;
             overflow: hidden;
             field-sizing: content;
-            min-height: 38px;
         }
 
         /* Thêm wrapper cuộn ngang cho bảng lịch sử để không vỡ layout */
@@ -1943,7 +1942,7 @@ html.theme-dark .ct-icon {
             if (stored === 'system') {
                 theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
             }
-            document.write('<link rel="stylesheet" href="/css/' + theme + '.css?v=1791623776391" id="theme-css">');
+            document.write('<link rel="stylesheet" href="/css/' + theme + '.css?v=1791624693886" id="theme-css">');
             document.documentElement.classList.add('theme-' + theme);
             document.documentElement.style.backgroundColor = theme === 'dark' ? '#18181b' : '#fdfcf8';
         })();
@@ -3644,7 +3643,7 @@ html.theme-dark .ct-icon {
                                         <tr id="info-operator-row">
                                             <td class="label bg-gray-50 border-r border-b border-gray-200">Đơn vị vận hành</td>
                                             <td class="value-cell border-b border-gray-200" x-data>
-                                                <div class="relative w-full h-full">
+                                                <div class="relative w-full h-full flex flex-col justify-center">
                                                     <textarea rows="1" id="info-operator" class="info-input clickable-search text-gray-700" readonly autocomplete="off" oninput="app.utils.formatNoPunctuation(this)" x-on:input.debounce.300ms="app.utils.triggerSuggestion('info-operator', 'info-operator-suggestions', $el.value, 'operator')"></textarea>
                                                     <div id="info-operator-suggestions" class="suggestion-box"></div>
                                                 </div>
@@ -3662,7 +3661,7 @@ html.theme-dark .ct-icon {
                                         <tr>
                                             <td class="label bg-gray-50 border-r border-b border-gray-200" id="lbl-detail-route">Tuyến</td>
                                             <td class="value-cell border-b border-gray-200" x-data>
-                                                <div class="relative w-full h-full">
+                                                <div class="relative w-full h-full flex flex-col justify-center">
                                                     <textarea rows="1" id="info-route" autocomplete="off" class="info-input clickable-search text-gray-700" readonly onfocus="if(!this.readOnly) app.utils.triggerRouteSuggestion('info-route', 'info-route-suggestions', '')" oninput="app.utils.triggerRouteSuggestion('info-route', 'info-route-suggestions', this.value); app.utils.checkRouteStatus(this.value, 'info-operator', 'info-operator-row')"></textarea>
                                                     <div id="info-route-suggestions" class="suggestion-box"></div>
                                                 </div>
@@ -3671,7 +3670,7 @@ html.theme-dark .ct-icon {
                                         <tr>
                                             <td class="label bg-gray-50 border-r border-b border-gray-200">Dòng xe</td>
                                             <td class="value-cell border-b border-gray-200" x-data>
-                                                <div class="relative w-full h-full">
+                                                <div class="relative w-full h-full flex flex-col justify-center">
                                                     <textarea rows="1" id="info-model" class="info-input clickable-search text-gray-700" readonly autocomplete="off" onfocus="if(!this.readOnly) app.utils.triggerSuggestion('info-model', 'info-model-suggestions', this.value, 'model')" x-on:input.debounce.300ms="app.utils.triggerSuggestion('info-model', 'info-model-suggestions', $el.value)"></textarea>
                                                     <div id="info-model-suggestions" class="suggestion-box"></div>
                                                 </div>
