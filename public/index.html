@@ -1942,7 +1942,7 @@ html.theme-dark .ct-icon {
             if (stored === 'system') {
                 theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
             }
-            document.write('<link rel="stylesheet" href="/css/' + theme + '.css?v=1791624693886" id="theme-css">');
+            document.write('<link rel="stylesheet" href="/css/' + theme + '.css?v=1791626874794" id="theme-css">');
             document.documentElement.classList.add('theme-' + theme);
             document.documentElement.style.backgroundColor = theme === 'dark' ? '#18181b' : '#fdfcf8';
         })();
@@ -3634,7 +3634,7 @@ html.theme-dark .ct-icon {
                                     <table class="info-table border-gray-200 w-full" style="margin-bottom: 0 !important;">
                                         <tr>
                                             <td class="label bg-gray-50 border-r border-b border-gray-200">Biển kiểm soát</td>
-                                            <td class="value-cell border-b border-gray-200"><textarea rows="1" id="info-plate" class="info-input clickable-search" readonly oninput="app.utils.formatPlateInput(this)"></textarea></td>
+                                            <td class="value-cell border-b border-gray-200"><div class="relative w-full h-full flex flex-col justify-center"><textarea rows="1" id="info-plate" class="info-input clickable-search" readonly oninput="app.utils.formatPlateInput(this)"></textarea></div></td>
                                         </tr>
                                         <tr id="tr-info-date">
                                             <td class="label bg-gray-50 border-r border-b border-gray-200">Ngày chụp</td>
@@ -3679,7 +3679,7 @@ html.theme-dark .ct-icon {
                                         <tr>
                                             <td class="label bg-gray-50 border-r border-b border-gray-200">Vị trí chụp</td>
                                             <td class="value-cell border-b border-gray-200">
-                                                <textarea rows="1" id="info-location" class="info-input text-gray-700" readonly></textarea>
+                                                <div class="relative w-full h-full flex flex-col justify-center"><textarea rows="1" id="info-location" class="info-input text-gray-700" readonly></textarea></div>
                                             </td>
                                         </tr>
 
@@ -3849,13 +3849,13 @@ html.theme-dark .ct-icon {
                                 <tr>
                                     <td class="label bg-gray-50 border-r border-b border-gray-200">Thiết bị</td>
                                     <td class="value-cell border-b border-gray-200">
-                                        <textarea rows="1" id="info-camera" class="info-input clickable-search text-gray-700" readonly></textarea>
+                                        <div class="relative w-full h-full flex flex-col justify-center"><textarea rows="1" id="info-camera" class="info-input clickable-search text-gray-700" readonly></textarea></div>
                                     </td>
                                 </tr>
                                 <tr>
                                     <td class="label bg-gray-50 border-r border-gray-200">Thông số</td>
                                     <td class="value-cell">
-                                        <textarea rows="1" id="info-exif-params" class="info-input text-gray-700" readonly></textarea>
+                                        <div class="relative w-full h-full flex flex-col justify-center"><textarea rows="1" id="info-exif-params" class="info-input text-gray-700" readonly></textarea></div>
                                     </td>
                                 </tr>
                             </table>
