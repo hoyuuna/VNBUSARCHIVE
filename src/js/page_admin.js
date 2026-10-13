@@ -356,7 +356,7 @@ Object.assign(window.app, {
                     const uploaderScore = p.profiles?.reputation_score !== undefined ? p.profiles.reputation_score : 100;
                     const reviewTabHtml = `<div class="w-full max-w-full bg-black text-white text-[11px] font-bold px-4 pt-2.5 pb-[18px] rounded-t-md border border-b-0 border-black shadow-sm leading-relaxed -mb-3"><i class="fa-solid fa-shield-halved mr-1.5"></i>Điểm uy tín: ${uploaderScore} điểm</div>`;
                     return `
-                                <div id="adm-photo-card-${p.id}" class="admin-card relative overflow-visible mt-8 ${hideClass}" data-photo-id="${p.id}" data-privileged="${(p.profiles?.role === 'admin' || p.profiles?.role === 'manager') ? 'true' : 'false'}" data-is-own="${isOwnPhoto ? 'true' : 'false'}">
+                                <div id="adm-photo-card-${p.id}" class="admin-card relative overflow-visible mt-8 ${hideClass}" data-photo-id="${p.id}" data-is-doc="${p.is_documentary ? 'true' : 'false'}" data-privileged="${(p.profiles?.role === 'admin' || p.profiles?.role === 'manager') ? 'true' : 'false'}" data-is-own="${isOwnPhoto ? 'true' : 'false'}">
                                     ${reviewTabHtml}
                                     <div class="admin-card-header relative z-10 bg-white rounded-t-lg">
                                         <div class="flex items-center gap-2 flex-wrap">
@@ -1108,6 +1108,9 @@ if (app.admin._activeLoadToken !== currentLoadToken || app.adminTab !== tab) ret
                                 }
                                 return a.id - b.id;
                             });
+                            app.admin.currentPendingPhotos = photos;
+                            if (tab === 'quality') app.admin.pendingQuality = photos;
+                            if (tab === 'info') app.admin.pendingInfo = photos;
                             if ((!forceReload || preserveScroll) && content.querySelector('.admin-card') && app.adminTab === 'photos') {
                                 const currentIds = new Set(photos.map(p => String(p.id)));
                                 content.querySelectorAll('.admin-card[data-photo-id]').forEach(card => {
@@ -3565,19 +3568,27 @@ if (cbQuality) newSubroles.push('quality_aud');
                         return app.ui.showAlert("Bạn không thể tự từ chối ảnh của chính mình!");
                     }
                     const isQuality = app.adminTab === 'quality';
-                    const p = (app.admin.pendingQuality || []).find(x => x.id === id) || (app.admin.pendingInfo || []).find(x => x.id === id);
-                    const isDoc = p ? p.is_documentary : false;
+                    const cardEl = document.getElementById(`adm-photo-card-${id}`);
+                    const cardIsDoc = cardEl ? cardEl.getAttribute('data-is-doc') === 'true' : false;
+                    const p = (app.admin.currentPendingPhotos || []).find(x => String(x.id) === String(id))
+                           || (app.admin.pendingQuality || []).find(x => String(x.id) === String(id))
+                           || (app.admin.pendingInfo || []).find(x => String(x.id) === String(id));
+                    const isDoc = cardIsDoc || (p ? Boolean(p.is_documentary) : false);
                     const isInfo = app.adminTab === 'info';
                     const docWrapper = document.getElementById('deny-abuse-doc-wrapper');
                     if (docWrapper) docWrapper.classList.toggle('hidden', !isDoc);
                     document.querySelectorAll('.deny-quick-cb').forEach(cb => {
-                        const txt = cb.value;
-                        const isQualError = txt.includes('B1.3') || txt.includes('B1.4') || txt.includes('B2.1') || txt.includes('B2.2') || txt.includes('B2.3') || txt.includes('B2.4') || txt.includes('B2.5') || txt.includes('B3.1') || txt.includes('B3.2') || txt.includes('B3.4') || txt.includes('B3.5') || txt.includes('B4.2') || txt.includes('B4.3') || txt.includes('B4.4');
-                        const isInfoError = txt.includes('B1.1') || txt.includes('B1.2') || txt.includes('B4.1') || txt.includes('B4.2') || txt.includes('B5.1') || txt.includes('B5.2') || txt.includes('B5.3') || txt.includes('B5.4') || txt.includes('tư liệu') || txt.includes('tu lieu') || txt.includes('liệu') || txt.includes('li?u');
+                        const txt = (cb.value || '').toLowerCase();
+                        const isQualError = txt.includes('b1.3') || txt.includes('b1.4') || txt.includes('b2.1') || txt.includes('b2.2') || txt.includes('b2.3') || txt.includes('b2.4') || txt.includes('b2.5') || txt.includes('b3.1') || txt.includes('b3.2') || txt.includes('b3.4') || txt.includes('b3.5') || txt.includes('b4.2') || txt.includes('b4.3') || txt.includes('b4.4');
+                        const isInfoError = txt.includes('b1.1') || txt.includes('b1.2') || txt.includes('b4.1') || txt.includes('b4.2') || txt.includes('b5.1') || txt.includes('b5.2') || txt.includes('b5.3') || txt.includes('b5.4') || txt.includes('tư liệu') || txt.includes('tu lieu') || txt.includes('liệu') || txt.includes('li?u');
                         
                         let show = true;
                         if (isQuality && !isQualError) show = false;
                         if (isInfo && !isInfoError) show = false;
+                        
+                        if (cb.closest('#deny-abuse-doc-wrapper')) {
+                            show = isDoc;
+                        }
                         
                         const label = cb.closest('label');
                         if (label) label.style.display = show ? 'flex' : 'none';

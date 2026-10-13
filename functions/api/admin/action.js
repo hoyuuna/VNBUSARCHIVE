@@ -236,8 +236,9 @@ export async function onRequestPost(context) {
             const isSpecialRoute = specialRoutes.some(s => (route || '').trim().toLowerCase() === s.toLowerCase());
             const isSameRoute = (r1, r2) => (r1 || '').trim().toLowerCase() === (r2 || '').trim().toLowerCase();
             const isStoppedRoute = (r) => {
-                const s = (r || '').trim().toLowerCase();
-                return s.includes('d\u01b0\u0301ng ho\u1ea1t \u0111\u1ed9ng') || s.includes('ng\u01b0\u0301ng ho\u1ea1t \u0111\u1ed9ng') || s.includes('thanh l\u00fd') || s.includes('thu h\u1ed3i');
+                if (!r) return false;
+                const s = String(r).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/đ/g, 'd').trim();
+                return s.includes('dung hoat dong') || s.includes('ngung hoat dong') || s.includes('thanh ly') || s.includes('thu hoi');
             };
 
             if (!isSpecialRoute) {
@@ -246,19 +247,21 @@ export async function onRequestPost(context) {
                     .select('*').eq('license_plate', plate).order('effective_date', { ascending: true });
 
                 currentHistory = currentHistory || [];
-                let latestHist = currentHistory.length > 0 ? currentHistory[currentHistory.length - 1] : null;
 
                 const takenDateObj = photo.taken_at ? new Date(photo.taken_at) : new Date();
                 const takenDateString = takenDateObj.toISOString().split('T')[0];
 
-                if (latestHist) {
-                    const isStopped = isStoppedRoute(latestHist.route) || isStoppedRoute(latestHist.operator) || isStoppedRoute(latestHist.note);
-                    const latestHistDate = latestHist.effective_date ? new Date(latestHist.effective_date) : new Date();
-                    
-                    // Chỉ xóa lịch sử dừng hoạt động nếu ảnh mới chứng minh xe hoạt động SAU hoặc BẰNG ngày dừng
-                    if (isStopped && takenDateObj >= latestHistDate) {
-                        await sbAdmin.from('vehicle_history').delete().eq('id', latestHist.id);
-                        currentHistory.pop(); // Xóa khỏi mảng cục bộ
+                // Nếu ảnh mới là tuyến hoạt động (không phải dừng hoạt động), tự động xóa các mốc dừng hoạt động trước hoặc bằng ngày chụp
+                if (!isStoppedRoute(route)) {
+                    for (let i = currentHistory.length - 1; i >= 0; i--) {
+                        const hItem = currentHistory[i];
+                        if (isStoppedRoute(hItem.route) || isStoppedRoute(hItem.operator) || isStoppedRoute(hItem.note)) {
+                            const hItemDateStr = hItem.effective_date ? String(hItem.effective_date).split('T')[0] : '';
+                            if (!hItemDateStr || takenDateString >= hItemDateStr) {
+                                await sbAdmin.from('vehicle_history').delete().eq('id', hItem.id);
+                                currentHistory.splice(i, 1);
+                            }
+                        }
                     }
                 }
 

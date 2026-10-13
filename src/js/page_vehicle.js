@@ -140,16 +140,21 @@ Object.assign(window.app, {
                         const dateB = b.effective_date ? new Date(b.effective_date).getTime() : 0;
                         return dateA - dateB;
                     });
+                    const isStopped = (str) => {
+                        if (!str) return false;
+                        const s = String(str).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/đ/g, 'd').trim();
+                        return s.includes('dung hoat dong') || s.includes('ngung hoat dong') || s.includes('thanh ly') || s.includes('thu hoi');
+                    };
                     const toRemove = new Set();
                     for (let i = 0; i < sorted.length; i++) {
                         const h = sorted[i];
-                        if ((h.route || '').trim() === 'Dừng hoạt động') {
+                        if (isStopped(h.route) || isStopped(h.operator) || isStopped(h.note)) {
                             const stopDate = h.effective_date ? new Date(h.effective_date).getTime() : 0;
                             if (!stopDate) continue;
                             for (let j = i + 1; j < sorted.length; j++) {
                                 const later = sorted[j];
                                 const laterDate = later.effective_date ? new Date(later.effective_date).getTime() : 0;
-                                if ((later.route || '').trim() !== 'Dừng hoạt động' && laterDate > stopDate) {
+                                if (!isStopped(later.route) && laterDate >= stopDate) {
                                     toRemove.add(h);
                                     break;
                                 }
@@ -440,6 +445,25 @@ Object.assign(window.app, {
 
                             const route = newData.route_no;
                             const op = newData.operator;
+
+                            const isStopped = (str) => {
+                                if (!str) return false;
+                                const s = String(str).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/đ/g, 'd').trim();
+                                return s.includes('dung hoat dong') || s.includes('ngung hoat dong') || s.includes('thanh ly') || s.includes('thu hoi');
+                            };
+
+                            if (!isStopped(route)) {
+                                for (let i = allHistory.length - 1; i >= 0; i--) {
+                                    const hItem = allHistory[i];
+                                    if (isStopped(hItem.route) || isStopped(hItem.operator) || isStopped(hItem.note)) {
+                                        const hDate = hItem.effective_date;
+                                        if (!hDate || targetDate >= hDate) {
+                                            await window.sb.from('vehicle_history').delete().eq('id', hItem.id);
+                                            allHistory.splice(i, 1);
+                                        }
+                                    }
+                                }
+                            }
 
                             // 1. Tìm mốc quá khứ gần nhất (H_cov) so với targetDate
                             let H_cov = null;
