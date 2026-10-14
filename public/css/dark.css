@@ -403,6 +403,20 @@ footer button.text-gray-600 { color: #a1a1aa !important; }
 footer a.text-gray-600:hover,
 footer button.text-gray-600:hover { color: #ffffff !important; }
 footer .text-gray-400.cursor-not-allowed { color: #52525b !important; }
+.dmca-badge-box {
+    background-color: #18181b !important;
+    border-color: #3f3f46 !important;
+    color: #d4d4d8 !important;
+}
+.dmca-badge-box i {
+    color: #a1a1aa !important;
+}
+.dmca-badge-box a {
+    color: #ffffff !important;
+}
+.dmca-badge-box a:hover {
+    color: #d4d4d8 !important;
+}
 
 /* Help page — icon circles (dark): nền xám đậm + viền trắng */
 .help-icon-circle {

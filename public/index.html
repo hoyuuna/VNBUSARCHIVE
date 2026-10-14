@@ -1942,7 +1942,7 @@ html.theme-dark .ct-icon {
             if (stored === 'system') {
                 theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
             }
-            document.write('<link rel="stylesheet" href="/css/' + theme + '.css?v=1791977950043" id="theme-css">');
+            document.write('<link rel="stylesheet" href="/css/' + theme + '.css?v=1791980506608" id="theme-css">');
             document.documentElement.classList.add('theme-' + theme);
             document.documentElement.style.backgroundColor = theme === 'dark' ? '#18181b' : '#fdfcf8';
         })();
@@ -5652,29 +5652,10 @@ html.theme-dark .ct-icon {
                             <span class="font-extrabold italic text-lg tracking-wider text-black" style="font-family: 'Montserrat', sans-serif;">VNBUSARCHIVE™</span>
                         </div>
                         <p class="text-xs font-medium text-gray-700">&copy; VNBUSARCHIVE&#8482; Foundation</p>
-                        <div class="mt-2">
-                            <style>
-                                #DMCA-badge, #DMCA-badge * {
-                                    box-sizing: content-box !important;
-                                    line-height: normal !important;
-                                }
-                            </style>
-                            <!-- LIGHT MODE -->
-                            <div class="dark:hidden">
-                                <script src="https://images.dmca.com/Badges/DMCABadgeHelper.min.js"></script>
-                                <script type="text/javascript">(function () { var c = document.createElement('link'); c.type = 'text/css'; c.rel = 'stylesheet'; c.href = 'https://images.dmca.com/badges/dmca.css?ID=f1e8c1c2-dae2-4385-a975-78fbc175d257'; var h = document.getElementsByTagName("head")[0]; h.appendChild(c); })();</script>
-                                <div id="DMCA-badge">
-                                    <div class="dm-1 dm-1-b" style="left: 0;"><a href="https://www.dmca.com/" title="DMCA">DMCA</a></div>
-                                    <div class="dm-2 dm-2-b"><a href="http://www.dmca.com/Protection/Status.aspx?ID=f1e8c1c2-dae2-4385-a975-78fbc175d257" title="DMCA">PROTECTED</a></div>
-                                </div>
-                            </div>
-                            <!-- DARK MODE -->
-                            <div class="hidden dark:block">
-                                <script type="text/javascript">(function () { var c = document.createElement('link'); c.type = 'text/css'; c.rel = 'stylesheet'; c.href = 'https://images.dmca.com/badges/dmca.css?ID=f1e8c1c2-dae2-4385-a975-78fbc175d257'; var h = document.getElementsByTagName("head")[0]; h.appendChild(c); })();</script>
-                                <div id="DMCA-badge">
-                                    <div class="dm-1 dm-1-b" style="left: 0;"><a href="https://www.dmca.com/" title="DMCA" style="color: rgb(0, 0, 0);">DMCA</a></div>
-                                    <div class="dm-2 dm-2-b" style="background-color: rgb(255, 255, 255);"><a href="http://www.dmca.com/Protection/Status.aspx?ID=f1e8c1c2-dae2-4385-a975-78fbc175d257" title="DMCA" style="color: rgb(0, 0, 0);">PROTECTED</a></div>
-                                </div>
+                        <div class="mt-2.5">
+                            <div class="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium bg-gray-50 border border-gray-300 rounded-md shadow-xs dmca-badge-box">
+                                <i class="fa-solid fa-shield-halved text-[11px] text-gray-500"></i>
+                                <span>Đã đăng ký <a href="https://www.dmca.com/compliance/www.vnbusarchive.io.vn" target="_blank" rel="noopener noreferrer" class="font-bold underline text-black hover:text-gray-700 transition-colors">DMCA Compliance</a></span>
                             </div>
                         </div>
                     </div>
