@@ -1400,33 +1400,8 @@ closeCustomRolePrompt: () => {
                         }
                     }
 
-                    // Trình duyệt có WebP native nhưng chất lượng sàn 70% vẫn vượt ngưỡng:
-                    // báo lỗi và không tiếp nhận thay vì xuất JPEG lặng lẽ
-                    if (hasWebpNative) {
-                        throw new Error(`BLIND_WM_ERROR:Ảnh quá chi tiết, không thể nén xuống dưới ${targetKB}KB (chất lượng tối thiểu 70%). Vui lòng cắt nhỏ hoặc chọn ảnh khác.`);
-                    }
-
-                    // Fallback sang JPEG (trình duyệt không hỗ trợ WebP và WASM cũng lỗi)
-                    minQ = 0.70;
-                    maxQ = 0.95;
-                    while (maxQ - minQ >= 0.02) {
-                        let midQ = (minQ + maxQ) / 2;
-                        let q = parseFloat(midQ.toFixed(3));
-                        let compressedBlob = await new Promise(resolve => canvas.toBlob(resolve, 'image/jpeg', q));
-                        if (compressedBlob && compressedBlob.size <= targetBytes) {
-                            bestBlob = compressedBlob;
-                            minQ = midQ;
-                        } else {
-                            maxQ = midQ;
-                        }
-                    }
-                    if (!bestBlob) {
-                        let finalBlob = await new Promise(resolve => canvas.toBlob(resolve, 'image/jpeg', 0.70));
-                        if (finalBlob && finalBlob.size <= targetBytes) bestBlob = finalBlob;
-                    }
-                    if (bestBlob) return bestBlob;
-
-                    throw new Error(`BLIND_WM_ERROR:Ảnh quá chi tiết, không thể nén xuống dưới ${targetKB}KB (chất lượng tối thiểu 70%). Vui lòng cắt nhỏ hoặc chọn ảnh khác.`);
+                    // Tuyệt đối không hỗ trợ fallback sang JPEG. Hệ thống CHỈ chấp nhận định dạng WebP.
+                    throw new Error(`BLIND_WM_ERROR:Ảnh quá chi tiết, không thể nén thành WebP xuống dưới ${targetKB}KB (chất lượng tối thiểu 70%). Vui lòng cắt nhỏ hoặc chọn ảnh khác.`);
                 },
                 canvasToBlobUniversal: async (canvas, targetMime = 'image/webp', quality = 0.95) => {
                     const nativeBlob = await new Promise((resolve) => {
@@ -1436,8 +1411,11 @@ closeCustomRolePrompt: () => {
                         return nativeBlob;
                     }
                     if (nativeBlob) return nativeBlob;
+                    if (targetMime === 'image/webp') {
+                        throw new Error("Trình duyệt không hỗ trợ xuất định dạng WebP.");
+                    }
                     return new Promise((resolve) => {
-                        canvas.toBlob((blob) => resolve(blob), 'image/jpeg', quality);
+                        canvas.toBlob((blob) => resolve(blob), targetMime, quality);
                     });
                 },
                 handleImgLoad: (img) => {

@@ -2082,8 +2082,7 @@ Object.assign(window.app, {
                                     return;
                                 }
                                 if (blobToProcess && blobToProcess instanceof Blob && !(blobToProcess instanceof File)) {
-                                    const ext = blobToProcess.type === 'image/webp' ? 'webp' : 'jpg';
-                                    resolve(new File([blobToProcess], rawFile.name.replace(/\.[^/.]+$/, "") + "." + ext, { type: blobToProcess.type || targetMime }));
+                                    resolve(new File([blobToProcess], rawFile.name.replace(/\.[^/.]+$/, "") + ".webp", { type: 'image/webp' }));
                                     return;
                                 }
                                 resolve(blobToProcess);
