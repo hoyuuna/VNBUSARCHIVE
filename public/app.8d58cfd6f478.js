@@ -769,11 +769,53 @@ closeCustomRolePrompt: () => {
                     const q = (query || '').trim().toLowerCase();
                     const section = document.getElementById('deny-section-quick');
                     if (!section) return;
-                    const labels = section.querySelectorAll('label');
-                    labels.forEach(lbl => {
-                        const text = (lbl.textContent || '').toLowerCase();
-                        lbl.style.display = (!q || text.includes(q)) ? '' : 'none';
-                    });
+
+                    const isQuality = app.denyFilterTab === 'quality';
+                    const isInfo = app.denyFilterTab === 'info';
+
+                    const qualWrap = document.getElementById('deny-group-quality-wrapper');
+                    const qualGroup = document.getElementById('deny-group-quality');
+                    const infoWrap = document.getElementById('deny-group-info-wrapper');
+                    const infoGroup = document.getElementById('deny-group-info');
+
+                    // Filter Quality Group
+                    if (qualWrap && qualGroup) {
+                        if (isInfo) {
+                            qualWrap.style.display = 'none';
+                        } else {
+                            let matchCount = 0;
+                            qualGroup.querySelectorAll('label').forEach(lbl => {
+                                const text = (lbl.textContent || '').toLowerCase();
+                                const match = !q || text.includes(q);
+                                lbl.style.display = match ? 'flex' : 'none';
+                                if (match) matchCount++;
+                            });
+                            qualWrap.style.display = matchCount > 0 ? '' : 'none';
+                        }
+                    }
+
+                    // Filter Info Group
+                    if (infoWrap && infoGroup) {
+                        if (isQuality) {
+                            infoWrap.style.display = 'none';
+                        } else {
+                            const docWrapper = document.getElementById('deny-abuse-doc-wrapper');
+                            if (docWrapper) docWrapper.classList.toggle('hidden', !app.denyIsDoc);
+
+                            let matchCount = 0;
+                            infoGroup.querySelectorAll('label').forEach(lbl => {
+                                if (lbl.closest('#deny-abuse-doc-wrapper') && !app.denyIsDoc) {
+                                    lbl.style.display = 'none';
+                                    return;
+                                }
+                                const text = (lbl.textContent || '').toLowerCase();
+                                const match = !q || text.includes(q);
+                                lbl.style.display = match ? 'flex' : 'none';
+                                if (match) matchCount++;
+                            });
+                            infoWrap.style.display = matchCount > 0 ? '' : 'none';
+                        }
+                    }
                 },
                  toggleDenySection: (section) => {
                     app.activeDenySection = section;
@@ -845,6 +887,8 @@ closeCustomRolePrompt: () => {
                         modal.classList.add('hidden');
                         content.classList.remove('modal-content-leave');
                         app.ui.unlockScroll();
+                        app.denyFilterTab = null;
+                        app.denyIsDoc = false;
                         if (isOk && app.denyPromptCallback) {
                             app.denyPromptCallback(reasonString);
                         }
@@ -7932,6 +7976,8 @@ Object.assign(window.app, {
                             deleteBtn.innerHTML = '<i class="fa-solid fa-radiation mr-1"></i> Quản lý: Xóa ảnh này';
                             deleteBtn.className = "w-full bg-red-600 border border-red-600 text-white py-2.5 text-sm font-bold rounded-md hover:bg-red-700 transition shadow-sm";
                             deleteBtn.onclick = () => {
+                                app.denyFilterTab = null;
+                                app.denyIsDoc = Boolean(photo?.is_documentary);
                                 app.ui.showDenyPrompt("QUẢN LÝ - Xóa ảnh này", async (reason) => {
                                     try {
                                         const originalBtnText = deleteBtn.innerHTML;
@@ -20647,26 +20693,10 @@ if (cbQuality) newSubroles.push('quality_aud');
                            || (app.admin.pendingInfo || []).find(x => String(x.id) === String(id));
                     const isDoc = cardIsDoc || (p ? Boolean(p.is_documentary) : false);
                     const isInfo = app.adminTab === 'info';
-                    const docWrapper = document.getElementById('deny-abuse-doc-wrapper');
-                    if (docWrapper) docWrapper.classList.toggle('hidden', !isDoc);
-                    document.querySelectorAll('.deny-quick-cb').forEach(cb => {
-                        const txt = (cb.value || '').toLowerCase();
-                        const isQualError = txt.includes('b1.3') || txt.includes('b1.4') || txt.includes('b2.1') || txt.includes('b2.2') || txt.includes('b2.3') || txt.includes('b2.4') || txt.includes('b2.5') || txt.includes('b3.1') || txt.includes('b3.2') || txt.includes('b3.4') || txt.includes('b3.5') || txt.includes('b4.2') || txt.includes('b4.3') || txt.includes('b4.4');
-                        const isInfoError = txt.includes('b1.1') || txt.includes('b1.2') || txt.includes('b4.1') || txt.includes('b4.2') || txt.includes('b5.1') || txt.includes('b5.2') || txt.includes('b5.3') || txt.includes('b5.4') || txt.includes('tư liệu') || txt.includes('tu lieu') || txt.includes('liệu') || txt.includes('li?u');
-                        
-                        let show = true;
-                        if (isQuality && !isQualError) show = false;
-                        if (isInfo && !isInfoError) show = false;
-                        
-                        if (cb.closest('#deny-abuse-doc-wrapper')) {
-                            show = isDoc;
-                        }
-                        
-                        const label = cb.closest('label');
-                        if (label) label.style.display = show ? 'flex' : 'none';
-                    });
+                    app.denyFilterTab = isQuality ? 'quality' : (isInfo ? 'info' : null);
+                    app.denyIsDoc = isDoc;
 
-app.ui.showDenyPrompt("Từ chối ảnh", (reason) => {
+                    app.ui.showDenyPrompt("Từ chối ảnh", (reason) => {
                         const prefix = app.adminTab === 'quality' ? '{quality} ' : (app.adminTab === 'info' ? '{info} ' : '');
                         reason = prefix + reason;
                         if (!reason.trim()) {

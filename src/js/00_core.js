@@ -767,11 +767,53 @@ closeCustomRolePrompt: () => {
                     const q = (query || '').trim().toLowerCase();
                     const section = document.getElementById('deny-section-quick');
                     if (!section) return;
-                    const labels = section.querySelectorAll('label');
-                    labels.forEach(lbl => {
-                        const text = (lbl.textContent || '').toLowerCase();
-                        lbl.style.display = (!q || text.includes(q)) ? '' : 'none';
-                    });
+
+                    const isQuality = app.denyFilterTab === 'quality';
+                    const isInfo = app.denyFilterTab === 'info';
+
+                    const qualWrap = document.getElementById('deny-group-quality-wrapper');
+                    const qualGroup = document.getElementById('deny-group-quality');
+                    const infoWrap = document.getElementById('deny-group-info-wrapper');
+                    const infoGroup = document.getElementById('deny-group-info');
+
+                    // Filter Quality Group
+                    if (qualWrap && qualGroup) {
+                        if (isInfo) {
+                            qualWrap.style.display = 'none';
+                        } else {
+                            let matchCount = 0;
+                            qualGroup.querySelectorAll('label').forEach(lbl => {
+                                const text = (lbl.textContent || '').toLowerCase();
+                                const match = !q || text.includes(q);
+                                lbl.style.display = match ? 'flex' : 'none';
+                                if (match) matchCount++;
+                            });
+                            qualWrap.style.display = matchCount > 0 ? '' : 'none';
+                        }
+                    }
+
+                    // Filter Info Group
+                    if (infoWrap && infoGroup) {
+                        if (isQuality) {
+                            infoWrap.style.display = 'none';
+                        } else {
+                            const docWrapper = document.getElementById('deny-abuse-doc-wrapper');
+                            if (docWrapper) docWrapper.classList.toggle('hidden', !app.denyIsDoc);
+
+                            let matchCount = 0;
+                            infoGroup.querySelectorAll('label').forEach(lbl => {
+                                if (lbl.closest('#deny-abuse-doc-wrapper') && !app.denyIsDoc) {
+                                    lbl.style.display = 'none';
+                                    return;
+                                }
+                                const text = (lbl.textContent || '').toLowerCase();
+                                const match = !q || text.includes(q);
+                                lbl.style.display = match ? 'flex' : 'none';
+                                if (match) matchCount++;
+                            });
+                            infoWrap.style.display = matchCount > 0 ? '' : 'none';
+                        }
+                    }
                 },
                  toggleDenySection: (section) => {
                     app.activeDenySection = section;
@@ -843,6 +885,8 @@ closeCustomRolePrompt: () => {
                         modal.classList.add('hidden');
                         content.classList.remove('modal-content-leave');
                         app.ui.unlockScroll();
+                        app.denyFilterTab = null;
+                        app.denyIsDoc = false;
                         if (isOk && app.denyPromptCallback) {
                             app.denyPromptCallback(reasonString);
                         }

@@ -3575,26 +3575,10 @@ if (cbQuality) newSubroles.push('quality_aud');
                            || (app.admin.pendingInfo || []).find(x => String(x.id) === String(id));
                     const isDoc = cardIsDoc || (p ? Boolean(p.is_documentary) : false);
                     const isInfo = app.adminTab === 'info';
-                    const docWrapper = document.getElementById('deny-abuse-doc-wrapper');
-                    if (docWrapper) docWrapper.classList.toggle('hidden', !isDoc);
-                    document.querySelectorAll('.deny-quick-cb').forEach(cb => {
-                        const txt = (cb.value || '').toLowerCase();
-                        const isQualError = txt.includes('b1.3') || txt.includes('b1.4') || txt.includes('b2.1') || txt.includes('b2.2') || txt.includes('b2.3') || txt.includes('b2.4') || txt.includes('b2.5') || txt.includes('b3.1') || txt.includes('b3.2') || txt.includes('b3.4') || txt.includes('b3.5') || txt.includes('b4.2') || txt.includes('b4.3') || txt.includes('b4.4');
-                        const isInfoError = txt.includes('b1.1') || txt.includes('b1.2') || txt.includes('b4.1') || txt.includes('b4.2') || txt.includes('b5.1') || txt.includes('b5.2') || txt.includes('b5.3') || txt.includes('b5.4') || txt.includes('tư liệu') || txt.includes('tu lieu') || txt.includes('liệu') || txt.includes('li?u');
-                        
-                        let show = true;
-                        if (isQuality && !isQualError) show = false;
-                        if (isInfo && !isInfoError) show = false;
-                        
-                        if (cb.closest('#deny-abuse-doc-wrapper')) {
-                            show = isDoc;
-                        }
-                        
-                        const label = cb.closest('label');
-                        if (label) label.style.display = show ? 'flex' : 'none';
-                    });
+                    app.denyFilterTab = isQuality ? 'quality' : (isInfo ? 'info' : null);
+                    app.denyIsDoc = isDoc;
 
-app.ui.showDenyPrompt("Từ chối ảnh", (reason) => {
+                    app.ui.showDenyPrompt("Từ chối ảnh", (reason) => {
                         const prefix = app.adminTab === 'quality' ? '{quality} ' : (app.adminTab === 'info' ? '{info} ' : '');
                         reason = prefix + reason;
                         if (!reason.trim()) {
