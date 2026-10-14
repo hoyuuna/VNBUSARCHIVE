@@ -23,7 +23,9 @@ export async function onRequest(context) {
             headers: {
                 'apikey': env.SUPABASE_KEY,
                 'Authorization': `Bearer ${env.SUPABASE_KEY}`,
-                'Accept': 'application/json'
+                'Accept': 'application/json',
+                'Referer': 'https://www.vnbusarchive.io.vn/',
+                'x-vnba-source': 'pages-internal'
             }
         });
         if (res.ok) {
