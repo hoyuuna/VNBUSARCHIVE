@@ -3982,7 +3982,8 @@ app.utils.updateUptime = function() {
     let parts = [];
     if (years > 0) parts.push(`${years} năm`);
     if (months > 0) parts.push(`${months} tháng`);
-    if (parts.length === 0) parts.push('dưới 1 tháng');
+    if (days > 0) parts.push(`${days} ngày`);
+    if (parts.length === 0) parts.push('dưới 1 ngày');
     
     uptimeEl.innerText = parts.join(', ') + '.';
 };
