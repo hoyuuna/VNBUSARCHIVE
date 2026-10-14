@@ -1942,7 +1942,7 @@ html.theme-dark .ct-icon {
             if (stored === 'system') {
                 theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
             }
-            document.write('<link rel="stylesheet" href="/css/' + theme + '.css?v=1791987747237" id="theme-css">');
+            document.write('<link rel="stylesheet" href="/css/' + theme + '.css?v=1791987869294" id="theme-css">');
             document.documentElement.classList.add('theme-' + theme);
             document.documentElement.style.backgroundColor = theme === 'dark' ? '#18181b' : '#fdfcf8';
         })();
@@ -3603,16 +3603,6 @@ html.theme-dark .ct-icon {
                             </div>
                         </div>
 
-                        <div id="denial-discord-box" class="hidden bg-white p-4 rounded-md border border-black mb-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-none">
-                            <p class="text-xs font-medium text-black leading-relaxed m-0">
-                                Cảm thấy quá khó khăn? Đừng ngại trao đổi, học hỏi kinh nghiệm và nhận hướng dẫn từ cộng đồng chúng mình nhé!
-                            </p>
-                            <a href="https://discord.com/invite/BNWyqbuvwq" target="_blank" rel="noopener noreferrer" class="shrink-0 inline-flex items-center gap-1.5 bg-black text-white px-3.5 py-2 rounded-md text-xs font-bold transition-colors">
-                                <i class="fa-brands fa-discord text-sm"></i>
-                                <span>Tham gia server Discord</span>
-                            </a>
-                        </div>
-
                         <div id="denial-delete-warning-box" class="hidden bg-yellow-50 p-4 rounded-md border border-yellow-200 mb-6 shadow-sm">
                             <div class="flex items-start gap-2 text-yellow-800 text-xs">
                                 <i class="fa-solid fa-triangle-exclamation text-base mt-0.5"></i>
@@ -3640,6 +3630,16 @@ html.theme-dark .ct-icon {
                             <div id="denial-improvement-content" class="px-4 pb-4 group-open:animate-[slideDownFade_0.3s_ease-out_forwards]">
                             </div>
                         </details>
+
+                        <div id="denial-discord-box" class="hidden bg-white p-4 rounded-md border border-black mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-none">
+                            <p class="text-xs font-medium text-black leading-relaxed m-0">
+                                Cảm thấy quá khó khăn? Đừng ngại trao đổi, học hỏi kinh nghiệm và nhận hướng dẫn từ cộng đồng chúng mình nhé!
+                            </p>
+                            <a href="https://discord.com/invite/BNWyqbuvwq" target="_blank" rel="noopener noreferrer" class="shrink-0 inline-flex items-center gap-1.5 bg-black text-white px-3.5 py-2 rounded-md text-xs font-bold transition-colors">
+                                <i class="fa-brands fa-discord text-sm"></i>
+                                <span>Tham gia server Discord</span>
+                            </a>
+                        </div>
 
                         <div class="bg-white mb-6 relative border border-gray-200 shadow-sm rounded-xl p-2.5 pt-3.5 pb-2.5 md:p-3 md:pt-4 md:pb-3 overflow-visible">
                             <h3 class="font-bold text-xs uppercase text-black tracking-wider mb-2.5 px-1">Thông tin chi tiết</h3>
