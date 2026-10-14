@@ -1309,28 +1309,38 @@ closeCustomRolePrompt: () => {
                 },
                 compressToSizeLoop: async (imageSource, targetMime = 'image/webp', targetKB = 500) => {
                     const targetBytes = targetKB * 1024;
-                    const url = imageSource instanceof Blob || imageSource instanceof File ? URL.createObjectURL(imageSource) : imageSource;
-                    const img = new Image();
-                    img.src = url;
-                    await new Promise((resolve, reject) => {
-                        img.onload = resolve;
-                        img.onerror = () => reject(new Error("Lỗi tải ảnh để nén vòng lặp"));
-                    });
-                    if (imageSource instanceof Blob || imageSource instanceof File) URL.revokeObjectURL(url);
-                    let w = img.naturalWidth || img.width;
-                    let h = img.naturalHeight || img.height;
-                    if (w > 1920 || h > 1920) {
-                        const ratio = Math.min(1920 / w, 1920 / h);
-                        w = Math.round(w * ratio);
-                        h = Math.round(h * ratio);
+                    let canvas;
+                    let w, h;
+                    let ctx;
+                    if (typeof HTMLCanvasElement !== 'undefined' && imageSource instanceof HTMLCanvasElement) {
+                        canvas = imageSource;
+                        w = canvas.width;
+                        h = canvas.height;
+                        ctx = canvas.getContext('2d');
+                    } else {
+                        const url = imageSource instanceof Blob || imageSource instanceof File ? URL.createObjectURL(imageSource) : imageSource;
+                        const img = new Image();
+                        img.src = url;
+                        await new Promise((resolve, reject) => {
+                            img.onload = resolve;
+                            img.onerror = () => reject(new Error("Lỗi tải ảnh để nén vòng lặp"));
+                        });
+                        if (imageSource instanceof Blob || imageSource instanceof File) URL.revokeObjectURL(url);
+                        w = img.naturalWidth || img.width;
+                        h = img.naturalHeight || img.height;
+                        if (w > 1920 || h > 1920) {
+                            const ratio = Math.min(1920 / w, 1920 / h);
+                            w = Math.round(w * ratio);
+                            h = Math.round(h * ratio);
+                        }
+                        canvas = document.createElement('canvas');
+                        canvas.width = w;
+                        canvas.height = h;
+                        ctx = canvas.getContext('2d');
+                        ctx.imageSmoothingEnabled = true;
+                        ctx.imageSmoothingQuality = 'high';
+                        ctx.drawImage(img, 0, 0, w, h);
                     }
-                    const canvas = document.createElement('canvas');
-                    canvas.width = w;
-                    canvas.height = h;
-                    const ctx = canvas.getContext('2d');
-                    ctx.imageSmoothingEnabled = true;
-                    ctx.imageSmoothingQuality = 'high';
-                    ctx.drawImage(img, 0, 0, w, h);
 
                     let bestBlob = null;
                     let hasWebpNative = false;
@@ -2141,6 +2151,40 @@ cleanupState: () => {
                     }
                     ctx.drawImage(tmp, dx - sx, dy - sy, dw, dh, dx, dy, dw, dh);
                 },
+                applySmartSharpen: (ctx, width, height, amount = 0.20) => {
+                    if (!ctx || width <= 2 || height <= 2) return;
+                    const imgData = ctx.getImageData(0, 0, width, height);
+                    const src = imgData.data;
+                    const output = ctx.createImageData(width, height);
+                    const dst = output.data;
+                    dst.set(src);
+                    const a = amount;
+                    const center = 1 + 4 * a;
+                    const w = width;
+                    const h = height;
+                    for (let y = 1; y < h - 1; y++) {
+                        const prevRow = (y - 1) * w;
+                        const curRow = y * w;
+                        const nextRow = (y + 1) * w;
+                        for (let x = 1; x < w - 1; x++) {
+                            const idx = (curRow + x) << 2;
+                            const up = (prevRow + x) << 2;
+                            const down = (nextRow + x) << 2;
+                            const left = (curRow + x - 1) << 2;
+                            const right = (curRow + x + 1) << 2;
+
+                            const r = src[idx] * center - (src[up] + src[down] + src[left] + src[right]) * a;
+                            dst[idx] = r < 0 ? 0 : (r > 255 ? 255 : r);
+
+                            const g = src[idx + 1] * center - (src[up + 1] + src[down + 1] + src[left + 1] + src[right + 1]) * a;
+                            dst[idx + 1] = g < 0 ? 0 : (g > 255 ? 255 : g);
+
+                            const b = src[idx + 2] * center - (src[up + 2] + src[down + 2] + src[left + 2] + src[right + 2]) * a;
+                            dst[idx + 2] = b < 0 ? 0 : (b > 255 ? 255 : b);
+                        }
+                    }
+                    ctx.putImageData(output, 0, 0);
+                },
                 watermark: (file, username, pos = { x: 0.5, y: 0.5, color: 'white' }, filters = 'none', options = { embedBlind: false }) => {
                     return new Promise((resolve, reject) => {
                         const img = new Image();
@@ -2163,6 +2207,11 @@ cleanupState: () => {
                                 ctx.filter = filters;
                                 ctx.drawImage(img, 0, 0, width, height);
                                 ctx.filter = 'none';
+
+                                // Khôi phục độ sắc nét vi mô bị giảm sau khi thu nhỏ kích thước (Downsampling Blur)
+                                if (app.utils.applySmartSharpen && !options.skipSharpen) {
+                                    app.utils.applySmartSharpen(ctx, width, height, 0.20);
+                                }
                                 const imgEl = document.getElementById('preview-img');
                                 const blurPanels = document.querySelectorAll('.blur-panel');
                                 if (imgEl && blurPanels.length > 0) {
@@ -2253,6 +2302,10 @@ cleanupState: () => {
                                      }
                                  }
                                  try {
+                                     if (options.returnCanvas) {
+                                         resolve(canvas);
+                                         return;
+                                     }
                                      // Xuất PNG lossless: bản trung gian này sẽ được decode lại
                                      // và chỉ encode WebP duy nhất 1 lần trong compressToSizeLoop
                                      const blob = await app.utils.canvasToBlobUniversal(canvas, 'image/png');

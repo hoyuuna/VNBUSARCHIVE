@@ -1311,28 +1311,38 @@ closeCustomRolePrompt: () => {
                 },
                 compressToSizeLoop: async (imageSource, targetMime = 'image/webp', targetKB = 500) => {
                     const targetBytes = targetKB * 1024;
-                    const url = imageSource instanceof Blob || imageSource instanceof File ? URL.createObjectURL(imageSource) : imageSource;
-                    const img = new Image();
-                    img.src = url;
-                    await new Promise((resolve, reject) => {
-                        img.onload = resolve;
-                        img.onerror = () => reject(new Error("Lỗi tải ảnh để nén vòng lặp"));
-                    });
-                    if (imageSource instanceof Blob || imageSource instanceof File) URL.revokeObjectURL(url);
-                    let w = img.naturalWidth || img.width;
-                    let h = img.naturalHeight || img.height;
-                    if (w > 1920 || h > 1920) {
-                        const ratio = Math.min(1920 / w, 1920 / h);
-                        w = Math.round(w * ratio);
-                        h = Math.round(h * ratio);
+                    let canvas;
+                    let w, h;
+                    let ctx;
+                    if (typeof HTMLCanvasElement !== 'undefined' && imageSource instanceof HTMLCanvasElement) {
+                        canvas = imageSource;
+                        w = canvas.width;
+                        h = canvas.height;
+                        ctx = canvas.getContext('2d');
+                    } else {
+                        const url = imageSource instanceof Blob || imageSource instanceof File ? URL.createObjectURL(imageSource) : imageSource;
+                        const img = new Image();
+                        img.src = url;
+                        await new Promise((resolve, reject) => {
+                            img.onload = resolve;
+                            img.onerror = () => reject(new Error("Lỗi tải ảnh để nén vòng lặp"));
+                        });
+                        if (imageSource instanceof Blob || imageSource instanceof File) URL.revokeObjectURL(url);
+                        w = img.naturalWidth || img.width;
+                        h = img.naturalHeight || img.height;
+                        if (w > 1920 || h > 1920) {
+                            const ratio = Math.min(1920 / w, 1920 / h);
+                            w = Math.round(w * ratio);
+                            h = Math.round(h * ratio);
+                        }
+                        canvas = document.createElement('canvas');
+                        canvas.width = w;
+                        canvas.height = h;
+                        ctx = canvas.getContext('2d');
+                        ctx.imageSmoothingEnabled = true;
+                        ctx.imageSmoothingQuality = 'high';
+                        ctx.drawImage(img, 0, 0, w, h);
                     }
-                    const canvas = document.createElement('canvas');
-                    canvas.width = w;
-                    canvas.height = h;
-                    const ctx = canvas.getContext('2d');
-                    ctx.imageSmoothingEnabled = true;
-                    ctx.imageSmoothingQuality = 'high';
-                    ctx.drawImage(img, 0, 0, w, h);
 
                     let bestBlob = null;
                     let hasWebpNative = false;
@@ -2143,6 +2153,40 @@ cleanupState: () => {
                     }
                     ctx.drawImage(tmp, dx - sx, dy - sy, dw, dh, dx, dy, dw, dh);
                 },
+                applySmartSharpen: (ctx, width, height, amount = 0.20) => {
+                    if (!ctx || width <= 2 || height <= 2) return;
+                    const imgData = ctx.getImageData(0, 0, width, height);
+                    const src = imgData.data;
+                    const output = ctx.createImageData(width, height);
+                    const dst = output.data;
+                    dst.set(src);
+                    const a = amount;
+                    const center = 1 + 4 * a;
+                    const w = width;
+                    const h = height;
+                    for (let y = 1; y < h - 1; y++) {
+                        const prevRow = (y - 1) * w;
+                        const curRow = y * w;
+                        const nextRow = (y + 1) * w;
+                        for (let x = 1; x < w - 1; x++) {
+                            const idx = (curRow + x) << 2;
+                            const up = (prevRow + x) << 2;
+                            const down = (nextRow + x) << 2;
+                            const left = (curRow + x - 1) << 2;
+                            const right = (curRow + x + 1) << 2;
+
+                            const r = src[idx] * center - (src[up] + src[down] + src[left] + src[right]) * a;
+                            dst[idx] = r < 0 ? 0 : (r > 255 ? 255 : r);
+
+                            const g = src[idx + 1] * center - (src[up + 1] + src[down + 1] + src[left + 1] + src[right + 1]) * a;
+                            dst[idx + 1] = g < 0 ? 0 : (g > 255 ? 255 : g);
+
+                            const b = src[idx + 2] * center - (src[up + 2] + src[down + 2] + src[left + 2] + src[right + 2]) * a;
+                            dst[idx + 2] = b < 0 ? 0 : (b > 255 ? 255 : b);
+                        }
+                    }
+                    ctx.putImageData(output, 0, 0);
+                },
                 watermark: (file, username, pos = { x: 0.5, y: 0.5, color: 'white' }, filters = 'none', options = { embedBlind: false }) => {
                     return new Promise((resolve, reject) => {
                         const img = new Image();
@@ -2165,6 +2209,11 @@ cleanupState: () => {
                                 ctx.filter = filters;
                                 ctx.drawImage(img, 0, 0, width, height);
                                 ctx.filter = 'none';
+
+                                // Khôi phục độ sắc nét vi mô bị giảm sau khi thu nhỏ kích thước (Downsampling Blur)
+                                if (app.utils.applySmartSharpen && !options.skipSharpen) {
+                                    app.utils.applySmartSharpen(ctx, width, height, 0.20);
+                                }
                                 const imgEl = document.getElementById('preview-img');
                                 const blurPanels = document.querySelectorAll('.blur-panel');
                                 if (imgEl && blurPanels.length > 0) {
@@ -2255,6 +2304,10 @@ cleanupState: () => {
                                      }
                                  }
                                  try {
+                                     if (options.returnCanvas) {
+                                         resolve(canvas);
+                                         return;
+                                     }
                                      // Xuất PNG lossless: bản trung gian này sẽ được decode lại
                                      // và chỉ encode WebP duy nhất 1 lần trong compressToSizeLoop
                                      const blob = await app.utils.canvasToBlobUniversal(canvas, 'image/png');
@@ -13438,7 +13491,11 @@ Object.assign(window.app, {
                         } else if (mode === 'basic') {
                             descEl.innerHTML = 'Có dấu chìm tên tài khoản và thanh dấu chìm tiêu chuẩn phía dưới.';
                         } else if (mode === 'advanced') {
-                            descEl.innerHTML = 'Có dấu chìm tên tài khoản và thanh dấu chìm tiêu chuẩn phía dưới cùng công nghệ "Blind watermark" (<a href="https://www.vnbusarchive.io.vn/help/1527674609951047761" target="_blank" class="text-black font-bold underline">tìm hiểu thêm</a>).';
+                            descEl.innerHTML = 'Có dấu chìm tên tài khoản và thanh dấu chìm tiêu chuẩn phía dưới cùng công nghệ "Blind watermark" (<a href="https://www.vnbusarchive.io.vn/help/1527674609951047761" target="_blank" class="text-black font-bold underline">tìm hiểu thêm</a>).' +
+                                '<div class="mt-2.5 p-2.5 rounded-lg bg-red-50 border border-red-500/80 flex items-start gap-2 text-[11px] font-bold text-red-700 leading-snug">' +
+                                '<i class="fa-solid fa-triangle-exclamation text-red-600 shrink-0 mt-0.5 text-xs"></i>' +
+                                '<span>Tính năng SẼ làm giảm chất lượng ảnh lên tới 10% so với thông thường, cân nhắc chỉ sử dụng khi bạn thấy thực sự cần thiết.</span>' +
+                                '</div>';
                         }
                     }
                     const customControls = document.getElementById('wm-custom-controls');
@@ -13560,10 +13617,10 @@ Object.assign(window.app, {
                             } catch (e) {}
                         }
                         if (!username) username = app.username || "Guest";
-                        // Preview đúng hệ pipeline với nút upload: watermark PNG lossless
-                        // rồi nén WebP <=500KB, để người dùng thấy đúng bản cuối cùng
-                        const wmBlob = await app.utils.watermark(app.rawFile, username, app.wmState, app.upload.currentFilters || 'none', { embedBlind: true });
-                        const previewBlob = await app.utils.compressToSizeLoop(wmBlob, app.utils.getTargetMimeType(), 500);
+                        // Preview đúng hệ pipeline với nút upload: watermark trực tiếp Canvas
+                        // rồi nén WebP <=500KB trực tiếp không qua decode trung gian
+                        const wmCanvas = await app.utils.watermark(app.rawFile, username, app.wmState, app.upload.currentFilters || 'none', { embedBlind: true, returnCanvas: true });
+                        const previewBlob = await app.utils.compressToSizeLoop(wmCanvas, app.utils.getTargetMimeType(), 500);
                         const url = URL.createObjectURL(previewBlob);
                         app.ui.showAlert(`<img src="${url}" class="w-full rounded-lg shadow-sm" style="max-height: 70vh; object-fit: contain;">`, null, null, { title: "Xem trước ảnh xuất ra", btnOkText: "Đóng" });
                     } catch (err) {
@@ -14332,10 +14389,10 @@ Object.assign(window.app, {
                     const bgWebpPromise = new Promise((resolve, reject) => {
                         setTimeout(async () => {
                             try {
-                                const finalBlob = await app.utils.watermark(rawFile, username, app.wmState, currentFilters, { embedBlind: true });
+                                const finalCanvas = await app.utils.watermark(rawFile, username, app.wmState, currentFilters, { embedBlind: true, returnCanvas: true });
                                 let blobToProcess = null;
                                 try {
-                                    blobToProcess = await app.utils.compressToSizeLoop(finalBlob, targetMime, 500);
+                                    blobToProcess = await app.utils.compressToSizeLoop(finalCanvas, targetMime, 500);
                                 } catch (e) {
                                     console.warn("compressToSizeLoop lỗi:", e);
                                     reject(e);
@@ -17400,8 +17457,8 @@ Object.assign(window.app, {
                             });
                         }
 
-                        // Ép sang định dạng WebP với chất lượng cao nhất (1.0)
-                        const initialBlob = await new Promise((resolve) => { canvas.toBlob(b => resolve(b), 'image/webp', 1.0); }); const blob = await app.utils.compressToSizeLoop(initialBlob, 'image/webp', 500);
+                        // Nén WebP trực tiếp từ Canvas để chống suy hao chất lượng (Generation Loss)
+                        const blob = await app.utils.compressToSizeLoop(canvas, 'image/webp', 500);
 
                         const sessionRes = await window.sb.auth.getSession();
                         const token = sessionRes.data.session?.access_token;

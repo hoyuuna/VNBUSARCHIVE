@@ -285,8 +285,8 @@ Object.assign(window.app, {
                             });
                         }
 
-                        // Ép sang định dạng WebP với chất lượng cao nhất (1.0)
-                        const initialBlob = await new Promise((resolve) => { canvas.toBlob(b => resolve(b), 'image/webp', 1.0); }); const blob = await app.utils.compressToSizeLoop(initialBlob, 'image/webp', 500);
+                        // Nén WebP trực tiếp từ Canvas để chống suy hao chất lượng (Generation Loss)
+                        const blob = await app.utils.compressToSizeLoop(canvas, 'image/webp', 500);
 
                         const sessionRes = await window.sb.auth.getSession();
                         const token = sessionRes.data.session?.access_token;

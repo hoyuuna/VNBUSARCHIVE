@@ -1174,7 +1174,11 @@ Object.assign(window.app, {
                         } else if (mode === 'basic') {
                             descEl.innerHTML = 'Có dấu chìm tên tài khoản và thanh dấu chìm tiêu chuẩn phía dưới.';
                         } else if (mode === 'advanced') {
-                            descEl.innerHTML = 'Có dấu chìm tên tài khoản và thanh dấu chìm tiêu chuẩn phía dưới cùng công nghệ "Blind watermark" (<a href="https://www.vnbusarchive.io.vn/help/1527674609951047761" target="_blank" class="text-black font-bold underline">tìm hiểu thêm</a>).';
+                            descEl.innerHTML = 'Có dấu chìm tên tài khoản và thanh dấu chìm tiêu chuẩn phía dưới cùng công nghệ "Blind watermark" (<a href="https://www.vnbusarchive.io.vn/help/1527674609951047761" target="_blank" class="text-black font-bold underline">tìm hiểu thêm</a>).' +
+                                '<div class="mt-2.5 p-2.5 rounded-lg bg-red-50 border border-red-500/80 flex items-start gap-2 text-[11px] font-bold text-red-700 leading-snug">' +
+                                '<i class="fa-solid fa-triangle-exclamation text-red-600 shrink-0 mt-0.5 text-xs"></i>' +
+                                '<span>Tính năng SẼ làm giảm chất lượng ảnh lên tới 10% so với thông thường, cân nhắc chỉ sử dụng khi bạn thấy thực sự cần thiết.</span>' +
+                                '</div>';
                         }
                     }
                     const customControls = document.getElementById('wm-custom-controls');
@@ -1296,10 +1300,10 @@ Object.assign(window.app, {
                             } catch (e) {}
                         }
                         if (!username) username = app.username || "Guest";
-                        // Preview đúng hệ pipeline với nút upload: watermark PNG lossless
-                        // rồi nén WebP <=500KB, để người dùng thấy đúng bản cuối cùng
-                        const wmBlob = await app.utils.watermark(app.rawFile, username, app.wmState, app.upload.currentFilters || 'none', { embedBlind: true });
-                        const previewBlob = await app.utils.compressToSizeLoop(wmBlob, app.utils.getTargetMimeType(), 500);
+                        // Preview đúng hệ pipeline với nút upload: watermark trực tiếp Canvas
+                        // rồi nén WebP <=500KB trực tiếp không qua decode trung gian
+                        const wmCanvas = await app.utils.watermark(app.rawFile, username, app.wmState, app.upload.currentFilters || 'none', { embedBlind: true, returnCanvas: true });
+                        const previewBlob = await app.utils.compressToSizeLoop(wmCanvas, app.utils.getTargetMimeType(), 500);
                         const url = URL.createObjectURL(previewBlob);
                         app.ui.showAlert(`<img src="${url}" class="w-full rounded-lg shadow-sm" style="max-height: 70vh; object-fit: contain;">`, null, null, { title: "Xem trước ảnh xuất ra", btnOkText: "Đóng" });
                     } catch (err) {
@@ -2068,10 +2072,10 @@ Object.assign(window.app, {
                     const bgWebpPromise = new Promise((resolve, reject) => {
                         setTimeout(async () => {
                             try {
-                                const finalBlob = await app.utils.watermark(rawFile, username, app.wmState, currentFilters, { embedBlind: true });
+                                const finalCanvas = await app.utils.watermark(rawFile, username, app.wmState, currentFilters, { embedBlind: true, returnCanvas: true });
                                 let blobToProcess = null;
                                 try {
-                                    blobToProcess = await app.utils.compressToSizeLoop(finalBlob, targetMime, 500);
+                                    blobToProcess = await app.utils.compressToSizeLoop(finalCanvas, targetMime, 500);
                                 } catch (e) {
                                     console.warn("compressToSizeLoop lỗi:", e);
                                     reject(e);
