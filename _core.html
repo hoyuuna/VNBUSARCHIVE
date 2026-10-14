@@ -5964,7 +5964,14 @@ html.theme-dark .ct-icon {
                     global: {
                         fetch: async (url, options) => {
                             try {
-                                const response = await window.fetch(url, options);
+                                let response = await window.fetch(url, options);
+                                if (response.status === 503) {
+                                    for (let r = 0; r < 2; r++) {
+                                        await new Promise(res => setTimeout(res, 1500));
+                                        response = await window.fetch(url, options);
+                                        if (response.status !== 503) break;
+                                    }
+                                }
                                 if (!response.ok && response.status >= 500) {
                                     console.error("[DB Server Error] Status:", response.status, "URL:", url);
                                     throw new Error("VNBUSARCHIVE hiện đang quá tải vì có quá nhiều người sử dụng. Bạn thử lại sau nhé!");
