@@ -495,3 +495,7 @@ input:focus, textarea:focus, select:focus {
 .help-icon-circle {
     border: 1px solid #18181b !important;
 }
+
+.dmca-badge-wrapper img {
+    display: block;
+}
