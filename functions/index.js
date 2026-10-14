@@ -6,7 +6,7 @@ export async function onRequest(context) {
     const response = await env.ASSETS.fetch(indexReq);
     
     let title = `VNBUSARCHIVE`;
-    let desc = `Nền tảng lưu trữ, tra cứu và chia sẻ hình ảnh xe buýt, xe khách chất lượng cao hàng đầu tại Việt Nam.`;
+    let desc = `Nền tảng lưu trữ, tra cứu và chia sẻ hình ảnh xe buýt, xe khách tại Việt Nam.`;
     
     return new HTMLRewriter()
         .on('title', { element(e) { e.setInnerContent(title); } })
