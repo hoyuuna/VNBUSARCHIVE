@@ -1942,7 +1942,7 @@ html.theme-dark .ct-icon {
             if (stored === 'system') {
                 theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
             }
-            document.write('<link rel="stylesheet" href="/css/' + theme + '.css?v=1791939407577" id="theme-css">');
+            document.write('<link rel="stylesheet" href="/css/' + theme + '.css?v=1791941399193" id="theme-css">');
             document.documentElement.classList.add('theme-' + theme);
             document.documentElement.style.backgroundColor = theme === 'dark' ? '#18181b' : '#fdfcf8';
         })();
@@ -2258,11 +2258,11 @@ html.theme-dark .ct-icon {
 
         <div id="crop-modal" class="hidden fixed inset-0 z-[4000] flex flex-col items-center justify-center p-2 sm:p-4 backdrop-blur-md">
             <div id="crop-content" class="w-full max-w-4xl rounded-2xl shadow-2xl flex flex-col overflow-hidden transform transition-all opacity-0 scale-95">
-                <div class="p-3 md:p-4 border-b border-gray-200/50 flex justify-between items-center shrink-0 bg-white z-10">
+                <div class="p-3 md:p-4 flex justify-between items-center shrink-0 bg-white z-10">
                     <h3 class="font-bold text-sm md:text-base uppercase text-black"><i class="fa-solid fa-crop-simple mr-2"></i> Cắt ảnh</h3>
                     <button onclick="app.crop.close()" class="text-gray-500 hover:text-red-600 transition"><i class="fa-solid fa-xmark text-lg"></i></button>
                 </div>
-                <div id="crop-mode-panel" class="p-2 border-b border-gray-200/50 bg-gray-50 flex justify-center shrink-0 z-10 hidden">
+                <div id="crop-mode-panel" class="p-2 bg-gray-50 flex justify-center shrink-0 z-10 hidden">
                     <div id="crop-mode-track" class="grid grid-cols-2 gap-1.5 bg-gray-200/80 p-1 rounded-xl border border-gray-300/50 relative w-full max-w-[240px]">
                         <div id="crop-mode-slider" class="absolute top-1 bottom-1 bg-white rounded-lg shadow-sm transition-all duration-300 cubic-bezier(0.4, 0, 0.2, 1) pointer-events-none z-10" style="left: 4px; width: calc((100% - 8px - 6px) / 2);"></div>
                         <button type="button" id="btn-crop-mode-ratio" onclick="app.crop.setModeTab('ratio')" class="relative z-20 px-2 py-1.5 rounded-lg text-xs font-bold transition-colors duration-200 text-black">Tỉ lệ</button>
@@ -2282,7 +2282,7 @@ html.theme-dark .ct-icon {
                     </div>
                 </div>
                 <div class="flex flex-col shrink-0 bg-white z-10 w-full">
-                    <div class="p-3 border-b border-gray-200/50 flex justify-center items-center w-full min-h-[56px]">
+                    <div class="p-3 flex justify-center items-center w-full min-h-[56px]">
                         <div id="crop-ratios" class="flex flex-wrap gap-2 w-full justify-center items-center">
                             <span class="text-xs font-bold text-gray-500 self-center hidden sm:inline-block mr-1">Tỉ lệ:</span>
                             <button type="button" onclick="app.crop.setRatio(16/9)" class="crop-ratio-btn px-3 py-1.5 text-xs border border-gray-300 rounded-md hover:bg-gray-100 font-bold transition" data-ratio="1.7777777777777777">16:9</button>
@@ -2406,7 +2406,7 @@ html.theme-dark .ct-icon {
 
         <div id="subrole-prompt-modal" class="hidden fixed inset-0 z-[5000] flex items-center justify-center p-4 backdrop-blur-md">
             <div id="subrole-prompt-content" class="bg-gray-50 rounded-xl shadow-2xl max-w-sm w-full border border-gray-200 overflow-hidden transform transition-all opacity-0 scale-95 flex flex-col">
-                <div class="p-5 border-b border-gray-200 shrink-0 bg-white rounded-t-xl">
+                <div class="p-5 shrink-0 bg-white rounded-t-xl">
                     <h3 class="text-lg font-bold text-black mb-1"><i class="fa-solid fa-tags mr-2 text-blue-600"></i>Quản Lý Subroles</h3>
                     <p class="text-xs text-gray-500">Tùy chỉnh danh hiệu phụ và liên kết cho người dùng.</p>
                 </div>
@@ -2448,7 +2448,7 @@ html.theme-dark .ct-icon {
                         <input type="text" id="subrole-vvcc-link" placeholder="Nhập Link Kênh (Youtube, Tiktok...)" class="w-full bg-white border border-gray-300 rounded-lg p-2 text-xs focus:ring-1 focus:ring-black focus:border-black outline-none transition-all shadow-inner text-black">
                     </div>
                 </div>
-                <div class="bg-white border-t border-gray-200 px-5 py-4 flex gap-3 rounded-b-xl">
+                <div class="bg-white px-5 py-4 flex gap-3 rounded-b-xl">
                     <button type="button" onclick="document.getElementById('subrole-prompt-modal').classList.add('hidden')" class="flex-1 inline-flex justify-center items-center rounded-lg shadow-sm px-4 py-2 bg-white border border-gray-300 text-sm font-bold text-gray-700 hover:bg-gray-50 focus:outline-none transition-all">
                         Hủy bỏ
                     </button>
@@ -2461,7 +2461,7 @@ html.theme-dark .ct-icon {
 
         <div id="ban-prompt-modal" class="hidden fixed inset-0 z-[5000] flex items-center justify-center p-4 backdrop-blur-md">
             <div id="ban-prompt-content" class="bg-gray-50 rounded-xl shadow-2xl max-w-lg w-full border border-gray-200 overflow-hidden transform transition-all opacity-0 scale-95 flex flex-col max-h-[90vh]">
-                <div class="p-5 border-b border-gray-200 shrink-0 bg-white rounded-t-xl">
+                <div class="p-5 shrink-0 bg-white rounded-t-xl">
                     <h3 id="ban-prompt-title" class="text-lg font-bold text-red-600 mb-1"><i class="fa-solid fa-ban mr-2"></i>Cấm Tài Khoản</h3>
                     <p class="text-xs text-gray-500">Vui lòng chọn 1 trong 2 phương thức nhập lí do dưới đây.</p>
                 </div>
@@ -2578,7 +2578,7 @@ html.theme-dark .ct-icon {
                 class="bg-gray-50 rounded-xl shadow-2xl max-w-lg w-full border border-gray-200 overflow-hidden transform transition-all opacity-0 scale-95 flex flex-col max-h-[90vh]">
 
 
-                <div class="p-5 border-b border-gray-200 shrink-0 bg-white rounded-t-xl">
+                <div class="p-5 shrink-0 bg-white rounded-t-xl">
                     <h3 id="deny-prompt-title" class="text-lg font-bold text-red-600 mb-1"><i
                             class="fa-solid fa-triangle-exclamation mr-2"></i>Từ chối ảnh</h3>
                     <p class="text-xs text-gray-500">Vui lòng chọn 1 trong 2 phương thức nhập lí do dưới đây.</p>
@@ -2747,7 +2747,7 @@ html.theme-dark .ct-icon {
                 class="rounded-2xl shadow-2xl w-full max-w-4xl h-[85vh] md:h-[75vh] min-h-[400px] flex flex-col overflow-hidden transform transition-all opacity-0 scale-95 relative z-50">
 
                 <!-- Header trắng/trong suốt giống Cài đặt, có icon xám -->
-                <div class="border-b border-gray-200/50 p-3 md:p-4 flex justify-between items-center shrink-0 rounded-t-2xl">
+                <div class="p-3 md:p-4 flex justify-between items-center shrink-0 rounded-t-2xl">
                     <h2 class="font-bold text-base md:text-lg text-black uppercase tracking-tight">
                         <i class="fa-solid fa-newspaper mr-2 text-gray-500"></i>BẢNG TIN HỆ THỐNG
                     </h2>
@@ -3138,7 +3138,7 @@ html.theme-dark .ct-icon {
             <div id="settings-content" class="rounded-2xl shadow-2xl w-full max-w-4xl h-[85vh] md:h-[70vh] min-h-[450px] flex flex-col overflow-hidden transform transition-all opacity-0 scale-95 relative z-50">
 
                 <!-- Header -->
-                <div class="border-b border-gray-200/50 p-3 md:p-4 flex justify-between items-center shrink-0 rounded-t-2xl">
+                <div class="p-3 md:p-4 flex justify-between items-center shrink-0 rounded-t-2xl">
                     <h2 class="font-bold text-base md:text-lg text-black uppercase tracking-tight"><i class="fa-solid fa-gear mr-2 text-gray-500"></i>Cài đặt</h2>
                     <button onclick="app.settings.close()" class="text-gray-400 hover:text-red-500 transition text-xl px-2"><i class="fa-solid fa-xmark"></i></button>
                 </div>
@@ -6045,7 +6045,7 @@ html.theme-dark .ct-icon {
             </div>
 
             <div class="bg-gray-50 border border-gray-200 rounded-xl p-4 mb-4">
-                <div class="flex items-center gap-3 mb-3 border-b border-gray-200 pb-3">
+                <div class="flex items-center gap-3 mb-3">
                     <img id="qr-confirm-avatar" src="" class="w-10 h-10 rounded-full object-cover border border-gray-300">
                     <div class="overflow-hidden">
                         <p class="text-[10px] text-gray-500 font-bold uppercase tracking-widest mb-0.5">Tài khoản</p>
@@ -6590,7 +6590,7 @@ html.theme-dark .ct-icon {
     <div id="bio-edit-modal" class="hidden fixed inset-0 z-[3000] flex items-center justify-center p-4 backdrop-blur-md" >
         <div id="bio-edit-content" class="rounded-2xl w-full overflow-hidden transform transition-all opacity-0 scale-95 flex flex-col" style="max-width: 450px">
 
-            <div class="p-5 md:p-6 border-b border-gray-200/50 flex justify-between items-center shrink-0">
+            <div class="p-5 md:p-6 flex justify-between items-center shrink-0">
                 <h3 class="text-lg font-bold text-black tracking-tight"><i class="fa-solid fa-pen-nib mr-2 text-gray-500"></i>Cập nhật tiểu sử</h3>
                 <button onclick="app.profileIntro.closeBioEditor()" class="text-gray-400 hover:text-red-500 transition text-xl px-2"><i class="fa-solid fa-xmark"></i></button>
             </div>
@@ -6611,7 +6611,7 @@ html.theme-dark .ct-icon {
     <!-- MODAL CẬP NHẬT ĐƠN VỊ VẬN HÀNH -->
     <div id="operator-edit-modal" class="hidden fixed inset-0 z-[3000] flex items-center justify-center p-4 backdrop-blur-md" >
         <div id="operator-edit-content" class="rounded-2xl w-full overflow-hidden transform transition-all opacity-0 scale-95 flex flex-col" style="max-width: 450px">
-            <div class="p-5 border-b border-gray-200/50 flex justify-between items-center shrink-0">
+            <div class="p-5 flex justify-between items-center shrink-0">
                 <h3 class="text-lg font-bold text-black tracking-tight"><i class="fa-solid fa-building mr-2 text-gray-500"></i>Cập nhật Đơn vị vận hành</h3>
                 <button onclick="app.operator.closeEditPrompt()" class="text-gray-400 hover:text-red-500 transition text-xl px-2"><i class="fa-solid fa-xmark"></i></button>
             </div>
@@ -6654,7 +6654,7 @@ html.theme-dark .ct-icon {
     <!-- MODAL CẬP NHẬT DÒNG XE (MODEL) -->
     <div id="model-edit-modal" class="hidden fixed inset-0 z-[3000] flex items-center justify-center p-4 backdrop-blur-md" >
         <div id="model-edit-content" class="rounded-2xl w-full overflow-hidden transform transition-all opacity-0 scale-95 flex flex-col" style="max-width: 450px">
-            <div class="p-5 border-b border-gray-200/50 flex justify-between items-center shrink-0">
+            <div class="p-5 flex justify-between items-center shrink-0">
                 <h3 class="text-lg font-bold text-black tracking-tight"><i class="fa-solid fa-layer-group mr-2 text-gray-500"></i>Cập nhật Dòng xe</h3>
                 <button onclick="app.model.closeEditPrompt()" class="text-gray-400 hover:text-red-500 transition text-xl px-2"><i class="fa-solid fa-xmark"></i></button>
             </div>
@@ -6683,7 +6683,7 @@ html.theme-dark .ct-icon {
     <!-- MODAL CẬP NHẬT TUYẾN (ROUTE) -->
     <div id="route-edit-modal" class="hidden fixed inset-0 z-[3000] flex items-center justify-center p-4 backdrop-blur-md" >
         <div id="route-edit-content" class="rounded-2xl w-full overflow-hidden transform transition-all opacity-0 scale-95 flex flex-col" style="max-width: 450px">
-            <div class="p-5 border-b border-gray-200/50 flex justify-between items-center shrink-0">
+            <div class="p-5 flex justify-between items-center shrink-0">
                 <h3 class="text-lg font-bold text-black tracking-tight"><i class="fa-solid fa-route mr-2 text-gray-500"></i>Cập nhật Thông tin Tuyến</h3>
                 <button onclick="app.route.closeEditPrompt()" class="text-gray-400 hover:text-red-500 transition text-xl px-2"><i class="fa-solid fa-xmark"></i></button>
             </div>
@@ -6772,7 +6772,7 @@ html.theme-dark .ct-icon {
     <div id="fav-photo-modal" class="hidden fixed inset-0 z-[3000] flex items-center justify-center p-2 md:p-6 backdrop-blur-md" >
         <div id="fav-photo-content" class="rounded-2xl w-full max-w-md flex flex-col overflow-hidden transform transition-all opacity-0 scale-95 relative" >
 
-            <div class="border-b border-black p-4 md:p-5 flex justify-between items-center shrink-0 rounded-t-2xl bg-white">
+            <div class="p-4 md:p-5 flex justify-between items-center shrink-0 rounded-t-2xl bg-white">
                 <h2 class="font-bold text-base md:text-lg text-black uppercase tracking-tight"><i class="fa-solid fa-link mr-2 text-gray-500"></i>Đặt ảnh tâm đắc</h2>
                 <button onclick="app.profileIntro.closePhotoSelector()" class="text-gray-400 hover:text-red-500 transition text-xl px-2"><i class="fa-solid fa-xmark"></i></button>
             </div>
@@ -6868,7 +6868,7 @@ html.theme-dark .ct-icon {
     <!-- MODAL ADVANCED FILTER -->
     <div id="advanced-filter-modal" class="hidden fixed inset-0 z-[3000] flex items-center justify-center p-4 backdrop-blur-md" >
         <div id="advanced-filter-content" class="relative w-full max-w-lg rounded-2xl p-6 flex flex-col">
-            <div class="flex justify-between items-center mb-5 pb-3 border-b border-gray-200/60">
+            <div class="flex justify-between items-center mb-5">
                 <h4 class="text-base font-bold text-black uppercase tracking-tight flex items-center gap-2">
                     <i class="fa-solid fa-sliders text-gray-500"></i> Thêm bộ lọc nâng cao
                 </h4>
@@ -6936,7 +6936,7 @@ html.theme-dark .ct-icon {
     <!-- MANAGER EDIT PHOTO MODAL -->
     <div id="manager-edit-modal" class="hidden fixed inset-0 z-[3000] flex items-center justify-center p-4 backdrop-blur-md" >
         <div id="manager-edit-content" class="rounded-3xl w-full flex flex-col overflow-hidden transform transition-all opacity-0 scale-95 relative" style="max-width: 1152px; max-height: 90vh">
-            <div class="p-5 border-b border-gray-200/50 flex justify-between items-center shrink-0">
+            <div class="p-5 flex justify-between items-center shrink-0">
                 <h3 class="text-lg font-bold text-black tracking-tight"><i class="fa-solid fa-pen-to-square mr-2 text-gray-500"></i>Quản lý: Thêm vùng làm mờ</h3>
                 <button type="button" onclick="app.admin.closeEditPhotoModal()" class="text-gray-400 hover:text-red-500 transition text-xl px-2">
                     <i class="fa-solid fa-xmark"></i>
