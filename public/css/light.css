@@ -503,3 +503,20 @@ input:focus, textarea:focus, select:focus {
 .dmca-badge-wrapper img {
     display: block;
 }
+
+/* Denial Discord Helper Box (Light Mode) */
+#denial-discord-box {
+    background-color: #ffffff !important;
+    border: 1px solid #18181b !important;
+    color: #000000 !important;
+}
+#denial-discord-box a {
+    background-color: #000000 !important;
+    color: #ffffff !important;
+}
+#denial-discord-box a:hover {
+    background-color: #27272a !important;
+}
+#denial-discord-box a i {
+    color: #ffffff !important;
+}

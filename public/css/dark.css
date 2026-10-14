@@ -416,3 +416,26 @@ footer .text-gray-400.cursor-not-allowed { color: #52525b !important; }
     background-color: #3f3f46 !important;
     border: 1px solid #ffffff !important;
 }
+
+/* Denial Discord Helper Box (Dark Mode) */
+#denial-discord-box {
+    background-color: #18181b !important;
+    border: 1px solid #ffffff !important;
+}
+#denial-discord-box p {
+    color: #f4f4f5 !important;
+}
+#denial-discord-box i {
+    color: #ffffff !important;
+}
+#denial-discord-box a {
+    background-color: #ffffff !important;
+    color: #000000 !important;
+}
+#denial-discord-box a:hover {
+    background-color: #e4e4e7 !important;
+}
+#denial-discord-box a i {
+    color: #000000 !important;
+}
+

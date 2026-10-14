@@ -1439,6 +1439,7 @@ Object.assign(window.app, {
                             const tracker = document.getElementById('photo-progress-tracker'); if (tracker) tracker.classList.add('hidden');
                             // removed
                             document.getElementById('denial-delete-warning-box').classList.add('hidden');
+                            const discordBox = document.getElementById('denial-discord-box'); if (discordBox) discordBox.classList.add('hidden');
                             document.getElementById('denial-improvement-box').classList.add('hidden');
                             localStorage.setItem('vnbus_prefs', JSON.stringify(prefs));
                         } catch (e) { }
@@ -1456,7 +1457,8 @@ Object.assign(window.app, {
                             app.ui.showAlert("Bạn không có quyền xem ảnh bị từ chối này.");
                             return app.views.loadHome();
                         }
-                        // removed
+                        const discordBox = document.getElementById('denial-discord-box');
+                        if (discordBox) discordBox.classList.remove('hidden');
                         // removed
                         if (photo.audit_date && photo.url !== 'https://cdn.vnbusarchive.io.vn/file/daonguyenthanhnhan') {
                             const auditDate = new Date(photo.audit_date);
@@ -1545,7 +1547,8 @@ Object.assign(window.app, {
                             }
                         }
                     } else {
-                        // removed
+                        const discordBox = document.getElementById('denial-discord-box');
+                        if (discordBox) discordBox.classList.add('hidden');
                         const suggestBox = document.getElementById('denial-improvement-box');
                         if (suggestBox) {
                             suggestBox.removeAttribute('open');
