@@ -405,7 +405,7 @@ footer button.text-gray-600:hover { color: #ffffff !important; }
 footer .text-gray-400.cursor-not-allowed { color: #52525b !important; }
 .dmca-badge-wrapper {
     background-color: #ffffff !important;
-    border-color: #ffffff !important;
+    border: none !important;
 }
 .dmca-badge-wrapper img {
     display: block;
