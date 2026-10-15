@@ -5815,6 +5815,7 @@ html.theme-dark .ct-icon {
         console.info = function(...args) { originalConsoleInfo.apply(console, args); triggerBottomWarning(); };
 
         window.addEventListener('error', function(e) {
+            if (e.message && e.message.includes('ResizeObserver loop')) return;
             console.error(`[Global Error] ${e.message} at ${e.filename}:${e.lineno}`);
         });
         window.addEventListener('unhandledrejection', function(e) {

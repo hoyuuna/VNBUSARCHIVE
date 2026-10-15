@@ -15077,6 +15077,9 @@ Object.assign(window.app, {
             const maxViewportDims = gl.getParameter(gl.MAX_VIEWPORT_DIMS) || [4096, 4096];
             const maxSafeDim = Math.min(maxTexSize, maxViewportDims[0], maxViewportDims[1]);
 
+            const sw = sourceCanvas.width;
+            const sh = sourceCanvas.height;
+
             // Đảm bảo context của sourceCanvas ở trạng thái ma trận đơn vị (identity transform)
             const srcCtx = sourceCanvas.getContext('2d');
             srcCtx.save();
