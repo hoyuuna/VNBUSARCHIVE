@@ -2259,7 +2259,7 @@ html.theme-dark .ct-icon {
         <div id="crop-modal" class="hidden fixed inset-0 z-[4000] flex flex-col items-center justify-center p-2 sm:p-4 backdrop-blur-md">
             <div id="crop-content" class="w-full max-w-4xl rounded-2xl shadow-2xl flex flex-col overflow-hidden transform transition-all opacity-0 scale-95">
                 <div class="p-3 md:p-4 flex justify-between items-center shrink-0 bg-white z-10">
-                    <h3 class="font-bold text-sm md:text-base uppercase text-black"><i class="fa-solid fa-sliders mr-2"></i> Chỉnh ảnh</h3>
+                    <h3 class="font-bold text-sm md:text-base uppercase text-black"><i class="fa-solid fa-image mr-2"></i> Chỉnh ảnh</h3>
                     <button onclick="app.crop.close()" class="text-gray-500 hover:text-red-600 transition"><i class="fa-solid fa-xmark text-lg"></i></button>
                 </div>
                 <div id="crop-mode-panel" class="p-2 bg-gray-50 flex justify-center shrink-0 z-10 hidden">
@@ -2319,9 +2319,9 @@ html.theme-dark .ct-icon {
                                 </button>
                                 <div class="flex flex-col items-center justify-center px-1 flex-1">
                                     <div class="flex justify-between w-full text-[10px] font-bold text-gray-500 mb-1">
-                                        <span>Tắt (0%)</span>
+                                        <span>0%</span>
                                         <span id="crop-denoise-val">0%</span>
-                                        <span>Tối đa (100%)</span>
+                                        <span>100%</span>
                                     </div>
                                     <input type="range" id="crop-denoise-slider" min="0" max="100" step="5" value="0" class="vnbus-slider w-full" oninput="app.crop.slideDenoise(this.value)">
                                 </div>
@@ -4559,7 +4559,7 @@ html.theme-dark .ct-icon {
 
                                     <!-- Các nút chỉnh sửa (Cùng Form) -->
                                     <button type="button" id="btn-crop-image" onclick="app.crop.open('main')" class="flex items-center justify-center gap-1.5 bg-white border border-gray-300 text-gray-700 px-3 py-2 rounded-lg hover:bg-gray-100 hover:text-black font-bold text-[11px] sm:text-xs transition shadow-sm focus:ring-2 focus:ring-black flex-1 md:flex-none whitespace-nowrap">
-                                        <i class="fa-solid fa-sliders"></i> Chỉnh ảnh
+                                        <i class="fa-solid fa-image"></i> Chỉnh ảnh
                                     </button>
 
                                     <button type="button" id="btn-adjust-color" onclick="app.upload.toggleColorPanel()" class="flex items-center justify-center gap-1.5 bg-white border border-gray-300 text-gray-700 px-3 py-2 rounded-lg hover:bg-gray-100 hover:text-black font-bold text-[11px] sm:text-xs transition shadow-sm focus:ring-2 focus:ring-black flex-1 md:flex-none whitespace-nowrap">
