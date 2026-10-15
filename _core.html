@@ -6001,6 +6001,21 @@ html.theme-dark .ct-icon {
 
                 if (sessionStorage.getItem('VNBA_SESS_AUTH') === 'active' && typeof _pInt !== 'undefined') clearInterval(_pInt);
 
+                if (!window.app || typeof window.app.init !== 'function') {
+                    console.warn("window.app.init is undefined. Đang thử tải lại /app.js dự phòng...");
+                    try {
+                        await new Promise((resolve, reject) => {
+                            const s = document.createElement('script');
+                            s.src = '/app.js?v=' + Date.now();
+                            s.onload = resolve;
+                            s.onerror = reject;
+                            document.head.appendChild(s);
+                        });
+                    } catch (retryErr) {
+                        console.error("Không thể tải /app.js dự phòng:", retryErr);
+                    }
+                }
+
                 if (window.app && typeof window.app.init === 'function') {
                     window.app.init();
                 } else {

@@ -47,13 +47,6 @@ try {
         const bundleName = `app.${bundleHash}.js`;
         const publicDir = path.join(__dirname, 'public');
 
-        // Dọn các bundle hash cũ để tránh tồn đọng
-        if (fs.existsSync(publicDir)) {
-            fs.readdirSync(publicDir)
-                .filter(f => /^app\.[0-9a-f]{12}\.js$/.test(f) && f !== bundleName)
-                .forEach(f => { try { fs.unlinkSync(path.join(publicDir, f)); } catch (e) {} });
-        }
-
         // Lưu bundle với tên có hash nội dung
         fs.writeFileSync(path.join(publicDir, bundleName), combinedJs);
         console.log(`Tạo thành công public/${bundleName}`);
@@ -61,11 +54,45 @@ try {
         // Vẫn ghi public/app.js để tương thích ngược
         fs.writeFileSync(path.join(publicDir, 'app.js'), combinedJs);
 
+        // Tạo/giữ các hash gần đây để phục vụ client có index.html cũ chưa kịp refresh
+        const recentLegacyHashes = [
+            'app.a5da4f08ea78.js',
+            'app.173e67643aa2.js',
+            'app.9c0a48a0fcd6.js',
+            'app.5eed30d20a62.js',
+            'app.ddce8fe63cac.js'
+        ];
+        recentLegacyHashes.forEach(h => {
+            const hPath = path.join(publicDir, h);
+            if (!fs.existsSync(hPath)) {
+                fs.writeFileSync(hPath, combinedJs);
+            }
+        });
+
+        // Giữ lại tối đa 30 bundle gần nhất thay vì xóa ngay lập tức
+        if (fs.existsSync(publicDir)) {
+            const allBundles = fs.readdirSync(publicDir)
+                .filter(f => /^app\.[0-9a-f]{12}\.js$/.test(f))
+                .map(f => {
+                    const filePath = path.join(publicDir, f);
+                    return { name: f, time: fs.statSync(filePath).mtimeMs };
+                })
+                .sort((a, b) => b.time - a.time);
+
+            // Xóa các bundle vượt quá 30 files gần nhất (ngoại trừ các hash legacy quan trọng)
+            allBundles.slice(30).forEach(b => {
+                if (!recentLegacyHashes.includes(b.name)) {
+                    try { fs.unlinkSync(path.join(publicDir, b.name)); } catch (e) {}
+                }
+            });
+        }
+
         // Cache-buster dùng chung cho theme CSS
         const cacheBust = Date.now();
 
-        // Chèn bundle có hash vào _core.html (index.html phục vụ no-store nên luôn trỏ đúng bundle mới)
-        let finalHtml = content.replace('</body>', `<script src="/${bundleName}"></script>\n</body>`);
+        // Chèn bundle có hash vào _core.html kèm cơ chế onerror tự động nạp /app.js dự phòng
+        const scriptTag = `<script src="/${bundleName}" onerror="if(!window.__app_fallback_loaded){window.__app_fallback_loaded=true;var s=document.createElement('script');s.src='/app.js?v=' + Date.now();document.head.appendChild(s);}"></script>`;
+        let finalHtml = content.replace('</body>', `${scriptTag}\n</body>`);
 
         // Thay thế BUILD_VERSION_PLACEHOLDER trong link CSS theme
         finalHtml = finalHtml.replace(/BUILD_VERSION_PLACEHOLDER/g, String(cacheBust));
