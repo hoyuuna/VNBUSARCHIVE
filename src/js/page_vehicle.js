@@ -59,18 +59,55 @@ Object.assign(window.app, {
                     if (!plate) return;
                     try {
                         const { data: approvedPhotos, error } = await window.sb.from('photos').select('route_no, operator, taken_at').eq('license_plate', plate).eq('status', 'approved');
-                        if (error || !approvedPhotos) return;
-                        if (approvedPhotos.length === 0) {
-                            await window.sb.from('vehicle_history').delete().eq('license_plate', plate);
-                            return;
-                        }
+                        if (error) return;
+
                         const { data: history } = await window.sb.from('vehicle_history').select('*').eq('license_plate', plate);
                         if (!history || history.length === 0) return;
-                        const specialRoutes = ['Ngoài giờ hoạt động', 'Chưa hoạt động'];
-                        const activePhotos = approvedPhotos.filter(p => !specialRoutes.includes(p.route_no));
+
+                        const normalizeText = (str) => {
+                            if (!str) return '';
+                            return String(str).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/đ/g, 'd').trim();
+                        };
+                        const isStopped = (str) => {
+                            if (!str) return false;
+                            const s = normalizeText(str);
+                            const stoppedKeywords = [
+                                'dung hoat dong', 'ngung hoat dong', 'thanh ly', 'thu hoi',
+                                'tam dung', 'nghi chay', 'khong con hoat dong', 'da thanh ly',
+                                'da ban', 'xoa so', 'luu kho', 'nam bai', 'dap chieu'
+                            ];
+                            return stoppedKeywords.some(kw => s.includes(kw));
+                        };
+                        const isSpecialRoute = (r) => {
+                            if (!r) return false;
+                            const s = normalizeText(r);
+                            const specialList = [
+                                'ngoai gio hoat dong', 'chua hoat dong', 'xe hop dong / dua don',
+                                'hop dong / dua don', 'xe hop dong', 'hop dong', 'dua don',
+                                'du phong', 'chua ro'
+                            ];
+                            return specialList.some(item => s === item || s.includes(item));
+                        };
+                        const isProtectedMilestone = (h) => {
+                            if (!h) return false;
+                            if (isStopped(h.route) || isStopped(h.operator) || isStopped(h.note)) return true;
+                            if (isSpecialRoute(h.route)) return true;
+                            return false;
+                        };
                         const isSameRoute = (r1, r2) => (r1 || '').trim().toLowerCase() === (r2 || '').trim().toLowerCase();
+
+                        if (!approvedPhotos || approvedPhotos.length === 0) {
+                            for (const h of history) {
+                                if (!isProtectedMilestone(h)) {
+                                    await window.sb.from('vehicle_history').delete().eq('id', h.id);
+                                }
+                            }
+                            return;
+                        }
+
+                        const activePhotos = approvedPhotos.filter(p => !isSpecialRoute(p.route_no) && !isStopped(p.route_no));
                         for (const h of history) {
-                            if (!specialRoutes.includes(h.route)) {
+                            if (!isProtectedMilestone(h)) {
                                 const hasMatchingPhoto = activePhotos.some(p => isSameRoute(p.route_no, h.route));
                                 if (!hasMatchingPhoto) {
                                     await window.sb.from('vehicle_history').delete().eq('id', h.id);
@@ -86,6 +123,9 @@ Object.assign(window.app, {
                                 const prev = freshHistory[i - 1];
                                 const curr = freshHistory[i];
                                 if (isSameRoute(curr.route, prev.route)) {
+                                    if (isProtectedMilestone(curr) || isProtectedMilestone(prev)) {
+                                        if ((curr.note || '') !== (prev.note || '')) continue;
+                                    }
                                     await window.sb.from('vehicle_history').delete().eq('id', curr.id);
                                     freshHistory.splice(i, 1);
                                     i--;
@@ -446,10 +486,19 @@ Object.assign(window.app, {
                             const route = newData.route_no;
                             const op = newData.operator;
 
+                            const normalizeText = (str) => {
+                                if (!str) return '';
+                                return String(str).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/đ/g, 'd').trim();
+                            };
                             const isStopped = (str) => {
                                 if (!str) return false;
-                                const s = String(str).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/đ/g, 'd').trim();
-                                return s.includes('dung hoat dong') || s.includes('ngung hoat dong') || s.includes('thanh ly') || s.includes('thu hoi');
+                                const s = normalizeText(str);
+                                const stoppedKeywords = [
+                                    'dung hoat dong', 'ngung hoat dong', 'thanh ly', 'thu hoi',
+                                    'tam dung', 'nghi chay', 'khong con hoat dong', 'da thanh ly',
+                                    'da ban', 'xoa so', 'luu kho', 'nam bai', 'dap chieu'
+                                ];
+                                return stoppedKeywords.some(kw => s.includes(kw));
                             };
 
                             if (!isStopped(route)) {
@@ -457,7 +506,7 @@ Object.assign(window.app, {
                                     const hItem = allHistory[i];
                                     if (isStopped(hItem.route) || isStopped(hItem.operator) || isStopped(hItem.note)) {
                                         const hDate = hItem.effective_date;
-                                        if (!hDate || targetDate >= hDate) {
+                                        if (hDate && targetDate > hDate) {
                                             await window.sb.from('vehicle_history').delete().eq('id', hItem.id);
                                             allHistory.splice(i, 1);
                                         }
@@ -543,6 +592,7 @@ Object.assign(window.app, {
                                 const prev = freshHistory[i - 1];
                                 const curr = freshHistory[i];
                                 if (isSameRoute(prev.route, curr.route)) {
+                                    if ((curr.note || '') !== (prev.note || '')) continue;
                                     await window.sb.from('vehicle_history').delete().eq('id', curr.id);
                                     freshHistory.splice(i, 1);
                                     i--;

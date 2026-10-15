@@ -153,6 +153,38 @@ export async function onRequestPost(context) {
             }
         }
 
+        const normalizeText = (str) => {
+            if (!str) return '';
+            return String(str).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/đ/g, 'd').trim();
+        };
+        const isStoppedRoute = (r) => {
+            if (!r) return false;
+            const s = normalizeText(r);
+            const stoppedKeywords = [
+                'dung hoat dong', 'ngung hoat dong', 'thanh ly', 'thu hoi',
+                'tam dung', 'nghi chay', 'khong con hoat dong', 'da thanh ly',
+                'da ban', 'xoa so', 'luu kho', 'nam bai', 'dap chieu'
+            ];
+            return stoppedKeywords.some(kw => s.includes(kw));
+        };
+        const isSpecialRoute = (r) => {
+            if (!r) return false;
+            const s = normalizeText(r);
+            const specialList = [
+                'ngoai gio hoat dong', 'chua hoat dong', 'xe hop dong / dua don',
+                'hop dong / dua don', 'xe hop dong', 'hop dong', 'dua don',
+                'du phong', 'chua ro'
+            ];
+            return specialList.some(item => s === item || s.includes(item));
+        };
+        const isProtectedMilestone = (h) => {
+            if (!h) return false;
+            if (isStoppedRoute(h.route) || isStoppedRoute(h.operator) || isStoppedRoute(h.note)) return true;
+            if (isSpecialRoute(h.route)) return true;
+            return false;
+        };
+        const isSameRoute = (r1, r2) => (r1 || '').trim().toLowerCase() === (r2 || '').trim().toLowerCase();
+
         if (isFinalApprove) {
             if (plate && plate.includes('-') && model) {
                 const parts = plate.split('-');
@@ -232,16 +264,7 @@ export async function onRequestPost(context) {
                 return new Response(JSON.stringify({ error: `Lỗi lưu trạng thái duyệt cuối cùng: ${photoUpdateErr.message}` }), { status: 500 });
             }
 
-            const specialRoutes = ['Ngoài giờ hoạt động', 'Chưa hoạt động'];
-            const isSpecialRoute = specialRoutes.some(s => (route || '').trim().toLowerCase() === s.toLowerCase());
-            const isSameRoute = (r1, r2) => (r1 || '').trim().toLowerCase() === (r2 || '').trim().toLowerCase();
-            const isStoppedRoute = (r) => {
-                if (!r) return false;
-                const s = String(r).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/đ/g, 'd').trim();
-                return s.includes('dung hoat dong') || s.includes('ngung hoat dong') || s.includes('thanh ly') || s.includes('thu hoi');
-            };
-
-            if (!isSpecialRoute) {
+            if (!isSpecialRoute(route) && !isStoppedRoute(route)) {
                 // Lấy lịch sử theo thứ tự TĂNG DẦN (cũ nhất -> mới nhất)
                 let { data: currentHistory } = await sbAdmin.from('vehicle_history')
                     .select('*').eq('license_plate', plate).order('effective_date', { ascending: true });
@@ -251,13 +274,13 @@ export async function onRequestPost(context) {
                 const takenDateObj = photo.taken_at ? new Date(photo.taken_at) : new Date();
                 const takenDateString = takenDateObj.toISOString().split('T')[0];
 
-                // Nếu ảnh mới là tuyến hoạt động (không phải dừng hoạt động), tự động xóa các mốc dừng hoạt động trước hoặc bằng ngày chụp
+                // Nếu ảnh mới là tuyến hoạt động (không phải dừng hoạt động), tự động xóa các mốc dừng hoạt động trước ngày chụp nếu có ngày rõ ràng
                 if (!isStoppedRoute(route)) {
                     for (let i = currentHistory.length - 1; i >= 0; i--) {
                         const hItem = currentHistory[i];
                         if (isStoppedRoute(hItem.route) || isStoppedRoute(hItem.operator) || isStoppedRoute(hItem.note)) {
                             const hItemDateStr = hItem.effective_date ? String(hItem.effective_date).split('T')[0] : '';
-                            if (!hItemDateStr || takenDateString >= hItemDateStr) {
+                            if (hItemDateStr && takenDateString > hItemDateStr) {
                                 await sbAdmin.from('vehicle_history').delete().eq('id', hItem.id);
                                 currentHistory.splice(i, 1);
                             }
@@ -340,6 +363,9 @@ export async function onRequestPost(context) {
                     const curr = freshHistory[i];
                     // Nếu 2 mốc lịch sử liên tiếp giống hệt nhau về số tuyến
                     if (isSameRoute(curr.route, prev.route)) {
+                        if (isProtectedMilestone(curr) || isProtectedMilestone(prev)) {
+                            if ((curr.note || '') !== (prev.note || '')) continue;
+                        }
                         // Giữ lại mốc cũ hơn (prev), xóa mốc mới hơn (curr)
                         await sbAdmin.from('vehicle_history').delete().eq('id', curr.id);
                         freshHistory.splice(i, 1);
@@ -353,14 +379,18 @@ export async function onRequestPost(context) {
                 try {
                     const oldPlate = photo.license_plate;
                     const { data: oldApprovedPhotos } = await sbAdmin.from('photos').select('route_no, operator').eq('license_plate', oldPlate).eq('status', 'approved');
-                    if (!oldApprovedPhotos || oldApprovedPhotos.length === 0) {
-                        await sbAdmin.from('vehicle_history').delete().eq('license_plate', oldPlate);
-                    } else {
-                        const { data: oldHist } = await sbAdmin.from('vehicle_history').select('*').eq('license_plate', oldPlate);
-                        if (oldHist && oldHist.length > 0) {
-                            const activePhotos = oldApprovedPhotos.filter(p => !specialRoutes.includes(p.route_no));
+                    const { data: oldHist } = await sbAdmin.from('vehicle_history').select('*').eq('license_plate', oldPlate);
+                    if (oldHist && oldHist.length > 0) {
+                        if (!oldApprovedPhotos || oldApprovedPhotos.length === 0) {
                             for (const h of oldHist) {
-                                if (!specialRoutes.includes(h.route)) {
+                                if (!isProtectedMilestone(h)) {
+                                    await sbAdmin.from('vehicle_history').delete().eq('id', h.id);
+                                }
+                            }
+                        } else {
+                            const activePhotos = oldApprovedPhotos.filter(p => !isSpecialRoute(p.route_no) && !isStoppedRoute(p.route_no));
+                            for (const h of oldHist) {
+                                if (!isProtectedMilestone(h)) {
                                     const hasPhoto = activePhotos.some(p => isSameRoute(p.route_no, h.route));
                                     if (!hasPhoto) {
                                         await sbAdmin.from('vehicle_history').delete().eq('id', h.id);
@@ -403,14 +433,19 @@ export async function onRequestPost(context) {
             if (targetPlate) {
                 try {
                     const { data: approvedPhotos } = await sbAdmin.from('photos').select('route_no, operator').eq('license_plate', targetPlate).eq('status', 'approved');
-                    if (approvedPhotos && approvedPhotos.length > 0) {
-                        const { data: history } = await sbAdmin.from('vehicle_history').select('*').eq('license_plate', targetPlate);
-                        if (history && history.length > 0) {
-                            const specialRoutes = ['Ngoài giờ hoạt động', 'Chưa hoạt động'];
-                            const activePhotos = approvedPhotos.filter(p => !specialRoutes.includes(p.route_no));
+                    const { data: history } = await sbAdmin.from('vehicle_history').select('*').eq('license_plate', targetPlate);
+                    if (history && history.length > 0) {
+                        if (!approvedPhotos || approvedPhotos.length === 0) {
                             for (const h of history) {
-                                if (!specialRoutes.includes(h.route)) {
-                                    const hasPhoto = activePhotos.some(p => p.route_no === h.route && p.operator === h.operator);
+                                if (!isProtectedMilestone(h)) {
+                                    await sbAdmin.from('vehicle_history').delete().eq('id', h.id);
+                                }
+                            }
+                        } else {
+                            const activePhotos = approvedPhotos.filter(p => !isSpecialRoute(p.route_no) && !isStoppedRoute(p.route_no));
+                            for (const h of history) {
+                                if (!isProtectedMilestone(h)) {
+                                    const hasPhoto = activePhotos.some(p => isSameRoute(p.route_no, h.route));
                                     if (!hasPhoto) {
                                         await sbAdmin.from('vehicle_history').delete().eq('id', h.id);
                                     }
