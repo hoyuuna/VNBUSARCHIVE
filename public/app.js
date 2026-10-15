@@ -14896,8 +14896,285 @@ Object.assign(window.app, {
                 }
             },
 
+    denoise: {
+        glCanvas: null,
+        gl: null,
+        program: null,
+        posBuffer: null,
+        texBuffer: null,
+        initGL: function() {
+            if (this.gl && this.program) return true;
+            try {
+                this.glCanvas = document.createElement('canvas');
+                const gl = this.glCanvas.getContext('webgl', { preserveDrawingBuffer: true }) || 
+                           this.glCanvas.getContext('experimental-webgl', { preserveDrawingBuffer: true });
+                if (!gl) return false;
+
+                const vsSource = `
+                    attribute vec2 a_position;
+                    attribute vec2 a_texCoord;
+                    varying vec2 v_texCoord;
+                    void main() {
+                        gl_Position = vec4(a_position, 0.0, 1.0);
+                        v_texCoord = a_texCoord;
+                    }
+                `;
+
+                const fsSource = `
+                    precision highp float;
+                    uniform sampler2D u_image;
+                    uniform vec2 u_resolution;
+                    uniform float u_strength;
+                    varying vec2 v_texCoord;
+
+                    vec3 rgb2ycbcr(vec3 c) {
+                        float y = 0.299 * c.r + 0.587 * c.g + 0.114 * c.b;
+                        float cb = 0.5 - 0.168736 * c.r - 0.331264 * c.g + 0.5 * c.b;
+                        float cr = 0.5 + 0.5 * c.r - 0.418688 * c.g - 0.081312 * c.b;
+                        return vec3(y, cb, cr);
+                    }
+
+                    vec3 ycbcr2rgb(vec3 ycbcr) {
+                        float y = ycbcr.x;
+                        float cb = ycbcr.y - 0.5;
+                        float cr = ycbcr.z - 0.5;
+                        float r = y + 1.402 * cr;
+                        float g = y - 0.344136 * cb - 0.714136 * cr;
+                        float b = y + 1.772 * cb;
+                        return clamp(vec3(r, g, b), 0.0, 1.0);
+                    }
+
+                    void main() {
+                        vec4 centerColor = texture2D(u_image, v_texCoord);
+                        if (u_strength <= 0.001) {
+                            gl_FragColor = centerColor;
+                            return;
+                        }
+
+                        vec3 centerY = rgb2ycbcr(centerColor.rgb);
+                        float maxR = (u_strength > 0.5) ? 3.0 : 2.0;
+
+                        float sigmaS = 1.5 + u_strength * 2.5;
+                        float twoSigmaS2 = 2.0 * sigmaS * sigmaS;
+
+                        float sigmaR_Y = 0.04 + u_strength * 0.12;
+                        float twoSigmaR_Y2 = 2.0 * sigmaR_Y * sigmaR_Y;
+
+                        float sigmaR_C = 0.08 + u_strength * 0.25;
+                        float twoSigmaR_C2 = 2.0 * sigmaR_C * sigmaR_C;
+
+                        vec3 sumY = vec3(0.0);
+                        vec3 totalWeight = vec3(0.0);
+                        vec2 step = vec2(1.0) / u_resolution;
+
+                        for (int i = -3; i <= 3; i++) {
+                            for (int j = -3; j <= 3; j++) {
+                                if (abs(float(i)) > maxR || abs(float(j)) > maxR) continue;
+                                vec2 offset = vec2(float(i), float(j));
+                                vec3 sampleY = rgb2ycbcr(texture2D(u_image, v_texCoord + offset * step).rgb);
+
+                                float distS2 = dot(offset, offset);
+                                float spatialW = exp(-distS2 / twoSigmaS2);
+
+                                float diffY = sampleY.x - centerY.x;
+                                float wY = spatialW * exp(-(diffY * diffY) / twoSigmaR_Y2);
+                                sumY.x += sampleY.x * wY;
+                                totalWeight.x += wY;
+
+                                float diffCb = sampleY.y - centerY.y;
+                                float diffCr = sampleY.z - centerY.z;
+                                float diffC2 = diffCb * diffCb + diffCr * diffCr;
+                                float wC = spatialW * exp(-diffC2 / twoSigmaR_C2);
+                                sumY.yz += sampleY.yz * wC;
+                                totalWeight.yz += vec2(wC);
+                            }
+                        }
+
+                        vec3 filteredY = vec3(
+                            totalWeight.x > 0.0 ? sumY.x / totalWeight.x : centerY.x,
+                            totalWeight.y > 0.0 ? sumY.y / totalWeight.y : centerY.y,
+                            totalWeight.z > 0.0 ? sumY.z / totalWeight.z : centerY.z
+                        );
+
+                        float sharpY = filteredY.x + (centerY.x - filteredY.x) * 0.15;
+                        filteredY.x = clamp(sharpY, 0.0, 1.0);
+
+                        vec3 resultRGB = ycbcr2rgb(filteredY);
+                        gl_FragColor = vec4(resultRGB, centerColor.a);
+                    }
+                `;
+
+                const compileShader = (type, source) => {
+                    const shader = gl.createShader(type);
+                    gl.shaderSource(shader, source);
+                    gl.compileShader(shader);
+                    if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+                        console.warn(gl.getShaderInfoLog(shader));
+                        gl.deleteShader(shader);
+                        return null;
+                    }
+                    return shader;
+                };
+
+                const vs = compileShader(gl.VERTEX_SHADER, vsSource);
+                const fs = compileShader(gl.FRAGMENT_SHADER, fsSource);
+                if (!vs || !fs) return false;
+
+                const program = gl.createProgram();
+                gl.attachShader(program, vs);
+                gl.attachShader(program, fs);
+                gl.linkProgram(program);
+                if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
+                    console.warn(gl.getProgramInfoLog(program));
+                    return false;
+                }
+
+                this.gl = gl;
+                this.program = program;
+
+                const posBuffer = gl.createBuffer();
+                gl.bindBuffer(gl.ARRAY_BUFFER, posBuffer);
+                gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
+                    -1, -1,
+                     1, -1,
+                    -1,  1,
+                    -1,  1,
+                     1, -1,
+                     1,  1
+                ]), gl.STATIC_DRAW);
+                this.posBuffer = posBuffer;
+
+                const texBuffer = gl.createBuffer();
+                gl.bindBuffer(gl.ARRAY_BUFFER, texBuffer);
+                gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
+                    0, 1,
+                    1, 1,
+                    0, 0,
+                    0, 0,
+                    1, 1,
+                    1, 0
+                ]), gl.STATIC_DRAW);
+                this.texBuffer = texBuffer;
+
+                return true;
+            } catch (e) {
+                console.warn("Lỗi khởi tạo WebGL Denoise:", e);
+                return false;
+            }
+        },
+
+        processCanvas: function(sourceCanvas, percent) {
+            if (!percent || percent <= 0) return sourceCanvas;
+            const strength = Math.min(1.0, Math.max(0.0, percent / 100));
+
+            if (this.initGL()) {
+                const gl = this.gl;
+                const w = sourceCanvas.width;
+                const h = sourceCanvas.height;
+                this.glCanvas.width = w;
+                this.glCanvas.height = h;
+
+                gl.viewport(0, 0, w, h);
+                gl.useProgram(this.program);
+
+                const aPos = gl.getAttribLocation(this.program, "a_position");
+                gl.enableVertexAttribArray(aPos);
+                gl.bindBuffer(gl.ARRAY_BUFFER, this.posBuffer);
+                gl.vertexAttribPointer(aPos, 2, gl.FLOAT, false, 0, 0);
+
+                const aTex = gl.getAttribLocation(this.program, "a_texCoord");
+                gl.enableVertexAttribArray(aTex);
+                gl.bindBuffer(gl.ARRAY_BUFFER, this.texBuffer);
+                gl.vertexAttribPointer(aTex, 2, gl.FLOAT, false, 0, 0);
+
+                const texture = gl.createTexture();
+                gl.bindTexture(gl.TEXTURE_2D, texture);
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+                gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, sourceCanvas);
+
+                gl.uniform2f(gl.getUniformLocation(this.program, "u_resolution"), w, h);
+                gl.uniform1f(gl.getUniformLocation(this.program, "u_strength"), strength);
+
+                gl.drawArrays(gl.TRIANGLES, 0, 6);
+
+                const ctx = sourceCanvas.getContext('2d');
+                ctx.drawImage(this.glCanvas, 0, 0);
+
+                gl.deleteTexture(texture);
+                return sourceCanvas;
+            }
+
+            this.processCanvasCPU(sourceCanvas, strength);
+            return sourceCanvas;
+        },
+
+        processCanvasCPU: function(canvas, strength) {
+            const ctx = canvas.getContext('2d');
+            const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            const data = imgData.data;
+            const w = canvas.width;
+            const h = canvas.height;
+            const output = new Uint8ClampedArray(data.length);
+            output.set(data);
+
+            const r = strength > 0.5 ? 2 : 1;
+            const sigmaS = 1.5 + strength * 2.0;
+            const twoSigmaS2 = 2.0 * sigmaS * sigmaS;
+            const sigmaR = 15 + strength * 35;
+            const twoSigmaR2 = 2.0 * sigmaR * sigmaR;
+
+            for (let y = 0; y < h; y++) {
+                for (let x = 0; x < w; x++) {
+                    const idx = (y * w + x) * 4;
+                    const cr = data[idx];
+                    const cg = data[idx + 1];
+                    const cb = data[idx + 2];
+
+                    let sumR = 0, sumG = 0, sumB = 0, totalW = 0;
+
+                    for (let dy = -r; dy <= r; dy++) {
+                        const ny = y + dy;
+                        if (ny < 0 || ny >= h) continue;
+                        for (let dx = -r; dx <= r; dx++) {
+                            const nx = x + dx;
+                            if (nx < 0 || nx >= w) continue;
+
+                            const nIdx = (ny * w + nx) * 4;
+                            const nr = data[nIdx];
+                            const ng = data[nIdx + 1];
+                            const nb = data[nIdx + 2];
+
+                            const distS2 = dx * dx + dy * dy;
+                            const diffR = nr - cr;
+                            const diffG = ng - cg;
+                            const diffB = nb - cb;
+                            const distR2 = (diffR * diffR * 0.299 + diffG * diffG * 0.587 + diffB * diffB * 0.114);
+
+                            const weight = Math.exp(-distS2 / twoSigmaS2 - distR2 / twoSigmaR2);
+                            sumR += nr * weight;
+                            sumG += ng * weight;
+                            sumB += nb * weight;
+                            totalW += weight;
+                        }
+                    }
+
+                    if (totalW > 0) {
+                        output[idx] = sumR / totalW;
+                        output[idx + 1] = sumG / totalW;
+                        output[idx + 2] = sumB / totalW;
+                    }
+                }
+            }
+            imgData.data.set(output);
+            ctx.putImageData(imgData, 0, 0);
+        }
+    },
+
     crop: {
-        state: { x: 0, y: 0, scale: 1, rotation: 0, minScale: 1 },
+        state: { x: 0, y: 0, scale: 1, rotation: 0, minScale: 1, denoise: 0 },
         isDragging: false,
         eventsAttached: false,
         startX: 0,
@@ -14913,6 +15190,12 @@ Object.assign(window.app, {
         isMandatory: false,
         isProcessing: false,
         closeTimeout: null,
+        denoiseTimeout: null,
+        previewCanvas: null,
+        previewDenoiseUrl: null,
+        baseSrc: null,
+        baseImageElement: null,
+        isComparingDenoise: false,
         open: async (mode, file = null, isMandatory = false) => {
             if (app.crop.closeTimeout) {
                 clearTimeout(app.crop.closeTimeout);
@@ -14971,6 +15254,13 @@ Object.assign(window.app, {
                 container.addEventListener('wheel', app.crop.onWheel, { passive: false });
             }
             const url = URL.createObjectURL(app.crop.originalFile);
+            app.crop.baseSrc = url;
+            app.crop.baseImageElement = new Image();
+            app.crop.baseImageElement.src = url;
+            if (app.crop.previewDenoiseUrl) {
+                URL.revokeObjectURL(app.crop.previewDenoiseUrl);
+                app.crop.previewDenoiseUrl = null;
+            }
             img.onload = () => {
                 img.onload = null;
                 img.onerror = null;
@@ -14979,13 +15269,22 @@ Object.assign(window.app, {
                         if (app.crop.savedState && mode === 'main') {
                             app.crop.state = { ...app.crop.savedState };
                         } else {
-                            app.crop.state = { x: 0, y: 0, scale: 1, rotation: 0, baseRotation: 0, minScale: 1 };
+                            app.crop.state = { x: 0, y: 0, scale: 1, rotation: 0, baseRotation: 0, minScale: 1, denoise: 0 };
                         }
                         const freeRotation = app.crop.state.rotation - (app.crop.state.baseRotation || 0);
                         const rotateSlider = document.getElementById('crop-rotate-slider');
                         if (rotateSlider) rotateSlider.value = freeRotation;
                         const rotateVal = document.getElementById('crop-rotate-val');
                         if (rotateVal) rotateVal.innerText = (freeRotation > 0 ? '+' : '') + freeRotation + '°';
+
+                        const denoiseVal = (typeof app.crop.state.denoise === 'number') ? app.crop.state.denoise : 0;
+                        const denoiseSlider = document.getElementById('crop-denoise-slider');
+                        if (denoiseSlider) denoiseSlider.value = denoiseVal;
+                        const denoiseValLabel = document.getElementById('crop-denoise-val');
+                        if (denoiseValLabel) denoiseValLabel.innerText = denoiseVal + '%';
+                        if (denoiseVal > 0) {
+                            app.crop.applyDenoisePreview();
+                        }
                         const rulerBtn = document.getElementById('btn-crop-toggle-ruler');
                         if (mode === 'avatar') {
                             if (modePanel) modePanel.classList.add('hidden');
@@ -15213,21 +15512,129 @@ Object.assign(window.app, {
             const slider = document.getElementById('crop-mode-slider');
             const btnRatio = document.getElementById('btn-crop-mode-ratio');
             const btnRotate = document.getElementById('btn-crop-mode-rotate');
+            const btnDenoise = document.getElementById('btn-crop-mode-denoise');
             const ratioControls = document.getElementById('crop-ratios');
             const rotateControls = document.getElementById('crop-rotate-controls');
+            const denoiseControls = document.getElementById('crop-denoise-controls');
+
+            [btnRatio, btnRotate, btnDenoise].forEach(btn => {
+                if (!btn) return;
+                btn.classList.remove('text-black');
+                btn.classList.add('text-gray-500', 'hover:text-black');
+            });
+            [ratioControls, rotateControls, denoiseControls].forEach(c => {
+                if (!c) return;
+                c.classList.add('hidden');
+                c.classList.remove('flex');
+            });
+
             if (tab === 'ratio') {
-                if(slider) slider.style.left = '4px';
-                if(btnRatio) { btnRatio.classList.add('text-black'); btnRatio.classList.remove('text-gray-500', 'hover:text-black'); }
-                if(btnRotate) { btnRotate.classList.add('text-gray-500', 'hover:text-black'); btnRotate.classList.remove('text-black'); }
-                if(ratioControls) { ratioControls.classList.remove('hidden'); ratioControls.classList.add('flex'); }
-                if(rotateControls) { rotateControls.classList.add('hidden'); rotateControls.classList.remove('flex'); }
+                if (slider) {
+                    slider.style.left = '4px';
+                    slider.style.width = 'calc((100% - 14px) / 3)';
+                }
+                if (btnRatio) { btnRatio.classList.add('text-black'); btnRatio.classList.remove('text-gray-500', 'hover:text-black'); }
+                if (ratioControls) { ratioControls.classList.remove('hidden'); ratioControls.classList.add('flex'); }
             } else if (tab === 'rotate') {
-                if(slider) slider.style.left = 'calc(50% + 2px)';
-                if(btnRatio) { btnRatio.classList.add('text-gray-500', 'hover:text-black'); btnRatio.classList.remove('text-black'); }
-                if(btnRotate) { btnRotate.classList.add('text-black'); btnRotate.classList.remove('text-gray-500', 'hover:text-black'); }
-                if(ratioControls) { ratioControls.classList.add('hidden'); ratioControls.classList.remove('flex'); }
-                if(rotateControls) { rotateControls.classList.remove('hidden'); rotateControls.classList.add('flex'); }
+                if (slider) {
+                    slider.style.left = 'calc((100% - 14px) / 3 + 7px)';
+                    slider.style.width = 'calc((100% - 14px) / 3)';
+                }
+                if (btnRotate) { btnRotate.classList.add('text-black'); btnRotate.classList.remove('text-gray-500', 'hover:text-black'); }
+                if (rotateControls) { rotateControls.classList.remove('hidden'); rotateControls.classList.add('flex'); }
+            } else if (tab === 'denoise') {
+                if (slider) {
+                    slider.style.left = 'calc(2 * (100% - 14px) / 3 + 10px)';
+                    slider.style.width = 'calc((100% - 14px) / 3)';
+                }
+                if (btnDenoise) { btnDenoise.classList.add('text-black'); btnDenoise.classList.remove('text-gray-500', 'hover:text-black'); }
+                if (denoiseControls) { denoiseControls.classList.remove('hidden'); denoiseControls.classList.add('flex'); }
             }
+        },
+        slideDenoise: (val) => {
+            const v = parseInt(val) || 0;
+            app.crop.state.denoise = v;
+            const label = document.getElementById('crop-denoise-val');
+            if (label) label.innerText = v + '%';
+
+            if (app.crop.denoiseTimeout) clearTimeout(app.crop.denoiseTimeout);
+            app.crop.denoiseTimeout = setTimeout(() => {
+                app.crop.applyDenoisePreview();
+            }, 50);
+        },
+        stepDenoise: (delta) => {
+            const slider = document.getElementById('crop-denoise-slider');
+            let current = slider ? (parseInt(slider.value) || 0) : 0;
+            let newVal = current + delta;
+            if (newVal < 0) newVal = 0;
+            if (newVal > 100) newVal = 100;
+            if (slider) slider.value = newVal;
+            app.crop.slideDenoise(newVal);
+        },
+        toggleDenoiseCompare: (isComparing) => {
+            app.crop.isComparingDenoise = isComparing;
+            const img = document.getElementById('crop-image');
+            if (!img) return;
+            if (isComparing) {
+                if (app.crop.baseSrc) img.src = app.crop.baseSrc;
+            } else {
+                if (app.crop.previewDenoiseUrl && app.crop.state.denoise > 0) {
+                    img.src = app.crop.previewDenoiseUrl;
+                } else if (app.crop.baseSrc) {
+                    img.src = app.crop.baseSrc;
+                }
+            }
+        },
+        applyDenoisePreview: () => {
+            const img = document.getElementById('crop-image');
+            if (!img) return;
+            const v = app.crop.state.denoise;
+            if (v <= 0) {
+                if (app.crop.previewDenoiseUrl) {
+                    URL.revokeObjectURL(app.crop.previewDenoiseUrl);
+                    app.crop.previewDenoiseUrl = null;
+                }
+                if (app.crop.baseSrc) img.src = app.crop.baseSrc;
+                return;
+            }
+
+            const baseImg = app.crop.baseImageElement || img;
+            if (!baseImg || !baseImg.naturalWidth) return;
+
+            if (!app.crop.previewCanvas) {
+                app.crop.previewCanvas = document.createElement('canvas');
+            }
+            const cv = app.crop.previewCanvas;
+
+            const maxDim = 1400;
+            let pw = baseImg.naturalWidth;
+            let ph = baseImg.naturalHeight;
+            if (pw > maxDim || ph > maxDim) {
+                if (pw > ph) {
+                    ph = Math.round((ph * maxDim) / pw);
+                    pw = maxDim;
+                } else {
+                    pw = Math.round((pw * maxDim) / ph);
+                    ph = maxDim;
+                }
+            }
+            cv.width = pw;
+            cv.height = ph;
+            const ctx = cv.getContext('2d');
+            ctx.drawImage(baseImg, 0, 0, pw, ph);
+
+            app.denoise.processCanvas(cv, v);
+
+            cv.toBlob((blob) => {
+                if (!blob) return;
+                if (app.crop.previewDenoiseUrl) {
+                    URL.revokeObjectURL(app.crop.previewDenoiseUrl);
+                }
+                app.crop.previewDenoiseUrl = URL.createObjectURL(blob);
+                if (!app.crop.isComparingDenoise) {
+                    img.src = app.crop.previewDenoiseUrl;
+                }
+            }, 'image/jpeg', 0.92);
         },
         slideRotate: (val) => {
             const freeRotation = parseFloat(val);
@@ -15350,6 +15757,10 @@ Object.assign(window.app, {
                 clearTimeout(app.crop.closeTimeout);
                 app.crop.closeTimeout = null;
             }
+            if (app.crop.denoiseTimeout) {
+                clearTimeout(app.crop.denoiseTimeout);
+                app.crop.denoiseTimeout = null;
+            }
             const img = document.getElementById('crop-image');
             if (img) {
                 img.onload = null;
@@ -15369,6 +15780,10 @@ Object.assign(window.app, {
                     img.removeAttribute('src');
                     img.removeAttribute('style');
                 }
+                if (app.crop.previewDenoiseUrl) {
+                    URL.revokeObjectURL(app.crop.previewDenoiseUrl);
+                    app.crop.previewDenoiseUrl = null;
+                }
                 app.ui.unlockScroll();
                 if (app.crop.isMandatory) {
                     app.upload.removeImage();
@@ -15384,7 +15799,7 @@ Object.assign(window.app, {
             
             const btn = document.querySelector('#crop-modal button:last-child');
             const originalText = btn.innerHTML;
-            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang cắt...';
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang xử lý...';
             
             const allControls = document.querySelectorAll('#crop-modal button, #crop-modal input, .crop-ratio-btn');
             allControls.forEach(c => {
@@ -15417,11 +15832,17 @@ Object.assign(window.app, {
                 );
                 ctx.rotate(app.crop.state.rotation * Math.PI / 180);
                 ctx.scale(app.crop.state.scale * multiplier, app.crop.state.scale * multiplier);
+                const drawSrc = app.crop.baseImageElement || img;
                 ctx.drawImage(
-                    img,
-                    -img.naturalWidth / 2,
-                    -img.naturalHeight / 2
+                    drawSrc,
+                    -(drawSrc.naturalWidth || img.naturalWidth) / 2,
+                    -(drawSrc.naturalHeight || img.naturalHeight) / 2
                 );
+
+                if (app.crop.state.denoise > 0) {
+                    app.denoise.processCanvas(canvas, app.crop.state.denoise);
+                }
+
                 if (app.crop.mode === 'main') {
                     if (canvas.height < 1080) {
                         app.ui.showAlert(`Ảnh sau khi cắt có độ phân giải quá thấp (${canvas.width}x${canvas.height}). Yêu cầu chiều cao tối thiểu 1080px.`);
@@ -15467,17 +15888,27 @@ Object.assign(window.app, {
             }, 50);
         },
         confirmReset: () => {
-            app.ui.showAlert('Bạn có chắc muốn đặt lại ảnh từ đầu? Các thao tác cắt, xoay sẽ bị hủy.', () => {
+            app.ui.showAlert('Bạn có chắc muốn đặt lại ảnh từ đầu? Các thao tác cắt, xoay, khử nhiễu sẽ bị hủy.', () => {
                 app.crop.reset();
             }, () => {}, { isConfirm: true, confirmText: 'Đặt lại', confirmColor: 'bg-red-600 hover:bg-red-700' });
         },
         reset: () => {
             app.crop.savedState = null;
-            app.crop.state = { x: 0, y: 0, scale: 1, rotation: 0, baseRotation: 0, minScale: 1 };
+            app.crop.state = { x: 0, y: 0, scale: 1, rotation: 0, baseRotation: 0, minScale: 1, denoise: 0 };
             const rotateSlider = document.getElementById('crop-rotate-slider');
             if (rotateSlider) rotateSlider.value = 0;
             const rotateVal = document.getElementById('crop-rotate-val');
             if (rotateVal) rotateVal.innerText = '0°';
+            const denoiseSlider = document.getElementById('crop-denoise-slider');
+            if (denoiseSlider) denoiseSlider.value = 0;
+            const denoiseVal = document.getElementById('crop-denoise-val');
+            if (denoiseVal) denoiseVal.innerText = '0%';
+            if (app.crop.previewDenoiseUrl) {
+                URL.revokeObjectURL(app.crop.previewDenoiseUrl);
+                app.crop.previewDenoiseUrl = null;
+            }
+            const img = document.getElementById('crop-image');
+            if (img && app.crop.baseSrc) img.src = app.crop.baseSrc;
             const currentRatio = app.crop.mode === 'main' ? (app.crop.savedRatio || (4/3)) : 1;
             app.crop.setFixedCropBox(currentRatio);
             app.crop.updateMinScale();
