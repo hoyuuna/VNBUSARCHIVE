@@ -2778,11 +2778,14 @@ Object.assign(window.app, {
             const maxViewportDims = gl.getParameter(gl.MAX_VIEWPORT_DIMS) || [4096, 4096];
             const maxSafeDim = Math.min(maxTexSize, maxViewportDims[0], maxViewportDims[1]);
 
-            const sw = sourceCanvas.width;
-            const sh = sourceCanvas.height;
+            // Đảm bảo context của sourceCanvas ở trạng thái ma trận đơn vị (identity transform)
+            const srcCtx = sourceCanvas.getContext('2d');
+            srcCtx.save();
+            srcCtx.setTransform(1, 0, 0, 1, 0, 0);
 
             if (sw <= maxSafeDim && sh <= maxSafeDim) {
                 this._renderGL(sourceCanvas, 0, 0, sw, sh, strength);
+                srcCtx.restore();
                 return sourceCanvas;
             }
 
@@ -2791,12 +2794,13 @@ Object.assign(window.app, {
             const pad = 6;
             const tempCv = document.createElement('canvas');
             const tempCtx = tempCv.getContext('2d');
-            const srcCtx = sourceCanvas.getContext('2d');
 
             const originalCopyCv = document.createElement('canvas');
             originalCopyCv.width = sw;
             originalCopyCv.height = sh;
-            originalCopyCv.getContext('2d').drawImage(sourceCanvas, 0, 0);
+            const copyCtx = originalCopyCv.getContext('2d');
+            copyCtx.setTransform(1, 0, 0, 1, 0, 0);
+            copyCtx.drawImage(sourceCanvas, 0, 0);
 
             for (let y = 0; y < sh; y += tileSize) {
                 for (let x = 0; x < sw; x += tileSize) {
@@ -2812,16 +2816,19 @@ Object.assign(window.app, {
 
                     tempCv.width = cropW;
                     tempCv.height = cropH;
+                    tempCtx.setTransform(1, 0, 0, 1, 0, 0);
                     tempCtx.drawImage(originalCopyCv, sx, sy, cropW, cropH, 0, 0, cropW, cropH);
 
                     this._renderGL(tempCv, 0, 0, cropW, cropH, strength);
 
                     const offsetX = x - sx;
                     const offsetY = y - sy;
+                    srcCtx.setTransform(1, 0, 0, 1, 0, 0);
                     srcCtx.drawImage(tempCv, offsetX, offsetY, tw, th, x, y, tw, th);
                 }
             }
 
+            srcCtx.restore();
             return sourceCanvas;
         },
 
@@ -2857,7 +2864,10 @@ Object.assign(window.app, {
             gl.drawArrays(gl.TRIANGLES, 0, 6);
 
             const ctx = targetCanvas.getContext('2d');
+            ctx.save();
+            ctx.setTransform(1, 0, 0, 1, 0, 0);
             ctx.drawImage(this.glCanvas, 0, 0);
+            ctx.restore();
 
             gl.deleteTexture(texture);
         },
@@ -3587,6 +3597,7 @@ Object.assign(window.app, {
                 const ctx = canvas.getContext('2d');
                 ctx.imageSmoothingEnabled = true;
                 ctx.imageSmoothingQuality = 'high';
+                ctx.save();
                 ctx.translate(
                     canvas.width / 2 + (app.crop.state.x * multiplier),
                     canvas.height / 2 + (app.crop.state.y * multiplier)
@@ -3605,6 +3616,8 @@ Object.assign(window.app, {
                     origW,
                     origH
                 );
+                ctx.restore();
+                ctx.setTransform(1, 0, 0, 1, 0, 0);
 
                 if (app.crop.state.denoise > 0) {
                     app.denoise.processCanvas(canvas, app.crop.state.denoise);
