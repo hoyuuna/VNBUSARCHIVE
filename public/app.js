@@ -15067,48 +15067,98 @@ Object.assign(window.app, {
             if (!percent || percent <= 0) return sourceCanvas;
             const strength = Math.min(1.0, Math.max(0.0, percent / 100));
 
-            if (this.initGL()) {
-                const gl = this.gl;
-                const w = sourceCanvas.width;
-                const h = sourceCanvas.height;
-                this.glCanvas.width = w;
-                this.glCanvas.height = h;
-
-                gl.viewport(0, 0, w, h);
-                gl.useProgram(this.program);
-
-                const aPos = gl.getAttribLocation(this.program, "a_position");
-                gl.enableVertexAttribArray(aPos);
-                gl.bindBuffer(gl.ARRAY_BUFFER, this.posBuffer);
-                gl.vertexAttribPointer(aPos, 2, gl.FLOAT, false, 0, 0);
-
-                const aTex = gl.getAttribLocation(this.program, "a_texCoord");
-                gl.enableVertexAttribArray(aTex);
-                gl.bindBuffer(gl.ARRAY_BUFFER, this.texBuffer);
-                gl.vertexAttribPointer(aTex, 2, gl.FLOAT, false, 0, 0);
-
-                const texture = gl.createTexture();
-                gl.bindTexture(gl.TEXTURE_2D, texture);
-                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-                gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, sourceCanvas);
-
-                gl.uniform2f(gl.getUniformLocation(this.program, "u_resolution"), w, h);
-                gl.uniform1f(gl.getUniformLocation(this.program, "u_strength"), strength);
-
-                gl.drawArrays(gl.TRIANGLES, 0, 6);
-
-                const ctx = sourceCanvas.getContext('2d');
-                ctx.drawImage(this.glCanvas, 0, 0);
-
-                gl.deleteTexture(texture);
+            if (!this.initGL()) {
+                this.processCanvasCPU(sourceCanvas, strength);
                 return sourceCanvas;
             }
 
-            this.processCanvasCPU(sourceCanvas, strength);
+            const gl = this.gl;
+            const maxTexSize = gl.getParameter(gl.MAX_TEXTURE_SIZE) || 4096;
+            const maxViewportDims = gl.getParameter(gl.MAX_VIEWPORT_DIMS) || [4096, 4096];
+            const maxSafeDim = Math.min(maxTexSize, maxViewportDims[0], maxViewportDims[1]);
+
+            const sw = sourceCanvas.width;
+            const sh = sourceCanvas.height;
+
+            if (sw <= maxSafeDim && sh <= maxSafeDim) {
+                this._renderGL(sourceCanvas, 0, 0, sw, sh, strength);
+                return sourceCanvas;
+            }
+
+            // Tiling cho các ảnh có kích thước vượt quá giới hạn an toàn của GPU
+            const tileSize = Math.min(2048, maxSafeDim - 32);
+            const pad = 6;
+            const tempCv = document.createElement('canvas');
+            const tempCtx = tempCv.getContext('2d');
+            const srcCtx = sourceCanvas.getContext('2d');
+
+            const originalCopyCv = document.createElement('canvas');
+            originalCopyCv.width = sw;
+            originalCopyCv.height = sh;
+            originalCopyCv.getContext('2d').drawImage(sourceCanvas, 0, 0);
+
+            for (let y = 0; y < sh; y += tileSize) {
+                for (let x = 0; x < sw; x += tileSize) {
+                    const tw = Math.min(tileSize, sw - x);
+                    const th = Math.min(tileSize, sh - y);
+
+                    const sx = Math.max(0, x - pad);
+                    const sy = Math.max(0, y - pad);
+                    const ex = Math.min(sw, x + tw + pad);
+                    const ey = Math.min(sh, y + th + pad);
+                    const cropW = ex - sx;
+                    const cropH = ey - sy;
+
+                    tempCv.width = cropW;
+                    tempCv.height = cropH;
+                    tempCtx.drawImage(originalCopyCv, sx, sy, cropW, cropH, 0, 0, cropW, cropH);
+
+                    this._renderGL(tempCv, 0, 0, cropW, cropH, strength);
+
+                    const offsetX = x - sx;
+                    const offsetY = y - sy;
+                    srcCtx.drawImage(tempCv, offsetX, offsetY, tw, th, x, y, tw, th);
+                }
+            }
+
             return sourceCanvas;
+        },
+
+        _renderGL: function(targetCanvas, x, y, w, h, strength) {
+            const gl = this.gl;
+            this.glCanvas.width = w;
+            this.glCanvas.height = h;
+
+            gl.viewport(0, 0, w, h);
+            gl.useProgram(this.program);
+
+            const aPos = gl.getAttribLocation(this.program, "a_position");
+            gl.enableVertexAttribArray(aPos);
+            gl.bindBuffer(gl.ARRAY_BUFFER, this.posBuffer);
+            gl.vertexAttribPointer(aPos, 2, gl.FLOAT, false, 0, 0);
+
+            const aTex = gl.getAttribLocation(this.program, "a_texCoord");
+            gl.enableVertexAttribArray(aTex);
+            gl.bindBuffer(gl.ARRAY_BUFFER, this.texBuffer);
+            gl.vertexAttribPointer(aTex, 2, gl.FLOAT, false, 0, 0);
+
+            const texture = gl.createTexture();
+            gl.bindTexture(gl.TEXTURE_2D, texture);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+            gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, targetCanvas);
+
+            gl.uniform2f(gl.getUniformLocation(this.program, "u_resolution"), w, h);
+            gl.uniform1f(gl.getUniformLocation(this.program, "u_strength"), strength);
+
+            gl.drawArrays(gl.TRIANGLES, 0, 6);
+
+            const ctx = targetCanvas.getContext('2d');
+            ctx.drawImage(this.glCanvas, 0, 0);
+
+            gl.deleteTexture(texture);
         },
 
         processCanvasCPU: function(canvas, strength) {
@@ -15264,6 +15314,12 @@ Object.assign(window.app, {
             img.onload = () => {
                 img.onload = null;
                 img.onerror = null;
+
+                app.crop.originalWidth = img.naturalWidth;
+                app.crop.originalHeight = img.naturalHeight;
+                img.style.setProperty('width', app.crop.originalWidth + 'px', 'important');
+                img.style.setProperty('height', app.crop.originalHeight + 'px', 'important');
+
                 setTimeout(() => {
                     if (mode === 'main' || mode === 'avatar') {
                         if (app.crop.savedState && mode === 'main') {
@@ -15302,7 +15358,7 @@ Object.assign(window.app, {
                                 rulerBtn.parentElement.classList.remove('invisible', 'hidden');
                             }
                             if (typeof app.crop.savedRatio !== 'number' || isNaN(app.crop.savedRatio)) {
-                                const imgRatio = img.naturalWidth / img.naturalHeight;
+                                const imgRatio = (app.crop.originalWidth || img.naturalWidth) / (app.crop.originalHeight || img.naturalHeight);
                                 const presets = [16/9, 3/2, 4/3];
                                 let bestRatio = 4/3;
                                 let minDiff = 0.05;
@@ -15343,11 +15399,12 @@ Object.assign(window.app, {
         updateMinScale: () => {
             const overlay = document.getElementById('crop-overlay-box');
             const img = document.getElementById('crop-image');
-            if (!overlay || !img || !img.naturalWidth) return;
+            if (!overlay || !img) return;
             const ow = overlay.offsetWidth;
             const oh = overlay.offsetHeight;
-            const iw = img.naturalWidth;
-            const ih = img.naturalHeight;
+            const iw = app.crop.originalWidth || img.naturalWidth;
+            const ih = app.crop.originalHeight || img.naturalHeight;
+            if (!iw || !ih) return;
             const rad = app.crop.state.rotation * (Math.PI / 180);
             const boundingW = (ow * Math.abs(Math.cos(rad))) + (oh * Math.abs(Math.sin(rad)));
             const boundingH = (ow * Math.abs(Math.sin(rad))) + (oh * Math.abs(Math.cos(rad)));
@@ -15359,11 +15416,14 @@ Object.assign(window.app, {
         applyTransform: () => {
             const overlay = document.getElementById('crop-overlay-box');
             const img = document.getElementById('crop-image');
-            if (!overlay || !img || !img.naturalWidth) return;
+            if (!overlay || !img) return;
+            const iw = app.crop.originalWidth || img.naturalWidth;
+            const ih = app.crop.originalHeight || img.naturalHeight;
+            if (!iw || !ih) return;
             const ow = overlay.offsetWidth;
             const oh = overlay.offsetHeight;
-            const scaledImgW = img.naturalWidth * app.crop.state.scale;
-            const scaledImgH = img.naturalHeight * app.crop.state.scale;
+            const scaledImgW = iw * app.crop.state.scale;
+            const scaledImgH = ih * app.crop.state.scale;
             const rad = app.crop.state.rotation * (Math.PI / 180);
             const cos = Math.cos(rad);
             const sin = Math.sin(rad);
@@ -15571,20 +15631,6 @@ Object.assign(window.app, {
             if (slider) slider.value = newVal;
             app.crop.slideDenoise(newVal);
         },
-        toggleDenoiseCompare: (isComparing) => {
-            app.crop.isComparingDenoise = isComparing;
-            const img = document.getElementById('crop-image');
-            if (!img) return;
-            if (isComparing) {
-                if (app.crop.baseSrc) img.src = app.crop.baseSrc;
-            } else {
-                if (app.crop.previewDenoiseUrl && app.crop.state.denoise > 0) {
-                    img.src = app.crop.previewDenoiseUrl;
-                } else if (app.crop.baseSrc) {
-                    img.src = app.crop.baseSrc;
-                }
-            }
-        },
         applyDenoisePreview: () => {
             const img = document.getElementById('crop-image');
             if (!img) return;
@@ -15594,21 +15640,29 @@ Object.assign(window.app, {
                     URL.revokeObjectURL(app.crop.previewDenoiseUrl);
                     app.crop.previewDenoiseUrl = null;
                 }
-                if (app.crop.baseSrc) img.src = app.crop.baseSrc;
+                if (app.crop.baseSrc) {
+                    if (app.crop.originalWidth && app.crop.originalHeight) {
+                        img.style.setProperty('width', app.crop.originalWidth + 'px', 'important');
+                        img.style.setProperty('height', app.crop.originalHeight + 'px', 'important');
+                    }
+                    img.src = app.crop.baseSrc;
+                }
                 return;
             }
 
-            const baseImg = app.crop.baseImageElement || img;
-            if (!baseImg || !baseImg.naturalWidth) return;
+            const baseImg = (app.crop.baseImageElement && app.crop.baseImageElement.naturalWidth) ? app.crop.baseImageElement : img;
+            const origW = app.crop.originalWidth || baseImg.naturalWidth;
+            const origH = app.crop.originalHeight || baseImg.naturalHeight;
+            if (!origW || !origH) return;
 
             if (!app.crop.previewCanvas) {
                 app.crop.previewCanvas = document.createElement('canvas');
             }
             const cv = app.crop.previewCanvas;
 
-            const maxDim = 1400;
-            let pw = baseImg.naturalWidth;
-            let ph = baseImg.naturalHeight;
+            const maxDim = 1600;
+            let pw = origW;
+            let ph = origH;
             if (pw > maxDim || ph > maxDim) {
                 if (pw > ph) {
                     ph = Math.round((ph * maxDim) / pw);
@@ -15631,9 +15685,9 @@ Object.assign(window.app, {
                     URL.revokeObjectURL(app.crop.previewDenoiseUrl);
                 }
                 app.crop.previewDenoiseUrl = URL.createObjectURL(blob);
-                if (!app.crop.isComparingDenoise) {
-                    img.src = app.crop.previewDenoiseUrl;
-                }
+                img.style.setProperty('width', origW + 'px', 'important');
+                img.style.setProperty('height', origH + 'px', 'important');
+                img.src = app.crop.previewDenoiseUrl;
             }, 'image/jpeg', 0.92);
         },
         slideRotate: (val) => {
@@ -15778,7 +15832,13 @@ Object.assign(window.app, {
                     img.onload = null;
                     img.onerror = null;
                     img.removeAttribute('src');
-                    img.removeAttribute('style');
+                    img.style.cssText = `
+                        position: absolute;
+                        top: 50%;
+                        left: 50%;
+                        transform-origin: center center;
+                        pointer-events: none;
+                    `;
                 }
                 if (app.crop.previewDenoiseUrl) {
                     URL.revokeObjectURL(app.crop.previewDenoiseUrl);
@@ -15794,7 +15854,7 @@ Object.assign(window.app, {
         apply: () => {
             const img = document.getElementById('crop-image');
             const overlay = document.getElementById('crop-overlay-box');
-            if (!img || !overlay || !img.naturalWidth || app.crop.isProcessing) return;
+            if (!img || !overlay || app.crop.isProcessing) return;
             app.crop.isProcessing = true;
             
             const btn = document.querySelector('#crop-modal button:last-child');
@@ -15821,8 +15881,8 @@ Object.assign(window.app, {
                 const oh = overlay.offsetHeight;
                 const multiplier = 1 / app.crop.state.scale; 
                 const canvas = document.createElement('canvas');
-                canvas.width = ow * multiplier;
-                canvas.height = oh * multiplier;
+                canvas.width = Math.round(ow * multiplier);
+                canvas.height = Math.round(oh * multiplier);
                 const ctx = canvas.getContext('2d');
                 ctx.imageSmoothingEnabled = true;
                 ctx.imageSmoothingQuality = 'high';
@@ -15832,11 +15892,17 @@ Object.assign(window.app, {
                 );
                 ctx.rotate(app.crop.state.rotation * Math.PI / 180);
                 ctx.scale(app.crop.state.scale * multiplier, app.crop.state.scale * multiplier);
-                const drawSrc = app.crop.baseImageElement || img;
+                
+                // Luôn vẽ từ ảnh gốc ban đầu với kích thước gốc chính xác tuyệt đối
+                const drawSrc = (app.crop.baseImageElement && app.crop.baseImageElement.naturalWidth) ? app.crop.baseImageElement : img;
+                const origW = app.crop.originalWidth || drawSrc.naturalWidth;
+                const origH = app.crop.originalHeight || drawSrc.naturalHeight;
                 ctx.drawImage(
                     drawSrc,
-                    -(drawSrc.naturalWidth || img.naturalWidth) / 2,
-                    -(drawSrc.naturalHeight || img.naturalHeight) / 2
+                    -origW / 2,
+                    -origH / 2,
+                    origW,
+                    origH
                 );
 
                 if (app.crop.state.denoise > 0) {
@@ -15908,7 +15974,13 @@ Object.assign(window.app, {
                 app.crop.previewDenoiseUrl = null;
             }
             const img = document.getElementById('crop-image');
-            if (img && app.crop.baseSrc) img.src = app.crop.baseSrc;
+            if (img && app.crop.baseSrc) {
+                if (app.crop.originalWidth && app.crop.originalHeight) {
+                    img.style.setProperty('width', app.crop.originalWidth + 'px', 'important');
+                    img.style.setProperty('height', app.crop.originalHeight + 'px', 'important');
+                }
+                img.src = app.crop.baseSrc;
+            }
             const currentRatio = app.crop.mode === 'main' ? (app.crop.savedRatio || (4/3)) : 1;
             app.crop.setFixedCropBox(currentRatio);
             app.crop.updateMinScale();

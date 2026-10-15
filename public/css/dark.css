@@ -451,11 +451,3 @@ footer .text-gray-400.cursor-not-allowed { color: #52525b !important; }
 #crop-rotate-slider, #crop-denoise-slider {
     accent-color: #ffffff !important;
 }
-#btn-crop-compare-denoise {
-    background-color: #000000 !important;
-    border-color: #ffffff !important;
-    color: #ffffff !important;
-}
-#btn-crop-compare-denoise:hover {
-    background-color: #27272a !important;
-}
