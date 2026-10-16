@@ -1942,7 +1942,7 @@ html.theme-dark .ct-icon {
             if (stored === 'system') {
                 theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
             }
-            document.write('<link rel="stylesheet" href="/css/' + theme + '.css?v=1792080721135" id="theme-css">');
+            document.write('<link rel="stylesheet" href="/css/' + theme + '.css?v=1792128025893" id="theme-css">');
             document.documentElement.classList.add('theme-' + theme);
             document.documentElement.style.backgroundColor = theme === 'dark' ? '#18181b' : '#fdfcf8';
         })();
@@ -2259,15 +2259,14 @@ html.theme-dark .ct-icon {
         <div id="crop-modal" class="hidden fixed inset-0 z-[4000] flex flex-col items-center justify-center p-2 sm:p-4 backdrop-blur-md">
             <div id="crop-content" class="w-full max-w-4xl rounded-2xl shadow-2xl flex flex-col overflow-hidden transform transition-all opacity-0 scale-95">
                 <div class="p-3 md:p-4 flex justify-between items-center shrink-0 bg-white z-10">
-                    <h3 class="font-bold text-sm md:text-base uppercase text-black"><i class="fa-solid fa-image mr-2"></i> Chỉnh ảnh</h3>
+                    <h3 class="font-bold text-sm md:text-base uppercase text-black"><i class="fa-solid fa-crop-simple mr-2"></i> Cắt ảnh</h3>
                     <button onclick="app.crop.close()" class="text-gray-500 hover:text-red-600 transition"><i class="fa-solid fa-xmark text-lg"></i></button>
                 </div>
                 <div id="crop-mode-panel" class="p-2 bg-gray-50 flex justify-center shrink-0 z-10 hidden">
-                    <div id="crop-mode-track" class="grid grid-cols-3 gap-1.5 bg-gray-200/80 p-1 rounded-xl border border-gray-300/50 relative w-full max-w-[340px]">
-                        <div id="crop-mode-slider" class="absolute top-1 bottom-1 bg-white rounded-lg shadow-sm transition-all duration-300 cubic-bezier(0.4, 0, 0.2, 1) pointer-events-none z-10" style="left: 4px; width: calc((100% - 14px) / 3);"></div>
-                        <button type="button" id="btn-crop-mode-ratio" onclick="app.crop.setModeTab('ratio')" class="relative z-20 px-2 py-1.5 rounded-lg text-xs font-bold transition-colors duration-200 text-black">Tỉ lệ</button>
-                        <button type="button" id="btn-crop-mode-rotate" onclick="app.crop.setModeTab('rotate')" class="relative z-20 px-2 py-1.5 rounded-lg text-xs font-bold transition-colors duration-200 text-gray-500 hover:text-black">Xoay ảnh</button>
-                        <button type="button" id="btn-crop-mode-denoise" onclick="app.crop.setModeTab('denoise')" class="relative z-20 px-2 py-1.5 rounded-lg text-xs font-bold transition-colors duration-200 text-gray-500 hover:text-black">Khử nhiễu</button>
+                    <div id="crop-mode-track" class="grid grid-cols-2 gap-1.5 bg-gray-200/80 p-1 rounded-xl border border-gray-300/50 relative w-full max-w-[280px]">
+                        <div id="crop-mode-slider" class="absolute top-1 bottom-1 bg-white rounded-lg shadow-sm transition-all duration-300 cubic-bezier(0.4, 0, 0.2, 1) pointer-events-none z-10" style="left: 4px; width: calc((100% - 14px) / 2);"></div>
+                        <button type="button" id="btn-crop-mode-ratio" onclick="app.crop.setModeTab('ratio')" class="relative z-20 px-3 py-1.5 rounded-lg text-xs font-bold transition-colors duration-200 text-black">Tỉ lệ</button>
+                        <button type="button" id="btn-crop-mode-rotate" onclick="app.crop.setModeTab('rotate')" class="relative z-20 px-3 py-1.5 rounded-lg text-xs font-bold transition-colors duration-200 text-gray-500 hover:text-black">Xoay ảnh</button>
                     </div>
                 </div>
                 <div id="crop-container" class="w-full relative flex items-center justify-center select-none overflow-hidden bg-gray-300" style="height: 60vh; min-height: 300px; -webkit-touch-callout: none; touch-action: none;" oncontextmenu="return false;" onmousedown="app.crop.onDragStart(event)" onmousemove="app.crop.onDragMove(event)" onmouseup="app.crop.onDragEnd(event)" onmouseleave="app.crop.onDragEnd(event)" ontouchstart="app.crop.onDragStart(event)" ontouchmove="app.crop.onDragMove(event)" ontouchend="app.crop.onDragEnd(event)">
@@ -2311,24 +2310,6 @@ html.theme-dark .ct-icon {
                             <button type="button" onclick="app.crop.rotateBy(90)" class="w-7 h-7 sm:w-8 sm:h-8 shrink-0 flex items-center justify-center text-xs bg-white text-gray-700 border border-gray-300 rounded-md hover:bg-gray-100 font-bold transition" title="Xoay 90 độ">
                                 <i class="fa-solid fa-rotate-right"></i>
                             </button>
-                        </div>
-                        <div id="crop-denoise-controls" class="hidden flex-nowrap gap-2 sm:gap-4 w-full items-center">
-                            <div class="flex items-center gap-1 sm:gap-2 flex-1">
-                                <button type="button" onclick="app.crop.stepDenoise(-5)" class="w-7 h-7 sm:w-8 sm:h-8 shrink-0 flex items-center justify-center text-xs bg-white text-gray-700 border border-gray-300 rounded-md hover:bg-gray-100 font-bold transition" title="Giảm khử nhiễu 5%">
-                                    <i class="fa-solid fa-minus"></i>
-                                </button>
-                                <div class="flex flex-col items-center justify-center px-1 flex-1">
-                                    <div class="flex justify-between w-full text-[10px] font-bold text-gray-500 mb-1">
-                                        <span>0%</span>
-                                        <span id="crop-denoise-val">0%</span>
-                                        <span>100%</span>
-                                    </div>
-                                    <input type="range" id="crop-denoise-slider" min="0" max="100" step="5" value="0" class="vnbus-slider w-full" oninput="app.crop.slideDenoise(this.value)">
-                                </div>
-                                <button type="button" onclick="app.crop.stepDenoise(5)" class="w-7 h-7 sm:w-8 sm:h-8 shrink-0 flex items-center justify-center text-xs bg-white text-gray-700 border border-gray-300 rounded-md hover:bg-gray-100 font-bold transition" title="Tăng khử nhiễu 5%">
-                                    <i class="fa-solid fa-plus"></i>
-                                </button>
-                            </div>
                         </div>
                     </div>
                     <div class="p-3 md:p-4 flex justify-between items-center w-full">
@@ -4559,11 +4540,11 @@ html.theme-dark .ct-icon {
 
                                     <!-- Các nút chỉnh sửa (Cùng Form) -->
                                     <button type="button" id="btn-crop-image" onclick="app.crop.open('main')" class="flex items-center justify-center gap-1.5 bg-white border border-gray-300 text-gray-700 px-3 py-2 rounded-lg hover:bg-gray-100 hover:text-black font-bold text-[11px] sm:text-xs transition shadow-sm focus:ring-2 focus:ring-black flex-1 md:flex-none whitespace-nowrap">
-                                        <i class="fa-solid fa-image"></i> Chỉnh ảnh
+                                        <i class="fa-solid fa-crop-simple"></i> Cắt ảnh
                                     </button>
 
                                     <button type="button" id="btn-adjust-color" onclick="app.upload.toggleColorPanel()" class="flex items-center justify-center gap-1.5 bg-white border border-gray-300 text-gray-700 px-3 py-2 rounded-lg hover:bg-gray-100 hover:text-black font-bold text-[11px] sm:text-xs transition shadow-sm focus:ring-2 focus:ring-black flex-1 md:flex-none whitespace-nowrap">
-                                        <i class="fa-solid fa-sliders"></i> Chỉnh màu
+                                        <i class="fa-solid fa-sliders"></i> Chỉnh ảnh
                                     </button>
 
                                     <button type="button" id="btn-add-blur" onclick="app.upload.toggleBlurPanel()" class="flex items-center justify-center gap-1.5 bg-white border border-gray-300 text-gray-700 px-3 py-2 rounded-lg hover:bg-gray-100 hover:text-black font-bold text-[11px] sm:text-xs transition shadow-sm focus:ring-2 focus:ring-black flex-1 md:flex-none whitespace-nowrap">
@@ -4583,12 +4564,12 @@ html.theme-dark .ct-icon {
                                     </div>
                                 </div>
 
-                                <!-- BẢNG CHỈNH MÀU SẼ ĐƯỢC CHÈN LẠI VÀO ĐÂY -->
+                                <!-- BẢNG CHỈNH ẢNH SẼ ĐƯỢC CHÈN LẠI VÀO ĐÂY -->
                                 <div id="color-adjust-panel" class="hidden mt-3 p-4 bg-white border border-gray-200 rounded-xl shadow-sm relative z-30">
                                 <!-- Cảnh báo đỏ -->
                                 <div class="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg flex items-start gap-2.5">
                                     <i class="fa-solid fa-triangle-exclamation text-red-500 mt-0.5 text-sm"></i>
-                                    <p class="text-[11px] font-bold text-red-700 leading-snug">Lưu ý quan trọng: Nếu lạm dụng chỉnh màu, kéo thông số quá đà làm mất đi tính chân thực nguyên bản của xe, ảnh có thể sẽ bị từ chối.</p>
+                                    <p class="text-[11px] font-bold text-red-700 leading-snug">Lưu ý quan trọng: Nếu lạm dụng chỉnh ảnh, kéo thông số quá đà làm mất đi tính chân thực nguyên bản của xe, ảnh có thể sẽ bị từ chối.</p>
                                 </div>
 
                                 <!-- Style độc quyền cho thanh trượt -->
@@ -4665,6 +4646,10 @@ html.theme-dark .ct-icon {
                                     <div>
                                         <div class="flex justify-between items-center mb-2"><label class="text-[11px] font-bold text-gray-700 uppercase tracking-wider">Độ bão hòa (Màu sắc)</label><span id="val-saturation" class="text-[10px] font-mono font-bold text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded border border-gray-200">100%</span></div>
                                         <input type="range" id="adj-saturation" min="0" max="200" value="100" class="vnbus-slider" oninput="app.upload.updateFilters()" onmousedown="event.stopPropagation()" ontouchstart="event.stopPropagation()">
+                                    </div>
+                                    <div>
+                                        <div class="flex justify-between items-center mb-2"><label class="text-[11px] font-bold text-gray-700 uppercase tracking-wider">Khử nhiễu</label><span id="val-denoise" class="text-[10px] font-mono font-bold text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded border border-gray-200">0%</span></div>
+                                        <input type="range" id="adj-denoise" min="0" max="100" step="5" value="0" class="vnbus-slider" oninput="app.upload.updateFilters()" onmousedown="event.stopPropagation()" ontouchstart="event.stopPropagation()">
                                     </div>
                                 </div>
                                 <div class="text-right mt-4">
@@ -7021,7 +7006,7 @@ html.theme-dark .ct-icon {
 
     <!-- KHAY CHỨA TOAST Z-INDEX CAO NHẤT -->
     <div id="toast-container" class="fixed left-0 w-full flex flex-col items-center gap-2 pointer-events-none z-[99999]" style="z-index: 99999 !important;"></div>
-<script src="/app.ef9e2b64201b.js" onerror="if(!window.__app_fallback_loaded){window.__app_fallback_loaded=true;var s=document.createElement('script');s.src='/app.js?v=' + Date.now();document.head.appendChild(s);}"></script>
+<script src="/app.089757c79579.js" onerror="if(!window.__app_fallback_loaded){window.__app_fallback_loaded=true;var s=document.createElement('script');s.src='/app.js?v=' + Date.now();document.head.appendChild(s);}"></script>
 </body>
 </html>
 

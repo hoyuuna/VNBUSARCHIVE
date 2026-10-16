@@ -448,6 +448,17 @@ footer .text-gray-400.cursor-not-allowed { color: #52525b !important; }
     background-color: #27272a !important;
     border: 1px solid #ffffff !important;
 }
-#crop-rotate-slider, #crop-denoise-slider {
+#crop-rotate-slider, #adj-brightness, #adj-contrast, #adj-saturation, #adj-denoise {
     accent-color: #ffffff !important;
+}
+body.theme-dark .vnbus-slider, html.theme-dark .vnbus-slider {
+    background: #27272a !important;
+}
+body.theme-dark .vnbus-slider::-webkit-slider-thumb, html.theme-dark .vnbus-slider::-webkit-slider-thumb {
+    background: #000000 !important;
+    border-color: #ffffff !important;
+}
+body.theme-dark .vnbus-slider::-moz-range-thumb, html.theme-dark .vnbus-slider::-moz-range-thumb {
+    background: #000000 !important;
+    border-color: #ffffff !important;
 }

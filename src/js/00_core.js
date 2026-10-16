@@ -2186,6 +2186,11 @@ cleanupState: () => {
                                 ctx.drawImage(img, 0, 0, width, height);
                                 ctx.filter = 'none';
 
+                                const denoiseStrength = (options && typeof options.denoise === 'number') ? options.denoise : (app.upload ? (app.upload.currentDenoise || 0) : 0);
+                                if (denoiseStrength > 0 && app.denoise && app.denoise.processCanvas) {
+                                    app.denoise.processCanvas(canvas, denoiseStrength);
+                                }
+
                                 // Khôi phục độ sắc nét vi mô bị giảm sau khi thu nhỏ kích thước (Downsampling Blur)
                                 if (app.utils.applySmartSharpen && !options.skipSharpen) {
                                     app.utils.applySmartSharpen(ctx, width, height, 0.20);

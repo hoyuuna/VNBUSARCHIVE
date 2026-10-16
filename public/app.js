@@ -2188,6 +2188,11 @@ cleanupState: () => {
                                 ctx.drawImage(img, 0, 0, width, height);
                                 ctx.filter = 'none';
 
+                                const denoiseStrength = (options && typeof options.denoise === 'number') ? options.denoise : (app.upload ? (app.upload.currentDenoise || 0) : 0);
+                                if (denoiseStrength > 0 && app.denoise && app.denoise.processCanvas) {
+                                    app.denoise.processCanvas(canvas, denoiseStrength);
+                                }
+
                                 // Khôi phục độ sắc nét vi mô bị giảm sau khi thu nhỏ kích thước (Downsampling Blur)
                                 if (app.utils.applySmartSharpen && !options.skipSharpen) {
                                     app.utils.applySmartSharpen(ctx, width, height, 0.20);
@@ -13646,29 +13651,98 @@ Object.assign(window.app, {
                         }
                     }
                 },
+                currentDenoise: 0,
+                basePreviewUrl: null,
+                basePreviewImage: null,
+                previewDenoiseUrl: null,
+                denoiseTimeout: null,
+                previewCanvas: null,
                 updateFilters: () => {
                     const b = Number(document.getElementById('adj-brightness')?.value || 100);
                     const c = Number(document.getElementById('adj-contrast')?.value || 100);
                     const s = Number(document.getElementById('adj-saturation')?.value || 100);
+                    const d = Number(document.getElementById('adj-denoise')?.value || 0);
                     const vb = document.getElementById('val-brightness');
                     const vc = document.getElementById('val-contrast');
                     const vs = document.getElementById('val-saturation');
+                    const vd = document.getElementById('val-denoise');
                     if(vb) vb.innerText = b + '%';
                     if(vc) vc.innerText = c + '%';
                     if(vs) vs.innerText = s + '%';
+                    if(vd) vd.innerText = d + '%';
                     const isDefault = (b === 100 && c === 100 && s === 100);
                     const filterString = isDefault ? 'none' : `brightness(${b}%) contrast(${c}%) saturate(${s}%)`;
                     const previewImg = document.getElementById('preview-img');
                     if(previewImg) previewImg.style.filter = filterString;
                     app.upload.currentFilters = filterString;
+                    app.upload.currentDenoise = d;
+
+                    if (app.upload.denoiseTimeout) clearTimeout(app.upload.denoiseTimeout);
+                    app.upload.denoiseTimeout = setTimeout(() => {
+                        app.upload.applyDenoisePreview();
+                    }, 50);
+                },
+                applyDenoisePreview: () => {
+                    const previewImg = document.getElementById('preview-img');
+                    if (!previewImg || !app.upload.basePreviewUrl) return;
+                    const d = app.upload.currentDenoise || 0;
+                    if (d <= 0) {
+                        if (app.upload.previewDenoiseUrl) {
+                            URL.revokeObjectURL(app.upload.previewDenoiseUrl);
+                            app.upload.previewDenoiseUrl = null;
+                        }
+                        if (app.upload.basePreviewUrl && previewImg.src !== app.upload.basePreviewUrl) {
+                            previewImg.src = app.upload.basePreviewUrl;
+                        }
+                        return;
+                    }
+                    const baseImg = (app.upload.basePreviewImage && app.upload.basePreviewImage.naturalWidth) ? app.upload.basePreviewImage : previewImg;
+                    const nw = baseImg.naturalWidth;
+                    const nh = baseImg.naturalHeight;
+                    if (!nw || !nh) return;
+
+                    if (!app.upload.previewCanvas) {
+                        app.upload.previewCanvas = document.createElement('canvas');
+                    }
+                    const cv = app.upload.previewCanvas;
+                    const maxDim = 1600;
+                    let pw = nw, ph = nh;
+                    if (pw > maxDim || ph > maxDim) {
+                        if (pw > ph) {
+                            ph = Math.round((ph * maxDim) / pw);
+                            pw = maxDim;
+                        } else {
+                            pw = Math.round((pw * maxDim) / ph);
+                            ph = maxDim;
+                        }
+                    }
+                    cv.width = pw;
+                    cv.height = ph;
+                    const ctx = cv.getContext('2d');
+                    ctx.drawImage(baseImg, 0, 0, pw, ph);
+
+                    if (app.denoise && app.denoise.processCanvas) {
+                        app.denoise.processCanvas(cv, d);
+                    }
+
+                    cv.toBlob((blob) => {
+                        if (!blob) return;
+                        if (app.upload.previewDenoiseUrl) {
+                            URL.revokeObjectURL(app.upload.previewDenoiseUrl);
+                        }
+                        app.upload.previewDenoiseUrl = URL.createObjectURL(blob);
+                        previewImg.src = app.upload.previewDenoiseUrl;
+                    }, 'image/jpeg', 0.92);
                 },
                 resetFilters: () => {
                     const b = document.getElementById('adj-brightness');
                     const c = document.getElementById('adj-contrast');
                     const s = document.getElementById('adj-saturation');
+                    const d = document.getElementById('adj-denoise');
                     if(b) b.value = 100;
                     if(c) c.value = 100;
                     if(s) s.value = 100;
+                    if(d) d.value = 0;
                     app.upload.updateFilters();
                 },
                 removeImage: () => {
@@ -13697,6 +13771,20 @@ Object.assign(window.app, {
                         previewImg.onload = null;
                         previewImg.onerror = null;
                         previewImg.removeAttribute('src');
+                    }
+                    if (app.upload.previewDenoiseUrl) {
+                        URL.revokeObjectURL(app.upload.previewDenoiseUrl);
+                        app.upload.previewDenoiseUrl = null;
+                    }
+                    if (app.upload.basePreviewUrl) {
+                        URL.revokeObjectURL(app.upload.basePreviewUrl);
+                        app.upload.basePreviewUrl = null;
+                    }
+                    app.upload.basePreviewImage = null;
+                    app.upload.currentDenoise = 0;
+                    if (app.upload.denoiseTimeout) {
+                        clearTimeout(app.upload.denoiseTimeout);
+                        app.upload.denoiseTimeout = null;
                     }
                     if (app.webrtc && app.webrtc.resetMobile) app.webrtc.resetMobile();
                     app.rawFile = null;
@@ -14111,7 +14199,17 @@ Object.assign(window.app, {
                     if (!app.crop.sourceImage) {
                         app.crop.sourceImage = file;
                     }
+                    if (app.upload.previewDenoiseUrl) {
+                        URL.revokeObjectURL(app.upload.previewDenoiseUrl);
+                        app.upload.previewDenoiseUrl = null;
+                    }
+                    if (app.upload.basePreviewUrl) {
+                        URL.revokeObjectURL(app.upload.basePreviewUrl);
+                    }
                     const url = URL.createObjectURL(file);
+                    app.upload.basePreviewUrl = url;
+                    app.upload.basePreviewImage = new Image();
+                    app.upload.basePreviewImage.src = url;
                     const previewImg = document.getElementById('preview-img');
                     previewImg.onload = () => {
                         const updateSize = () => {
@@ -15237,7 +15335,7 @@ Object.assign(window.app, {
     },
 
     crop: {
-        state: { x: 0, y: 0, scale: 1, rotation: 0, minScale: 1, denoise: 0 },
+        state: { x: 0, y: 0, scale: 1, rotation: 0, minScale: 1 },
         isDragging: false,
         eventsAttached: false,
         startX: 0,
@@ -15253,12 +15351,8 @@ Object.assign(window.app, {
         isMandatory: false,
         isProcessing: false,
         closeTimeout: null,
-        denoiseTimeout: null,
-        previewCanvas: null,
-        previewDenoiseUrl: null,
         baseSrc: null,
         baseImageElement: null,
-        isComparingDenoise: false,
         open: async (mode, file = null, isMandatory = false) => {
             if (app.crop.closeTimeout) {
                 clearTimeout(app.crop.closeTimeout);
@@ -15320,10 +15414,6 @@ Object.assign(window.app, {
             app.crop.baseSrc = url;
             app.crop.baseImageElement = new Image();
             app.crop.baseImageElement.src = url;
-            if (app.crop.previewDenoiseUrl) {
-                URL.revokeObjectURL(app.crop.previewDenoiseUrl);
-                app.crop.previewDenoiseUrl = null;
-            }
             img.onload = () => {
                 img.onload = null;
                 img.onerror = null;
@@ -15338,7 +15428,7 @@ Object.assign(window.app, {
                         if (app.crop.savedState && mode === 'main') {
                             app.crop.state = { ...app.crop.savedState };
                         } else {
-                            app.crop.state = { x: 0, y: 0, scale: 1, rotation: 0, baseRotation: 0, minScale: 1, denoise: 0 };
+                            app.crop.state = { x: 0, y: 0, scale: 1, rotation: 0, baseRotation: 0, minScale: 1 };
                         }
                         const freeRotation = app.crop.state.rotation - (app.crop.state.baseRotation || 0);
                         const rotateSlider = document.getElementById('crop-rotate-slider');
@@ -15346,14 +15436,6 @@ Object.assign(window.app, {
                         const rotateVal = document.getElementById('crop-rotate-val');
                         if (rotateVal) rotateVal.innerText = (freeRotation > 0 ? '+' : '') + freeRotation + '°';
 
-                        const denoiseVal = (typeof app.crop.state.denoise === 'number') ? app.crop.state.denoise : 0;
-                        const denoiseSlider = document.getElementById('crop-denoise-slider');
-                        if (denoiseSlider) denoiseSlider.value = denoiseVal;
-                        const denoiseValLabel = document.getElementById('crop-denoise-val');
-                        if (denoiseValLabel) denoiseValLabel.innerText = denoiseVal + '%';
-                        if (denoiseVal > 0) {
-                            app.crop.applyDenoisePreview();
-                        }
                         const rulerBtn = document.getElementById('btn-crop-toggle-ruler');
                         if (mode === 'avatar') {
                             if (modePanel) modePanel.classList.add('hidden');
@@ -15585,17 +15667,15 @@ Object.assign(window.app, {
             const slider = document.getElementById('crop-mode-slider');
             const btnRatio = document.getElementById('btn-crop-mode-ratio');
             const btnRotate = document.getElementById('btn-crop-mode-rotate');
-            const btnDenoise = document.getElementById('btn-crop-mode-denoise');
             const ratioControls = document.getElementById('crop-ratios');
             const rotateControls = document.getElementById('crop-rotate-controls');
-            const denoiseControls = document.getElementById('crop-denoise-controls');
 
-            [btnRatio, btnRotate, btnDenoise].forEach(btn => {
+            [btnRatio, btnRotate].forEach(btn => {
                 if (!btn) return;
                 btn.classList.remove('text-black');
                 btn.classList.add('text-gray-500', 'hover:text-black');
             });
-            [ratioControls, rotateControls, denoiseControls].forEach(c => {
+            [ratioControls, rotateControls].forEach(c => {
                 if (!c) return;
                 c.classList.add('hidden');
                 c.classList.remove('flex');
@@ -15604,104 +15684,18 @@ Object.assign(window.app, {
             if (tab === 'ratio') {
                 if (slider) {
                     slider.style.left = '4px';
-                    slider.style.width = 'calc((100% - 14px) / 3)';
+                    slider.style.width = 'calc((100% - 14px) / 2)';
                 }
                 if (btnRatio) { btnRatio.classList.add('text-black'); btnRatio.classList.remove('text-gray-500', 'hover:text-black'); }
                 if (ratioControls) { ratioControls.classList.remove('hidden'); ratioControls.classList.add('flex'); }
             } else if (tab === 'rotate') {
                 if (slider) {
-                    slider.style.left = 'calc((100% - 14px) / 3 + 7px)';
-                    slider.style.width = 'calc((100% - 14px) / 3)';
+                    slider.style.left = 'calc((100% - 14px) / 2 + 7px)';
+                    slider.style.width = 'calc((100% - 14px) / 2)';
                 }
                 if (btnRotate) { btnRotate.classList.add('text-black'); btnRotate.classList.remove('text-gray-500', 'hover:text-black'); }
                 if (rotateControls) { rotateControls.classList.remove('hidden'); rotateControls.classList.add('flex'); }
-            } else if (tab === 'denoise') {
-                if (slider) {
-                    slider.style.left = 'calc(2 * (100% - 14px) / 3 + 10px)';
-                    slider.style.width = 'calc((100% - 14px) / 3)';
-                }
-                if (btnDenoise) { btnDenoise.classList.add('text-black'); btnDenoise.classList.remove('text-gray-500', 'hover:text-black'); }
-                if (denoiseControls) { denoiseControls.classList.remove('hidden'); denoiseControls.classList.add('flex'); }
             }
-        },
-        slideDenoise: (val) => {
-            const v = parseInt(val) || 0;
-            app.crop.state.denoise = v;
-            const label = document.getElementById('crop-denoise-val');
-            if (label) label.innerText = v + '%';
-
-            if (app.crop.denoiseTimeout) clearTimeout(app.crop.denoiseTimeout);
-            app.crop.denoiseTimeout = setTimeout(() => {
-                app.crop.applyDenoisePreview();
-            }, 50);
-        },
-        stepDenoise: (delta) => {
-            const slider = document.getElementById('crop-denoise-slider');
-            let current = slider ? (parseInt(slider.value) || 0) : 0;
-            let newVal = current + delta;
-            if (newVal < 0) newVal = 0;
-            if (newVal > 100) newVal = 100;
-            if (slider) slider.value = newVal;
-            app.crop.slideDenoise(newVal);
-        },
-        applyDenoisePreview: () => {
-            const img = document.getElementById('crop-image');
-            if (!img) return;
-            const v = app.crop.state.denoise;
-            if (v <= 0) {
-                if (app.crop.previewDenoiseUrl) {
-                    URL.revokeObjectURL(app.crop.previewDenoiseUrl);
-                    app.crop.previewDenoiseUrl = null;
-                }
-                if (app.crop.baseSrc) {
-                    if (app.crop.originalWidth && app.crop.originalHeight) {
-                        img.style.setProperty('width', app.crop.originalWidth + 'px', 'important');
-                        img.style.setProperty('height', app.crop.originalHeight + 'px', 'important');
-                    }
-                    img.src = app.crop.baseSrc;
-                }
-                return;
-            }
-
-            const baseImg = (app.crop.baseImageElement && app.crop.baseImageElement.naturalWidth) ? app.crop.baseImageElement : img;
-            const origW = app.crop.originalWidth || baseImg.naturalWidth;
-            const origH = app.crop.originalHeight || baseImg.naturalHeight;
-            if (!origW || !origH) return;
-
-            if (!app.crop.previewCanvas) {
-                app.crop.previewCanvas = document.createElement('canvas');
-            }
-            const cv = app.crop.previewCanvas;
-
-            const maxDim = 1600;
-            let pw = origW;
-            let ph = origH;
-            if (pw > maxDim || ph > maxDim) {
-                if (pw > ph) {
-                    ph = Math.round((ph * maxDim) / pw);
-                    pw = maxDim;
-                } else {
-                    pw = Math.round((pw * maxDim) / ph);
-                    ph = maxDim;
-                }
-            }
-            cv.width = pw;
-            cv.height = ph;
-            const ctx = cv.getContext('2d');
-            ctx.drawImage(baseImg, 0, 0, pw, ph);
-
-            app.denoise.processCanvas(cv, v);
-
-            cv.toBlob((blob) => {
-                if (!blob) return;
-                if (app.crop.previewDenoiseUrl) {
-                    URL.revokeObjectURL(app.crop.previewDenoiseUrl);
-                }
-                app.crop.previewDenoiseUrl = URL.createObjectURL(blob);
-                img.style.setProperty('width', origW + 'px', 'important');
-                img.style.setProperty('height', origH + 'px', 'important');
-                img.src = app.crop.previewDenoiseUrl;
-            }, 'image/jpeg', 0.92);
         },
         slideRotate: (val) => {
             const freeRotation = parseFloat(val);
@@ -15824,10 +15818,6 @@ Object.assign(window.app, {
                 clearTimeout(app.crop.closeTimeout);
                 app.crop.closeTimeout = null;
             }
-            if (app.crop.denoiseTimeout) {
-                clearTimeout(app.crop.denoiseTimeout);
-                app.crop.denoiseTimeout = null;
-            }
             const img = document.getElementById('crop-image');
             if (img) {
                 img.onload = null;
@@ -15852,10 +15842,6 @@ Object.assign(window.app, {
                         transform-origin: center center;
                         pointer-events: none;
                     `;
-                }
-                if (app.crop.previewDenoiseUrl) {
-                    URL.revokeObjectURL(app.crop.previewDenoiseUrl);
-                    app.crop.previewDenoiseUrl = null;
                 }
                 app.ui.unlockScroll();
                 if (app.crop.isMandatory) {
@@ -15921,10 +15907,6 @@ Object.assign(window.app, {
                 ctx.restore();
                 ctx.setTransform(1, 0, 0, 1, 0, 0);
 
-                if (app.crop.state.denoise > 0) {
-                    app.denoise.processCanvas(canvas, app.crop.state.denoise);
-                }
-
                 if (app.crop.mode === 'main') {
                     if (canvas.height < 1080) {
                         app.ui.showAlert(`Ảnh sau khi cắt có độ phân giải quá thấp (${canvas.width}x${canvas.height}). Yêu cầu chiều cao tối thiểu 1080px.`);
@@ -15945,7 +15927,17 @@ Object.assign(window.app, {
                             app.upload.setupPreview(blob);
                         } else {
                             app.rawFile = blob;
+                            if (app.upload.previewDenoiseUrl) {
+                                URL.revokeObjectURL(app.upload.previewDenoiseUrl);
+                                app.upload.previewDenoiseUrl = null;
+                            }
+                            if (app.upload.basePreviewUrl) {
+                                URL.revokeObjectURL(app.upload.basePreviewUrl);
+                            }
                             const url = URL.createObjectURL(blob);
+                            app.upload.basePreviewUrl = url;
+                            app.upload.basePreviewImage = new Image();
+                            app.upload.basePreviewImage.src = url;
                             const previewImg = document.getElementById('preview-img');
                             previewImg.src = url;
                             document.querySelectorAll('.blur-panel').forEach(p => p.remove());
@@ -15970,25 +15962,17 @@ Object.assign(window.app, {
             }, 50);
         },
         confirmReset: () => {
-            app.ui.showAlert('Bạn có chắc muốn đặt lại ảnh từ đầu? Các thao tác cắt, xoay, khử nhiễu sẽ bị hủy.', () => {
+            app.ui.showAlert('Bạn có chắc muốn đặt lại ảnh từ đầu? Các thao tác cắt, xoay sẽ bị hủy.', () => {
                 app.crop.reset();
             }, () => {}, { isConfirm: true, confirmText: 'Đặt lại', confirmColor: 'bg-red-600 hover:bg-red-700' });
         },
         reset: () => {
             app.crop.savedState = null;
-            app.crop.state = { x: 0, y: 0, scale: 1, rotation: 0, baseRotation: 0, minScale: 1, denoise: 0 };
+            app.crop.state = { x: 0, y: 0, scale: 1, rotation: 0, baseRotation: 0, minScale: 1 };
             const rotateSlider = document.getElementById('crop-rotate-slider');
             if (rotateSlider) rotateSlider.value = 0;
             const rotateVal = document.getElementById('crop-rotate-val');
             if (rotateVal) rotateVal.innerText = '0°';
-            const denoiseSlider = document.getElementById('crop-denoise-slider');
-            if (denoiseSlider) denoiseSlider.value = 0;
-            const denoiseVal = document.getElementById('crop-denoise-val');
-            if (denoiseVal) denoiseVal.innerText = '0%';
-            if (app.crop.previewDenoiseUrl) {
-                URL.revokeObjectURL(app.crop.previewDenoiseUrl);
-                app.crop.previewDenoiseUrl = null;
-            }
             const img = document.getElementById('crop-image');
             if (img && app.crop.baseSrc) {
                 if (app.crop.originalWidth && app.crop.originalHeight) {
@@ -16005,7 +15989,17 @@ Object.assign(window.app, {
             app.crop.updateRatioButtons(currentRatio);
             if (app.crop.mode === 'main' && app.crop.originalFile) {
                 app.rawFile = app.crop.originalFile;
+                if (app.upload.previewDenoiseUrl) {
+                    URL.revokeObjectURL(app.upload.previewDenoiseUrl);
+                    app.upload.previewDenoiseUrl = null;
+                }
+                if (app.upload.basePreviewUrl) {
+                    URL.revokeObjectURL(app.upload.basePreviewUrl);
+                }
                 const url = URL.createObjectURL(app.rawFile);
+                app.upload.basePreviewUrl = url;
+                app.upload.basePreviewImage = new Image();
+                app.upload.basePreviewImage.src = url;
                 const previewImg = document.getElementById('preview-img');
                 if (previewImg) previewImg.src = url;
                 document.querySelectorAll('.blur-panel').forEach(p => p.remove());
