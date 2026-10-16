@@ -6071,6 +6071,30 @@ html.theme-dark .ct-icon {
                     global: {
                         fetch: async (url, options) => {
                             try {
+                                const urlStr = typeof url === 'string' ? url : (url?.url || '');
+                                if (urlStr.includes('/rest/v1/') && (
+                                    urlStr.includes('pending') ||
+                                    urlStr.includes('denied') ||
+                                    urlStr.includes('edit_requests') ||
+                                    urlStr.includes('photo_reviews') ||
+                                    urlStr.includes('admin_audit_logs') ||
+                                    urlStr.includes('admin_notes') ||
+                                    urlStr.includes('reports') ||
+                                    urlStr.includes('notifications') ||
+                                    urlStr.includes('uploader_id=') ||
+                                    urlStr.includes('status=in.') ||
+                                    urlStr.includes('status=neq.')
+                                )) {
+                                    options = options || {};
+                                    options.headers = options.headers || {};
+                                    if (options.headers instanceof Headers) {
+                                        options.headers.set('Cache-Control', 'no-cache');
+                                        options.headers.set('X-Bypass-Cache', '1');
+                                    } else {
+                                        options.headers['Cache-Control'] = 'no-cache';
+                                        options.headers['X-Bypass-Cache'] = '1';
+                                    }
+                                }
                                 let response = await window.fetch(url, options);
                                 if (response.status === 503) {
                                     for (let r = 0; r < 2; r++) {
