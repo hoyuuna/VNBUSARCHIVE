@@ -13745,6 +13745,18 @@ Object.assign(window.app, {
                     if(d) d.value = 0;
                     app.upload.updateFilters();
                 },
+                stepFilter: (type, delta) => {
+                    const input = document.getElementById(`adj-${type}`);
+                    if (!input) return;
+                    const min = input.min !== '' ? Number(input.min) : 0;
+                    const max = input.max !== '' ? Number(input.max) : 100;
+                    const current = Number(input.value) || 0;
+                    let next = current + delta;
+                    if (next < min) next = min;
+                    if (next > max) next = max;
+                    input.value = next;
+                    app.upload.updateFilters();
+                },
                 removeImage: () => {
                     const upFile = document.getElementById('up-file');
                     if (upFile) upFile.value = '';
