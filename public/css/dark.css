@@ -250,10 +250,10 @@ polygon[fill="white"] { fill: #000000 !important; }
 /* Route details info-input */
 .info-input { color: #ffffff !important; background-color: transparent !important; }
 .info-input span.cursor-pointer, .info-input a.cursor-pointer, .info-input.cursor-pointer {
-    color: #60a5fa !important;
+    color: #ffffff !important;
 }
 .info-input span.cursor-pointer:hover, .info-input a.cursor-pointer:hover, .info-input.cursor-pointer:hover {
-    color: #93c5fd !important;
+    text-decoration: underline !important;
 }
 .info-input .text-gray-500 {
     color: #9ca3af !important;

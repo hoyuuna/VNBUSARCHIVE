@@ -11902,7 +11902,7 @@ if (!decodedProvince || decodedProvince.trim() === '') {
                                 }
                                 const span = document.createElement('span');
                                 span.textContent = item;
-                                span.className = 'cursor-pointer text-blue-600 dark:text-blue-400 font-bold hover:underline';
+                                span.className = 'cursor-pointer text-black dark:text-white font-bold hover:underline transition';
                                 span.onclick = (e) => {
                                     e.stopPropagation();
                                     clickHandler(item);
