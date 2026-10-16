@@ -890,36 +890,93 @@ html.theme-dark .ct-icon {
             animation: modalOut 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
 
+        /* Universal Range Sliders (Light mode default: ruột trắng, viền đen) */
+        input[type="range"],
         .vnbus-slider {
             -webkit-appearance: none;
+            appearance: none;
             width: 100%;
-            height: 4px;
-            background: #d4d4d8 !important;
-            border-radius: 2px;
+            height: 6px;
+            background: #e4e4e7 !important;
+            border-radius: 9999px;
             outline: none;
+            cursor: pointer;
         }
-        html.theme-dark .vnbus-slider {
-            background: #52525b !important;
-        }
+        input[type="range"]::-webkit-slider-thumb,
         .vnbus-slider::-webkit-slider-thumb {
             -webkit-appearance: none;
             appearance: none;
-            width: 18px;
-            height: 18px;
+            width: 20px;
+            height: 20px;
             border-radius: 50%;
-            background: #000000 !important;
-            border: 2px solid #ffffff !important;
-            cursor: pointer;
-            box-shadow: 0 0 2px rgba(0,0,0,0.3);
+            background: #ffffff !important;
+            border: 2px solid #000000 !important;
+            cursor: grab;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
         }
+        input[type="range"]::-webkit-slider-thumb:active,
+        .vnbus-slider::-webkit-slider-thumb:active {
+            cursor: grabbing;
+            background: #ffffff !important;
+            border-color: #000000 !important;
+            box-shadow: 0 0 0 5px rgba(0, 0, 0, 0.1) !important;
+        }
+        input[type="range"]::-moz-range-thumb,
         .vnbus-slider::-moz-range-thumb {
-            width: 18px;
-            height: 18px;
+            width: 20px;
+            height: 20px;
             border-radius: 50%;
+            background: #ffffff !important;
+            border: 2px solid #000000 !important;
+            cursor: grab;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+        }
+        input[type="range"]::-moz-range-thumb:active,
+        .vnbus-slider::-moz-range-thumb:active {
+            cursor: grabbing;
+            background: #ffffff !important;
+            border-color: #000000 !important;
+            box-shadow: 0 0 0 5px rgba(0, 0, 0, 0.1) !important;
+        }
+
+        /* Universal Range Sliders (Dark mode fallback: ruột đen, viền trắng) */
+        html.theme-dark input[type="range"],
+        html.theme-dark .vnbus-slider,
+        body.theme-dark input[type="range"],
+        body.theme-dark .vnbus-slider {
+            background: #27272a !important;
+        }
+        html.theme-dark input[type="range"]::-webkit-slider-thumb,
+        html.theme-dark .vnbus-slider::-webkit-slider-thumb,
+        body.theme-dark input[type="range"]::-webkit-slider-thumb,
+        body.theme-dark .vnbus-slider::-webkit-slider-thumb {
             background: #000000 !important;
             border: 2px solid #ffffff !important;
-            cursor: pointer;
-            box-shadow: 0 0 2px rgba(0,0,0,0.3);
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
+        }
+        html.theme-dark input[type="range"]::-webkit-slider-thumb:active,
+        html.theme-dark .vnbus-slider::-webkit-slider-thumb:active,
+        body.theme-dark input[type="range"]::-webkit-slider-thumb:active,
+        body.theme-dark .vnbus-slider::-webkit-slider-thumb:active {
+            background: #000000 !important;
+            border: 2px solid #ffffff !important;
+            box-shadow: 0 0 0 5px rgba(255, 255, 255, 0.15) !important;
+        }
+        html.theme-dark input[type="range"]::-moz-range-thumb,
+        html.theme-dark .vnbus-slider::-moz-range-thumb,
+        body.theme-dark input[type="range"]::-moz-range-thumb,
+        body.theme-dark .vnbus-slider::-moz-range-thumb {
+            background: #000000 !important;
+            border: 2px solid #ffffff !important;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
+        }
+        html.theme-dark input[type="range"]::-moz-range-thumb:active,
+        html.theme-dark .vnbus-slider::-moz-range-thumb:active,
+        body.theme-dark input[type="range"]::-moz-range-thumb:active,
+        body.theme-dark .vnbus-slider::-moz-range-thumb:active {
+            background: #000000 !important;
+            border: 2px solid #ffffff !important;
+            box-shadow: 0 0 0 5px rgba(255, 255, 255, 0.15) !important;
         }
 
         @keyframes modalIn {
@@ -1942,7 +1999,7 @@ html.theme-dark .ct-icon {
             if (stored === 'system') {
                 theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
             }
-            document.write('<link rel="stylesheet" href="/css/' + theme + '.css?v=1792128709432" id="theme-css">');
+            document.write('<link rel="stylesheet" href="/css/' + theme + '.css?v=1792130397258" id="theme-css">');
             document.documentElement.classList.add('theme-' + theme);
             document.documentElement.style.backgroundColor = theme === 'dark' ? '#18181b' : '#fdfcf8';
         })();
@@ -4574,31 +4631,7 @@ html.theme-dark .ct-icon {
 
                                 <!-- Style độc quyền cho thanh trượt -->
                                 <style>
-                                    .vnbus-slider { -webkit-appearance: none; appearance: none; width: 100%; height: 6px; background: #e4e4e7; border-radius: 99px; outline: none; cursor: pointer; }
-
-                                    /* Dành cho Chrome / Safari / Edge */
-                                    .vnbus-slider::-webkit-slider-thumb {
-                                        -webkit-appearance: none; appearance: none;
-                                        width: 20px; height: 20px; border-radius: 50%;
-                                        background: #fff; border: 2px solid #000;
-                                        cursor: grab; box-shadow: 0 2px 6px rgba(0,0,0,0.15);
-                                    }
-                                    .vnbus-slider::-webkit-slider-thumb:active {
-                                        cursor: grabbing; background: #f4f4f5; border-color: #3f3f46;
-                                        /* Tỏa bóng ra xung quanh thay vì phóng to để không bị tuột hit-box */
-                                        box-shadow: 0 0 0 5px rgba(0,0,0,0.1);
-                                    }
-
-                                    /* Dành cho Firefox */
-                                    .vnbus-slider::-moz-range-thumb {
-                                        width: 20px; height: 20px; border-radius: 50%;
-                                        background: #fff; border: 2px solid #000;
-                                        cursor: grab; box-shadow: 0 2px 6px rgba(0,0,0,0.15);
-                                    }
-                                    .vnbus-slider::-moz-range-thumb:active {
-                                        cursor: grabbing; background: #f4f4f5; border-color: #3f3f46;
-                                        box-shadow: 0 0 0 5px rgba(0,0,0,0.1);
-                                    }
+                                    /* Thanh trượt dùng cấu hình chung vnbus-slider */
 
 
 
@@ -7038,7 +7071,7 @@ html.theme-dark .ct-icon {
 
     <!-- KHAY CHỨA TOAST Z-INDEX CAO NHẤT -->
     <div id="toast-container" class="fixed left-0 w-full flex flex-col items-center gap-2 pointer-events-none z-[99999]" style="z-index: 99999 !important;"></div>
-<script src="/app.ade2f05c5108.js" onerror="if(!window.__app_fallback_loaded){window.__app_fallback_loaded=true;var s=document.createElement('script');s.src='/app.js?v=' + Date.now();document.head.appendChild(s);}"></script>
+<script src="/app.ea5c8a27d6a7.js" onerror="if(!window.__app_fallback_loaded){window.__app_fallback_loaded=true;var s=document.createElement('script');s.src='/app.js?v=' + Date.now();document.head.appendChild(s);}"></script>
 </body>
 </html>
 

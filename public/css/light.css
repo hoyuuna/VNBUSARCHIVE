@@ -520,3 +520,49 @@ input:focus, textarea:focus, select:focus {
 #denial-discord-box a i {
     color: #ffffff !important;
 }
+
+/* ===== RANGE SLIDERS (Light Mode: ruột trắng, viền đen) ===== */
+input[type="range"],
+.vnbus-slider {
+    -webkit-appearance: none;
+    appearance: none;
+    background: #e4e4e7 !important;
+    accent-color: #000000 !important;
+}
+input[type="range"]::-webkit-slider-thumb,
+.vnbus-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: #ffffff !important;
+    border: 2px solid #000000 !important;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+    cursor: grab;
+}
+input[type="range"]::-webkit-slider-thumb:active,
+.vnbus-slider::-webkit-slider-thumb:active {
+    cursor: grabbing;
+    background: #ffffff !important;
+    border: 2px solid #000000 !important;
+    box-shadow: 0 0 0 5px rgba(0, 0, 0, 0.1) !important;
+}
+input[type="range"]::-moz-range-thumb,
+.vnbus-slider::-moz-range-thumb {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: #ffffff !important;
+    border: 2px solid #000000 !important;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+    cursor: grab;
+}
+input[type="range"]::-moz-range-thumb:active,
+.vnbus-slider::-moz-range-thumb:active {
+    cursor: grabbing;
+    background: #ffffff !important;
+    border: 2px solid #000000 !important;
+    box-shadow: 0 0 0 5px rgba(0, 0, 0, 0.1) !important;
+}
+

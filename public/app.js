@@ -19614,7 +19614,7 @@ if (app.admin._activeLoadToken !== currentLoadToken || app.adminTab !== tab) ret
                                                               <span id="mgr-wm-scale-val" class="font-mono text-black">100%</span>
                                                           </div>
                                                           <div class="flex items-center gap-2">
-                                                              <input type="range" id="mgr-wm-scale" min="50" max="200" value="100" class="w-full h-1.5 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-purple-600" oninput="document.getElementById('mgr-wm-scale-val').innerText = this.value + '%'" onchange="app.admin.applyBlindWmRST()">
+                                                              <input type="range" id="mgr-wm-scale" min="50" max="200" value="100" class="vnbus-slider w-full" oninput="document.getElementById('mgr-wm-scale-val').innerText = this.value + '%'" onchange="app.admin.applyBlindWmRST()">
                                                               <button type="button" onclick="document.getElementById('mgr-wm-scale').value = 100; document.getElementById('mgr-wm-scale-val').innerText = '100%'; app.admin.applyBlindWmRST();" class="px-1.5 py-0.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded text-[10px] font-bold">100%</button>
                                                           </div>
                                                       </div>
@@ -19623,14 +19623,14 @@ if (app.admin._activeLoadToken !== currentLoadToken || app.adminTab !== tab) ret
                                                               <span>Bù lệch viền X (Crop dX):</span>
                                                               <span id="mgr-wm-dx-val" class="font-mono text-black">0 px</span>
                                                           </div>
-                                                          <input type="range" id="mgr-wm-dx" min="0" max="7" value="0" class="w-full h-1.5 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-purple-600" oninput="document.getElementById('mgr-wm-dx-val').innerText = this.value + ' px'" onchange="app.admin.applyBlindWmRST()">
+                                                          <input type="range" id="mgr-wm-dx" min="0" max="7" value="0" class="vnbus-slider w-full" oninput="document.getElementById('mgr-wm-dx-val').innerText = this.value + ' px'" onchange="app.admin.applyBlindWmRST()">
                                                       </div>
                                                       <div class="space-y-1">
                                                           <div class="flex justify-between text-[11px] text-gray-600 font-bold">
                                                               <span>Bù lệch viền Y (Crop dY):</span>
                                                               <span id="mgr-wm-dy-val" class="font-mono text-black">0 px</span>
                                                           </div>
-                                                          <input type="range" id="mgr-wm-dy" min="0" max="7" value="0" class="w-full h-1.5 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-purple-600" oninput="document.getElementById('mgr-wm-dy-val').innerText = this.value + ' px'" onchange="app.admin.applyBlindWmRST()">
+                                                          <input type="range" id="mgr-wm-dy" min="0" max="7" value="0" class="vnbus-slider w-full" oninput="document.getElementById('mgr-wm-dy-val').innerText = this.value + ' px'" onchange="app.admin.applyBlindWmRST()">
                                                       </div>
                                                   </div>
                                              </div>
