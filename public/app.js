@@ -4957,7 +4957,7 @@ grid.innerHTML = tiers.map(tier => {
 });
 
 /* --- MODULE: 03_auth.js --- */
-﻿
+
 Object.assign(window.app, {
     auth: {
                 mode: 'login',
@@ -5078,6 +5078,10 @@ Object.assign(window.app, {
                             await app.setUser(data.user);
                             app.ui.showAlert("Đăng nhập thành công!", () => { window.location.reload(); });
                         } else if (app.auth.mode === 'register') {
+                            const agreeCheckbox = document.getElementById('auth-agree-terms');
+                            if (agreeCheckbox && !agreeCheckbox.checked) {
+                                throw new Error("Vui lòng tích chọn đồng ý với Chính sách VNBUSARCHIVE và cam kết sẽ tuân thủ.");
+                            }
                             const username = document.getElementById('auth-username').value.trim();
                             if (!username) throw new Error("Vui lòng nhập tên hiển thị.");
                             if (!app.utils.isValidUsername(username)) throw new Error("Tên hiển thị từ 3 đến 20 ký tự, chỉ gồm chữ cái, số và dấu cách (không chứa ký tự đặc biệt, kí hiệu hay emoji).");

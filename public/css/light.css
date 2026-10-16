@@ -566,3 +566,28 @@ input[type="range"]::-moz-range-thumb:active,
     box-shadow: 0 0 0 5px rgba(0, 0, 0, 0.1) !important;
 }
 
+/* ===== CUSTOM CHECKBOX (Light Mode) ===== */
+.custom-cb-box {
+    background-color: #ffffff !important;
+    border: 1.5px solid #18181b !important;
+}
+.custom-cb-input:hover ~ .custom-cb-box,
+label:hover .custom-cb-box {
+    border-color: #000000 !important;
+    background-color: #f4f4f5 !important;
+}
+.custom-cb-input:checked ~ .custom-cb-box {
+    background-color: #000000 !important;
+    border-color: #000000 !important;
+    color: #ffffff !important;
+}
+.custom-cb-box i {
+    color: #ffffff !important;
+}
+.custom-cb-input:checked ~ .custom-cb-box i {
+    opacity: 1 !important;
+    transform: scale(1) !important;
+    color: #ffffff !important;
+}
+
+

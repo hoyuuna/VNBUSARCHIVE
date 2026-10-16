@@ -1611,42 +1611,76 @@ html.theme-dark .ct-icon {
             translate: 0 0 !important;
         }
 
-        /* 3. CUSTOM BLACK CHECKBOX (DÀNH CHO FORM HỖ TRỢ & TUYÊN BỐ) */
-        .custom-cb-input:checked ~ .custom-cb-box {
-            background-color: #000 !important;
-            
-            color: #fff !important;
-        }
-        .custom-cb-input:checked ~ .custom-cb-box i {
-            opacity: 1 !important;
-            transform: scale(1) !important;
-        }
+        /* 3. CUSTOM CHECKBOX (.custom-cb-box) */
         .custom-cb-box {
-            width: 20px !important;
-            height: 20px !important;
-            min-width: 20px !important;
-            min-height: 20px !important;
-            background-color: #fff !important;
-            
+            width: 18px !important;
+            height: 18px !important;
+            min-width: 18px !important;
+            min-height: 18px !important;
+            background-color: #ffffff !important;
+            border: 1.5px solid #18181b !important;
             border-radius: 4px !important;
             display: flex !important;
             align-items: center !important;
             justify-content: center !important;
-            margin-top: 1px !important;
-            margin-right: 16px !important;
+            margin-top: 2px !important;
+            margin-right: 12px !important;
             transition: all 0.15s ease-in-out !important;
             color: transparent !important;
             cursor: pointer !important;
         }
-        .custom-cb-box:hover {
-            
+        .custom-cb-input:hover ~ .custom-cb-box,
+        label:hover .custom-cb-box {
+            border-color: #000000 !important;
+            background-color: #f4f4f5 !important;
+        }
+        .custom-cb-input:checked ~ .custom-cb-box {
+            background-color: #000000 !important;
+            border-color: #000000 !important;
+            color: #ffffff !important;
         }
         .custom-cb-box i {
             opacity: 0;
             transform: scale(0.5);
             transition: all 0.15s ease-in-out !important;
-            font-size: 12px !important;
+            font-size: 11px !important;
             font-weight: 900 !important;
+            color: #ffffff !important;
+        }
+        .custom-cb-input:checked ~ .custom-cb-box i {
+            opacity: 1 !important;
+            transform: scale(1) !important;
+            color: #ffffff !important;
+        }
+
+        /* Dark Mode fallback for custom-cb-box in head */
+        html.theme-dark .custom-cb-box,
+        body.theme-dark .custom-cb-box {
+            background-color: #18181b !important;
+            border: 1.5px solid #ffffff !important;
+        }
+        html.theme-dark .custom-cb-input:hover ~ .custom-cb-box,
+        html.theme-dark label:hover .custom-cb-box,
+        body.theme-dark .custom-cb-input:hover ~ .custom-cb-box,
+        body.theme-dark label:hover .custom-cb-box {
+            border-color: #ffffff !important;
+            background-color: #27272a !important;
+        }
+        html.theme-dark .custom-cb-input:checked ~ .custom-cb-box,
+        body.theme-dark .custom-cb-input:checked ~ .custom-cb-box {
+            background-color: #ffffff !important;
+            border-color: #ffffff !important;
+            color: #000000 !important;
+        }
+        html.theme-dark .custom-cb-box i,
+        body.theme-dark .custom-cb-box i {
+            color: #000000 !important;
+        }
+        html.theme-dark .custom-cb-input:checked ~ .custom-cb-box i,
+        body.theme-dark .custom-cb-input:checked ~ .custom-cb-box i {
+            opacity: 1 !important;
+            transform: scale(1) !important;
+            color: #000000 !important;
         }
 
         /* Làm trong suốt các nút bấm bên trong để không che mất kính */
@@ -3005,6 +3039,19 @@ html.theme-dark .ct-icon {
     </div>
 
     <!-- Turnstile moved to popup -->
+
+    <!-- Ô tick đồng ý chính sách (Chỉ hiện khi Đăng ký) -->
+    <div x-show="mode === 'register'" x-cloak class="pt-1 text-left">
+        <label class="flex items-start cursor-pointer group select-none">
+            <input type="checkbox" id="auth-agree-terms" class="custom-cb-input sr-only">
+            <div class="custom-cb-box shrink-0 shadow-sm">
+                <i class="fa-solid fa-check"></i>
+            </div>
+            <span class="text-xs font-semibold text-vbs-dark group-hover:text-black transition leading-relaxed pt-0.5">
+                Tôi toàn toàn đồng ý với <a href="/tos" target="_blank" onclick="event.stopPropagation()" class="underline font-bold text-vbs-dark hover:underline">Chính sách VNBUSARCHIVE</a> và cam kết sẽ tuân thủ. <span class="text-red-500">*</span>
+            </span>
+        </label>
+    </div>
 
     <p id="auth-msg" class="text-xs text-center text-red-600 font-bold bg-white/80  px-2 py-1 rounded-md empty:hidden shadow-sm"></p>
 
