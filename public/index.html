@@ -1942,7 +1942,7 @@ html.theme-dark .ct-icon {
             if (stored === 'system') {
                 theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
             }
-            document.write('<link rel="stylesheet" href="/css/' + theme + '.css?v=1792128389837" id="theme-css">');
+            document.write('<link rel="stylesheet" href="/css/' + theme + '.css?v=1792128709432" id="theme-css">');
             document.documentElement.classList.add('theme-' + theme);
             document.documentElement.style.backgroundColor = theme === 'dark' ? '#18181b' : '#fdfcf8';
         })();
@@ -4638,11 +4638,11 @@ html.theme-dark .ct-icon {
                                     <div>
                                         <div class="flex justify-between items-center mb-2"><label class="text-[11px] font-bold text-gray-700 uppercase tracking-wider">Độ sáng</label><span id="val-brightness" class="text-[10px] font-mono font-bold text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded border border-gray-200">100%</span></div>
                                         <div class="flex items-center gap-2">
-                                            <button type="button" onclick="app.upload.stepFilter('brightness', -5)" class="w-7 h-7 sm:w-8 sm:h-8 shrink-0 flex items-center justify-center text-xs bg-white text-gray-700 border border-gray-300 rounded-md hover:bg-gray-100 font-bold transition shadow-sm active:scale-95" title="Giảm độ sáng 5%">
+                                            <button type="button" onclick="app.upload.stepFilter('brightness', -1)" class="w-7 h-7 sm:w-8 sm:h-8 shrink-0 flex items-center justify-center text-xs bg-white text-gray-700 border border-gray-300 rounded-md hover:bg-gray-100 font-bold transition shadow-sm active:scale-95" title="Giảm độ sáng 1%">
                                                 <i class="fa-solid fa-minus"></i>
                                             </button>
                                             <input type="range" id="adj-brightness" min="50" max="150" value="100" class="vnbus-slider flex-1 min-w-0" oninput="app.upload.updateFilters()" onmousedown="event.stopPropagation()" ontouchstart="event.stopPropagation()">
-                                            <button type="button" onclick="app.upload.stepFilter('brightness', 5)" class="w-7 h-7 sm:w-8 sm:h-8 shrink-0 flex items-center justify-center text-xs bg-white text-gray-700 border border-gray-300 rounded-md hover:bg-gray-100 font-bold transition shadow-sm active:scale-95" title="Tăng độ sáng 5%">
+                                            <button type="button" onclick="app.upload.stepFilter('brightness', 1)" class="w-7 h-7 sm:w-8 sm:h-8 shrink-0 flex items-center justify-center text-xs bg-white text-gray-700 border border-gray-300 rounded-md hover:bg-gray-100 font-bold transition shadow-sm active:scale-95" title="Tăng độ sáng 1%">
                                                 <i class="fa-solid fa-plus"></i>
                                             </button>
                                         </div>
@@ -4650,11 +4650,11 @@ html.theme-dark .ct-icon {
                                     <div>
                                         <div class="flex justify-between items-center mb-2"><label class="text-[11px] font-bold text-gray-700 uppercase tracking-wider">Tương phản</label><span id="val-contrast" class="text-[10px] font-mono font-bold text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded border border-gray-200">100%</span></div>
                                         <div class="flex items-center gap-2">
-                                            <button type="button" onclick="app.upload.stepFilter('contrast', -5)" class="w-7 h-7 sm:w-8 sm:h-8 shrink-0 flex items-center justify-center text-xs bg-white text-gray-700 border border-gray-300 rounded-md hover:bg-gray-100 font-bold transition shadow-sm active:scale-95" title="Giảm tương phản 5%">
+                                            <button type="button" onclick="app.upload.stepFilter('contrast', -1)" class="w-7 h-7 sm:w-8 sm:h-8 shrink-0 flex items-center justify-center text-xs bg-white text-gray-700 border border-gray-300 rounded-md hover:bg-gray-100 font-bold transition shadow-sm active:scale-95" title="Giảm tương phản 1%">
                                                 <i class="fa-solid fa-minus"></i>
                                             </button>
                                             <input type="range" id="adj-contrast" min="50" max="150" value="100" class="vnbus-slider flex-1 min-w-0" oninput="app.upload.updateFilters()" onmousedown="event.stopPropagation()" ontouchstart="event.stopPropagation()">
-                                            <button type="button" onclick="app.upload.stepFilter('contrast', 5)" class="w-7 h-7 sm:w-8 sm:h-8 shrink-0 flex items-center justify-center text-xs bg-white text-gray-700 border border-gray-300 rounded-md hover:bg-gray-100 font-bold transition shadow-sm active:scale-95" title="Tăng tương phản 5%">
+                                            <button type="button" onclick="app.upload.stepFilter('contrast', 1)" class="w-7 h-7 sm:w-8 sm:h-8 shrink-0 flex items-center justify-center text-xs bg-white text-gray-700 border border-gray-300 rounded-md hover:bg-gray-100 font-bold transition shadow-sm active:scale-95" title="Tăng tương phản 1%">
                                                 <i class="fa-solid fa-plus"></i>
                                             </button>
                                         </div>
@@ -4662,11 +4662,11 @@ html.theme-dark .ct-icon {
                                     <div>
                                         <div class="flex justify-between items-center mb-2"><label class="text-[11px] font-bold text-gray-700 uppercase tracking-wider">Độ bão hòa (Màu sắc)</label><span id="val-saturation" class="text-[10px] font-mono font-bold text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded border border-gray-200">100%</span></div>
                                         <div class="flex items-center gap-2">
-                                            <button type="button" onclick="app.upload.stepFilter('saturation', -5)" class="w-7 h-7 sm:w-8 sm:h-8 shrink-0 flex items-center justify-center text-xs bg-white text-gray-700 border border-gray-300 rounded-md hover:bg-gray-100 font-bold transition shadow-sm active:scale-95" title="Giảm độ bão hòa 5%">
+                                            <button type="button" onclick="app.upload.stepFilter('saturation', -1)" class="w-7 h-7 sm:w-8 sm:h-8 shrink-0 flex items-center justify-center text-xs bg-white text-gray-700 border border-gray-300 rounded-md hover:bg-gray-100 font-bold transition shadow-sm active:scale-95" title="Giảm độ bão hòa 1%">
                                                 <i class="fa-solid fa-minus"></i>
                                             </button>
                                             <input type="range" id="adj-saturation" min="0" max="200" value="100" class="vnbus-slider flex-1 min-w-0" oninput="app.upload.updateFilters()" onmousedown="event.stopPropagation()" ontouchstart="event.stopPropagation()">
-                                            <button type="button" onclick="app.upload.stepFilter('saturation', 5)" class="w-7 h-7 sm:w-8 sm:h-8 shrink-0 flex items-center justify-center text-xs bg-white text-gray-700 border border-gray-300 rounded-md hover:bg-gray-100 font-bold transition shadow-sm active:scale-95" title="Tăng độ bão hòa 5%">
+                                            <button type="button" onclick="app.upload.stepFilter('saturation', 1)" class="w-7 h-7 sm:w-8 sm:h-8 shrink-0 flex items-center justify-center text-xs bg-white text-gray-700 border border-gray-300 rounded-md hover:bg-gray-100 font-bold transition shadow-sm active:scale-95" title="Tăng độ bão hòa 1%">
                                                 <i class="fa-solid fa-plus"></i>
                                             </button>
                                         </div>
