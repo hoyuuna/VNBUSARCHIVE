@@ -1,4 +1,4 @@
-﻿
+
 Object.assign(window.app, {
     operator: {
                 modelStatsData: [],
@@ -713,50 +713,118 @@ if (!decodedProvince || decodedProvince.trim() === '') {
                         const opEl = document.getElementById('route-info-operator');
                         const mdlEl = document.getElementById('route-info-model');
                         
-                        opEl.className = 'info-input text-gray-700 w-full cursor-not-allowed flex items-center h-full min-h-[36px]';
-                        opEl.onclick = null;
-                        mdlEl.className = 'info-input text-gray-700 w-full cursor-not-allowed flex items-center h-full min-h-[36px]';
-                        mdlEl.onclick = null;
+                        const renderInfoValue = (el, items, clickHandler) => {
+                            if (!el) return;
+                            el.innerHTML = '';
+                            el.className = 'info-input text-gray-700 w-full flex items-center flex-wrap gap-1 h-full min-h-[36px]';
+                            el.onclick = null;
+                            if (!items || items.length === 0) {
+                                el.innerText = '---';
+                                el.classList.add('cursor-not-allowed');
+                                return;
+                            }
+                            items.forEach((item, index) => {
+                                if (index > 0) {
+                                    const sep = document.createElement('span');
+                                    sep.textContent = ', ';
+                                    sep.className = 'text-gray-500';
+                                    el.appendChild(sep);
+                                }
+                                const span = document.createElement('span');
+                                span.textContent = item;
+                                span.className = 'cursor-pointer text-blue-600 dark:text-blue-400 font-bold hover:underline';
+                                span.onclick = (e) => {
+                                    e.stopPropagation();
+                                    clickHandler(item);
+                                };
+                                el.appendChild(span);
+                            });
+                        };
                         
                         if (app.route.routePhotos.length > 0) {
-                            const topPhoto = app.route.routePhotos[0];
-                            
-                            const opText = topPhoto.operator || '---';
-                            opEl.innerText = opText;
-                            if (opText !== '---') {
-                                opEl.classList.remove('cursor-not-allowed', 'text-gray-700');
-                                opEl.classList.add('cursor-pointer', 'text-blue-600', 'font-bold', 'hover:underline');
-                                opEl.onclick = () => app.views.loadOperatorPage(opText);
-                            }
-                            
-                            let modelCounts = {};
-                            let seenVehicles = new Set();
-                            app.route.routePhotos.forEach(p => {
-                                let lp = p.license_plate?.trim().toUpperCase();
-                                let model = p.vehicles?.model;
-                                if (lp && model && !seenVehicles.has(lp)) {
-                                    seenVehicles.add(lp);
-                                    modelCounts[model] = (modelCounts[model] || 0) + 1;
+                            // Tính toán đơn vị vận hành và dòng xe theo thời gian gần đây thay vì toàn thời gian
+                            const getPhotoTime = (p) => {
+                                if (p.taken_at) {
+                                    const t = new Date(p.taken_at).getTime();
+                                    if (!isNaN(t) && t > 0) return t;
                                 }
-                            });
-                            let mostFrequentModel = null;
-                            let maxCount = 0;
-                            for (const [model, count] of Object.entries(modelCounts)) {
-                                if (count > maxCount) {
-                                    maxCount = count;
-                                    mostFrequentModel = model;
+                                if (p.created_at) {
+                                    const t = new Date(p.created_at).getTime();
+                                    if (!isNaN(t) && t > 0) return t;
+                                }
+                                return 0;
+                            };
+
+                            let latestTime = 0;
+                            for (const p of app.route.routePhotos) {
+                                const t = getPhotoTime(p);
+                                if (t > latestTime) latestTime = t;
+                            }
+                            if (latestTime === 0) latestTime = Date.now();
+
+                            // Mốc thời gian gần đây: 1 năm (365 ngày) tính từ ảnh chụp mới nhất
+                            const ONE_YEAR_MS = 365 * 24 * 60 * 60 * 1000;
+                            const cutoffTime = latestTime - ONE_YEAR_MS;
+                            let recentPhotos = app.route.routePhotos.filter(p => getPhotoTime(p) >= cutoffTime);
+
+                            // Nếu trong 1 năm gần nhất có quá ít ảnh (< 10) mà tuyến có nhiều ảnh hơn, lấy 20 ảnh gần nhất làm mẫu
+                            if (recentPhotos.length < 10 && app.route.routePhotos.length >= 10) {
+                                recentPhotos = app.route.routePhotos.slice(0, 20);
+                            } else if (recentPhotos.length === 0) {
+                                recentPhotos = app.route.routePhotos;
+                            }
+
+                            const computeDominant = (photoList, getEntityFn) => {
+                                const counts = {};
+                                const seenVehicles = new Set();
+                                photoList.forEach(p => {
+                                    const entity = getEntityFn(p);
+                                    if (!entity || entity === '---') return;
+                                    const lp = p.license_plate?.trim().toUpperCase();
+                                    const key = lp ? `${entity}_${lp}` : `${entity}_photo_${p.id}`;
+                                    if (!seenVehicles.has(key)) {
+                                        seenVehicles.add(key);
+                                        counts[entity] = (counts[entity] || 0) + 1;
+                                    }
+                                });
+                                return counts;
+                            };
+
+                            // Đơn vị vận hành
+                            let opCounts = computeDominant(recentPhotos, p => p.operator?.trim());
+                            if (Object.keys(opCounts).length === 0) {
+                                opCounts = computeDominant(app.route.routePhotos, p => p.operator?.trim());
+                            }
+                            const sortedOps = Object.entries(opCounts).sort((a, b) => b[1] - a[1]);
+                            let dominantOps = [];
+                            if (sortedOps.length > 0) {
+                                const totalOps = sortedOps.reduce((s, [, c]) => s + c, 0);
+                                dominantOps.push(sortedOps[0][0]);
+                                if (sortedOps.length > 1 && (sortedOps[1][1] / totalOps) >= 0.25) {
+                                    dominantOps.push(sortedOps[1][0]);
                                 }
                             }
-                            const mdlText = mostFrequentModel ? mostFrequentModel : '---';
-                            mdlEl.innerText = mdlText;
-                            if (mdlText !== '---') {
-                                mdlEl.classList.remove('cursor-not-allowed', 'text-gray-700');
-                                mdlEl.classList.add('cursor-pointer', 'text-blue-600', 'font-bold', 'hover:underline');
-                                mdlEl.onclick = () => app.views.loadModelPage(mdlText);
+
+                            // Dòng xe
+                            let modelCounts = computeDominant(recentPhotos, p => p.vehicles?.model?.trim());
+                            if (Object.keys(modelCounts).length === 0) {
+                                modelCounts = computeDominant(app.route.routePhotos, p => p.vehicles?.model?.trim());
                             }
+                            const sortedModels = Object.entries(modelCounts).sort((a, b) => b[1] - a[1]);
+                            let dominantModels = [];
+                            if (sortedModels.length > 0) {
+                                const totalModels = sortedModels.reduce((s, [, c]) => s + c, 0);
+                                dominantModels.push(sortedModels[0][0]);
+                                if (sortedModels.length > 1 && (sortedModels[1][1] / totalModels) >= 0.25) {
+                                    dominantModels.push(sortedModels[1][0]);
+                                }
+                            }
+
+                            renderInfoValue(opEl, dominantOps, op => app.views.loadOperatorPage(op));
+                            renderInfoValue(mdlEl, dominantModels, mdl => app.views.loadModelPage(mdl));
                         } else {
-                            opEl.innerText = '---';
-                            mdlEl.innerText = '---';
+                            renderInfoValue(opEl, [], null);
+                            renderInfoValue(mdlEl, [], null);
                         }
                         app.route.totalCount = app.route.routePhotos.length;
                         app.route.totalPages = Math.ceil(app.route.totalCount / app.route.ROUTE_PAGE_SIZE);
