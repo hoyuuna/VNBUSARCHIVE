@@ -195,6 +195,7 @@ document.addEventListener('DOMContentLoaded', () => {
             });
             resizeTicking = true;
         }
+    }, { passive: true });
     if (app.toast && app.toast.updatePosition) app.toast.updatePosition();
     document.addEventListener('input', (e) => {
         if (e.target && e.target.tagName === 'TEXTAREA' && e.target.classList && e.target.classList.contains('info-input')) {
