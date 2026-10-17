@@ -1301,9 +1301,17 @@ Object.assign(window.app, {
                         }
                         if (!username) username = app.username || "Guest";
                         // Preview đúng hệ pipeline với nút upload: watermark trực tiếp Canvas
-                        // rồi nén WebP <=500KB trực tiếp không qua decode trung gian
-                        const wmCanvas = await app.utils.watermark(app.rawFile, username, app.wmState, app.upload.currentFilters || 'none', { embedBlind: true, returnCanvas: true });
-                        const previewBlob = await app.utils.compressToSizeLoop(wmCanvas, app.utils.getTargetMimeType(), 500);
+                        let wmCanvas = await app.utils.watermark(app.rawFile, username, app.wmState, app.upload.currentFilters || 'none', { embedBlind: true, returnCanvas: true, skipSharpen: false });
+                        let previewBlob = null;
+                        try {
+                            previewBlob = await app.utils.compressToSizeLoop(wmCanvas, app.utils.getTargetMimeType(), 500);
+                        } catch (e) {
+                            // Nếu ảnh quá nặng khi làm nét ở 1080p chất lượng tối thiểu 70%:
+                            // Tự động thử lại lần 2 bằng cách cắt làm nét (skipSharpen: true)
+                            console.warn("Ảnh vượt 500KB khi làm nét ở 1080p, tự động thử lại bỏ qua làm nét...", e);
+                            wmCanvas = await app.utils.watermark(app.rawFile, username, app.wmState, app.upload.currentFilters || 'none', { embedBlind: true, returnCanvas: true, skipSharpen: true });
+                            previewBlob = await app.utils.compressToSizeLoop(wmCanvas, app.utils.getTargetMimeType(), 500);
+                        }
                         const url = URL.createObjectURL(previewBlob);
                         app.ui.showAlert(`<img src="${url}" class="w-full rounded-lg shadow-sm" style="max-height: 70vh; object-fit: contain;">`, null, null, { title: "Xem trước ảnh xuất ra", btnOkText: "Đóng" });
                     } catch (err) {
@@ -2177,14 +2185,21 @@ Object.assign(window.app, {
                     const bgWebpPromise = new Promise((resolve, reject) => {
                         setTimeout(async () => {
                             try {
-                                const finalCanvas = await app.utils.watermark(rawFile, username, app.wmState, currentFilters, { embedBlind: true, returnCanvas: true });
+                                let finalCanvas = await app.utils.watermark(rawFile, username, app.wmState, currentFilters, { embedBlind: true, returnCanvas: true, skipSharpen: false });
                                 let blobToProcess = null;
                                 try {
                                     blobToProcess = await app.utils.compressToSizeLoop(finalCanvas, targetMime, 500);
                                 } catch (e) {
-                                    console.warn("compressToSizeLoop lỗi:", e);
-                                    reject(e);
-                                    return;
+                                    // Tự động thử lại lần 2 nếu vượt 500KB: giữ cứng 1080p & sàn chất lượng 70% nhưng cắt làm nét
+                                    console.warn("Ảnh vượt 500KB khi làm nét ở 1080p, tự động thử lại bỏ qua làm nét...", e);
+                                    try {
+                                        finalCanvas = await app.utils.watermark(rawFile, username, app.wmState, currentFilters, { embedBlind: true, returnCanvas: true, skipSharpen: true });
+                                        blobToProcess = await app.utils.compressToSizeLoop(finalCanvas, targetMime, 500);
+                                    } catch (retryErr) {
+                                        console.warn("compressToSizeLoop lỗi cả khi bỏ qua làm nét:", retryErr);
+                                        reject(retryErr);
+                                        return;
+                                    }
                                 }
                                 if (blobToProcess && blobToProcess instanceof Blob && !(blobToProcess instanceof File)) {
                                     resolve(new File([blobToProcess], rawFile.name.replace(/\.[^/.]+$/, "") + ".webp", { type: 'image/webp' }));

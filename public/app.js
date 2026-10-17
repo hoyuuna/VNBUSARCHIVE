@@ -1344,7 +1344,7 @@ closeCustomRolePrompt: () => {
                         ctx.drawImage(img, 0, 0, w, h);
                     }
 
-                    // Helper nhị phân tìm chất lượng WebP tối ưu nhất nhưng <= targetBytes trên canvas bất kỳ
+                    // Helper nhị phân tìm chất lượng WebP tối ưu nhất nhưng <= targetBytes trên canvas (giữ cố định 1080p, không scale)
                     const searchBestWebpNative = async (cv, minQuality = 0.70, maxQuality = 0.95) => {
                         let best = null;
                         let minQ = minQuality;
@@ -1373,98 +1373,43 @@ closeCustomRolePrompt: () => {
                         return { best, supported };
                     };
 
-                    // === TIER 1: Thử nén giữ nguyên 100% độ phân giải ở chất lượng cao (0.70 - 0.95) ===
+                    // Thử nén giữ nguyên 100% kích thước 1080p ở chất lượng tối thiểu 70% (0.70 - 0.95)
                     let nativeResult = await searchBestWebpNative(canvas, 0.70, 0.95);
                     if (nativeResult.best) return nativeResult.best;
 
-                    if (nativeResult.supported) {
-                        // === TIER 2: Giữ nguyên 100% kích thước, hạ thích ứng chất lượng từ 0.58 đến 0.70 ===
-                        // Ở WebP, dải chất lượng 0.58 - 0.70 vẫn sắc nét tuyệt đối, mắt thường không nhận thấy khác biệt
-                        nativeResult = await searchBestWebpNative(canvas, 0.58, 0.70);
-                        if (nativeResult.best) return nativeResult.best;
-
-                        // === TIER 3: Micro-scale thông minh (dành cho ảnh quá dày đặc chi tiết như rừng cây, đám đông) ===
-                        // Thu nhỏ nhẹ nhàng kích thước (0.90 -> 0.82 -> 0.75) với thuật toán nội suy làm mượt cao cấp (bicubic)
-                        // Giúp ảnh luôn vừa vặn <= 500KB mà vẫn nét căng, không bao giờ chặn người dùng
-                        const scaleSteps = [0.90, 0.82, 0.75];
-                        for (const scale of scaleSteps) {
-                            const sw = Math.round(w * scale);
-                            const sh = Math.round(h * scale);
-                            const scCanvas = document.createElement('canvas');
-                            scCanvas.width = sw;
-                            scCanvas.height = sh;
-                            const sctx = scCanvas.getContext('2d');
-                            sctx.imageSmoothingEnabled = true;
-                            sctx.imageSmoothingQuality = 'high';
-                            sctx.drawImage(canvas, 0, 0, sw, sh);
-
-                            nativeResult = await searchBestWebpNative(scCanvas, 0.65, 0.90);
-                            if (nativeResult.best) return nativeResult.best;
-                        }
-                    }
-
-                    // === WASM WebP Fallback (nếu trình duyệt không hỗ trợ WebP Native) ===
+                    // Fallback WASM WebP (nếu trình duyệt không hỗ trợ WebP Native)
                     if (!nativeResult.supported) {
                         try {
                             const { encode } = await import("https://esm.sh/@jsquash/webp@1.5.0");
-                            const encodeWasm = async (cv, minQ = 70, maxQ = 95) => {
-                                const cctx = cv.getContext('2d');
-                                const imgData = cctx.getImageData(0, 0, cv.width, cv.height);
-                                let best = null;
-                                let min = minQ;
-                                let max = maxQ;
-                                while (max - min >= 2) {
-                                    let mid = Math.round((min + max) / 2);
-                                    let buf = await encode(imgData, { quality: mid, use_sharp_yuv: 1 });
-                                    let blob = new Blob([buf], { type: 'image/webp' });
-                                    if (blob.size <= targetBytes) {
-                                        best = blob;
-                                        min = mid;
-                                    } else {
-                                        max = mid;
-                                    }
+                            const cctx = canvas.getContext('2d');
+                            const imgData = cctx.getImageData(0, 0, canvas.width, canvas.height);
+                            let best = null;
+                            let minQ = 70;
+                            let maxQ = 95;
+                            while (maxQ - minQ >= 2) {
+                                let midQ = Math.round((minQ + maxQ) / 2);
+                                let buf = await encode(imgData, { quality: midQ, use_sharp_yuv: 1 });
+                                let blob = new Blob([buf], { type: 'image/webp' });
+                                if (blob.size <= targetBytes) {
+                                    best = blob;
+                                    minQ = midQ;
+                                } else {
+                                    maxQ = midQ;
                                 }
-                                if (!best) {
-                                    let buf = await encode(imgData, { quality: minQ, use_sharp_yuv: 1 });
-                                    let blob = new Blob([buf], { type: 'image/webp' });
-                                    if (blob.size <= targetBytes) best = blob;
-                                }
-                                return best;
-                            };
-
-                            let wasmBlob = await encodeWasm(canvas, 70, 95);
-                            if (wasmBlob) return wasmBlob;
-
-                            // WASM Tier 2:
-                            wasmBlob = await encodeWasm(canvas, 58, 70);
-                            if (wasmBlob) return wasmBlob;
-
-                            // WASM Tier 3:
-                            const scaleSteps = [0.88, 0.78];
-                            for (const scale of scaleSteps) {
-                                const sw = Math.round(w * scale);
-                                const sh = Math.round(h * scale);
-                                const scCanvas = document.createElement('canvas');
-                                scCanvas.width = sw;
-                                scCanvas.height = sh;
-                                const sctx = scCanvas.getContext('2d');
-                                sctx.imageSmoothingEnabled = true;
-                                sctx.imageSmoothingQuality = 'high';
-                                sctx.drawImage(canvas, 0, 0, sw, sh);
-
-                                wasmBlob = await encodeWasm(scCanvas, 68, 88);
-                                if (wasmBlob) return wasmBlob;
                             }
+                            if (!best) {
+                                let buf = await encode(imgData, { quality: 70, use_sharp_yuv: 1 });
+                                let blob = new Blob([buf], { type: 'image/webp' });
+                                if (blob.size <= targetBytes) best = blob;
+                            }
+                            if (best) return best;
                         } catch (e) {
                             console.warn("WASM WebP fallback error:", e);
                         }
                     }
 
-                    // Fallback an toàn tối hậu: xuất ảnh ở chất lượng tối thiểu nếu vẫn vượt ngưỡng vài KB thay vì ngắt đột ngột
-                    const emergencyBlob = await new Promise(resolve => canvas.toBlob(resolve, 'image/webp', 0.50));
-                    if (emergencyBlob) return emergencyBlob;
-
-                    throw new Error(`BLIND_WM_ERROR:Ảnh quá chi tiết, không thể nén thành WebP xuống dưới ${targetKB}KB. Vui lòng cắt nhỏ hoặc chọn ảnh khác.`);
+                    // Không thể nén xuống dưới targetBytes ở mức chất lượng tối thiểu 70%
+                    throw new Error(`BLIND_WM_ERROR:Ảnh quá chi tiết, không thể nén thành WebP xuống dưới ${targetKB}KB (chất lượng tối thiểu 70%). Vui lòng cắt nhỏ hoặc chọn ảnh khác.`);
                 },
                 canvasToBlobUniversal: async (canvas, targetMime = 'image/webp', quality = 0.95) => {
                     const nativeBlob = await new Promise((resolve) => {
@@ -13740,9 +13685,17 @@ Object.assign(window.app, {
                         }
                         if (!username) username = app.username || "Guest";
                         // Preview đúng hệ pipeline với nút upload: watermark trực tiếp Canvas
-                        // rồi nén WebP <=500KB trực tiếp không qua decode trung gian
-                        const wmCanvas = await app.utils.watermark(app.rawFile, username, app.wmState, app.upload.currentFilters || 'none', { embedBlind: true, returnCanvas: true });
-                        const previewBlob = await app.utils.compressToSizeLoop(wmCanvas, app.utils.getTargetMimeType(), 500);
+                        let wmCanvas = await app.utils.watermark(app.rawFile, username, app.wmState, app.upload.currentFilters || 'none', { embedBlind: true, returnCanvas: true, skipSharpen: false });
+                        let previewBlob = null;
+                        try {
+                            previewBlob = await app.utils.compressToSizeLoop(wmCanvas, app.utils.getTargetMimeType(), 500);
+                        } catch (e) {
+                            // Nếu ảnh quá nặng khi làm nét ở 1080p chất lượng tối thiểu 70%:
+                            // Tự động thử lại lần 2 bằng cách cắt làm nét (skipSharpen: true)
+                            console.warn("Ảnh vượt 500KB khi làm nét ở 1080p, tự động thử lại bỏ qua làm nét...", e);
+                            wmCanvas = await app.utils.watermark(app.rawFile, username, app.wmState, app.upload.currentFilters || 'none', { embedBlind: true, returnCanvas: true, skipSharpen: true });
+                            previewBlob = await app.utils.compressToSizeLoop(wmCanvas, app.utils.getTargetMimeType(), 500);
+                        }
                         const url = URL.createObjectURL(previewBlob);
                         app.ui.showAlert(`<img src="${url}" class="w-full rounded-lg shadow-sm" style="max-height: 70vh; object-fit: contain;">`, null, null, { title: "Xem trước ảnh xuất ra", btnOkText: "Đóng" });
                     } catch (err) {
@@ -14616,14 +14569,21 @@ Object.assign(window.app, {
                     const bgWebpPromise = new Promise((resolve, reject) => {
                         setTimeout(async () => {
                             try {
-                                const finalCanvas = await app.utils.watermark(rawFile, username, app.wmState, currentFilters, { embedBlind: true, returnCanvas: true });
+                                let finalCanvas = await app.utils.watermark(rawFile, username, app.wmState, currentFilters, { embedBlind: true, returnCanvas: true, skipSharpen: false });
                                 let blobToProcess = null;
                                 try {
                                     blobToProcess = await app.utils.compressToSizeLoop(finalCanvas, targetMime, 500);
                                 } catch (e) {
-                                    console.warn("compressToSizeLoop lỗi:", e);
-                                    reject(e);
-                                    return;
+                                    // Tự động thử lại lần 2 nếu vượt 500KB: giữ cứng 1080p & sàn chất lượng 70% nhưng cắt làm nét
+                                    console.warn("Ảnh vượt 500KB khi làm nét ở 1080p, tự động thử lại bỏ qua làm nét...", e);
+                                    try {
+                                        finalCanvas = await app.utils.watermark(rawFile, username, app.wmState, currentFilters, { embedBlind: true, returnCanvas: true, skipSharpen: true });
+                                        blobToProcess = await app.utils.compressToSizeLoop(finalCanvas, targetMime, 500);
+                                    } catch (retryErr) {
+                                        console.warn("compressToSizeLoop lỗi cả khi bỏ qua làm nét:", retryErr);
+                                        reject(retryErr);
+                                        return;
+                                    }
                                 }
                                 if (blobToProcess && blobToProcess instanceof Blob && !(blobToProcess instanceof File)) {
                                     resolve(new File([blobToProcess], rawFile.name.replace(/\.[^/.]+$/, "") + ".webp", { type: 'image/webp' }));
