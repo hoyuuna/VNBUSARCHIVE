@@ -333,8 +333,10 @@ Object.assign(window.app, {
                     const note = app.utils.cleanText(p.note);
                     const safeUsername = app.utils.cleanText(p.profiles?.username || 'Ẩn danh');
                     const safePlate = app.utils.cleanText(p.license_plate);
+                    const plateKey = (safePlate || '').trim().toUpperCase();
+                    const isNewVehicle = Boolean(!plateKey || plateKey === '---' || !approvedPlateSet.has(plateKey));
                     if (!app.admin.originalData) app.admin.originalData = {};
-                    app.admin.originalData['photo_' + p.id] = { plate: safePlate, operator: op, type: type, route: route, model: model, location: location };
+                    app.admin.originalData['photo_' + p.id] = { plate: safePlate, operator: op, type: type, route: route, model: model, location: location, isNewVehicle: isNewVehicle };
                     const tagNew = '<span class="bg-black text-white px-1.5 py-0.5 rounded text-[9px] font-bold ml-1 tracking-wider">MỚI</span>';
                     const opKey = app.utils.cleanText(op || '').trim().toLowerCase();
                     const rawRouteKey = app.utils.cleanText(route || '').trim().toLowerCase();
@@ -342,7 +344,6 @@ Object.assign(window.app, {
                     const numRouteKey = /^\d+$/.test(strippedRouteKey) ? String(parseInt(strippedRouteKey, 10)) : strippedRouteKey;
                     const paddedRouteKey = /^\d+$/.test(strippedRouteKey) ? strippedRouteKey.padStart(2, '0') : strippedRouteKey;
                     const modelKey = app.utils.cleanText(model || '').trim().toLowerCase();
-                    const plateKey = (safePlate || '').trim().toUpperCase();
                     const isNewOp = opKey && opKey !== '---' && opKey !== 'đang cập nhật' && opKey !== 'không rõ' && !approvedOpSet.has(opKey);
                     const isNewRoute = route && rawRouteKey !== '---' && rawRouteKey !== 'đang cập nhật' && rawRouteKey !== 'không rõ' && 
                         !approvedRouteSet.has(rawRouteKey) && 
@@ -401,7 +402,11 @@ Object.assign(window.app, {
                                             <div>
                                                 <span class="admin-label">Dòng xe${isNewModel ? tagNew : ''}</span>
                                                 <div class="relative">
-                                                    <input type="text" id="adm-p-model-${p.id}" value="${model}" class="admin-input" autocomplete="off" oninput="app.utils.triggerSuggestion('adm-p-model-${p.id}', 'adm-sug-model-${p.id}', this.value, 'model')">
+                                                    ${isNewVehicle ? `
+                                                        <input type="text" id="adm-p-model-${p.id}" value="${model}" class="admin-input" autocomplete="off" oninput="app.utils.triggerSuggestion('adm-p-model-${p.id}', 'adm-sug-model-${p.id}', this.value, 'model')">
+                                                    ` : `
+                                                        <input type="text" id="adm-p-model-${p.id}" value="${model}" class="admin-input cursor-pointer" autocomplete="off" readonly onclick="app.admin.showModelDisabledAlert('${app.utils.escapeAttr(safePlate)}', '${p.id}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();app.admin.showModelDisabledAlert('${app.utils.escapeAttr(safePlate)}', '${p.id}');}" title="Bấm để xem hồ sơ xe">
+                                                    `}
                                                     <div id="adm-sug-model-${p.id}" class="suggestion-box"></div>
                                                 </div>
                                             </div>
@@ -539,6 +544,56 @@ Object.assign(window.app, {
                     return `<div class="admin-photo-ruler-overlay ruler-horizontal-overlay ${isHidden}">${linesHtml}</div>`;
                 },
                 originalData: {},
+                showModelDisabledAlert: (plate, photoId) => {
+                    let targetPlate = (plate || '').trim();
+                    if (photoId) {
+                        const plateInput = document.getElementById(`adm-p-plate-${photoId}`);
+                        if (plateInput && plateInput.value.trim()) {
+                            targetPlate = plateInput.value.trim().toUpperCase();
+                        }
+                    }
+                    const msg = "Để đảm bảo an toàn dữ liệu bạn sẽ không thể chỉnh tại đây, bấm nút đồng ý bên dưới để chuyển vào trang Hồ sơ xe. Lưu ý đọc hướng dẫn đối với các xe tái sử dụng BKS.";
+                    app.ui.showAlert(
+                        msg,
+                        () => {
+                            if (targetPlate && targetPlate !== '---') {
+                                app.utils.navigate('/vehicle/' + encodeURIComponent(targetPlate));
+                            }
+                        },
+                        () => {},
+                        {
+                            title: "Thông báo",
+                            btnOkText: "Đồng ý",
+                            btnCancelText: "Hủy bỏ"
+                        }
+                    );
+                },
+                updateModelFieldState: (photoId, isNew, plate) => {
+                    const elModel = document.getElementById(`adm-p-model-${photoId}`);
+                    if (!elModel) return;
+                    if (isNew) {
+                        elModel.readOnly = false;
+                        elModel.classList.remove('cursor-pointer');
+                        elModel.onclick = null;
+                        elModel.onkeydown = null;
+                        elModel.oninput = function () {
+                            app.utils.triggerSuggestion(this.id, `adm-sug-model-${photoId}`, this.value, 'model');
+                        };
+                        elModel.removeAttribute('title');
+                    } else {
+                        elModel.readOnly = true;
+                        elModel.classList.add('cursor-pointer');
+                        elModel.onclick = () => app.admin.showModelDisabledAlert(plate, photoId);
+                        elModel.onkeydown = (e) => {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                                e.preventDefault();
+                                app.admin.showModelDisabledAlert(plate, photoId);
+                            }
+                        };
+                        elModel.oninput = null;
+                        elModel.title = "Bấm để xem hồ sơ xe";
+                    }
+                },
                 checkPlateAdmin: async (inputEl, id, type) => {
                     const val = inputEl.value.trim().replace(/[^A-Z0-9-]/gi, '').toUpperCase();
                     inputEl.value = val;
@@ -562,6 +617,25 @@ Object.assign(window.app, {
                         setTimeout(() => inputEl.classList.remove('ring-2', 'ring-green-500'), 500);
                         const warnEl = document.getElementById(inputEl.id + '-warning');
                         if (warnEl) warnEl.remove();
+                        if (type === 'photo') {
+                            const cardEl = inputEl.closest('.admin-card');
+                            if (cardEl) {
+                                const cardHeader = cardEl.querySelector('.admin-card-header');
+                                if (cardHeader) {
+                                    const plateSpan = cardHeader.querySelector('span.font-bold');
+                                    if (plateSpan) plateSpan.innerText = val;
+                                    const existingBadge = cardHeader.querySelector('.badge-xe-moi');
+                                    if (orig.isNewVehicle && val && val !== '---') {
+                                        if (!existingBadge && plateSpan) {
+                                            plateSpan.insertAdjacentHTML('afterend', ' <span class="badge-xe-moi"><i class="fa-solid fa-sparkles"></i> XE MỚI</span>');
+                                        }
+                                    } else if (existingBadge) {
+                                        existingBadge.remove();
+                                    }
+                                }
+                            }
+                            app.admin.updateModelFieldState(id, orig.isNewVehicle, val);
+                        }
                         return;
                     }
                     try {
@@ -605,12 +679,13 @@ Object.assign(window.app, {
                         const cardEl = inputEl.closest('.admin-card');
                         if (cardEl && type === 'photo') {
                             const cardHeader = cardEl.querySelector('.admin-card-header');
+                            const isApprovedPlate = app.admin?.approvedPlateSet?.has(val) || (await window.sb.from('photos').select('id').eq('license_plate', val).eq('status', 'approved').limit(1)).data?.length > 0;
+                            const isNew = !isApprovedPlate && Boolean(val && val !== '---');
                             if (cardHeader) {
                                 const plateSpan = cardHeader.querySelector('span.font-bold');
                                 if (plateSpan) plateSpan.innerText = val;
                                 const existingBadge = cardHeader.querySelector('.badge-xe-moi');
-                                const isApprovedPlate = app.admin?.approvedPlateSet?.has(val) || (await window.sb.from('photos').select('id').eq('license_plate', val).eq('status', 'approved').limit(1)).data?.length > 0;
-                                if (!isApprovedPlate && val && val !== '---') {
+                                if (isNew) {
                                     if (!existingBadge && plateSpan) {
                                         plateSpan.insertAdjacentHTML('afterend', ' <span class="badge-xe-moi"><i class="fa-solid fa-sparkles"></i> XE MỚI</span>');
                                     }
@@ -618,6 +693,7 @@ Object.assign(window.app, {
                                     existingBadge.remove();
                                 }
                             }
+                            app.admin.updateModelFieldState(id, isNew, val);
                         }
                     } catch (e) {
                         console.error("Lỗi tự điền BKS Admin:", e);
