@@ -1717,7 +1717,7 @@ html.theme-dark .ct-icon {
         
 
 
-        /* FIX LỖI GIAO DIỆN MOBILE: CHỐNG TRÀN BẢNG KHIẾN TRÌNH DUYỆT TỰ ZOOM-OUT */
+        /* FIX LỖI GIAO DIỆN MOBILE: CHỐNG TRÀN BẢNG VÀ CHỐNG CUỘN NGANG CHỮ TRONG BẢNG */
         .info-table, .data-table {
             table-layout: fixed;
             width: 100%;
@@ -1726,18 +1726,28 @@ html.theme-dark .ct-icon {
         .info-table td, .data-table td {
             word-wrap: break-word;
             overflow-wrap: break-word;
+            word-break: break-word;
         }
 
         .info-input {
             min-width: 0;
             text-overflow: clip;
+            word-break: break-word;
+            overflow-wrap: break-word;
+            box-sizing: border-box;
         }
 
         textarea.info-input {
-            white-space: pre-wrap;
+            white-space: pre-wrap !important;
+            word-break: break-word !important;
+            overflow-wrap: break-word !important;
             resize: none;
             overflow: hidden;
             field-sizing: content;
+            height: auto;
+            min-height: 38px;
+            line-height: 1.4;
+            display: block;
         }
 
         /* Thêm wrapper cuộn ngang cho bảng lịch sử để không vỡ layout */
@@ -2037,7 +2047,7 @@ html.theme-dark .ct-icon {
             if (stored === 'system') {
                 theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
             }
-            document.write('<link rel="stylesheet" href="/css/' + theme + '.css?v=1792242634556" id="theme-css">');
+            document.write('<link rel="stylesheet" href="/css/' + theme + '.css?v=1792247900176" id="theme-css">');
             document.documentElement.classList.add('theme-' + theme);
             document.documentElement.style.backgroundColor = theme === 'dark' ? '#18181b' : '#fdfcf8';
         })();
@@ -7153,7 +7163,7 @@ html.theme-dark .ct-icon {
 
     <!-- KHAY CHỨA TOAST Z-INDEX CAO NHẤT -->
     <div id="toast-container" class="fixed left-0 w-full flex flex-col items-center gap-2 pointer-events-none z-[99999]" style="z-index: 99999 !important;"></div>
-<script src="/app.ba8f758c18ca.js" onerror="if(!window.__app_fallback_loaded){window.__app_fallback_loaded=true;var s=document.createElement('script');s.src='/app.js?v=' + Date.now();document.head.appendChild(s);}"></script>
+<script src="/app.02be659b3522.js" onerror="if(!window.__app_fallback_loaded){window.__app_fallback_loaded=true;var s=document.createElement('script');s.src='/app.js?v=' + Date.now();document.head.appendChild(s);}"></script>
 </body>
 </html>
 

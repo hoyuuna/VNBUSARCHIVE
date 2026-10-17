@@ -193,8 +193,14 @@ document.addEventListener('DOMContentLoaded', () => {
             });
             resizeTicking = true;
         }
-    }, { passive: true });
     if (app.toast && app.toast.updatePosition) app.toast.updatePosition();
+    document.addEventListener('input', (e) => {
+        if (e.target && e.target.tagName === 'TEXTAREA' && e.target.classList && e.target.classList.contains('info-input')) {
+            if (window.app && window.app.utils && window.app.utils.autoResizeTextarea) {
+                window.app.utils.autoResizeTextarea(e.target);
+            }
+        }
+    });
 });
 
 Object.assign(window.app, {
@@ -1757,6 +1763,11 @@ cleanupState: () => {
                             }
                         }
                     }
+                },
+                autoResizeTextarea: (el) => {
+                    if (!el || el.tagName !== 'TEXTAREA') return;
+                    el.style.height = 'auto';
+                    el.style.height = Math.max(38, el.scrollHeight) + 'px';
                 },
                 formatPlateInput: (el) => {
                     let val = el.value;

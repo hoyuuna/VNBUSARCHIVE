@@ -1738,6 +1738,12 @@ Object.assign(window.app, {
                     }
                     if (elInfoCamera) elInfoCamera.value = photo.camera_model || 'N/A';
                     if (elInfoExif) elInfoExif.value = photo.exif_params || 'N/A';
+                    setTimeout(() => {
+                        ['info-plate', 'info-operator', 'info-route', 'info-model', 'info-location', 'info-camera', 'info-exif-params'].forEach(id => {
+                            const el = document.getElementById(id);
+                            if (el && app.utils && app.utils.autoResizeTextarea) app.utils.autoResizeTextarea(el);
+                        });
+                    }, 0);
                     const statUploaderEl = document.getElementById('stat-uploader');
                     if (Object.keys(app.topUploaders).length === 0) {
                         await app.utils.fetchTopUploaders();
@@ -2285,14 +2291,16 @@ let currentRouteProvName = null;
                                             <tr id="vehicle-edit-operator-row" ${currentRouteClientSide === 'Dừng hoạt động' ? 'class="hidden"' : ''}>
                                                 <td class="label bg-gray-50 border-r border-b border-gray-200" style="width: 35%">Đơn vị vận hành</td>
                                                 <td class="value-cell border-b border-gray-200">
-                                                    <input type="text" id="vehicle-edit-operator" value="${currentRouteClientSide === 'Dừng hoạt động' ? 'N/A' : currentOpClientSide}" class="info-input text-gray-700 w-full ${currentOpClientSide ? 'clickable-search' : 'cursor-not-allowed'}" readonly ${currentOpClientSide ? `onclick="if(this.readOnly && this.value && this.value!=='---' && this.value!=='N/A') app.utils.navigate('/operator/' + encodeURIComponent(this.value))"` : ''}>
+                                                    <div class="relative w-full h-full flex flex-col justify-center">
+                                                        <textarea rows="1" id="vehicle-edit-operator" class="info-input text-gray-700 w-full ${currentOpClientSide ? 'clickable-search' : 'cursor-not-allowed'}" readonly ${currentOpClientSide ? `onclick="if(this.readOnly && this.value && this.value!=='---' && this.value!=='N/A') app.utils.navigate('/operator/' + encodeURIComponent(this.value))"` : ''}>${currentRouteClientSide === 'Dừng hoạt động' ? 'N/A' : (currentOpClientSide || 'Đã bị xóa')}</textarea>
+                                                    </div>
                                                 </td>
                                             </tr>
                                             <tr>
                                                 <td class="label bg-gray-50 border-r border-b border-gray-200">${isCoach ? 'Lộ trình' : 'Mã số tuyến'} hiện tại</td>
                                                 <td class="value-cell border-b border-gray-200">
-                                                    <div class="relative w-full h-full">
-                                                        <input type="text" id="vehicle-edit-route" value="${currentRouteClientSide}" autocomplete="off" class="info-input text-gray-700 w-full ${currentRouteClientSide ? 'clickable-search' : 'cursor-not-allowed'}" readonly ${currentRouteClientSide ? `onclick="if(this.readOnly && this.value && this.value!=='---') { const special = ['Dừng hoạt động', 'Ngoài giờ hoạt động', 'Chưa hoạt động']; if (${isCoach} || special.includes(this.value.trim())) { app.searchRedirect(this.value, 'route'); } else { app.utils.navigate('${vehProvName}' ? '/route/' + encodeURIComponent('${vehProvName}') + '/' + encodeURIComponent(this.value) : '/route/' + encodeURIComponent(this.value)); } }"` : ''} onfocus="if(!this.readOnly) app.utils.triggerRouteSuggestion('vehicle-edit-route', 'veh-sug-route', '')" oninput="app.utils.triggerRouteSuggestion('vehicle-edit-route', 'veh-sug-route', this.value); app.utils.checkRouteStatus(this.value, 'vehicle-edit-operator', 'vehicle-edit-operator-row')">
+                                                    <div class="relative w-full h-full flex flex-col justify-center">
+                                                        <textarea rows="1" id="vehicle-edit-route" autocomplete="off" class="info-input text-gray-700 w-full ${currentRouteClientSide ? 'clickable-search' : 'cursor-not-allowed'}" readonly ${currentRouteClientSide ? `onclick="if(this.readOnly && this.value && this.value!=='---') { const special = ['Dừng hoạt động', 'Ngoài giờ hoạt động', 'Chưa hoạt động']; if (${isCoach} || special.includes(this.value.trim())) { app.searchRedirect(this.value, 'route'); } else { app.utils.navigate('${vehProvName}' ? '/route/' + encodeURIComponent('${vehProvName}') + '/' + encodeURIComponent(this.value) : '/route/' + encodeURIComponent(this.value)); } }"` : ''} onfocus="if(!this.readOnly) app.utils.triggerRouteSuggestion('vehicle-edit-route', 'veh-sug-route', '')" oninput="app.utils.triggerRouteSuggestion('vehicle-edit-route', 'veh-sug-route', this.value); app.utils.checkRouteStatus(this.value, 'vehicle-edit-operator', 'vehicle-edit-operator-row')">${currentRouteClientSide}</textarea>
                                                         <div id="veh-sug-route" class="suggestion-box"></div>
                                                     </div>
                                                 </td>
@@ -2300,8 +2308,8 @@ let currentRouteProvName = null;
                                             <tr>
                                                 <td class="label bg-gray-50 border-r border-b border-gray-200">Dòng xe</td>
                                                 <td class="value-cell border-b border-gray-200">
-                                                    <div class="relative w-full h-full">
-                                                        <input type="text" id="vehicle-edit-model" value="${app.utils.escapeAttr(vehicle.model || '')}" autocomplete="off" class="info-input text-gray-700 w-full ${vehicle.model ? 'clickable-search' : 'cursor-not-allowed'}" readonly ${vehicle.model ? `onclick="if(this.readOnly && this.value && this.value!=='---') app.utils.navigate('/model/' + encodeURIComponent(this.value))"` : ''} oninput="app.utils.triggerSuggestion('vehicle-edit-model', 'veh-sug-model', this.value, 'model')">
+                                                    <div class="relative w-full h-full flex flex-col justify-center">
+                                                        <textarea rows="1" id="vehicle-edit-model" autocomplete="off" class="info-input text-gray-700 w-full ${vehicle.model ? 'clickable-search' : 'cursor-not-allowed'}" readonly ${vehicle.model ? `onclick="if(this.readOnly && this.value && this.value!=='---') app.utils.navigate('/model/' + encodeURIComponent(this.value))"` : ''} oninput="app.utils.triggerSuggestion('vehicle-edit-model', 'veh-sug-model', this.value, 'model')">${app.utils.escapeAttr(vehicle.model || '')}</textarea>
                                                         <div id="veh-sug-model" class="suggestion-box"></div>
                                                     </div>
                                                 </td>
@@ -2355,6 +2363,12 @@ let currentRouteProvName = null;
                             ${loadMoreHtml}
                         `;
                         container.innerHTML = html;
+                        setTimeout(() => {
+                            ['vehicle-edit-operator', 'vehicle-edit-route', 'vehicle-edit-model'].forEach(id => {
+                                const el = document.getElementById(id);
+                                if (el && app.utils && app.utils.autoResizeTextarea) app.utils.autoResizeTextarea(el);
+                            });
+                        }, 0);
                         if (typeof app.vehicle.renderVehiclePagination === 'function') {
                             app.vehicle.renderVehiclePagination();
                         }

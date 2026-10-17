@@ -1717,7 +1717,7 @@ html.theme-dark .ct-icon {
         
 
 
-        /* FIX LỖI GIAO DIỆN MOBILE: CHỐNG TRÀN BẢNG KHIẾN TRÌNH DUYỆT TỰ ZOOM-OUT */
+        /* FIX LỖI GIAO DIỆN MOBILE: CHỐNG TRÀN BẢNG VÀ CHỐNG CUỘN NGANG CHỮ TRONG BẢNG */
         .info-table, .data-table {
             table-layout: fixed;
             width: 100%;
@@ -1726,18 +1726,28 @@ html.theme-dark .ct-icon {
         .info-table td, .data-table td {
             word-wrap: break-word;
             overflow-wrap: break-word;
+            word-break: break-word;
         }
 
         .info-input {
             min-width: 0;
             text-overflow: clip;
+            word-break: break-word;
+            overflow-wrap: break-word;
+            box-sizing: border-box;
         }
 
         textarea.info-input {
-            white-space: pre-wrap;
+            white-space: pre-wrap !important;
+            word-break: break-word !important;
+            overflow-wrap: break-word !important;
             resize: none;
             overflow: hidden;
             field-sizing: content;
+            height: auto;
+            min-height: 38px;
+            line-height: 1.4;
+            display: block;
         }
 
         /* Thêm wrapper cuộn ngang cho bảng lịch sử để không vỡ layout */
