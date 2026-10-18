@@ -725,7 +725,7 @@ if (!decodedProvince || decodedProvince.trim() === '') {
                         const renderInfoValue = (el, items, clickHandler) => {
                             if (!el) return;
                             el.innerHTML = '';
-                            el.className = 'info-input text-gray-700 w-full flex items-center flex-wrap gap-1 h-full min-h-[36px]';
+                            el.className = 'info-input text-gray-700 dark:text-gray-200 w-full flex items-center flex-wrap h-full min-h-[36px] py-1';
                             el.onclick = null;
                             if (!items || items.length === 0) {
                                 el.innerText = '---';
@@ -735,13 +735,13 @@ if (!decodedProvince || decodedProvince.trim() === '') {
                             items.forEach((item, index) => {
                                 if (index > 0) {
                                     const sep = document.createElement('span');
-                                    sep.textContent = ', ';
-                                    sep.className = 'text-gray-500';
+                                    sep.textContent = ',';
+                                    sep.className = 'text-gray-600 dark:text-gray-400 mr-1.5 select-none';
                                     el.appendChild(sep);
                                 }
                                 const span = document.createElement('span');
                                 span.textContent = item;
-                                span.className = 'cursor-pointer text-black dark:text-white font-bold hover:underline transition';
+                                span.className = 'cursor-pointer text-black dark:text-white font-medium hover:underline transition';
                                 span.onclick = (e) => {
                                     e.stopPropagation();
                                     clickHandler(item);
@@ -750,91 +750,6 @@ if (!decodedProvince || decodedProvince.trim() === '') {
                             });
                         };
                         
-                        if (app.route.routePhotos.length > 0) {
-                            // Tính toán đơn vị vận hành và dòng xe theo thời gian gần đây thay vì toàn thời gian
-                            const getPhotoTime = (p) => {
-                                if (p.taken_at) {
-                                    const t = new Date(p.taken_at).getTime();
-                                    if (!isNaN(t) && t > 0) return t;
-                                }
-                                if (p.created_at) {
-                                    const t = new Date(p.created_at).getTime();
-                                    if (!isNaN(t) && t > 0) return t;
-                                }
-                                return 0;
-                            };
-
-                            let latestTime = 0;
-                            for (const p of app.route.routePhotos) {
-                                const t = getPhotoTime(p);
-                                if (t > latestTime) latestTime = t;
-                            }
-                            if (latestTime === 0) latestTime = Date.now();
-
-                            // Mốc thời gian gần đây: 1 năm (365 ngày) tính từ ảnh chụp mới nhất
-                            const ONE_YEAR_MS = 365 * 24 * 60 * 60 * 1000;
-                            const cutoffTime = latestTime - ONE_YEAR_MS;
-                            let recentPhotos = app.route.routePhotos.filter(p => getPhotoTime(p) >= cutoffTime);
-
-                            // Nếu trong 1 năm gần nhất có quá ít ảnh (< 10) mà tuyến có nhiều ảnh hơn, lấy 20 ảnh gần nhất làm mẫu
-                            if (recentPhotos.length < 10 && app.route.routePhotos.length >= 10) {
-                                recentPhotos = app.route.routePhotos.slice(0, 20);
-                            } else if (recentPhotos.length === 0) {
-                                recentPhotos = app.route.routePhotos;
-                            }
-
-                            const computeDominant = (photoList, getEntityFn) => {
-                                const counts = {};
-                                const seenVehicles = new Set();
-                                photoList.forEach(p => {
-                                    const entity = getEntityFn(p);
-                                    if (!entity || entity === '---') return;
-                                    const lp = p.license_plate?.trim().toUpperCase();
-                                    const key = lp ? `${entity}_${lp}` : `${entity}_photo_${p.id}`;
-                                    if (!seenVehicles.has(key)) {
-                                        seenVehicles.add(key);
-                                        counts[entity] = (counts[entity] || 0) + 1;
-                                    }
-                                });
-                                return counts;
-                            };
-
-                            // Đơn vị vận hành
-                            let opCounts = computeDominant(recentPhotos, p => p.operator?.trim());
-                            if (Object.keys(opCounts).length === 0) {
-                                opCounts = computeDominant(app.route.routePhotos, p => p.operator?.trim());
-                            }
-                            const sortedOps = Object.entries(opCounts).sort((a, b) => b[1] - a[1]);
-                            let dominantOps = [];
-                            if (sortedOps.length > 0) {
-                                const totalOps = sortedOps.reduce((s, [, c]) => s + c, 0);
-                                dominantOps.push(sortedOps[0][0]);
-                                if (sortedOps.length > 1 && (sortedOps[1][1] / totalOps) >= 0.25) {
-                                    dominantOps.push(sortedOps[1][0]);
-                                }
-                            }
-
-                            // Dòng xe
-                            let modelCounts = computeDominant(recentPhotos, p => p.vehicles?.model?.trim());
-                            if (Object.keys(modelCounts).length === 0) {
-                                modelCounts = computeDominant(app.route.routePhotos, p => p.vehicles?.model?.trim());
-                            }
-                            const sortedModels = Object.entries(modelCounts).sort((a, b) => b[1] - a[1]);
-                            let dominantModels = [];
-                            if (sortedModels.length > 0) {
-                                const totalModels = sortedModels.reduce((s, [, c]) => s + c, 0);
-                                dominantModels.push(sortedModels[0][0]);
-                                if (sortedModels.length > 1 && (sortedModels[1][1] / totalModels) >= 0.25) {
-                                    dominantModels.push(sortedModels[1][0]);
-                                }
-                            }
-
-                            renderInfoValue(opEl, dominantOps, op => app.views.loadOperatorPage(op));
-                            renderInfoValue(mdlEl, dominantModels, mdl => app.views.loadModelPage(mdl));
-                        } else {
-                            renderInfoValue(opEl, [], null);
-                            renderInfoValue(mdlEl, [], null);
-                        }
                         app.route.totalCount = app.route.routePhotos.length;
                         app.route.totalPages = Math.ceil(app.route.totalCount / app.route.ROUTE_PAGE_SIZE);
                         
@@ -842,16 +757,25 @@ if (!decodedProvince || decodedProvince.trim() === '') {
                         
                         let totalViews = 0;
                         const uniqueVehicles = new Set();
+                        const vehicleModelMap = {};
                         
                         app.route.routePhotos.forEach(p => {
                             totalViews += (p.views || 0);
-                            if (p.license_plate) uniqueVehicles.add(p.license_plate.trim().toUpperCase());
+                            const lp = p.license_plate?.trim().toUpperCase();
+                            if (lp) {
+                                uniqueVehicles.add(lp);
+                                if (p.vehicles?.model && !vehicleModelMap[lp]) {
+                                    vehicleModelMap[lp] = p.vehicles.model.trim();
+                                }
+                            }
                         });
                         
                         document.getElementById('rte-stat-views').innerText = app.utils.formatCompact(totalViews);
                         
                         const platesArr = Array.from(uniqueVehicles);
                         let activeVehiclesCount = 0;
+                        const activeOpCounts = {};
+                        const activeModelCounts = {};
                         
                         if (platesArr.length > 0) {
                             try {
@@ -861,44 +785,118 @@ if (!decodedProvince || decodedProvince.trim() === '') {
                                 for (let i = 0; i < platesArr.length; i += chunkSize) {
                                     const chunk = platesArr.slice(i, i + chunkSize);
                                     const [pRes, hRes] = await Promise.all([
-                                        window.sb.from('photos').select('license_plate, route_no, borrowed_route, taken_at').eq('status', 'approved').in('license_plate', chunk),
-                                        window.sb.from('vehicle_history').select('plate, route, effective_date').in('plate', chunk)
+                                        window.sb.from('photos').select('license_plate, route_no, operator, borrowed_route, taken_at, created_at, vehicles(model)').eq('status', 'approved').in('license_plate', chunk),
+                                        window.sb.from('vehicle_history').select('id, license_plate, plate, operator, route, note, effective_date, display_order').or(`license_plate.in.(${chunk.join(',')}),plate.in.(${chunk.join(',')})`)
                                     ]);
                                     if (pRes.data) allVehPhotos = allVehPhotos.concat(pRes.data);
                                     if (hRes.data) allVehHist = allVehHist.concat(hRes.data);
                                 }
                                 
-                                allVehPhotos.sort((a, b) => new Date(b.taken_at || '1970-01-01') - new Date(a.taken_at || '1970-01-01'));
-                                allVehHist.sort((a, b) => new Date(b.effective_date || '1970-01-01') - new Date(a.effective_date || '1970-01-01'));
+                                allVehPhotos.forEach(p => {
+                                    const lp = p.license_plate?.trim().toUpperCase();
+                                    if (lp && p.vehicles?.model && !vehicleModelMap[lp]) {
+                                        vehicleModelMap[lp] = p.vehicles.model.trim();
+                                    }
+                                });
                                 
                                 const specialRoutes = ['Dừng hoạt động', 'Ngoài giờ hoạt động', 'Chưa hoạt động'];
                                 
                                 platesArr.forEach(plate => {
-                                    const vPhotos = allVehPhotos.filter(p => p.license_plate.toUpperCase() === plate);
-                                    const vHist = allVehHist.filter(h => h.plate.toUpperCase() === plate);
+                                    const vPhotos = allVehPhotos
+                                        .filter(p => p.license_plate && p.license_plate.trim().toUpperCase() === plate)
+                                        .sort((a, b) => {
+                                            const timeA = new Date(a.taken_at || a.created_at || '1970-01-01').getTime();
+                                            const timeB = new Date(b.taken_at || b.created_at || '1970-01-01').getTime();
+                                            return timeB - timeA;
+                                        });
+                                    
+                                    const vHist = allVehHist
+                                        .filter(h => (h.license_plate && h.license_plate.trim().toUpperCase() === plate) || (h.plate && h.plate.trim().toUpperCase() === plate))
+                                        .map(h => {
+                                            let effDate = h.effective_date;
+                                            if (!effDate && h.note) {
+                                                const dateMatch = h.note.match(/Từ ngày:\s*(\d{1,2}\/\d{1,2}\/\d{4})/i);
+                                                if (dateMatch) {
+                                                    const parts = dateMatch[1].split('/');
+                                                    effDate = `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
+                                                }
+                                            }
+                                            return {
+                                                ...h,
+                                                parsed_effective_date: effDate
+                                            };
+                                        })
+                                        .sort((a, b) => {
+                                            const timeA = new Date(a.parsed_effective_date || '1970-01-01').getTime();
+                                            const timeB = new Date(b.parsed_effective_date || '1970-01-01').getTime();
+                                            if (timeA !== timeB) return timeA - timeB;
+                                            return (a.display_order || 0) - (b.display_order || 0);
+                                        });
                                     
                                     let currentRouteClientSide = '';
+                                    let currentOpClientSide = '';
+                                    let currentRouteProvName = null;
+                                    let photoTime = 0;
+                                    
                                     if (vPhotos.length > 0) {
                                         const latestPhoto = vPhotos[0];
+                                        photoTime = new Date(latestPhoto.taken_at || latestPhoto.created_at || '1970-01-01').getTime();
+                                        currentOpClientSide = (latestPhoto.operator || '').trim();
                                         const r = (latestPhoto.route_no || '').trim();
                                         if (r && !specialRoutes.includes(r)) {
                                             currentRouteClientSide = r;
+                                            if (latestPhoto.borrowed_route) {
+                                                const parts = latestPhoto.borrowed_route.split(' - ');
+                                                if (parts.length > 1) currentRouteProvName = parts[1].trim();
+                                            }
                                         } else if (r === 'Ngoài giờ hoạt động') {
-                                            const valid = vPhotos.find(p => p.route_no && !specialRoutes.includes(p.route_no));
-                                            if (valid) currentRouteClientSide = (valid.route_no || '').trim();
+                                            const validPhotos = vPhotos.filter(p => p.route_no && !specialRoutes.includes(p.route_no.trim()));
+                                            if (validPhotos.length > 0) {
+                                                const latestValid = validPhotos[0];
+                                                currentRouteClientSide = (latestValid.route_no || '').trim();
+                                                if (latestValid.operator) currentOpClientSide = latestValid.operator.trim();
+                                                if (latestValid.borrowed_route) {
+                                                    const parts = latestValid.borrowed_route.split(' - ');
+                                                    if (parts.length > 1) currentRouteProvName = parts[1].trim();
+                                                }
+                                            }
                                         } else if (r === 'Dừng hoạt động' || r === 'Chưa hoạt động') {
                                             currentRouteClientSide = r;
                                         }
                                     }
+                                    
                                     if (vHist.length > 0) {
-                                        const histRoute = (vHist[0].route || '').trim();
-                                        if (histRoute && histRoute !== '-' && histRoute !== '---') {
-                                            currentRouteClientSide = histRoute;
+                                        const latestHist = vHist[vHist.length - 1];
+                                        const histTime = latestHist.parsed_effective_date ? new Date(latestHist.parsed_effective_date).getTime() : 0;
+                                        
+                                        if (!histTime || !photoTime || histTime >= photoTime) {
+                                            const histRoute = (latestHist.route || '').trim();
+                                            if (histRoute && histRoute !== '-' && histRoute !== '---') {
+                                                currentRouteClientSide = histRoute;
+                                            }
+                                            const histOp = (latestHist.operator || '').trim();
+                                            if (histOp && histOp !== '-' && histOp !== '---') {
+                                                currentOpClientSide = histOp;
+                                            }
                                         }
                                     }
                                     
-                                    if (currentRouteClientSide === decodedRoute) {
+                                    const isRouteMatch = currentRouteClientSide.toLowerCase() === decodedRoute.toLowerCase();
+                                    const isNotSpecial = !specialRoutes.includes(currentRouteClientSide);
+                                    let isProvMatch = true;
+                                    if (decodedProvince && currentRouteProvName) {
+                                        isProvMatch = currentRouteProvName.toLowerCase() === decodedProvince.toLowerCase();
+                                    }
+                                    
+                                    if (isRouteMatch && isNotSpecial && isProvMatch) {
                                         activeVehiclesCount++;
+                                        if (currentOpClientSide && currentOpClientSide !== '---' && currentOpClientSide !== 'N/A') {
+                                            activeOpCounts[currentOpClientSide] = (activeOpCounts[currentOpClientSide] || 0) + 1;
+                                        }
+                                        const vModel = vehicleModelMap[plate];
+                                        if (vModel && vModel !== '---') {
+                                            activeModelCounts[vModel] = (activeModelCounts[vModel] || 0) + 1;
+                                        }
                                     }
                                 });
                             } catch (e) {
@@ -908,7 +906,38 @@ if (!decodedProvince || decodedProvince.trim() === '') {
                         }
                         
                         document.getElementById('rte-stat-vehicles').innerText = app.utils.formatCompact(activeVehiclesCount);
-app.views.fetchRoutePhotosPage(1);
+                        
+                        // Xác định danh sách đơn vị vận hành và dòng xe hiển thị
+                        let dominantOps = Object.keys(activeOpCounts).sort((a, b) => activeOpCounts[b] - activeOpCounts[a]);
+                        let dominantModels = Object.keys(activeModelCounts).sort((a, b) => activeModelCounts[b] - activeModelCounts[a]);
+                        
+                        // Nếu không có xe nào đang hoạt động (ví dụ tuyến đã ngừng hoặc thiếu lịch sử), lấy theo dữ liệu ảnh của tuyến làm dự phòng
+                        if (dominantOps.length === 0 && app.route.routePhotos.length > 0) {
+                            const fallbackOpCounts = {};
+                            app.route.routePhotos.forEach(p => {
+                                const op = p.operator?.trim();
+                                if (op && op !== '---' && op !== 'N/A') {
+                                    fallbackOpCounts[op] = (fallbackOpCounts[op] || 0) + 1;
+                                }
+                            });
+                            dominantOps = Object.keys(fallbackOpCounts).sort((a, b) => fallbackOpCounts[b] - fallbackOpCounts[a]);
+                        }
+                        
+                        if (dominantModels.length === 0 && app.route.routePhotos.length > 0) {
+                            const fallbackModelCounts = {};
+                            app.route.routePhotos.forEach(p => {
+                                const mdl = p.vehicles?.model?.trim();
+                                if (mdl && mdl !== '---') {
+                                    fallbackModelCounts[mdl] = (fallbackModelCounts[mdl] || 0) + 1;
+                                }
+                            });
+                            dominantModels = Object.keys(fallbackModelCounts).sort((a, b) => fallbackModelCounts[b] - fallbackModelCounts[a]);
+                        }
+                        
+                        renderInfoValue(opEl, dominantOps, op => app.utils.navigate('/operator/' + encodeURIComponent(op)));
+                        renderInfoValue(mdlEl, dominantModels, mdl => app.utils.navigate('/model/' + encodeURIComponent(mdl)));
+                        
+                        app.views.fetchRoutePhotosPage(1);
                      } catch (err) {
                          console.error("Lỗi khi tải dữ liệu tuyến:", err);
                          grid.innerHTML = '<div class="col-span-full text-center py-10 text-red-500">Đã xảy ra lỗi khi tải dữ liệu. Vui lòng thử lại sau.</div>';
