@@ -561,15 +561,13 @@ Object.assign(window.app, {
                     imgEl.style.opacity = '1';
                     imgEl.style.pointerEvents = 'auto';
                     if (containerEl) {
-                        containerEl.classList.remove('is-transitioning');
                         containerEl.style.overflow = 'visible';
                     }
                     return;
                 }
-                if (containerEl) containerEl.classList.add('is-transitioning');
-                textEl.style.transform = 'translateX(120%)';
+                textEl.style.transform = 'translateX(90px)';
                 textEl.style.opacity = '0';
-                textEl.style.filter = 'blur(6px)';
+                textEl.style.filter = 'blur(8px)';
                 imgEl.style.transform = 'translateX(0)';
                 imgEl.style.opacity = '1';
                 imgEl.style.pointerEvents = 'auto';
@@ -578,10 +576,9 @@ Object.assign(window.app, {
                     imgEl.style.position = 'static';
                     imgEl.style.transform = 'none';
                     if (containerEl) {
-                        containerEl.classList.remove('is-transitioning');
                         containerEl.style.overflow = 'visible';
                     }
-                }, 650);
+                }, 520);
             },
             dismissInitialLoadingScreen: () => {
                 if (app._initialLoadingDismissed) return;

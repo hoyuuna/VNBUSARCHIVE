@@ -1523,11 +1523,6 @@ html.theme-dark .ct-icon {
             }
         }
 
-        .header-logo-container.is-transitioning {
-            -webkit-mask-image: linear-gradient(to right, transparent 0%, black 20px, black calc(100% - 35px), transparent 100%);
-            mask-image: linear-gradient(to right, transparent 0%, black 20px, black calc(100% - 35px), transparent 100%);
-        }
-
         .header-logo-text {
             font-family: 'Montserrat', sans-serif;
             font-weight: 800;
@@ -1542,7 +1537,7 @@ html.theme-dark .ct-icon {
             transform: translateX(0);
             opacity: 1;
             filter: blur(0px);
-            transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.4s ease-out, filter 0.4s ease-out;
+            transition: transform 0.45s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.35s ease-out, filter 0.35s ease-out;
             will-change: transform, opacity, filter;
         }
 
@@ -1562,10 +1557,10 @@ html.theme-dark .ct-icon {
             max-width: 200px;
             object-fit: contain;
             flex-shrink: 0;
-            transform: translateX(-115%);
+            transform: translateX(-105%);
             opacity: 0;
             pointer-events: none;
-            transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.08s, opacity 0.35s ease-out 0.08s;
+            transition: transform 0.45s cubic-bezier(0.16, 1, 0.3, 1) 0.05s, opacity 0.38s cubic-bezier(0.16, 1, 0.3, 1) 0.05s;
             will-change: transform, opacity;
         }
 
@@ -2176,7 +2171,7 @@ html.theme-dark .ct-icon {
             if (stored === 'system') {
                 theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
             }
-            document.write('<link rel="stylesheet" href="/css/' + theme + '.css?v=1792323868513" id="theme-css">');
+            document.write('<link rel="stylesheet" href="/css/' + theme + '.css?v=1792324296689" id="theme-css">');
             document.documentElement.classList.add('theme-' + theme);
             document.documentElement.style.backgroundColor = theme === 'dark' ? '#18181b' : '#fdfcf8';
         })();
@@ -7294,7 +7289,7 @@ html.theme-dark .ct-icon {
 
     <!-- KHAY CHỨA TOAST Z-INDEX CAO NHẤT -->
     <div id="toast-container" class="fixed left-0 w-full flex flex-col items-center gap-2 pointer-events-none z-[99999]" style="z-index: 99999 !important;"></div>
-<script src="/app.91a7ab34a13f.js" onerror="if(!window.__app_fallback_loaded){window.__app_fallback_loaded=true;var s=document.createElement('script');s.src='/app.js?v=' + Date.now();document.head.appendChild(s);}"></script>
+<script src="/app.581696a6ae60.js" onerror="if(!window.__app_fallback_loaded){window.__app_fallback_loaded=true;var s=document.createElement('script');s.src='/app.js?v=' + Date.now();document.head.appendChild(s);}"></script>
 </body>
 </html>
 
