@@ -21,7 +21,7 @@ body:
     id: reproduce
     attributes:
       label: Hướng dẫn tái hiện sự cố
-      description: Để đội ngũ kỹ thuật có thể kiểm tra chính xác, xin bạn liệt kê các thao tác dẫn đến lỗi này.
+      description: Để đội ngũ kỹ thuật có thể kiểm tra chính xác, xin bạn liệt kê các thao tác dẫn đến lỗi này. Mọi chi tiết đều là vô giá và có thể tạo ra hướng mới cho quá trình sửa lỗi, mong bạn có thể mô tả chi tiết nhất có thể.
       value: |
         1. Truy cập vào trang '...'
         2. Nhấn vào nút '....'
@@ -37,7 +37,7 @@ body:
       description: "Nếu đúng ra thì tính năng này nên hoạt động như thế nào hoặc kết quả bạn kỳ vọng là gì?"
       placeholder: "Mô tả kết quả hoặc cách hoạt động mà bạn mong muốn..."
     validations:
-      required: false
+      required: true
 
   - type: dropdown
     id: environment
