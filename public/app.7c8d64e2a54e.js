@@ -560,7 +560,7 @@ Object.assign(window.app, {
                     loadingScreen.style.pointerEvents = 'none';
                     setTimeout(() => {
                         loadingScreen.style.display = 'none';
-                    }, 300);
+                    }, 400);
                 }
             },
 

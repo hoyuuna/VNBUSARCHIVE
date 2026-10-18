@@ -1350,13 +1350,15 @@ html.theme-dark .ct-icon {
             justify-content: center;
             align-items: center;
             z-index: 9999;
-            transition: opacity 0.3s ease-out;
+            transition: opacity 0.4s ease-out;
+            pointer-events: auto;
         }
 
         .brand-container {
             display: flex;
             align-items: center;
             justify-content: center;
+            position: relative;
         }
 
         .logo {
@@ -1364,17 +1366,25 @@ html.theme-dark .ct-icon {
             object-fit: contain;
             position: relative;
             z-index: 2;
+            opacity: 0;
+            animation: logoIntro 0.45s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            will-change: transform, opacity;
         }
 
         .text-wrapper {
             display: grid;
-            grid-template-columns: 1fr;
-            opacity: 1;
+            grid-template-columns: 0fr;
+            opacity: 0;
+            position: relative;
+            z-index: 1;
+            animation: textReveal 0.75s cubic-bezier(0.16, 1, 0.3, 1) 0.35s forwards;
+            will-change: grid-template-columns, opacity;
         }
 
         .text-inner {
             overflow: hidden;
             white-space: nowrap;
+            min-width: 0;
         }
 
         .text-inner span {
@@ -1387,6 +1397,10 @@ html.theme-dark .ct-icon {
             display: block;
             padding-right: 5px;
             color: #000;
+            opacity: 0;
+            transform: translateX(-35px);
+            animation: textSlideOut 0.75s cubic-bezier(0.16, 1, 0.3, 1) 0.35s forwards;
+            will-change: transform, opacity;
         }
 
         .spinner {
@@ -1397,7 +1411,52 @@ html.theme-dark .ct-icon {
             border: 4px solid rgba(0, 0, 0, 0.1);
             border-left-color: #000000;
             border-radius: 50%;
-            animation: spin 1s linear infinite;
+            opacity: 0;
+            animation: spin 1s linear infinite, spinnerFadeIn 0.4s ease-out 0.3s forwards;
+        }
+
+        @keyframes logoIntro {
+            0% {
+                opacity: 0;
+                transform: scale(0.75);
+            }
+            100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        @keyframes textReveal {
+            0% {
+                grid-template-columns: 0fr;
+                opacity: 0;
+            }
+            100% {
+                grid-template-columns: 1fr;
+                opacity: 1;
+            }
+        }
+
+        @keyframes textSlideOut {
+            0% {
+                transform: translateX(-35px);
+                opacity: 0;
+            }
+            100% {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes spinnerFadeIn {
+            0% {
+                opacity: 0;
+                transform: scale(0.85);
+            }
+            100% {
+                opacity: 1;
+                transform: scale(1);
+            }
         }
 
         @media (max-width: 768px) {
@@ -1427,18 +1486,6 @@ html.theme-dark .ct-icon {
                 height: 30px;
                 border-width: 3px;
                 bottom: 12%;
-            }
-        }
-
-        @keyframes slideOut {
-            0% {
-                grid-template-columns: 0fr;
-                opacity: 0;
-            }
-
-            100% {
-                grid-template-columns: 1fr;
-                opacity: 1;
             }
         }
 
@@ -2057,7 +2104,7 @@ html.theme-dark .ct-icon {
             if (stored === 'system') {
                 theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
             }
-            document.write('<link rel="stylesheet" href="/css/' + theme + '.css?v=1792293513864" id="theme-css">');
+            document.write('<link rel="stylesheet" href="/css/' + theme + '.css?v=1792294292647" id="theme-css">');
             document.documentElement.classList.add('theme-' + theme);
             document.documentElement.style.backgroundColor = theme === 'dark' ? '#18181b' : '#fdfcf8';
         })();
@@ -7173,7 +7220,7 @@ html.theme-dark .ct-icon {
 
     <!-- KHAY CHỨA TOAST Z-INDEX CAO NHẤT -->
     <div id="toast-container" class="fixed left-0 w-full flex flex-col items-center gap-2 pointer-events-none z-[99999]" style="z-index: 99999 !important;"></div>
-<script src="/app.bc69fd22b7b2.js" onerror="if(!window.__app_fallback_loaded){window.__app_fallback_loaded=true;var s=document.createElement('script');s.src='/app.js?v=' + Date.now();document.head.appendChild(s);}"></script>
+<script src="/app.7c8d64e2a54e.js" onerror="if(!window.__app_fallback_loaded){window.__app_fallback_loaded=true;var s=document.createElement('script');s.src='/app.js?v=' + Date.now();document.head.appendChild(s);}"></script>
 </body>
 </html>
 
