@@ -218,9 +218,18 @@ Object.assign(window.app, {
                                 }
                                 app.toast.show('success', 'Thành công', 'Đã lưu thông tin Đơn vị vận hành!');
                                 app.operator.closeEditPrompt();
-                                app.views.loadOperatorPage(app.currentOperator);
+                                const opDescEl = document.getElementById('op-desc');
+                                if (opDescEl) {
+                                    if (desc) {
+                                        opDescEl.innerHTML = app.utils.cleanText(desc).replace(/\n/g, '<br>');
+                                        opDescEl.classList.remove('hidden');
+                                    } else {
+                                        opDescEl.classList.add('hidden');
+                                    }
+                                }
+                                app.views.loadOperatorPage(app.currentOperator, true);
                                 if (app.admin && app.admin.logAction) {
-                                    app.admin.logAction('update_operator_direct', app.currentOperator, { logo_url: null, description: desc, parent_operator: parentOp });
+                                    app.admin.logAction('update_operator_direct', app.currentOperator, { logo_url: logo || null, description: desc, parent_operator: parentOp });
                                 }
                             } else {
                                 const { count, error: checkErr } = await window.sb.from('edit_requests')
@@ -482,7 +491,28 @@ Object.assign(window.app, {
                                 }
                                 app.toast.show('success', 'Thành công', 'Đã lưu và đồng bộ thông tin Dòng xe!');
                                 app.model.closeEditPrompt();
-                                app.model.loadModelPage(app.model.currentModel);
+                                const descEl = document.getElementById('model-desc');
+                                if (descEl) {
+                                    if (desc) {
+                                        descEl.innerHTML = app.utils.cleanText(desc).replace(/\n/g, '<br>');
+                                        descEl.classList.remove('hidden');
+                                    } else {
+                                        descEl.classList.add('hidden');
+                                    }
+                                }
+                                const logoEl = document.getElementById('model-logo');
+                                const fallbackEl = document.getElementById('model-logo-fallback');
+                                if (logoEl && fallbackEl) {
+                                    if (logo) {
+                                        logoEl.src = logo.includes('wsrv.nl') ? logo : 'https://wsrv.nl/?url=' + encodeURIComponent(logo);
+                                        logoEl.classList.remove('hidden');
+                                        fallbackEl.classList.add('hidden');
+                                    } else {
+                                        logoEl.classList.add('hidden');
+                                        fallbackEl.classList.remove('hidden');
+                                    }
+                                }
+                                app.model.loadModelPage(app.model.currentModel, true);
                                 if (app.admin && app.admin.logAction) {
                                     app.admin.logAction('update_model_direct', app.model.currentModel, { logo_url: logo || null, description: desc, brand_sync: brandName });
                                 }

@@ -26,6 +26,7 @@
 
 ## Git Workflow
 - **Rule:** Always automatically commit and push git changes (`git add -A; git commit -m "..."; git push`) after successfully completing user requests or modifying code. **All git commit messages MUST always be written in English.**
+- **Rule - Link Commits to Issues:** Whenever resolving or fixing an open GitHub issue, you **MUST link the commit to that issue** by referencing the issue number in the commit message (e.g., `fixes #<issue_number>` or `(fixes #<issue_number>)`).
 - **Rule:** Ensure all temporary or junk files are deleted before pushing. If they must be kept, they MUST be placed in the `/temp` directory.
 
 ## Frontend Build & Payload Invariant
