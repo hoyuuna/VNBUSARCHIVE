@@ -569,18 +569,16 @@ Object.assign(window.app, {
                     return;
                 }
                 if (containerEl) containerEl.classList.add('is-transitioning');
-                textEl.style.transform = 'translateX(70px)';
+                textEl.style.transform = 'translateX(50px)';
                 textEl.style.opacity = '0';
-                textEl.style.filter = 'blur(8px)';
+                textEl.style.filter = 'blur(6px)';
                 imgEl.style.transform = 'translateX(0)';
                 imgEl.style.opacity = '1';
-                imgEl.style.filter = 'blur(0px)';
                 imgEl.style.pointerEvents = 'auto';
                 setTimeout(() => {
                     textEl.style.display = 'none';
                     imgEl.style.position = 'static';
                     imgEl.style.transform = 'none';
-                    imgEl.style.filter = 'none';
                     if (containerEl) {
                         containerEl.classList.remove('is-transitioning');
                         containerEl.style.overflow = 'visible';

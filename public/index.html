@@ -1526,8 +1526,8 @@ html.theme-dark .ct-icon {
         }
 
         .header-logo-container.is-transitioning {
-            -webkit-mask-image: linear-gradient(to right, transparent 0%, black 20px, black calc(100% - 40px), transparent 100%);
-            mask-image: linear-gradient(to right, transparent 0%, black 20px, black calc(100% - 40px), transparent 100%);
+            -webkit-mask-image: linear-gradient(to right, black 0%, black calc(100% - 35px), transparent 100%);
+            mask-image: linear-gradient(to right, black 0%, black calc(100% - 35px), transparent 100%);
         }
 
         .header-logo-text {
@@ -1544,7 +1544,7 @@ html.theme-dark .ct-icon {
             transform: translateX(0);
             opacity: 1;
             filter: blur(0px);
-            transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.5s ease-out, filter 0.5s ease-out;
+            transition: transform 0.45s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.35s ease-out, filter 0.35s ease-out;
             will-change: transform, opacity, filter;
         }
 
@@ -1564,12 +1564,11 @@ html.theme-dark .ct-icon {
             max-width: 200px;
             object-fit: contain;
             flex-shrink: 0;
-            transform: translateX(-40px);
+            transform: translateX(-20px);
             opacity: 0;
-            filter: blur(6px);
             pointer-events: none;
-            transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.5s ease-out, filter 0.5s ease-out;
-            will-change: transform, opacity, filter;
+            transition: transform 0.45s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.35s ease-out;
+            will-change: transform, opacity;
         }
 
         @media (min-width: 1024px) {
@@ -2179,7 +2178,7 @@ html.theme-dark .ct-icon {
             if (stored === 'system') {
                 theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
             }
-            document.write('<link rel="stylesheet" href="/css/' + theme + '.css?v=1792296687243" id="theme-css">');
+            document.write('<link rel="stylesheet" href="/css/' + theme + '.css?v=1792296966339" id="theme-css">');
             document.documentElement.classList.add('theme-' + theme);
             document.documentElement.style.backgroundColor = theme === 'dark' ? '#18181b' : '#fdfcf8';
         })();
@@ -7296,7 +7295,7 @@ html.theme-dark .ct-icon {
 
     <!-- KHAY CHỨA TOAST Z-INDEX CAO NHẤT -->
     <div id="toast-container" class="fixed left-0 w-full flex flex-col items-center gap-2 pointer-events-none z-[99999]" style="z-index: 99999 !important;"></div>
-<script src="/app.0ead6a241fcd.js" onerror="if(!window.__app_fallback_loaded){window.__app_fallback_loaded=true;var s=document.createElement('script');s.src='/app.js?v=' + Date.now();document.head.appendChild(s);}"></script>
+<script src="/app.bae4999ddc0f.js" onerror="if(!window.__app_fallback_loaded){window.__app_fallback_loaded=true;var s=document.createElement('script');s.src='/app.js?v=' + Date.now();document.head.appendChild(s);}"></script>
 </body>
 </html>
 
