@@ -155,13 +155,18 @@ Object.assign(window.app, {
                     }
                     const targetEl = document.getElementById(id);
                     if (targetEl) {
-                        targetEl.classList.add('active', animationClass);
-                        targetEl.onanimationend = () => {
-                            targetEl.classList.remove(animationClass);
-                            targetEl.onanimationend = null;
-                        };
+                        if (!app._initialLoadingDismissed) {
+                            targetEl.classList.add('active');
+                        } else {
+                            targetEl.classList.add('active', animationClass);
+                            targetEl.onanimationend = () => {
+                                targetEl.classList.remove(animationClass);
+                                targetEl.onanimationend = null;
+                            };
+                        }
                     }
                     if (app.utils && app.utils.updateCanonical) app.utils.updateCanonical();
+                    if (app.dismissInitialLoadingScreen) app.dismissInitialLoadingScreen();
                 },
                 loadUserProfile: (username) => {
                     app.utils.navigate(`/user/${encodeURIComponent(username)}`);

@@ -542,6 +542,26 @@ Object.assign(window.app, {
                 }
             },
 
+            _initialLoadingDismissed: false,
+            dismissInitialLoadingScreen: () => {
+                if (app._initialLoadingDismissed) return;
+                app._initialLoadingDismissed = true;
+                const loadingScreen = document.getElementById('loading-screen');
+                const appContainer = document.getElementById('app-container');
+                if (appContainer) {
+                    appContainer.style.display = 'block';
+                    void appContainer.offsetHeight;
+                    appContainer.style.opacity = '1';
+                }
+                if (loadingScreen) {
+                    loadingScreen.style.opacity = '0';
+                    loadingScreen.style.pointerEvents = 'none';
+                    setTimeout(() => {
+                        loadingScreen.style.display = 'none';
+                    }, 300);
+                }
+            },
+
     ui: {
                 alertInterval: null,
                 showAlert: (msg, okCallback = null, cancelCallback = null, options = {}) => {

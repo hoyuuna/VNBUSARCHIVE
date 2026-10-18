@@ -544,6 +544,26 @@ Object.assign(window.app, {
                 }
             },
 
+            _initialLoadingDismissed: false,
+            dismissInitialLoadingScreen: () => {
+                if (app._initialLoadingDismissed) return;
+                app._initialLoadingDismissed = true;
+                const loadingScreen = document.getElementById('loading-screen');
+                const appContainer = document.getElementById('app-container');
+                if (appContainer) {
+                    appContainer.style.display = 'block';
+                    void appContainer.offsetHeight;
+                    appContainer.style.opacity = '1';
+                }
+                if (loadingScreen) {
+                    loadingScreen.style.opacity = '0';
+                    loadingScreen.style.pointerEvents = 'none';
+                    setTimeout(() => {
+                        loadingScreen.style.display = 'none';
+                    }, 300);
+                }
+            },
+
     ui: {
                 alertInterval: null,
                 showAlert: (msg, okCallback = null, cancelCallback = null, options = {}) => {
@@ -4046,19 +4066,14 @@ Object.assign(window.app, {
                     }).catch(()=>{});
                 }
                 if (session && session.user && !session.user.email_confirmed_at) {
-                    document.getElementById('loading-screen').style.display = 'none';
+                    if (app.dismissInitialLoadingScreen) app.dismissInitialLoadingScreen();
                     if(document.getElementById('app-container')) document.getElementById('app-container').style.display = 'none';
                     app.auth.showVerificationModal(session.user.email);
                     return;
                 }
                 setTimeout(() => {
-                    document.getElementById('loading-screen').style.display = 'none';
-                    const appContainer = document.getElementById('app-container');
-                    appContainer.style.display = 'block';
-                    setTimeout(() => {
-                        appContainer.style.opacity = '1';
-                    }, 50);
-                }, 400);
+                    if (app.dismissInitialLoadingScreen) app.dismissInitialLoadingScreen();
+                }, 4000);
                 // Check if there is an error from OAuth linking
                 if (window.location.search.includes('error=unlinked_sso')) {
                     setTimeout(() => {
@@ -4132,12 +4147,7 @@ Object.assign(window.app, {
                         }
                     });
                 } catch (e) {
-                    document.getElementById('loading-screen').style.display = 'none';
-                    const appContainer = document.getElementById('app-container');
-                    if(appContainer) {
-                        appContainer.style.display = 'block';
-                        appContainer.style.opacity = '1';
-                    }
+                    if (app.dismissInitialLoadingScreen) app.dismissInitialLoadingScreen();
                     await app.setUser(null);
                 }
                 let offlineTimer = null;
@@ -4186,6 +4196,7 @@ Object.assign(window.app, {
                 app.preference.load();
                 app.onboarding.check();
                 app.handleRoute();
+                if (app.dismissInitialLoadingScreen) app.dismissInitialLoadingScreen();
                 const upFileEl = document.getElementById('up-file');
                 if (upFileEl) upFileEl.addEventListener('change', app.upload.handleFileSelect);
                 const isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
@@ -6389,13 +6400,18 @@ Object.assign(window.app, {
                     }
                     const targetEl = document.getElementById(id);
                     if (targetEl) {
-                        targetEl.classList.add('active', animationClass);
-                        targetEl.onanimationend = () => {
-                            targetEl.classList.remove(animationClass);
-                            targetEl.onanimationend = null;
-                        };
+                        if (!app._initialLoadingDismissed) {
+                            targetEl.classList.add('active');
+                        } else {
+                            targetEl.classList.add('active', animationClass);
+                            targetEl.onanimationend = () => {
+                                targetEl.classList.remove(animationClass);
+                                targetEl.onanimationend = null;
+                            };
+                        }
                     }
                     if (app.utils && app.utils.updateCanonical) app.utils.updateCanonical();
+                    if (app.dismissInitialLoadingScreen) app.dismissInitialLoadingScreen();
                 },
                 loadUserProfile: (username) => {
                     app.utils.navigate(`/user/${encodeURIComponent(username)}`);
