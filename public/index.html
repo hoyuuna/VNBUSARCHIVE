@@ -1747,7 +1747,16 @@ html.theme-dark .ct-icon {
             height: auto;
             min-height: 38px;
             line-height: 1.4;
+        }
+
+        textarea.info-input:not(.hidden) {
             display: block;
+        }
+
+        .info-input.hidden,
+        textarea.info-input.hidden,
+        div.info-input.hidden {
+            display: none !important;
         }
 
         /* Thêm wrapper cuộn ngang cho bảng lịch sử để không vỡ layout */
@@ -2047,7 +2056,7 @@ html.theme-dark .ct-icon {
             if (stored === 'system') {
                 theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
             }
-            document.write('<link rel="stylesheet" href="/css/' + theme + '.css?v=1792248484930" id="theme-css">');
+            document.write('<link rel="stylesheet" href="/css/' + theme + '.css?v=1792285403717" id="theme-css">');
             document.documentElement.classList.add('theme-' + theme);
             document.documentElement.style.backgroundColor = theme === 'dark' ? '#18181b' : '#fdfcf8';
         })();
