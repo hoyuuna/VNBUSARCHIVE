@@ -557,22 +557,33 @@ Object.assign(window.app, {
                     textEl.style.display = 'none';
                     imgEl.style.position = 'static';
                     imgEl.style.transform = 'none';
+                    imgEl.style.filter = 'none';
                     imgEl.style.opacity = '1';
                     imgEl.style.pointerEvents = 'auto';
-                    if (containerEl) containerEl.style.overflow = 'visible';
+                    if (containerEl) {
+                        containerEl.classList.remove('is-transitioning');
+                        containerEl.style.overflow = 'visible';
+                    }
                     return;
                 }
-                textEl.style.transform = 'translateX(120%)';
+                if (containerEl) containerEl.classList.add('is-transitioning');
+                textEl.style.transform = 'translateX(70px)';
                 textEl.style.opacity = '0';
+                textEl.style.filter = 'blur(8px)';
                 imgEl.style.transform = 'translateX(0)';
                 imgEl.style.opacity = '1';
+                imgEl.style.filter = 'blur(0px)';
                 imgEl.style.pointerEvents = 'auto';
                 setTimeout(() => {
                     textEl.style.display = 'none';
                     imgEl.style.position = 'static';
                     imgEl.style.transform = 'none';
-                    if (containerEl) containerEl.style.overflow = 'visible';
-                }, 550);
+                    imgEl.style.filter = 'none';
+                    if (containerEl) {
+                        containerEl.classList.remove('is-transitioning');
+                        containerEl.style.overflow = 'visible';
+                    }
+                }, 600);
             },
             dismissInitialLoadingScreen: () => {
                 if (app._initialLoadingDismissed) return;
