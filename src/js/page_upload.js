@@ -1301,16 +1301,23 @@ Object.assign(window.app, {
                         }
                         if (!username) username = app.username || "Guest";
                         // Preview đúng hệ pipeline với nút upload: watermark trực tiếp Canvas
-                        let wmCanvas = await app.utils.watermark(app.rawFile, username, app.wmState, app.upload.currentFilters || 'none', { embedBlind: true, returnCanvas: true, skipSharpen: false });
+                        // Nấc 1: Làm nét chuẩn 100% (sharpenAmount: 0.20)
+                        let wmCanvas = await app.utils.watermark(app.rawFile, username, app.wmState, app.upload.currentFilters || 'none', { embedBlind: true, returnCanvas: true, skipSharpen: false, sharpenAmount: 0.20 });
                         let previewBlob = null;
                         try {
                             previewBlob = await app.utils.compressToSizeLoop(wmCanvas, app.utils.getTargetMimeType(), 500);
                         } catch (e) {
-                            // Nếu ảnh quá nặng khi làm nét ở 1080p chất lượng tối thiểu 70%:
-                            // Tự động thử lại lần 2 bằng cách cắt làm nét (skipSharpen: true)
-                            console.warn("Ảnh vượt 500KB khi làm nét ở 1080p, tự động thử lại bỏ qua làm nét...", e);
-                            wmCanvas = await app.utils.watermark(app.rawFile, username, app.wmState, app.upload.currentFilters || 'none', { embedBlind: true, returnCanvas: true, skipSharpen: true });
-                            previewBlob = await app.utils.compressToSizeLoop(wmCanvas, app.utils.getTargetMimeType(), 500);
+                            // Nấc 2: Nếu vượt 500KB khi làm nét 100%, thử lại với làm nét nhẹ 50% (sharpenAmount: 0.10)
+                            console.warn("Ảnh vượt 500KB khi làm nét 100% ở 1080p, thử lại nấc 2: làm nét nhẹ 50%...", e);
+                            try {
+                                wmCanvas = await app.utils.watermark(app.rawFile, username, app.wmState, app.upload.currentFilters || 'none', { embedBlind: true, returnCanvas: true, sharpenAmount: 0.10 });
+                                previewBlob = await app.utils.compressToSizeLoop(wmCanvas, app.utils.getTargetMimeType(), 500);
+                            } catch (e2) {
+                                // Nấc 3 (Last Resort): Nếu vẫn vượt 500KB khi làm nét nhẹ 50%, cắt bỏ làm nét hoàn toàn
+                                console.warn("Ảnh vẫn vượt 500KB khi làm nét nhẹ 50%, kích hoạt Last Resort: bỏ qua làm nét...", e2);
+                                wmCanvas = await app.utils.watermark(app.rawFile, username, app.wmState, app.upload.currentFilters || 'none', { embedBlind: true, returnCanvas: true, skipSharpen: true });
+                                previewBlob = await app.utils.compressToSizeLoop(wmCanvas, app.utils.getTargetMimeType(), 500);
+                            }
                         }
                         const url = URL.createObjectURL(previewBlob);
                         app.ui.showAlert(`<img src="${url}" class="w-full rounded-lg shadow-sm" style="max-height: 70vh; object-fit: contain;">`, null, null, { title: "Xem trước ảnh xuất ra", btnOkText: "Đóng" });
@@ -2185,20 +2192,28 @@ Object.assign(window.app, {
                     const bgWebpPromise = new Promise((resolve, reject) => {
                         setTimeout(async () => {
                             try {
-                                let finalCanvas = await app.utils.watermark(rawFile, username, app.wmState, currentFilters, { embedBlind: true, returnCanvas: true, skipSharpen: false });
+                                // Nấc 1: Làm nét chuẩn 100% (sharpenAmount: 0.20)
+                                let finalCanvas = await app.utils.watermark(rawFile, username, app.wmState, currentFilters, { embedBlind: true, returnCanvas: true, skipSharpen: false, sharpenAmount: 0.20 });
                                 let blobToProcess = null;
                                 try {
                                     blobToProcess = await app.utils.compressToSizeLoop(finalCanvas, targetMime, 500);
                                 } catch (e) {
-                                    // Tự động thử lại lần 2 nếu vượt 500KB: giữ cứng 1080p & sàn chất lượng 70% nhưng cắt làm nét
-                                    console.warn("Ảnh vượt 500KB khi làm nét ở 1080p, tự động thử lại bỏ qua làm nét...", e);
+                                    // Nấc 2: Nếu vượt 500KB khi làm nét 100%, thử lại với làm nét nhẹ 50% (sharpenAmount: 0.10)
+                                    console.warn("Ảnh vượt 500KB khi làm nét 100% ở 1080p, thử lại nấc 2: làm nét nhẹ 50%...", e);
                                     try {
-                                        finalCanvas = await app.utils.watermark(rawFile, username, app.wmState, currentFilters, { embedBlind: true, returnCanvas: true, skipSharpen: true });
+                                        finalCanvas = await app.utils.watermark(rawFile, username, app.wmState, currentFilters, { embedBlind: true, returnCanvas: true, sharpenAmount: 0.10 });
                                         blobToProcess = await app.utils.compressToSizeLoop(finalCanvas, targetMime, 500);
-                                    } catch (retryErr) {
-                                        console.warn("compressToSizeLoop lỗi cả khi bỏ qua làm nét:", retryErr);
-                                        reject(retryErr);
-                                        return;
+                                    } catch (e2) {
+                                        // Nấc 3 (Last Resort): Nếu vẫn vượt 500KB khi làm nét nhẹ 50%, kích hoạt Last Resort: bỏ qua làm nét hoàn toàn
+                                        console.warn("Ảnh vẫn vượt 500KB khi làm nét nhẹ 50%, kích hoạt Last Resort: bỏ qua làm nét...", e2);
+                                        try {
+                                            finalCanvas = await app.utils.watermark(rawFile, username, app.wmState, currentFilters, { embedBlind: true, returnCanvas: true, skipSharpen: true });
+                                            blobToProcess = await app.utils.compressToSizeLoop(finalCanvas, targetMime, 500);
+                                        } catch (retryErr) {
+                                            console.warn("compressToSizeLoop lỗi cả khi bỏ qua làm nét:", retryErr);
+                                            reject(retryErr);
+                                            return;
+                                        }
                                     }
                                 }
                                 if (blobToProcess && blobToProcess instanceof Blob && !(blobToProcess instanceof File)) {

@@ -2279,7 +2279,10 @@ cleanupState: () => {
 
                                 // Khôi phục độ sắc nét vi mô bị giảm sau khi thu nhỏ kích thước (Downsampling Blur)
                                 if (app.utils.applySmartSharpen && !options.skipSharpen) {
-                                    app.utils.applySmartSharpen(ctx, width, height, 0.20);
+                                    const sharpenAmount = (options && typeof options.sharpenAmount === 'number') ? options.sharpenAmount : 0.20;
+                                    if (sharpenAmount > 0) {
+                                        app.utils.applySmartSharpen(ctx, width, height, sharpenAmount);
+                                    }
                                 }
                                 const imgEl = document.getElementById('preview-img');
                                 const blurPanels = document.querySelectorAll('.blur-panel');
