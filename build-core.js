@@ -161,6 +161,25 @@ try {
         console.log('Đã tạo public/_headers từ csp.json (kèm Cache-Control no-store cho mọi asset)');
     }
 
+    // Build _routes.json for Cloudflare Pages (Only route API and dynamic SSR to Functions)
+    const routesConfig = {
+        version: 1,
+        include: [
+            '/api/*',
+            '/photo/*',
+            '/vehicle/*',
+            '/operator/*',
+            '/model/*',
+            '/route/*',
+            '/user/*',
+            '/help/*',
+            '/sitemap.xml'
+        ],
+        exclude: []
+    };
+    fs.writeFileSync(path.join(__dirname, 'public', '_routes.json'), JSON.stringify(routesConfig, null, 2));
+    console.log('Đã tạo public/_routes.json (Chỉ route API và dynamic SSR sang Functions)');
+
     // Build Tailwind CSS
     try {
         console.log('Đang biên dịch Tailwind CSS...');
