@@ -1511,15 +1511,17 @@ html.theme-dark .ct-icon {
             align-items: center;
             overflow: hidden;
             height: 2rem;
-            max-width: calc(100% - 175px);
+            max-width: calc(100% - 195px);
             white-space: nowrap;
             flex-shrink: 0;
+            margin-right: auto !important;
         }
 
         @media (min-width: 1024px) {
             .header-logo-container {
                 height: 2.5rem;
                 max-width: none;
+                margin-right: auto !important;
             }
         }
 
@@ -1528,7 +1530,7 @@ html.theme-dark .ct-icon {
             font-weight: 800;
             font-style: italic;
             letter-spacing: 0.05em;
-            font-size: clamp(0.95rem, 3.8vw, 1.45rem);
+            font-size: clamp(0.8rem, 3.2vw, 1.45rem);
             line-height: 1;
             white-space: nowrap;
             user-select: none;
@@ -2170,7 +2172,7 @@ html.theme-dark .ct-icon {
             if (stored === 'system') {
                 theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
             }
-            document.write('<link rel="stylesheet" href="/css/' + theme + '.css?v=1792295298944" id="theme-css">');
+            document.write('<link rel="stylesheet" href="/css/' + theme + '.css?v=1792296274931" id="theme-css">');
             document.documentElement.classList.add('theme-' + theme);
             document.documentElement.style.backgroundColor = theme === 'dark' ? '#18181b' : '#fdfcf8';
         })();
@@ -3259,7 +3261,7 @@ html.theme-dark .ct-icon {
             <div
                 class="w-full max-w-7xl bg-white/80  border border-white/20 shadow-island rounded-2xl pointer-events-auto transition-all duration-300 relative">
                 <div class="flex flex-wrap lg:flex-nowrap justify-between items-center px-4 py-2 lg:h-16">
-                    <a href="/" id="header-logo" class="header-logo-container flex items-center cursor-pointer lg:mb-0 mr-auto no-underline shrink-0 mr-3 lg:mr-6">
+                    <a href="/" id="header-logo" class="header-logo-container flex items-center cursor-pointer lg:mb-0 mr-auto no-underline shrink-0">
                         <span id="header-logo-text" class="header-logo-text font-watermark">VNBUSARCHIVE</span>
                         <!-- TODO: Change back to previous logo later: https://ik.imagekit.io/hoyuuna/Logo/logo304.png -->
                         <img id="header-logo-img" src="/media/vnba.png" alt="VNBUSARCHIVE"
