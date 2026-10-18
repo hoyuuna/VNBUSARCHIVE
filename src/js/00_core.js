@@ -545,26 +545,51 @@ Object.assign(window.app, {
             _initialLoadingDismissed: false,
             _headerLogoTimer: null,
             _headerLogoTransitioned: false,
+            _headerLogoComplete: false,
+            _initialRouteHandled: false,
             transitionHeaderLogo: (instant = false) => {
-                if (app._headerLogoTransitioned) return;
-                app._headerLogoTransitioned = true;
-                if (app._headerLogoTimer) clearTimeout(app._headerLogoTimer);
-                const textEl = document.getElementById('header-logo-text');
-                const imgEl = document.getElementById('header-logo-img');
-                const containerEl = document.getElementById('header-logo');
-                if (!textEl || !imgEl) return;
                 if (instant) {
-                    textEl.style.display = 'none';
-                    imgEl.style.position = 'static';
-                    imgEl.style.transform = 'none';
-                    imgEl.style.filter = 'none';
-                    imgEl.style.opacity = '1';
-                    imgEl.style.pointerEvents = 'auto';
+                    if (app._headerLogoComplete) return;
+                    app._headerLogoComplete = true;
+                    app._headerLogoTransitioned = true;
+                    if (app._headerLogoTimer) {
+                        clearTimeout(app._headerLogoTimer);
+                        app._headerLogoTimer = null;
+                    }
+                    const textEl = document.getElementById('header-logo-text');
+                    const imgEl = document.getElementById('header-logo-img');
+                    const containerEl = document.getElementById('header-logo');
+                    if (textEl) {
+                        textEl.style.transition = 'none';
+                        textEl.style.display = 'none';
+                    }
+                    if (imgEl) {
+                        imgEl.style.transition = 'none';
+                        imgEl.style.position = 'static';
+                        imgEl.style.transform = 'none';
+                        imgEl.style.filter = 'none';
+                        imgEl.style.opacity = '1';
+                        imgEl.style.pointerEvents = 'auto';
+                    }
                     if (containerEl) {
                         containerEl.style.overflow = 'visible';
                     }
                     return;
                 }
+                if (app._headerLogoTransitioned) return;
+                app._headerLogoTransitioned = true;
+                if (app._headerLogoTimer) {
+                    clearTimeout(app._headerLogoTimer);
+                    app._headerLogoTimer = null;
+                }
+                const textEl = document.getElementById('header-logo-text');
+                const imgEl = document.getElementById('header-logo-img');
+                const containerEl = document.getElementById('header-logo');
+                if (!textEl || !imgEl) return;
+
+                textEl.style.transition = 'transform 0.45s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.35s ease-out, filter 0.35s ease-out';
+                imgEl.style.transition = 'transform 0.45s cubic-bezier(0.16, 1, 0.3, 1) 0.05s, opacity 0.38s cubic-bezier(0.16, 1, 0.3, 1) 0.05s';
+
                 textEl.style.transform = 'translateX(90px)';
                 textEl.style.opacity = '0';
                 textEl.style.filter = 'blur(8px)';
@@ -572,9 +597,11 @@ Object.assign(window.app, {
                 imgEl.style.opacity = '1';
                 imgEl.style.pointerEvents = 'auto';
                 setTimeout(() => {
+                    app._headerLogoComplete = true;
                     textEl.style.display = 'none';
                     imgEl.style.position = 'static';
                     imgEl.style.transform = 'none';
+                    imgEl.style.transition = 'none';
                     if (containerEl) {
                         containerEl.style.overflow = 'visible';
                     }
@@ -597,10 +624,12 @@ Object.assign(window.app, {
                         loadingScreen.style.display = 'none';
                     }, 400);
                 }
-                if (!app._headerLogoTransitioned) {
+                if (!app._headerLogoTransitioned && !app._initialRouteHandled) {
                     app._headerLogoTimer = setTimeout(() => {
                         app.transitionHeaderLogo(false);
                     }, 3000);
+                } else if (!app._headerLogoComplete) {
+                    app.transitionHeaderLogo(true);
                 }
             },
 
@@ -3030,6 +3059,10 @@ cleanupState: () => {
   },
 
     handleRoute: () => {
+                if (app._initialRouteHandled) {
+                    if (app.transitionHeaderLogo) app.transitionHeaderLogo(true);
+                }
+                app._initialRouteHandled = true;
                 app.loadingBar.start(); 
                 app.utils.cleanupState();
                 if (app.utils && app.utils.updateCanonical) app.utils.updateCanonical();

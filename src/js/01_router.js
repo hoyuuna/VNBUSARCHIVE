@@ -3,7 +3,10 @@ window.INITIAL_SEARCH = window.location.search;
 window.INITIAL_HASH = window.location.hash;
 Object.assign(window.app, {
     init: async () => {
-        window.onpopstate = () => app.handleRoute();
+        window.onpopstate = () => {
+            if (app.transitionHeaderLogo) app.transitionHeaderLogo(true);
+            app.handleRoute();
+        };
         if (!window._spaClickListenerRegistered) {
             window._spaClickListenerRegistered = true;
             document.body.addEventListener('click', e => {
