@@ -400,10 +400,15 @@ Object.assign(window.app, {
                     }
                     try {
                         const brandName = app.model.currentModel.split(' ')[0];
-                        const { data: exactInfo } = await window.sb.from('model_info').select('description').eq('model_name', app.model.currentModel).maybeSingle();
-                        if (exactInfo) document.getElementById('mdl-edit-desc').value = exactInfo.description || '';
-                        const { data: brandLogoData } = await window.sb.from('model_info').select('logo_url').ilike('model_name', `${brandName}%`).not('logo_url', 'is', null).limit(1).maybeSingle();
-                        if (brandLogoData) document.getElementById('mdl-edit-logo').value = brandLogoData.logo_url || '';
+                        const { data: exactInfo } = await window.sb.from('model_info').select('description, logo_url').eq('model_name', app.model.currentModel).maybeSingle();
+                        if (exactInfo) {
+                            if (exactInfo.description) document.getElementById('mdl-edit-desc').value = exactInfo.description;
+                            if (exactInfo.logo_url) document.getElementById('mdl-edit-logo').value = exactInfo.logo_url;
+                        }
+                        if (!document.getElementById('mdl-edit-logo').value) {
+                            const { data: brandLogoData } = await window.sb.from('model_info').select('logo_url').ilike('model_name', `${brandName}%`).not('logo_url', 'is', null).limit(1).maybeSingle();
+                            if (brandLogoData && brandLogoData.logo_url) document.getElementById('mdl-edit-logo').value = brandLogoData.logo_url;
+                        }
                     } catch(e) {}
                     modal.classList.remove('hidden');
                     app.ui.lockScroll();
@@ -458,24 +463,28 @@ Object.assign(window.app, {
                         try {
                             const brandName = app.model.currentModel.split(' ')[0];
                             if (app.role === 'admin' || app.role === 'manager') {
-                                if (!desc) {
+                                if (!logo && !desc) {
                                     const { error: delErr } = await window.sb.from('model_info').delete().eq('model_name', app.model.currentModel);
                                     if (delErr) throw delErr;
                                 } else {
-                                    const { error: upsertErr } = await window.sb.from('model_info').upsert({
+                                    const upsertData = {
                                         model_name: app.model.currentModel,
-                                                                                description: desc || null
-                                    });
+                                        description: desc || null,
+                                        logo_url: logo || null
+                                    };
+                                    const { error: upsertErr } = await window.sb.from('model_info').upsert(upsertData, { onConflict: 'model_name' });
                                     if (upsertErr) throw upsertErr;
                                 }
-                                await window.sb.from('model_info')
-                                    .update({ logo_url: null || null })
-                                    .ilike('model_name', `${brandName}%`);
+                                if (logo) {
+                                    await window.sb.from('model_info')
+                                        .update({ logo_url: logo })
+                                        .ilike('model_name', `${brandName}%`);
+                                }
                                 app.toast.show('success', 'Thành công', 'Đã lưu và đồng bộ thông tin Dòng xe!');
                                 app.model.closeEditPrompt();
                                 app.model.loadModelPage(app.model.currentModel);
                                 if (app.admin && app.admin.logAction) {
-                                    app.admin.logAction('update_model_direct', app.model.currentModel, { logo_url: null, description: desc, brand_sync: brandName });
+                                    app.admin.logAction('update_model_direct', app.model.currentModel, { logo_url: logo || null, description: desc, brand_sync: brandName });
                                 }
                             } else {
                                 const { count, error: checkErr } = await window.sb.from('edit_requests')
@@ -490,8 +499,8 @@ Object.assign(window.app, {
                                     new_data: {
                                         request_type: 'update_model_info',
                                         model_name: app.model.currentModel,
-                                        description: desc,
-                                        logo_url: null
+                                        description: desc || null,
+                                        logo_url: logo || null
                                     },
                                     status: 'pending'
                                 };

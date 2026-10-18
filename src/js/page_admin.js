@@ -3989,12 +3989,14 @@ if (cbQuality) newSubroles.push('quality_aud');
                                     model_name: req.new_data.model_name,
                                     logo_url: logo || null,
                                     description: desc || null
-                                });
+                                }, { onConflict: 'model_name' });
                                 if (upsertErr) throw upsertErr;
                             }
-                            await window.sb.from('model_info')
-                                .update({ logo_url: logo || null })
-                                .ilike('model_name', `${brandName}%`);
+                            if (logo) {
+                                await window.sb.from('model_info')
+                                    .update({ logo_url: logo })
+                                    .ilike('model_name', `${brandName}%`);
+                            }
                         }
                         else {
                             let newItems = [];

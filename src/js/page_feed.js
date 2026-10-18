@@ -1143,12 +1143,16 @@ Object.assign(window.app, {
                         let contextText = '';
                         if (req.new_data?.request_type === 'delete_photo' && req.new_data?.photo_id) {
                             contextText = `Ảnh ${req.new_data.photo_id} ${req.license_plate ? '- ' + req.license_plate : ''}`;
-                        } else if (req.license_plate) {
-                            contextText = req.license_plate;
-                        } else if (req.new_data?.operator_name) {
-                            contextText = req.new_data.operator_name;
                         } else if (req.new_data?.model_name) {
                             contextText = req.new_data.model_name;
+                        } else if (req.new_data?.operator_name) {
+                            contextText = req.new_data.operator_name;
+                        } else if (req.new_data?.route_name) {
+                            contextText = req.new_data.route_name;
+                        } else if (req.license_plate && !['MODEL_INFO', 'OP_INFO', 'ROUTE_INFO'].includes(req.license_plate)) {
+                            contextText = req.license_plate;
+                        } else if (req.license_plate) {
+                            contextText = req.license_plate;
                         }
                         let dotHtml = '';
                         if (req.status === 'approved') {
@@ -1200,12 +1204,16 @@ Object.assign(window.app, {
                     let contextText = '';
                     if (req.new_data?.request_type === 'delete_photo' && req.new_data?.photo_id) {
                         contextText = `Ảnh ${req.new_data.photo_id} ${req.license_plate ? '- ' + req.license_plate : ''}`;
-                    } else if (req.license_plate) {
-                        contextText = req.license_plate;
-                    } else if (req.new_data?.operator_name) {
-                        contextText = req.new_data.operator_name;
                     } else if (req.new_data?.model_name) {
                         contextText = req.new_data.model_name;
+                    } else if (req.new_data?.operator_name) {
+                        contextText = req.new_data.operator_name;
+                    } else if (req.new_data?.route_name) {
+                        contextText = req.new_data.route_name;
+                    } else if (req.license_plate && !['MODEL_INFO', 'OP_INFO', 'ROUTE_INFO'].includes(req.license_plate)) {
+                        contextText = req.license_plate;
+                    } else if (req.license_plate) {
+                        contextText = req.license_plate;
                     }
                     let detailsHtml = `
                         <div class="flex justify-between items-center mb-3">
