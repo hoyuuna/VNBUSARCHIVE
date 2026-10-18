@@ -546,7 +546,6 @@ Object.assign(window.app, {
             _headerLogoTimer: null,
             _headerLogoTransitioned: false,
             _headerLogoComplete: false,
-            _initialRouteHandled: false,
             transitionHeaderLogo: (instant = false) => {
                 if (instant) {
                     if (app._headerLogoComplete) return;
@@ -624,12 +623,11 @@ Object.assign(window.app, {
                         loadingScreen.style.display = 'none';
                     }, 400);
                 }
-                if (!app._headerLogoTransitioned && !app._initialRouteHandled) {
+                if (!app._headerLogoTransitioned) {
+                    if (app._headerLogoTimer) clearTimeout(app._headerLogoTimer);
                     app._headerLogoTimer = setTimeout(() => {
                         app.transitionHeaderLogo(false);
                     }, 3000);
-                } else if (!app._headerLogoComplete) {
-                    app.transitionHeaderLogo(true);
                 }
             },
 
@@ -3059,10 +3057,6 @@ cleanupState: () => {
   },
 
     handleRoute: () => {
-                if (app._initialRouteHandled) {
-                    if (app.transitionHeaderLogo) app.transitionHeaderLogo(true);
-                }
-                app._initialRouteHandled = true;
                 app.loadingBar.start(); 
                 app.utils.cleanupState();
                 if (app.utils && app.utils.updateCanonical) app.utils.updateCanonical();
