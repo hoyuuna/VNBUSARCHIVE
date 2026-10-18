@@ -548,35 +548,7 @@ Object.assign(window.app, {
             _headerLogoTimer: null,
             _headerLogoTransitioned: false,
             _headerLogoComplete: false,
-            transitionHeaderLogo: (instant = false) => {
-                if (instant) {
-                    if (app._headerLogoComplete) return;
-                    app._headerLogoComplete = true;
-                    app._headerLogoTransitioned = true;
-                    if (app._headerLogoTimer) {
-                        clearTimeout(app._headerLogoTimer);
-                        app._headerLogoTimer = null;
-                    }
-                    const textEl = document.getElementById('header-logo-text');
-                    const imgEl = document.getElementById('header-logo-img');
-                    const containerEl = document.getElementById('header-logo');
-                    if (textEl) {
-                        textEl.style.transition = 'none';
-                        textEl.style.display = 'none';
-                    }
-                    if (imgEl) {
-                        imgEl.style.transition = 'none';
-                        imgEl.style.position = 'static';
-                        imgEl.style.transform = 'none';
-                        imgEl.style.filter = 'none';
-                        imgEl.style.opacity = '1';
-                        imgEl.style.pointerEvents = 'auto';
-                    }
-                    if (containerEl) {
-                        containerEl.style.overflow = 'visible';
-                    }
-                    return;
-                }
+            transitionHeaderLogo: () => {
                 if (app._headerLogoTransitioned) return;
                 app._headerLogoTransitioned = true;
                 if (app._headerLogoTimer) {
@@ -628,7 +600,7 @@ Object.assign(window.app, {
                 if (!app._headerLogoTransitioned) {
                     if (app._headerLogoTimer) clearTimeout(app._headerLogoTimer);
                     app._headerLogoTimer = setTimeout(() => {
-                        app.transitionHeaderLogo(false);
+                        app.transitionHeaderLogo();
                     }, 3000);
                 }
             },
@@ -1569,7 +1541,7 @@ closeCustomRolePrompt: () => {
                     }
                     app.previousPath = prevFull;
                     window.history.pushState({ parentInfo: isDestLeaf ? parentInfo : null }, '', url);
-                    if (app.transitionHeaderLogo) app.transitionHeaderLogo(true);
+                    if (app.transitionHeaderLogo) app.transitionHeaderLogo();
                     app.handleRoute();
                 },
 cleanupState: () => {
@@ -4115,7 +4087,7 @@ window.INITIAL_HASH = window.location.hash;
 Object.assign(window.app, {
     init: async () => {
         window.onpopstate = () => {
-            if (app.transitionHeaderLogo) app.transitionHeaderLogo(true);
+            if (app.transitionHeaderLogo) app.transitionHeaderLogo();
             app.handleRoute();
         };
         if (!window._spaClickListenerRegistered) {
@@ -6484,7 +6456,7 @@ Object.assign(window.app, {
                                 targetEl.classList.remove(animationClass);
                                 targetEl.onanimationend = null;
                             };
-                            if (app.transitionHeaderLogo) app.transitionHeaderLogo(true);
+                            if (app.transitionHeaderLogo) app.transitionHeaderLogo();
                         }
                     }
                     if (app.utils && app.utils.updateCanonical) app.utils.updateCanonical();

@@ -4,7 +4,7 @@ window.INITIAL_HASH = window.location.hash;
 Object.assign(window.app, {
     init: async () => {
         window.onpopstate = () => {
-            if (app.transitionHeaderLogo) app.transitionHeaderLogo(true);
+            if (app.transitionHeaderLogo) app.transitionHeaderLogo();
             app.handleRoute();
         };
         if (!window._spaClickListenerRegistered) {

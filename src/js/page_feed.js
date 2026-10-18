@@ -163,7 +163,7 @@ Object.assign(window.app, {
                                 targetEl.classList.remove(animationClass);
                                 targetEl.onanimationend = null;
                             };
-                            if (app.transitionHeaderLogo) app.transitionHeaderLogo(true);
+                            if (app.transitionHeaderLogo) app.transitionHeaderLogo();
                         }
                     }
                     if (app.utils && app.utils.updateCanonical) app.utils.updateCanonical();
