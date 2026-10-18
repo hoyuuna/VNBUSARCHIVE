@@ -1504,6 +1504,72 @@ html.theme-dark .ct-icon {
     100% { transform: translateY(-100%); }
 }
 
+        /* HEADER LOGO INTRO ANIMATION */
+        .header-logo-container {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            overflow: hidden;
+            height: 2rem;
+            max-width: calc(100% - 175px);
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+
+        @media (min-width: 1024px) {
+            .header-logo-container {
+                height: 2.5rem;
+                max-width: none;
+            }
+        }
+
+        .header-logo-text {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 800;
+            font-style: italic;
+            letter-spacing: 0.05em;
+            font-size: clamp(0.95rem, 3.8vw, 1.45rem);
+            line-height: 1;
+            white-space: nowrap;
+            user-select: none;
+            color: #000000;
+            display: inline-block;
+            transform: translateX(0);
+            opacity: 1;
+            transition: transform 0.55s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.45s ease-out;
+            will-change: transform, opacity;
+        }
+
+        html.theme-dark .header-logo-text {
+            color: #ffffff !important;
+        }
+
+        .header-logo-img {
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            margin: auto 0;
+            height: 2rem;
+            width: auto;
+            max-height: 2rem;
+            max-width: 200px;
+            object-fit: contain;
+            flex-shrink: 0;
+            transform: translateX(-120%);
+            opacity: 0;
+            pointer-events: none;
+            transition: transform 0.55s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.5s ease-out;
+            will-change: transform, opacity;
+        }
+
+        @media (min-width: 1024px) {
+            .header-logo-img {
+                height: 2.5rem;
+                max-height: 2.5rem;
+            }
+        }
+
 .upload-arrow-anim {
     animation: uploadArrowMove 1s ease-in-out infinite;
 }
@@ -2104,7 +2170,7 @@ html.theme-dark .ct-icon {
             if (stored === 'system') {
                 theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
             }
-            document.write('<link rel="stylesheet" href="/css/' + theme + '.css?v=1792294292647" id="theme-css">');
+            document.write('<link rel="stylesheet" href="/css/' + theme + '.css?v=1792295298944" id="theme-css">');
             document.documentElement.classList.add('theme-' + theme);
             document.documentElement.style.backgroundColor = theme === 'dark' ? '#18181b' : '#fdfcf8';
         })();
@@ -3193,10 +3259,11 @@ html.theme-dark .ct-icon {
             <div
                 class="w-full max-w-7xl bg-white/80  border border-white/20 shadow-island rounded-2xl pointer-events-auto transition-all duration-300 relative">
                 <div class="flex flex-wrap lg:flex-nowrap justify-between items-center px-4 py-2 lg:h-16">
-                    <a href="/" class="flex items-center gap-2 cursor-pointer lg:mb-0 mr-auto no-underline shrink-0">
+                    <a href="/" id="header-logo" class="header-logo-container flex items-center cursor-pointer lg:mb-0 mr-auto no-underline shrink-0 mr-3 lg:mr-6">
+                        <span id="header-logo-text" class="header-logo-text font-watermark">VNBUSARCHIVE</span>
                         <!-- TODO: Change back to previous logo later: https://ik.imagekit.io/hoyuuna/Logo/logo304.png -->
-                        <img src="/media/vnba.png" alt="VNBUSARCHIVE"
-                            class="h-8 lg:h-10 w-auto max-w-[200px] max-h-10 shrink-0 object-contain" decoding="async">
+                        <img id="header-logo-img" src="/media/vnba.png" alt="VNBUSARCHIVE"
+                            class="header-logo-img" decoding="async">
                     </a>
 
                     <nav
@@ -7220,7 +7287,7 @@ html.theme-dark .ct-icon {
 
     <!-- KHAY CHỨA TOAST Z-INDEX CAO NHẤT -->
     <div id="toast-container" class="fixed left-0 w-full flex flex-col items-center gap-2 pointer-events-none z-[99999]" style="z-index: 99999 !important;"></div>
-<script src="/app.7c8d64e2a54e.js" onerror="if(!window.__app_fallback_loaded){window.__app_fallback_loaded=true;var s=document.createElement('script');s.src='/app.js?v=' + Date.now();document.head.appendChild(s);}"></script>
+<script src="/app.af964bc1ecd5.js" onerror="if(!window.__app_fallback_loaded){window.__app_fallback_loaded=true;var s=document.createElement('script');s.src='/app.js?v=' + Date.now();document.head.appendChild(s);}"></script>
 </body>
 </html>
 

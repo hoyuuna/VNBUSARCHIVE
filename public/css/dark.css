@@ -79,6 +79,10 @@ a:hover, button:hover, [role="button"]:hover { text-decoration: none !important;
     color: #a1a1aa !important; /* light gray hover */
 }
 
+.header-logo-text {
+    color: #ffffff !important;
+}
+
 
 /* 4. FIX BẢNG & LỊCH SỬ HOẠT ĐỘNG (TABLES) */
 .info-table, .data-table, .history-table { border-collapse: separate !important; border-spacing: 0 !important; background-color: transparent !important; color: #ffffff !important; }

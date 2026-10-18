@@ -543,6 +543,37 @@ Object.assign(window.app, {
             },
 
             _initialLoadingDismissed: false,
+            _headerLogoTimer: null,
+            _headerLogoTransitioned: false,
+            transitionHeaderLogo: (instant = false) => {
+                if (app._headerLogoTransitioned) return;
+                app._headerLogoTransitioned = true;
+                if (app._headerLogoTimer) clearTimeout(app._headerLogoTimer);
+                const textEl = document.getElementById('header-logo-text');
+                const imgEl = document.getElementById('header-logo-img');
+                const containerEl = document.getElementById('header-logo');
+                if (!textEl || !imgEl) return;
+                if (instant) {
+                    textEl.style.display = 'none';
+                    imgEl.style.position = 'static';
+                    imgEl.style.transform = 'none';
+                    imgEl.style.opacity = '1';
+                    imgEl.style.pointerEvents = 'auto';
+                    if (containerEl) containerEl.style.overflow = 'visible';
+                    return;
+                }
+                textEl.style.transform = 'translateX(120%)';
+                textEl.style.opacity = '0';
+                imgEl.style.transform = 'translateX(0)';
+                imgEl.style.opacity = '1';
+                imgEl.style.pointerEvents = 'auto';
+                setTimeout(() => {
+                    textEl.style.display = 'none';
+                    imgEl.style.position = 'static';
+                    imgEl.style.transform = 'none';
+                    if (containerEl) containerEl.style.overflow = 'visible';
+                }, 550);
+            },
             dismissInitialLoadingScreen: () => {
                 if (app._initialLoadingDismissed) return;
                 app._initialLoadingDismissed = true;
@@ -559,6 +590,11 @@ Object.assign(window.app, {
                     setTimeout(() => {
                         loadingScreen.style.display = 'none';
                     }, 400);
+                }
+                if (!app._headerLogoTransitioned) {
+                    app._headerLogoTimer = setTimeout(() => {
+                        app.transitionHeaderLogo(false);
+                    }, 3000);
                 }
             },
 
@@ -1498,6 +1534,7 @@ closeCustomRolePrompt: () => {
                     }
                     app.previousPath = prevFull;
                     window.history.pushState({ parentInfo: isDestLeaf ? parentInfo : null }, '', url);
+                    if (app.transitionHeaderLogo) app.transitionHeaderLogo(true);
                     app.handleRoute();
                 },
 cleanupState: () => {

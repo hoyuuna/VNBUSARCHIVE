@@ -106,6 +106,10 @@ a:hover, button:hover, [role="button"]:hover {
     text-decoration: none !important;
 }
 
+.header-logo-text {
+    color: #000000 !important;
+}
+
 /* Nút đen */
 .bg-black:hover {
     background-color: #27272a !important; 
