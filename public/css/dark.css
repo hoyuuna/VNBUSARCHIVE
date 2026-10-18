@@ -565,4 +565,12 @@ html.theme-dark .custom-cb-input:checked ~ .custom-cb-box i {
     color: #000000 !important;
 }
 
+#top-loading-bar,
+body.theme-dark #top-loading-bar,
+html.theme-dark #top-loading-bar {
+    background-color: #ffffff !important;
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.5) !important;
+}
+
+
 

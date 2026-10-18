@@ -1451,11 +1451,9 @@ html.theme-dark .ct-icon {
         @keyframes spinnerFadeIn {
             0% {
                 opacity: 0;
-                transform: scale(0.85);
             }
             100% {
                 opacity: 1;
-                transform: scale(1);
             }
         }
 
@@ -2187,6 +2185,7 @@ html.theme-dark .ct-icon {
         html.theme-dark #loading-screen { background-color: #18181b !important; }
         html.theme-dark #loading-screen .text-inner span { color: #ffffff !important; }
         html.theme-dark #loading-screen .spinner { border-color: rgba(255, 255, 255, 0.1) !important; border-left-color: #ffffff !important; }
+        html.theme-dark #top-loading-bar { background-color: #ffffff !important; box-shadow: 0 0 10px rgba(255, 255, 255, 0.5) !important; }
     </style>
 </head>
 
@@ -2197,7 +2196,7 @@ html.theme-dark .ct-icon {
 
 
 
-    <div id="top-loading-bar" class="fixed top-0 left-0 h-1 bg-black z-[9999] transition-all duration-300 ease-out w-0 opacity-0 pointer-events-none shadow-[0_0_10px_rgba(0,0,0,0.5)]"></div>
+    <div id="top-loading-bar" class="fixed top-0 left-0 h-1 bg-black z-[9999] transition-all duration-300 ease-out w-0 opacity-0 pointer-events-none rounded-r-full shadow-[0_0_10px_rgba(0,0,0,0.5)]"></div>
 
         <div id="loading-screen">
             <div class="brand-container">
