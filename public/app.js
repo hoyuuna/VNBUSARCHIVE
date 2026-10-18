@@ -569,7 +569,7 @@ Object.assign(window.app, {
                     return;
                 }
                 if (containerEl) containerEl.classList.add('is-transitioning');
-                textEl.style.transform = 'translateX(50px)';
+                textEl.style.transform = 'translateX(120%)';
                 textEl.style.opacity = '0';
                 textEl.style.filter = 'blur(6px)';
                 imgEl.style.transform = 'translateX(0)';
@@ -583,7 +583,7 @@ Object.assign(window.app, {
                         containerEl.classList.remove('is-transitioning');
                         containerEl.style.overflow = 'visible';
                     }
-                }, 600);
+                }, 650);
             },
             dismissInitialLoadingScreen: () => {
                 if (app._initialLoadingDismissed) return;

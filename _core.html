@@ -1524,8 +1524,8 @@ html.theme-dark .ct-icon {
         }
 
         .header-logo-container.is-transitioning {
-            -webkit-mask-image: linear-gradient(to right, black 0%, black calc(100% - 35px), transparent 100%);
-            mask-image: linear-gradient(to right, black 0%, black calc(100% - 35px), transparent 100%);
+            -webkit-mask-image: linear-gradient(to right, transparent 0%, black 20px, black calc(100% - 35px), transparent 100%);
+            mask-image: linear-gradient(to right, transparent 0%, black 20px, black calc(100% - 35px), transparent 100%);
         }
 
         .header-logo-text {
@@ -1542,7 +1542,7 @@ html.theme-dark .ct-icon {
             transform: translateX(0);
             opacity: 1;
             filter: blur(0px);
-            transition: transform 0.45s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.35s ease-out, filter 0.35s ease-out;
+            transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.4s ease-out, filter 0.4s ease-out;
             will-change: transform, opacity, filter;
         }
 
@@ -1562,10 +1562,10 @@ html.theme-dark .ct-icon {
             max-width: 200px;
             object-fit: contain;
             flex-shrink: 0;
-            transform: translateX(-20px);
+            transform: translateX(-115%);
             opacity: 0;
             pointer-events: none;
-            transition: transform 0.45s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.35s ease-out;
+            transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.08s, opacity 0.35s ease-out 0.08s;
             will-change: transform, opacity;
         }
 
