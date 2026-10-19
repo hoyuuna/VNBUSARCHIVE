@@ -27,7 +27,7 @@ Khi tải ảnh lên hệ thống, bạn cần tuân thủ các quy chuẩn sau:
 * **Chất lượng ảnh:** Ảnh cần rõ nét, đủ sáng và nhìn rõ biển số xe. Không dùng AI để làm nét nhân tạo hay can thiệp làm sai lệch chi tiết gốc. Bạn có thể chỉnh màu cơ bản như độ sáng, tương phản, độ bão hòa nhưng tránh lạm dụng làm mất tính chân thực. Dung lượng tệp tải lên tối đa là 20MB.
 * **Dấu bản quyền:** Không tự chèn chữ ký cá nhân vào ảnh. Hệ thống sẽ tự động đóng dấu bản quyền mang tên hiển thị của bạn. Bạn có thể chọn màu dấu trắng/đen và vị trí phù hợp trên bức ảnh.
 * **Quyền riêng tư:** Bạn cần làm mờ khuôn mặt của người xuất hiện rõ trong ảnh như hành khách, tài xế hoặc biển số của các phương tiện khác nếu cần thiết bằng công cụ làm mờ trên web.
-* **Giới hạn tải lên:** Nhằm duy trì độ ổn định của máy chủ, hệ thống giới hạn số lượng ảnh tải lên trong ngày đối với mỗi tài khoản. Hạn mức này tự động làm mới vào lúc 7:00 sáng hàng ngày theo giờ Việt Nam.
+* **Giới hạn tải lên:** Nhằm duy trì độ ổn định của máy chủ và khuyến khích chất lượng đóng góp, hệ thống áp dụng hạn mức tải lên trong ngày dựa trên điểm uy tín của tài khoản (từ 5 đến 50 ảnh/ngày, mặc định tài khoản mới là 15 ảnh/ngày). Hạn mức này tự động làm mới vào lúc 7:00 sáng hàng ngày theo giờ Việt Nam.
 
 ### 4. Quyền sở hữu trí tuệ và cấp phép
 * **Quyền của người chụp và giấy phép không hủy ngang:** Bạn giữ toàn bộ bản quyền đối với tệp ảnh gốc của mình. Khi tải lên và được duyệt vào hệ thống, bạn cấp cho VNBUSARCHIVE giấy phép không độc quyền, miễn phí, vĩnh viễn và không hủy ngang để lưu trữ, hiển thị, tối ưu hóa và gắn nhãn bản quyền phục vụ mục đích phi thương mại của cộng đồng. Giấy phép này tiếp tục có hiệu lực ngay cả khi bạn ngừng sử dụng dịch vụ hoặc xóa tài khoản. Bạn tự chịu trách nhiệm về bản quyền của ảnh gốc.
@@ -45,8 +45,8 @@ Khi tải ảnh lên hệ thống, bạn cần tuân thủ các quy chuẩn sau:
 * Quản trị viên có thể chấp nhận, từ chối hoặc điều chỉnh thông tin bạn nhập để đảm bảo tính đồng bộ của dữ liệu.
 * Khi ảnh bị từ chối, lý do sẽ được ghi rõ trong thông báo. Khi ảnh hoặc dữ liệu đã bị xóa khỏi hệ thống, chúng tôi không tiếp nhận khiếu nại khôi phục tệp đó.
 
-### 6. Sử dụng API và dữ liệu mở
-API dữ liệu mở được cung cấp miễn phí cho mục đích cá nhân và phi thương mại. Chúng tôi áp dụng giới hạn tần suất truy vấn để tránh quá tải. Những trường hợp cố tình gửi request ồ ạt gây ảnh hưởng dịch vụ sẽ bị chặn IP.
+### 6. Sử dụng hệ thống và dữ liệu
+Dữ liệu trên website phục vụ nhu cầu tra cứu phi thương mại của cộng đồng. Hệ thống hiện chưa cung cấp API công khai cho bên thứ ba. Các hành vi sử dụng công cụ tự động để cào dữ liệu quy mô lớn hoặc gửi request ồ ạt gây ảnh hưởng dịch vụ đều bị chặn địa chỉ IP.
 
 ### 7. Miễn trừ trách nhiệm
 * **Tính chính xác:** Dữ liệu do cộng đồng đóng góp mang tính tham khảo. Chúng tôi cố gắng kiểm tra nhưng không cam kết dữ liệu luôn chính xác 100% ở mọi thời điểm.
@@ -61,7 +61,7 @@ API dữ liệu mở được cung cấp miễn phí cho mục đích cá nhân 
 Hồ sơ cá nhân được hiển thị công khai trên hệ thống. Để giữ môi trường văn minh, người dùng cần tuân thủ các quy tắc sau:
 
 **8.1. Tên hiển thị:**
-* Độ dài từ 3 đến 20 ký tự. Dùng ký tự đọc được, không dùng ký tự ẩn, chuỗi emoji dài hay ký tự Zalgo gây lỗi hiển thị giao diện.
+* Độ dài từ 3 đến 20 ký tự, chỉ gồm chữ cái (hỗ trợ tiếng Việt có dấu), chữ số và dấu cách. Hệ thống không chấp nhận ký tự đặc biệt, dấu câu, emoji hay ký hiệu.
 * Không đặt tên gây nhầm lẫn với ban quản trị VNBUSARCHIVE, cơ quan nhà nước hay các đơn vị vận tải.
 * Không chèn số điện thoại, email, link website, tên miền hay nội dung quảng cáo vào tên hiển thị.
 * Không dùng từ ngữ thô tục, xúc phạm, phân biệt vùng miền hoặc nhắc đến các chủ đề chính trị, tôn giáo nhạy cảm.
@@ -118,7 +118,7 @@ Dưới đây là cách VNBUSARCHIVE thu thập, sử dụng và bảo vệ thô
 ### 3. Chia sẻ dữ liệu
 Chúng tôi không bán, cho thuê hay chia sẻ dữ liệu cá nhân của người dùng cho bên thứ ba vì mục đích thương mại.
 * Dữ liệu công khai như ảnh, thông số chụp và thông tin xe được mở để cộng đồng tra cứu.
-* Dữ liệu được lưu trữ trên các nền tảng hạ tầng bảo mật gồm Cloudflare, ImageKit và máy chủ cơ sở dữ liệu riêng của dự án theo tiêu chuẩn mã hóa an toàn.
+* Dữ liệu được lưu trữ trên các nền tảng hạ tầng bảo mật gồm mạng lưới phân phối nội dung của Cloudflare và máy chủ cơ sở dữ liệu riêng của dự án theo tiêu chuẩn mã hóa an toàn.
 
 ### 4. Lưu trữ và bảo vệ thông tin
 * Mọi kết nối tới hệ thống đều được mã hóa qua giao thức HTTPS.

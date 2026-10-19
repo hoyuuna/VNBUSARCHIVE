@@ -13,7 +13,7 @@
 
 ## Về dự án
 
-VNBUSARCHIVE được xây dựng như một kho tư liệu hình ảnh mở cho cộng đồng. Dữ liệu trên hệ thống được chia sẻ miễn phí, phục vụ nhu cầu tra cứu, tìm hiểu hoặc tích hợp vào các dự án khác qua API.
+VNBUSARCHIVE được xây dựng như một kho tư liệu hình ảnh mở cho cộng đồng. Dữ liệu trên hệ thống được chia sẻ miễn phí, phục vụ nhu cầu tra cứu và tìm hiểu của người yêu thích giao thông công cộng.
 
 - **Thử nghiệm:** 04/01/2026
 - **Hoạt động chính thức:** 06/01/2026
@@ -23,7 +23,7 @@ VNBUSARCHIVE được xây dựng như một kho tư liệu hình ảnh mở cho
 ## Mục tiêu
 
 - Lưu trữ hình ảnh, lộ trình và lịch sử hoạt động của các phương tiện xe buýt, xe khách tại Việt Nam.
-- Cung cấp dữ liệu mở và API miễn phí cho người dùng tra cứu, nghiên cứu.
+- Cung cấp nền tảng tra cứu dữ liệu miễn phí cho cộng đồng.
 - Tạo không gian kết nối để những người yêu thích xe buýt có thể giao lưu và đóng góp tư liệu.
 
 ---

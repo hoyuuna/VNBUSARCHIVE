@@ -11,7 +11,7 @@ VNBUSARCHIVE là kho tư liệu chung cho cộng đồng, các tiêu chuẩn duy
 **A1.1. Phạm vi tiếp nhận:** Hệ thống tiếp nhận dữ liệu của cả **Xe buýt** và **Xe khách**.
 
 **A1.2. Ưu tiên xét duyệt ảnh tư liệu:** 
-* Hệ thống ưu tiên duyệt các hình ảnh mang giá trị tư liệu hoặc lịch sử như ảnh chụp trong quá khứ, các tuyến hoặc xe đã ngừng hoạt động. Bạn chỉ cần tải lên bình thường, ban quản trị sẽ xem xét trực tiếp mà không cần liên hệ trước.
+* Hệ thống ưu tiên duyệt các hình ảnh mang giá trị tư liệu hoặc lịch sử như ảnh chụp trong quá khứ, các tuyến hoặc xe đã ngừng hoạt động. Khi tải ảnh lên, bạn cần tích chọn ô **"Ảnh tư liệu / lịch sử"** và điền lý do cụ thể vào mục **"Ghi chú dành cho kiểm duyệt"** để ban quản trị đối soát khi duyệt ảnh.
 * **Các trường hợp được ưu tiên (chỉ áp dụng cho xe buýt, không áp dụng cho xe khách):**
   * Dòng xe đã ngừng khai thác trên thị trường.
   * Tuyến xe buýt đã ngừng hoạt động hoàn toàn.
