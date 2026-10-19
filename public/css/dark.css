@@ -574,6 +574,21 @@ html.theme-dark #top-loading-bar {
     box-shadow: 0 0 10px rgba(255, 255, 255, 0.5) !important;
 }
 
+/* ===== ADMIN HISTOGRAM (Dark Mode) ===== */
+.admin-hist-box,
+body.theme-dark .admin-hist-box,
+html.theme-dark .admin-hist-box {
+    border: 1px solid #ffffff !important;
+    background-color: #000000 !important;
+}
+.admin-hist-stat-item,
+body.theme-dark .admin-hist-stat-item,
+html.theme-dark .admin-hist-stat-item {
+    border: 1px solid #27272a !important;
+    background-color: #09090b !important;
+}
+
+
 
 
 

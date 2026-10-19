@@ -321,9 +321,255 @@ Object.assign(window.app, {
                         btn.disabled = false;
                     }
                 },
+                // ================= HISTOGRAM HELPER METHODS =================
+                histogramCache: {},
+                histogramMode: {},
+                computeHistogramData: (img) => {
+                    const sw = 256;
+                    const sh = Math.max(1, Math.round(sw * ((img.naturalHeight || img.height || 150) / (img.naturalWidth || img.width || 256))));
+                    const offCanvas = document.createElement('canvas');
+                    offCanvas.width = sw;
+                    offCanvas.height = sh;
+                    const ctx = offCanvas.getContext('2d', { willReadFrequently: true });
+                    ctx.drawImage(img, 0, 0, sw, sh);
+                    const data = ctx.getImageData(0, 0, sw, sh).data;
+                    
+                    const lumaBins = new Uint32Array(256);
+                    const rBins = new Uint32Array(256);
+                    const gBins = new Uint32Array(256);
+                    const bBins = new Uint32Array(256);
+                    let totalLuma = 0;
+                    const totalPixels = data.length / 4;
+                    let shadowCount = 0;
+                    let highlightCount = 0;
+                    
+                    for (let i = 0; i < data.length; i += 4) {
+                        const r = data[i];
+                        const g = data[i + 1];
+                        const b = data[i + 2];
+                        const luma = Math.round(0.299 * r + 0.587 * g + 0.114 * b);
+                        
+                        rBins[r]++;
+                        gBins[g]++;
+                        bBins[b]++;
+                        lumaBins[luma]++;
+                        
+                        totalLuma += luma;
+                        if (luma <= 5) shadowCount++;
+                        if (luma >= 250) highlightCount++;
+                    }
+                    
+                    return {
+                        totalPixels,
+                        lumaBins,
+                        rBins,
+                        gBins,
+                        bBins,
+                        avgLuma: totalPixels > 0 ? (totalLuma / totalPixels) : 128,
+                        shadowPercent: totalPixels > 0 ? ((shadowCount / totalPixels) * 100) : 0,
+                        highlightPercent: totalPixels > 0 ? ((highlightCount / totalPixels) * 100) : 0
+                    };
+                },
+                drawHistogram: (photoId, data, mode = null) => {
+                    const canvas = document.getElementById(`adm-hist-canvas-${photoId}`);
+                    if (!canvas) return;
+                    const ctx = canvas.getContext('2d');
+                    if (!ctx) return;
+                    
+                    const loadingEl = document.getElementById(`adm-hist-loading-${photoId}`);
+                    if (loadingEl) loadingEl.classList.add('hidden');
+                    
+                    if (!app.admin.histogramMode) app.admin.histogramMode = {};
+                    const activeMode = mode || app.admin.histogramMode[photoId] || 'luma';
+                    app.admin.histogramMode[photoId] = activeMode;
+                    
+                    const btnLuma = document.getElementById(`adm-hist-btn-luma-${photoId}`);
+                    const btnRgb = document.getElementById(`adm-hist-btn-rgb-${photoId}`);
+                    if (btnLuma && btnRgb) {
+                        if (activeMode === 'luma') {
+                            btnLuma.className = "text-[10px] font-bold px-2 py-0.5 rounded border border-black dark:border-white bg-black text-white dark:bg-white dark:text-black transition";
+                            btnRgb.className = "text-[10px] font-bold px-2 py-0.5 rounded border border-black dark:border-white bg-white text-black dark:bg-black dark:text-white hover:bg-gray-100 dark:hover:bg-gray-800 transition";
+                        } else {
+                            btnRgb.className = "text-[10px] font-bold px-2 py-0.5 rounded border border-black dark:border-white bg-black text-white dark:bg-white dark:text-black transition";
+                            btnLuma.className = "text-[10px] font-bold px-2 py-0.5 rounded border border-black dark:border-white bg-white text-black dark:bg-black dark:text-white hover:bg-gray-100 dark:hover:bg-gray-800 transition";
+                        }
+                    }
+                    
+                    const w = canvas.width;
+                    const h = canvas.height;
+                    ctx.clearRect(0, 0, w, h);
+                    
+                    const smoothBins = (bins) => {
+                        const res = new Float32Array(256);
+                        for (let i = 0; i < 256; i++) {
+                            let sum = 0, count = 0;
+                            for (let j = Math.max(0, i - 2); j <= Math.min(255, i + 2); j++) {
+                                sum += bins[j];
+                                count++;
+                            }
+                            res[i] = sum / count;
+                        }
+                        return res;
+                    };
+                    
+                    const drawCurve = (bins, fillColor, strokeColor, compositeOp = 'source-over') => {
+                        let maxVal = 1;
+                        for (let i = 1; i < 255; i++) {
+                            if (bins[i] > maxVal) maxVal = bins[i];
+                        }
+                        
+                        ctx.save();
+                        ctx.globalCompositeOperation = compositeOp;
+                        ctx.beginPath();
+                        ctx.moveTo(0, h);
+                        
+                        for (let i = 0; i < 256; i++) {
+                            const x = (i / 255) * w;
+                            const normVal = Math.min(1.05, bins[i] / maxVal);
+                            const y = h - (normVal * (h - 8));
+                            ctx.lineTo(x, y);
+                        }
+                        
+                        ctx.lineTo(w, h);
+                        ctx.closePath();
+                        
+                        if (fillColor) {
+                            ctx.fillStyle = fillColor;
+                            ctx.fill();
+                        }
+                        if (strokeColor) {
+                            ctx.strokeStyle = strokeColor;
+                            ctx.lineWidth = 2;
+                            ctx.stroke();
+                        }
+                        ctx.restore();
+                    };
+                    
+                    if (activeMode === 'luma') {
+                        const smoothed = smoothBins(data.lumaBins);
+                        const grad = ctx.createLinearGradient(0, 0, 0, h);
+                        grad.addColorStop(0, 'rgba(255, 255, 255, 0.7)');
+                        grad.addColorStop(0.6, 'rgba(210, 210, 210, 0.35)');
+                        grad.addColorStop(1, 'rgba(160, 160, 160, 0.08)');
+                        drawCurve(smoothed, grad, '#ffffff');
+                    } else {
+                        const rSmooth = smoothBins(data.rBins);
+                        const gSmooth = smoothBins(data.gBins);
+                        const bSmooth = smoothBins(data.bBins);
+                        
+                        drawCurve(rSmooth, 'rgba(239, 68, 68, 0.4)', '#ef4444', 'screen');
+                        drawCurve(gSmooth, 'rgba(34, 197, 94, 0.4)', '#22c55e', 'screen');
+                        drawCurve(bSmooth, 'rgba(59, 130, 246, 0.4)', '#3b82f6', 'screen');
+                    }
+                    
+                    const avgEl = document.getElementById(`adm-hist-avg-${photoId}`);
+                    const shadowEl = document.getElementById(`adm-hist-shadow-${photoId}`);
+                    const highEl = document.getElementById(`adm-hist-high-${photoId}`);
+                    const diagEl = document.getElementById(`adm-hist-diag-${photoId}`);
+                    
+                    const avgPct = Math.round((data.avgLuma / 255) * 100);
+                    if (avgEl) avgEl.innerText = `${avgPct}%`;
+                    if (shadowEl) {
+                        shadowEl.innerText = `${data.shadowPercent.toFixed(1)}%`;
+                        if (data.shadowPercent > 10) shadowEl.className = "text-xs font-bold text-red-600 font-mono";
+                        else shadowEl.className = "text-xs font-bold text-black dark:text-white font-mono";
+                    }
+                    if (highEl) {
+                        highEl.innerText = `${data.highlightPercent.toFixed(1)}%`;
+                        if (data.highlightPercent > 3) highEl.className = "text-xs font-bold text-red-600 font-mono";
+                        else highEl.className = "text-xs font-bold text-black dark:text-white font-mono";
+                    }
+                    if (diagEl) {
+                        if (data.highlightPercent > 3.0) {
+                            diagEl.innerHTML = `<span class="inline-flex items-center gap-1 text-red-600 dark:text-red-400"><i class="fa-solid fa-triangle-exclamation"></i> Có dấu hiệu cháy sáng (mất chi tiết vùng sáng)</span>`;
+                        } else if (data.shadowPercent > 10.0) {
+                            diagEl.innerHTML = `<span class="inline-flex items-center gap-1 text-yellow-600 dark:text-yellow-400"><i class="fa-solid fa-circle-half-stroke"></i> Ảnh thiếu sáng (mất chi tiết vùng tối)</span>`;
+                        } else if (avgPct < 25) {
+                            diagEl.innerHTML = `<span class="inline-flex items-center gap-1 text-yellow-600 dark:text-yellow-400"><i class="fa-solid fa-moon"></i> Tổng thể ảnh tối</span>`;
+                        } else if (avgPct > 75) {
+                            diagEl.innerHTML = `<span class="inline-flex items-center gap-1 text-yellow-600 dark:text-yellow-400"><i class="fa-solid fa-sun"></i> Tổng thể ảnh rất sáng</span>`;
+                        } else {
+                            diagEl.innerHTML = `<span class="inline-flex items-center gap-1 text-green-600 dark:text-green-400"><i class="fa-solid fa-check"></i> Đo sáng tốt, dải sáng cân bằng</span>`;
+                        }
+                    }
+                },
+                switchHistogramMode: (photoId, mode) => {
+                    if (!app.admin.histogramMode) app.admin.histogramMode = {};
+                    app.admin.histogramMode[photoId] = mode;
+                    if (app.admin.histogramCache && app.admin.histogramCache[photoId]) {
+                        app.admin.drawHistogram(photoId, app.admin.histogramCache[photoId], mode);
+                    }
+                },
+                renderHistogram: (photoId, imgUrl) => {
+                    if (!imgUrl) {
+                        app.admin.showHistogramError(photoId);
+                        return;
+                    }
+                    if (app.admin.histogramCache && app.admin.histogramCache[photoId]) {
+                        app.admin.drawHistogram(photoId, app.admin.histogramCache[photoId]);
+                        return;
+                    }
+                    const canvas = document.getElementById(`adm-hist-canvas-${photoId}`);
+                    if (!canvas) return;
+                    
+                    const tempImg = new Image();
+                    tempImg.crossOrigin = 'anonymous';
+                    tempImg.src = app.utils.getProxiedUrl(imgUrl, 'hist.jpg', 'thumb');
+                    
+                    let isHandled = false;
+                    const handleSuccess = () => {
+                        if (isHandled) return;
+                        isHandled = true;
+                        try {
+                            const data = app.admin.computeHistogramData(tempImg);
+                            if (!app.admin.histogramCache) app.admin.histogramCache = {};
+                            app.admin.histogramCache[photoId] = data;
+                            app.admin.drawHistogram(photoId, data);
+                        } catch (e) {
+                            tryFallback();
+                        }
+                    };
+                    
+                    const tryFallback = () => {
+                        if (tempImg.src === imgUrl) {
+                            app.admin.showHistogramError(photoId);
+                            return;
+                        }
+                        const fallbackImg = new Image();
+                        fallbackImg.crossOrigin = 'anonymous';
+                        fallbackImg.src = imgUrl;
+                        fallbackImg.onload = () => {
+                            try {
+                                const data = app.admin.computeHistogramData(fallbackImg);
+                                if (!app.admin.histogramCache) app.admin.histogramCache = {};
+                                app.admin.histogramCache[photoId] = data;
+                                app.admin.drawHistogram(photoId, data);
+                            } catch (err) {
+                                app.admin.showHistogramError(photoId);
+                            }
+                        };
+                        fallbackImg.onerror = () => {
+                            app.admin.showHistogramError(photoId);
+                        };
+                    };
+                    
+                    tempImg.onload = handleSuccess;
+                    tempImg.onerror = tryFallback;
+                },
+                showHistogramError: (photoId) => {
+                    const loadingEl = document.getElementById(`adm-hist-loading-${photoId}`);
+                    if (loadingEl) {
+                        loadingEl.innerHTML = `<span class="text-[11px] text-gray-400"><i class="fa-solid fa-circle-exclamation mr-1 text-red-500"></i>Không thể đo sáng nguồn ảnh</span>`;
+                        loadingEl.classList.remove('hidden');
+                    }
+                    const diagEl = document.getElementById(`adm-hist-diag-${photoId}`);
+                    if (diagEl) {
+                        diagEl.innerHTML = `<span class="text-[11px] text-gray-400 italic">Không thể phân tích dữ liệu điểm ảnh</span>`;
+                    }
+                },
                 // ======================================================
 
-                renderSinglePhotoCardHTML: (p, approvedPlateSet = app.admin?.approvedPlateSet || new Set(), approvedOpSet = app.admin?.approvedOpSet || new Set(), approvedRouteSet = app.admin?.approvedRouteSet || new Set(), approvedModelSet = app.admin?.approvedModelSet || new Set()) => {
+                renderSinglePhotoCardHTML: (p, approvedPlateSet = app.admin?.approvedPlateSet || new Set(), approvedOpSet = app.admin?.approvedOpSet || new Set(), approvedRouteSet = app.admin?.approvedRouteSet || new Set(), approvedModelSet = app.admin?.approvedModelSet || new Set(), isQuality = (app.adminTab === 'quality' || p.status === 'pending_quality')) => {
                     const op = app.utils.cleanText(p.operator || '');
                     const type = p.type || 'bus';
                     const route = app.utils.cleanText(p.route_no || '');
@@ -361,7 +607,7 @@ Object.assign(window.app, {
                                     ${reviewTabHtml}
                                     <div class="admin-card-header relative z-10 bg-white rounded-t-lg">
                                         <div class="flex items-center gap-2 flex-wrap">
-                                            <span class="font-bold text-sm">${safePlate}</span>
+                                            <span class="font-bold text-sm">${safePlate || ('Ảnh #' + p.id)}</span>
                                             ${plateKey && plateKey !== '---' && !approvedPlateSet.has(plateKey) ? '<span class="badge-xe-moi"><i class="fa-solid fa-sparkles"></i> XE MỚI</span>' : ''}
                                             ${p.suspected_exif_fraud ? '<span class="bg-red-600 text-white px-1.5 py-0.5 rounded text-[10px] font-bold ml-1 tracking-wider whitespace-nowrap"><i class="fa-solid fa-triangle-exclamation mr-1"></i>Nghi ngờ gian lận</span>' : ''}
                                         </div>
@@ -379,48 +625,102 @@ Object.assign(window.app, {
                                         <button onclick="app.admin.openZoom('${app.utils.getProxiedUrl(p.url)}', false, true)" class="absolute top-2 right-2 bg-black/50 text-white w-8 h-8 rounded hover:bg-black flex items-center justify-center transition z-20" title="Soi ảnh"><i class="fa-solid fa-expand"></i></button>
                                     </div>
                                     <div class="admin-card-body">
+                                        ${isQuality ? `
+                                            <!-- Bảng đo sáng (Exposure Histogram) -->
+                                            <div class="admin-hist-box border border-black dark:border-white rounded-md p-3 bg-white dark:bg-black">
+                                                <div class="flex items-center justify-between mb-2">
+                                                    <span class="text-xs font-bold text-black dark:text-white flex items-center gap-1.5">
+                                                        <i class="fa-solid fa-mountain-sun"></i> Bảng đo sáng (Histogram)
+                                                    </span>
+                                                    <div class="flex items-center gap-1">
+                                                        <button type="button" onclick="app.admin.switchHistogramMode('${p.id}', 'luma')" id="adm-hist-btn-luma-${p.id}" class="text-[10px] font-bold px-2 py-0.5 rounded border border-black dark:border-white bg-black text-white dark:bg-white dark:text-black transition">Độ sáng</button>
+                                                        <button type="button" onclick="app.admin.switchHistogramMode('${p.id}', 'rgb')" id="adm-hist-btn-rgb-${p.id}" class="text-[10px] font-bold px-2 py-0.5 rounded border border-black dark:border-white bg-white text-black dark:bg-black dark:text-white hover:bg-gray-100 dark:hover:bg-gray-800 transition">RGB</button>
+                                                    </div>
+                                                </div>
+                                                <div class="relative w-full h-24 bg-[#111113] rounded border border-black dark:border-zinc-700 overflow-hidden flex items-center justify-center">
+                                                    <canvas id="adm-hist-canvas-${p.id}" width="512" height="180" class="w-full h-full block"></canvas>
+                                                    <div class="absolute inset-0 pointer-events-none flex justify-between px-[25%] opacity-20">
+                                                        <div class="w-px h-full bg-white border-r border-dashed border-white"></div>
+                                                        <div class="w-px h-full bg-white border-r border-dashed border-white"></div>
+                                                    </div>
+                                                    <div id="adm-hist-loading-${p.id}" class="absolute inset-0 bg-[#111113]/80 flex items-center justify-center text-xs text-gray-400">
+                                                        <i class="fa-solid fa-spinner fa-spin mr-1.5"></i> Đang phân tích sáng...
+                                                    </div>
+                                                </div>
+                                                <div class="flex justify-between items-center text-[10px] text-gray-500 font-mono mt-1 px-1">
+                                                    <span>Tối (0)</span>
+                                                    <span>Trung gian (128)</span>
+                                                    <span>Sáng (255)</span>
+                                                </div>
+                                                <div id="adm-hist-stats-${p.id}" class="mt-2.5 grid grid-cols-3 gap-1.5 text-center">
+                                                    <div class="admin-hist-stat-item p-1.5 bg-gray-50 dark:bg-zinc-900 border border-black dark:border-zinc-700 rounded">
+                                                        <div class="text-[9px] text-gray-500 uppercase font-bold">Độ sáng TB</div>
+                                                        <div id="adm-hist-avg-${p.id}" class="text-xs font-bold text-black dark:text-white font-mono">--%</div>
+                                                    </div>
+                                                    <div class="admin-hist-stat-item p-1.5 bg-gray-50 dark:bg-zinc-900 border border-black dark:border-zinc-700 rounded">
+                                                        <div class="text-[9px] text-gray-500 uppercase font-bold">Cháy tối</div>
+                                                        <div id="adm-hist-shadow-${p.id}" class="text-xs font-bold text-black dark:text-white font-mono">--%</div>
+                                                    </div>
+                                                    <div class="admin-hist-stat-item p-1.5 bg-gray-50 dark:bg-zinc-900 border border-black dark:border-zinc-700 rounded">
+                                                        <div class="text-[9px] text-gray-500 uppercase font-bold">Cháy sáng</div>
+                                                        <div id="adm-hist-high-${p.id}" class="text-xs font-bold text-black dark:text-white font-mono">--%</div>
+                                                    </div>
+                                                </div>
+                                                <div id="adm-hist-diag-${p.id}" class="mt-2 text-center text-[11px] font-bold text-gray-600 dark:text-gray-300"></div>
+                                            </div>
 
-                                        <div class="grid grid-cols-2 gap-2 mb-2">
-                                            <div><span class="admin-label">Biển số</span><input type="text" id="adm-p-plate-${p.id}" value="${safePlate}" class="admin-input transition-all" oninput="app.utils.formatPlateInput(this)" onchange="app.admin.checkPlateAdmin(this, '${p.id}', 'photo')"></div>
-                                            <div>
-                                                <span class="admin-label">Đơn vị${isNewOp ? tagNew : ''}</span>
-                                                <div class="relative">
-                                                    <input type="text" id="adm-p-op-${p.id}" value="${op}" class="admin-input" autocomplete="off" oninput="app.utils.formatNoPunctuation(this); app.utils.triggerSuggestion('adm-p-op-${p.id}', 'adm-sug-op-${p.id}', this.value, 'operator')">
-                                                    <div id="adm-sug-op-${p.id}" class="suggestion-box"></div>
-                                                </div>
-                                            </div>
-                                            <div><span class="admin-label">Loại xe</span><select id="adm-p-type-${p.id}" class="admin-input"><option value="bus" ${type === 'bus' ? 'selected' : ''}>Xe buýt</option><option value="coach" ${type === 'coach' ? 'selected' : ''}>Xe khách</option></select></div>
-                                            <div>
-                                                <span class="admin-label">Tuyến${isNewRoute ? tagNew : ''}</span>
-                                                <div class="relative">
-                                                    <input type="text" id="adm-p-route-${p.id}" value="${route}" class="admin-input" autocomplete="off" onfocus="app.utils.triggerRouteSuggestion('adm-p-route-${p.id}', 'adm-sug-route-${p.id}', '')" oninput="app.utils.triggerRouteSuggestion('adm-p-route-${p.id}', 'adm-sug-route-${p.id}', this.value)">
-                                                    <div id="adm-sug-route-${p.id}" class="suggestion-box"></div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="grid grid-cols-2 gap-2 mb-2">
-                                            <div>
-                                                <span class="admin-label">Dòng xe${isNewModel ? tagNew : ''}</span>
-                                                <div class="relative">
-                                                    ${isNewVehicle ? `
-                                                        <input type="text" id="adm-p-model-${p.id}" value="${model}" class="admin-input" autocomplete="off" oninput="app.utils.triggerSuggestion('adm-p-model-${p.id}', 'adm-sug-model-${p.id}', this.value, 'model')">
-                                                    ` : `
-                                                        <input type="text" id="adm-p-model-${p.id}" value="${model}" class="admin-input cursor-pointer" autocomplete="off" readonly onclick="app.admin.showModelDisabledAlert('${app.utils.escapeAttr(safePlate)}', '${p.id}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();app.admin.showModelDisabledAlert('${app.utils.escapeAttr(safePlate)}', '${p.id}');}" title="Bấm để xem hồ sơ xe">
-                                                    `}
-                                                    <div id="adm-sug-model-${p.id}" class="suggestion-box"></div>
-                                                </div>
-                                            </div>
-                                            <div><span class="admin-label">Vị trí</span><input type="text" id="adm-p-location-${p.id}" value="${location}" class="admin-input" onchange="app.admin.checkDuplicateDateAdmin('${p.id}', '${p.uploader_id}', '${p.taken_at ? p.taken_at.split('T')[0] : ''}')"></div>
-                                        </div>
+                                            ${p.mod_note ? `<div class="mt-2 p-2.5 bg-gray-100 dark:bg-zinc-900 border border-black dark:border-white rounded-md"><span class="block text-xs font-bold text-black dark:text-white mb-1"><i class="fa-solid fa-shield-halved mr-1"></i>Note dành cho kiểm duyệt (Không công khai):</span><div class="text-xs text-black dark:text-white font-mono leading-relaxed whitespace-pre-wrap">${app.utils.escapeHtml(p.mod_note)}</div></div>` : ''}
 
-                                        <div><span class="admin-label">Ghi chú ảnh (Công khai)</span><textarea id="adm-p-note-${p.id}" rows="2" class="admin-input">${note}</textarea></div>
-                                        ${p.mod_note ? `<div class="mt-2 p-2.5 bg-gray-100 border border-black rounded-md"><span class="block text-xs font-bold text-black mb-1"><i class="fa-solid fa-shield-halved mr-1"></i>Note dành cho kiểm duyệt (Không công khai):</span><div class="text-xs text-black font-mono leading-relaxed whitespace-pre-wrap">${app.utils.escapeHtml(p.mod_note)}</div></div>` : ''}
-                                        
-                                        <div class="grid grid-cols-2 gap-2 mt-2">
-                                            <div><span class="admin-label">Ngày chụp gốc</span><input type="text" class="admin-input bg-gray-50 !text-gray-500" value="${p.taken_at ? p.taken_at.split('T')[0] : 'Không rõ'}" disabled></div>
-                                            <div><span class="admin-label">Thiết bị chụp</span><input type="text" class="admin-input bg-gray-50 !text-gray-500 truncate" value="${p.camera_model || 'Không rõ'}" disabled title="${p.camera_model || 'Không rõ'}"></div>
-                                        </div>
-                                        ${p.exif_params ? `<div class="mt-2"><span class="admin-label">Thông số EXIF</span><input type="text" class="admin-input bg-gray-50 !text-gray-500 truncate" value="${p.exif_params}" disabled title="${p.exif_params}"></div>` : ''}
+                                            <div class="mt-2">
+                                                <span class="admin-label">Thiết bị chụp</span>
+                                                <input type="text" class="admin-input bg-gray-50 !text-gray-500 truncate" value="${p.camera_model || 'Không rõ'}" disabled title="${p.camera_model || 'Không rõ'}">
+                                            </div>
+                                            ${p.exif_params ? `<div class="mt-2"><span class="admin-label">Thông số EXIF</span><input type="text" class="admin-input bg-gray-50 !text-gray-500 truncate" value="${p.exif_params}" disabled title="${p.exif_params}"></div>` : ''}
+
+                                            <img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg'/>" class="hidden" onerror="app.admin.renderHistogram('${p.id}', '${app.utils.escapeAttr(p.url)}')">
+                                        ` : `
+                                            <div class="grid grid-cols-2 gap-2 mb-2">
+                                                <div><span class="admin-label">Biển số</span><input type="text" id="adm-p-plate-${p.id}" value="${safePlate}" class="admin-input transition-all" oninput="app.utils.formatPlateInput(this)" onchange="app.admin.checkPlateAdmin(this, '${p.id}', 'photo')"></div>
+                                                <div>
+                                                    <span class="admin-label">Đơn vị${isNewOp ? tagNew : ''}</span>
+                                                    <div class="relative">
+                                                        <input type="text" id="adm-p-op-${p.id}" value="${op}" class="admin-input" autocomplete="off" oninput="app.utils.formatNoPunctuation(this); app.utils.triggerSuggestion('adm-p-op-${p.id}', 'adm-sug-op-${p.id}', this.value, 'operator')">
+                                                        <div id="adm-sug-op-${p.id}" class="suggestion-box"></div>
+                                                    </div>
+                                                </div>
+                                                <div><span class="admin-label">Loại xe</span><select id="adm-p-type-${p.id}" class="admin-input"><option value="bus" ${type === 'bus' ? 'selected' : ''}>Xe buýt</option><option value="coach" ${type === 'coach' ? 'selected' : ''}>Xe khách</option></select></div>
+                                                <div>
+                                                    <span class="admin-label">Tuyến${isNewRoute ? tagNew : ''}</span>
+                                                    <div class="relative">
+                                                        <input type="text" id="adm-p-route-${p.id}" value="${route}" class="admin-input" autocomplete="off" onfocus="app.utils.triggerRouteSuggestion('adm-p-route-${p.id}', 'adm-sug-route-${p.id}', '')" oninput="app.utils.triggerRouteSuggestion('adm-p-route-${p.id}', 'adm-sug-route-${p.id}', this.value)">
+                                                        <div id="adm-sug-route-${p.id}" class="suggestion-box"></div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="grid grid-cols-2 gap-2 mb-2">
+                                                <div>
+                                                    <span class="admin-label">Dòng xe${isNewModel ? tagNew : ''}</span>
+                                                    <div class="relative">
+                                                        ${isNewVehicle ? `
+                                                            <input type="text" id="adm-p-model-${p.id}" value="${model}" class="admin-input" autocomplete="off" oninput="app.utils.triggerSuggestion('adm-p-model-${p.id}', 'adm-sug-model-${p.id}', this.value, 'model')">
+                                                        ` : `
+                                                            <input type="text" id="adm-p-model-${p.id}" value="${model}" class="admin-input cursor-pointer" autocomplete="off" readonly onclick="app.admin.showModelDisabledAlert('${app.utils.escapeAttr(safePlate)}', '${p.id}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();app.admin.showModelDisabledAlert('${app.utils.escapeAttr(safePlate)}', '${p.id}');}" title="Bấm để xem hồ sơ xe">
+                                                        `}
+                                                        <div id="adm-sug-model-${p.id}" class="suggestion-box"></div>
+                                                    </div>
+                                                </div>
+                                                <div><span class="admin-label">Vị trí</span><input type="text" id="adm-p-location-${p.id}" value="${location}" class="admin-input" onchange="app.admin.checkDuplicateDateAdmin('${p.id}', '${p.uploader_id}', '${p.taken_at ? p.taken_at.split('T')[0] : ''}')"></div>
+                                            </div>
+
+                                            <div><span class="admin-label">Ghi chú ảnh (Công khai)</span><textarea id="adm-p-note-${p.id}" rows="2" class="admin-input">${note}</textarea></div>
+                                            ${p.mod_note ? `<div class="mt-2 p-2.5 bg-gray-100 border border-black rounded-md"><span class="block text-xs font-bold text-black mb-1"><i class="fa-solid fa-shield-halved mr-1"></i>Note dành cho kiểm duyệt (Không công khai):</span><div class="text-xs text-black font-mono leading-relaxed whitespace-pre-wrap">${app.utils.escapeHtml(p.mod_note)}</div></div>` : ''}
+                                            
+                                            <div class="grid grid-cols-2 gap-2 mt-2">
+                                                <div><span class="admin-label">Ngày chụp gốc</span><input type="text" class="admin-input bg-gray-50 !text-gray-500" value="${p.taken_at ? p.taken_at.split('T')[0] : 'Không rõ'}" disabled></div>
+                                                <div><span class="admin-label">Thiết bị chụp</span><input type="text" class="admin-input bg-gray-50 !text-gray-500 truncate" value="${p.camera_model || 'Không rõ'}" disabled title="${p.camera_model || 'Không rõ'}"></div>
+                                            </div>
+                                            ${p.exif_params ? `<div class="mt-2"><span class="admin-label">Thông số EXIF</span><input type="text" class="admin-input bg-gray-50 !text-gray-500 truncate" value="${p.exif_params}" disabled title="${p.exif_params}"></div>` : ''}
+                                        `}
                                         ${(() => {
                                         const isOwnPhoto = p.uploader_id === app.user.id;
                                         const canApprove = (!isOwnPhoto || app.role === 'manager') && !p._isReviewedByMe;
@@ -1237,6 +1537,11 @@ if (app.admin._activeLoadToken !== currentLoadToken || app.adminTab !== tab) ret
                             if (app.admin.update3x3UI) app.admin.update3x3UI();
                             if (app.admin.updateRulerUI) app.admin.updateRulerUI();
                             if (app.admin.updateHideMineUI) app.admin.updateHideMineUI();
+                            if (tab === 'quality') {
+                                photos.forEach(p => {
+                                    setTimeout(() => app.admin.renderHistogram(p.id, p.url), 20);
+                                });
+                            }
 } else if (tab === 'delete') {
                             let html = '';
                             if (app.role === 'manager') {
@@ -3493,16 +3798,23 @@ if (cbQuality) newSubroles.push('quality_aud');
                     window.scrollTo({ top: currentScrollY, behavior: 'instant' });
                     btn.innerText = "Đang tải lên CDN..."; btn.disabled = true; btn.classList.add('btn-loading');
                     try {
-                        const plate = document.getElementById(`adm-p-plate-${id}`).value.trim();
-                        const op = document.getElementById(`adm-p-op-${id}`).value.trim();
-                        const type = document.getElementById(`adm-p-type-${id}`).value;
-                        const route = document.getElementById(`adm-p-route-${id}`).value.trim();
-                        const model = document.getElementById(`adm-p-model-${id}`).value.trim();
-                        const location = document.getElementById(`adm-p-location-${id}`).value.trim();
-                        const note = document.getElementById(`adm-p-note-${id}`).value.trim();
+                        const plateEl = document.getElementById(`adm-p-plate-${id}`);
+                        const plate = plateEl ? plateEl.value.trim() : (app.admin.originalData?.['photo_' + id]?.plate || '');
+                        const opEl = document.getElementById(`adm-p-op-${id}`);
+                        const op = opEl ? opEl.value.trim() : (app.admin.originalData?.['photo_' + id]?.operator || '');
+                        const typeEl = document.getElementById(`adm-p-type-${id}`);
+                        const type = typeEl ? typeEl.value : (app.admin.originalData?.['photo_' + id]?.type || 'bus');
+                        const routeEl = document.getElementById(`adm-p-route-${id}`);
+                        const route = routeEl ? routeEl.value.trim() : (app.admin.originalData?.['photo_' + id]?.route || '');
+                        const modelEl = document.getElementById(`adm-p-model-${id}`);
+                        const model = modelEl ? modelEl.value.trim() : (app.admin.originalData?.['photo_' + id]?.model || '');
+                        const locationEl = document.getElementById(`adm-p-location-${id}`);
+                        const location = locationEl ? locationEl.value.trim() : (app.admin.originalData?.['photo_' + id]?.location || '');
+                        const noteEl = document.getElementById(`adm-p-note-${id}`);
+                        const note = noteEl ? noteEl.value.trim() : '';
                         const provinceEl = document.getElementById(`adm-p-province-${id}`);
                         const province = provinceEl ? provinceEl.value : '';
-                        if (await app.utils.checkModelDuplicatePolicy(plate, model)) {
+                        if (plateEl && modelEl && await app.utils.checkModelDuplicatePolicy(plate, model)) {
                             if (cardEl && parentEl) {
                                 if (originalNextSibling && originalNextSibling !== cardEl) parentEl.insertBefore(cardEl, originalNextSibling);
                                 else parentEl.appendChild(cardEl);
@@ -3515,7 +3827,7 @@ if (cbQuality) newSubroles.push('quality_aud');
                         }
                         let exif_perfect = false;
                         const orig = app.admin.originalData && app.admin.originalData['photo_' + id];
-                        if (orig && orig.plate === plate && orig.operator === op && orig.type === type && orig.route === route && orig.model === model && orig.location === location) {
+                        if (plateEl && orig && orig.plate === plate && orig.operator === op && orig.type === type && orig.route === route && orig.model === model && orig.location === location) {
                             exif_perfect = true;
                         }
 
@@ -3678,7 +3990,8 @@ if (cbQuality) newSubroles.push('quality_aud');
                         btn.innerText = "Đang xử lý..."; btn.disabled = true; btn.classList.add('btn-loading');
                         (async () => {
                             try {
-                                const plate = document.getElementById(`adm-p-plate-${id}`).value.trim();
+                                const plateEl = document.getElementById(`adm-p-plate-${id}`);
+                                const plate = plateEl ? plateEl.value.trim() : (app.admin.originalData?.['photo_' + id]?.plate || '');
                                 const location = document.getElementById(`adm-p-location-${id}`)?.value?.trim();
                                 const res = await fetch('/api/admin/action', {
                                     method: 'POST',

@@ -592,6 +592,17 @@ label:hover .custom-cb-box {
     color: #ffffff !important;
 }
 
+/* ===== ADMIN HISTOGRAM (Light Mode) ===== */
+.admin-hist-box {
+    border: 1px solid #18181b !important;
+    background-color: #ffffff !important;
+}
+.admin-hist-stat-item {
+    border: 1px solid #18181b !important;
+    background-color: #f9fafb !important;
+}
+
+
 
 
 
