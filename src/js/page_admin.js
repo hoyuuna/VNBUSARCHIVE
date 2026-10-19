@@ -371,6 +371,25 @@ Object.assign(window.app, {
                         if (luma >= 250) highlightCount++;
                     }
                     
+                    let shadowZoneCount = 0;
+                    let deepShadowCount = 0;
+                    let highlightZoneCount = 0;
+                    let count = 0;
+                    let p10 = 0, p90 = 255;
+                    const t10 = totalPixels * 0.1;
+                    const t90 = totalPixels * 0.9;
+                    
+                    for (let i = 0; i < 256; i++) {
+                        const bin = lumaBins[i];
+                        if (i < 50) deepShadowCount += bin;
+                        if (i < 85) shadowZoneCount += bin;
+                        if (i > 175) highlightZoneCount += bin;
+                        
+                        count += bin;
+                        if (p10 === 0 && count >= t10) p10 = i;
+                        if (count >= t90 && p90 === 255) p90 = i;
+                    }
+                    
                     return {
                         totalPixels,
                         lumaBins,
@@ -383,7 +402,11 @@ Object.assign(window.app, {
                         avgB: totalPixels > 0 ? (totalB / totalPixels) : 128,
                         avgSat: totalPixels > 0 ? ((totalSat / totalPixels) * 100) : 0,
                         shadowPercent: totalPixels > 0 ? ((shadowCount / totalPixels) * 100) : 0,
-                        highlightPercent: totalPixels > 0 ? ((highlightCount / totalPixels) * 100) : 0
+                        highlightPercent: totalPixels > 0 ? ((highlightCount / totalPixels) * 100) : 0,
+                        shadowZonePct: totalPixels > 0 ? ((shadowZoneCount / totalPixels) * 100) : 0,
+                        deepShadowPct: totalPixels > 0 ? ((deepShadowCount / totalPixels) * 100) : 0,
+                        highlightZonePct: totalPixels > 0 ? ((highlightZoneCount / totalPixels) * 100) : 0,
+                        dynamicSpan: p90 - p10
                     };
                 },
                 drawHistogram: (photoId, data, mode = null) => {
@@ -498,18 +521,43 @@ Object.assign(window.app, {
                     if (diagEl) {
                         const lightIssues = [];
                         let isSevere = false;
+                        const shadowZonePct = data.shadowZonePct || 0;
+                        const deepShadowPct = data.deepShadowPct || 0;
+                        const highlightZonePct = data.highlightZonePct || 0;
+                        const dynamicSpan = data.dynamicSpan || 150;
+
+                        // 1. Cháy sáng
                         if (data.highlightPercent > 3.0) {
                             lightIssues.push("Có dấu hiệu cháy sáng");
                             if (data.highlightPercent > 6.0) isSevere = true;
                         }
+
+                        // 2. Cháy tối
                         if (data.shadowPercent > 10.0) {
-                            lightIssues.push("Mất chi tiết vùng tối");
+                            lightIssues.push("Cháy tối (mất chi tiết vùng đen)");
                             if (data.shadowPercent > 20.0) isSevere = true;
                         }
-                        if (avgPct < 25 && data.shadowPercent <= 10.0) {
+
+                        // 3. Ảnh ngược sáng / chênh sáng mạnh (Backlit)
+                        if ((shadowZonePct > 42 && highlightZonePct > 6 && avgPct < 52) || (deepShadowPct > 20 && highlightZonePct > 6)) {
+                            lightIssues.push("Ảnh bị ngược sáng (chủ thể tối, hậu cảnh sáng)");
+                            if (shadowZonePct > 60 && highlightZonePct > 10) isSevere = true;
+                        } else if (shadowZonePct > 55 || (avgPct < 34 && deepShadowPct > 15)) {
+                            // 4. Thiếu sáng / tối vùng xe
+                            lightIssues.push("Ảnh thiếu sáng (chủ thể xe bị tối)");
+                            if (shadowZonePct > 70 || avgPct < 25) isSevere = true;
+                        } else if (avgPct < 25 && data.shadowPercent <= 10.0) {
                             lightIssues.push("Tổng thể ảnh tối");
-                        } else if (avgPct > 75 && data.highlightPercent <= 3.0) {
-                            lightIssues.push("Tổng thể ảnh rất sáng");
+                        }
+
+                        // 5. Quá sáng
+                        if (avgPct > 75 && data.highlightPercent <= 3.0) {
+                            lightIssues.push("Tổng thể ảnh quá sáng");
+                        }
+
+                        // 6. Mờ đục / thiếu tương phản
+                        if (shadowZonePct < 8 && highlightZonePct < 8 && dynamicSpan < 85) {
+                            lightIssues.push("Ảnh bị mờ đục / thiếu tương phản");
                         }
 
                         if (lightIssues.length === 0) {
