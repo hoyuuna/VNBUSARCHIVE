@@ -18992,16 +18992,28 @@ Object.assign(window.app, {
                         else highEl.className = "text-xs font-bold text-black dark:text-white font-mono";
                     }
                     if (diagEl) {
+                        const lightIssues = [];
+                        let isSevere = false;
                         if (data.highlightPercent > 3.0) {
-                            diagEl.innerHTML = `<span class="inline-flex items-center gap-1 text-red-600 dark:text-red-400"><i class="fa-solid fa-triangle-exclamation"></i> Có dấu hiệu cháy sáng (mất chi tiết vùng sáng)</span>`;
-                        } else if (data.shadowPercent > 10.0) {
-                            diagEl.innerHTML = `<span class="inline-flex items-center gap-1 text-yellow-600 dark:text-yellow-400"><i class="fa-solid fa-circle-half-stroke"></i> Ảnh thiếu sáng (mất chi tiết vùng tối)</span>`;
-                        } else if (avgPct < 25) {
-                            diagEl.innerHTML = `<span class="inline-flex items-center gap-1 text-yellow-600 dark:text-yellow-400"><i class="fa-solid fa-moon"></i> Tổng thể ảnh tối</span>`;
-                        } else if (avgPct > 75) {
-                            diagEl.innerHTML = `<span class="inline-flex items-center gap-1 text-yellow-600 dark:text-yellow-400"><i class="fa-solid fa-sun"></i> Tổng thể ảnh rất sáng</span>`;
+                            lightIssues.push("Có dấu hiệu cháy sáng");
+                            if (data.highlightPercent > 6.0) isSevere = true;
+                        }
+                        if (data.shadowPercent > 10.0) {
+                            lightIssues.push("Mất chi tiết vùng tối");
+                            if (data.shadowPercent > 20.0) isSevere = true;
+                        }
+                        if (avgPct < 25 && data.shadowPercent <= 10.0) {
+                            lightIssues.push("Tổng thể ảnh tối");
+                        } else if (avgPct > 75 && data.highlightPercent <= 3.0) {
+                            lightIssues.push("Tổng thể ảnh rất sáng");
+                        }
+
+                        if (lightIssues.length === 0) {
+                            diagEl.innerHTML = `<span class="inline-flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400"><i class="fa-solid fa-circle-check"></i> Ánh sáng: Đo sáng tốt, dải sáng cân bằng</span>`;
+                        } else if (isSevere) {
+                            diagEl.innerHTML = `<span class="inline-flex items-center gap-1.5 text-red-600 dark:text-red-400"><i class="fa-solid fa-circle-exclamation"></i> Ánh sáng: ${app.utils.escapeHtml(lightIssues.join(' • '))}</span>`;
                         } else {
-                            diagEl.innerHTML = `<span class="inline-flex items-center gap-1 text-green-600 dark:text-green-400"><i class="fa-solid fa-check"></i> Đo sáng tốt, dải sáng cân bằng</span>`;
+                            diagEl.innerHTML = `<span class="inline-flex items-center gap-1.5 text-amber-600 dark:text-amber-400"><i class="fa-solid fa-triangle-exclamation"></i> Ánh sáng: ${app.utils.escapeHtml(lightIssues.join(' • '))}</span>`;
                         }
                     }
                     const colorDiagEl = document.getElementById(`adm-hist-color-diag-${photoId}`);
@@ -19010,21 +19022,28 @@ Object.assign(window.app, {
                         const avgG = data.avgG || 128;
                         const avgB = data.avgB || 128;
                         const avgSat = data.avgSat || 0;
-                        
+                        const colorIssues = [];
+
                         if ((avgR - avgB) > 28 && (avgG - avgB) > 12) {
-                            colorDiagEl.innerHTML = `<span class="inline-flex items-center gap-1 text-amber-600 dark:text-amber-400"><i class="fa-solid fa-temperature-arrow-up"></i> Ảnh bị ám vàng / nóng màu</span>`;
+                            colorIssues.push("Ảnh bị ám vàng / nóng màu");
                         } else if ((avgB - avgR) > 24) {
-                            colorDiagEl.innerHTML = `<span class="inline-flex items-center gap-1 text-blue-600 dark:text-blue-400"><i class="fa-solid fa-temperature-arrow-down"></i> Ảnh bị ám xanh / lạnh màu</span>`;
+                            colorIssues.push("Ảnh bị ám xanh / lạnh màu");
                         } else if ((avgR - avgG) > 22 && (avgB - avgG) > 14) {
-                            colorDiagEl.innerHTML = `<span class="inline-flex items-center gap-1 text-purple-600 dark:text-purple-400"><i class="fa-solid fa-palette"></i> Ảnh bị ám tím / hồng</span>`;
+                            colorIssues.push("Ảnh bị ám tím / hồng");
                         } else if ((avgG - avgR) > 20 && (avgG - avgB) > 15) {
-                            colorDiagEl.innerHTML = `<span class="inline-flex items-center gap-1 text-emerald-600 dark:text-emerald-400"><i class="fa-solid fa-palette"></i> Ảnh bị ám xanh lá</span>`;
-                        } else if (avgSat > 50) {
-                            colorDiagEl.innerHTML = `<span class="inline-flex items-center gap-1 text-orange-600 dark:text-orange-400"><i class="fa-solid fa-droplet"></i> Màu sắc quá rực, dễ bệt màu</span>`;
+                            colorIssues.push("Ảnh bị ám xanh lá");
+                        }
+
+                        if (avgSat > 50) {
+                            colorIssues.push("Màu sắc quá rực, dễ bệt màu");
                         } else if (avgSat < 11) {
-                            colorDiagEl.innerHTML = `<span class="inline-flex items-center gap-1 text-gray-500"><i class="fa-solid fa-droplet-slash"></i> Màu sắc nhợt nhạt, thiếu độ tươi</span>`;
+                            colorIssues.push("Màu sắc nhợt nhạt, thiếu độ tươi");
+                        }
+
+                        if (colorIssues.length === 0) {
+                            colorDiagEl.innerHTML = `<span class="inline-flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400"><i class="fa-solid fa-circle-check"></i> Màu sắc: Màu sắc tự nhiên, cân bằng tốt</span>`;
                         } else {
-                            colorDiagEl.innerHTML = `<span class="inline-flex items-center gap-1 text-emerald-600 dark:text-emerald-400"><i class="fa-solid fa-circle-check"></i> Màu sắc tự nhiên, cân bằng tốt</span>`;
+                            colorDiagEl.innerHTML = `<span class="inline-flex items-center gap-1.5 text-amber-600 dark:text-amber-400"><i class="fa-solid fa-triangle-exclamation"></i> Màu sắc: ${app.utils.escapeHtml(colorIssues.join(' • '))}</span>`;
                         }
                     }
                 },
