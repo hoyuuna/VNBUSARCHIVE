@@ -1274,31 +1274,13 @@ Object.assign(window.app, {
                     const valEl = document.getElementById('wm-rotate-val');
                     if (valEl) valEl.innerText = deg + '°';
                     const rotSlider = document.getElementById('wm-rotate-slider');
-                    if (rotSlider) rotSlider.value = deg;
+                    if (rotSlider && parseInt(rotSlider.value, 10) !== deg) rotSlider.value = deg;
                     if (app.upload.clampWmPosition) app.upload.clampWmPosition();
                 },
                 stepWmRotate: (delta) => {
-                    const current = (app.wmState && app.wmState.rotate !== undefined) ? app.wmState.rotate : 0;
+                    const slider = document.getElementById('wm-rotate-slider');
+                    let current = slider ? (parseInt(slider.value, 10) || 0) : ((app.wmState && app.wmState.rotate !== undefined) ? app.wmState.rotate : 0);
                     app.upload.updateWmRotate(current + delta);
-                },
-                startRotateHold: (delta) => {
-                    app.upload.stopRotateHold();
-                    app.upload.stepWmRotate(delta);
-                    app.upload._rotateHoldTimer = setTimeout(() => {
-                        app.upload._rotateHoldInterval = setInterval(() => {
-                            app.upload.stepWmRotate(delta);
-                        }, 80);
-                    }, 300);
-                },
-                stopRotateHold: () => {
-                    if (app.upload._rotateHoldTimer) {
-                        clearTimeout(app.upload._rotateHoldTimer);
-                        app.upload._rotateHoldTimer = null;
-                    }
-                    if (app.upload._rotateHoldInterval) {
-                        clearInterval(app.upload._rotateHoldInterval);
-                        app.upload._rotateHoldInterval = null;
-                    }
                 },
                 updateWmScale: (val) => {
                     const scaleVal = parseInt(val, 10) || 100;

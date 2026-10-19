@@ -592,15 +592,6 @@ label:hover .custom-cb-box {
     color: #ffffff !important;
 }
 
-/* Watermark rotation stepper badge */
-#wm-rotate-val {
-    background-color: #f4f4f5 !important;
-    color: #18181b !important;
-    border: 1px solid #e4e4e7 !important;
-}
-#wm-rotate-val:hover {
-    background-color: #e4e4e7 !important;
-}
 
 
 

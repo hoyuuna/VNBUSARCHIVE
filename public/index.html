@@ -2169,7 +2169,7 @@ html.theme-dark .ct-icon {
             if (stored === 'system') {
                 theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
             }
-            document.write('<link rel="stylesheet" href="/css/' + theme + '.css?v=1792418085273" id="theme-css">');
+            document.write('<link rel="stylesheet" href="/css/' + theme + '.css?v=1792418317959" id="theme-css">');
             document.documentElement.classList.add('theme-' + theme);
             document.documentElement.style.backgroundColor = theme === 'dark' ? '#18181b' : '#fdfcf8';
         })();
@@ -4941,40 +4941,18 @@ html.theme-dark .ct-icon {
                                                 </label>
                                             </div>
                                             <!-- 1. XOAY DẤU CHÌM TÊN -->
-                                            <div class="flex justify-between items-center">
-                                                <div>
-                                                    <label class="text-[11px] font-bold text-gray-700 uppercase tracking-wider block">Xoay dấu chìm tên</label>
-                                                    <span class="text-[10px] font-medium text-gray-400">Nhấp hoặc giữ nút để xoay</span>
+                                            <div>
+                                                <div class="flex justify-between items-center mb-2">
+                                                    <label class="text-[11px] font-bold text-gray-700 uppercase tracking-wider">Xoay dấu chìm tên</label>
+                                                    <span id="wm-rotate-val" class="text-[10px] font-mono font-bold text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded border border-gray-200">0°</span>
                                                 </div>
-                                                <div class="flex items-center gap-1.5 shrink-0">
-                                                    <button type="button" 
-                                                        onmousedown="event.stopPropagation(); app.upload.startRotateHold(-5)" 
-                                                        onmouseup="app.upload.stopRotateHold()" 
-                                                        onmouseleave="app.upload.stopRotateHold()" 
-                                                        ontouchstart="event.stopPropagation(); app.upload.startRotateHold(-5)" 
-                                                        ontouchend="app.upload.stopRotateHold()" 
-                                                        ontouchcancel="app.upload.stopRotateHold()"
-                                                        onclick="event.stopPropagation()"
-                                                        class="w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center text-xs bg-white text-gray-700 border border-gray-300 rounded-md hover:bg-gray-100 active:scale-95 font-bold transition select-none shadow-sm" 
-                                                        title="Xoay ngược chiều kim đồng hồ (-5°)">
-                                                        <i class="fa-solid fa-minus pointer-events-none"></i>
+                                                <div class="flex items-center gap-2">
+                                                    <button type="button" onclick="app.upload.stepWmRotate(-1)" class="w-7 h-7 sm:w-8 sm:h-8 shrink-0 flex items-center justify-center text-xs bg-white text-gray-700 border border-gray-300 rounded-md hover:bg-gray-100 font-bold transition shadow-sm active:scale-95" title="Xoay ngược chiều kim đồng hồ 1°">
+                                                        <i class="fa-solid fa-minus"></i>
                                                     </button>
-                                                    <button type="button" 
-                                                        onclick="event.stopPropagation(); app.upload.updateWmRotate(0)" 
-                                                        id="wm-rotate-val" 
-                                                        class="min-w-[48px] h-7 sm:h-8 flex items-center justify-center text-[11px] font-mono font-bold text-gray-700 bg-gray-100 hover:bg-gray-200 border border-gray-300 rounded-md px-2 transition select-none cursor-pointer shadow-sm" 
-                                                        title="Nhấn để đặt lại 0°">0°</button>
-                                                    <button type="button" 
-                                                        onmousedown="event.stopPropagation(); app.upload.startRotateHold(5)" 
-                                                        onmouseup="app.upload.stopRotateHold()" 
-                                                        onmouseleave="app.upload.stopRotateHold()" 
-                                                        ontouchstart="event.stopPropagation(); app.upload.startRotateHold(5)" 
-                                                        ontouchend="app.upload.stopRotateHold()" 
-                                                        ontouchcancel="app.upload.stopRotateHold()"
-                                                        onclick="event.stopPropagation()"
-                                                        class="w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center text-xs bg-white text-gray-700 border border-gray-300 rounded-md hover:bg-gray-100 active:scale-95 font-bold transition select-none shadow-sm" 
-                                                        title="Xoay theo chiều kim đồng hồ (+5°)">
-                                                        <i class="fa-solid fa-plus pointer-events-none"></i>
+                                                    <input type="range" id="wm-rotate-slider" min="-180" max="180" value="0" step="1" class="vnbus-slider flex-1 min-w-0" oninput="app.upload.updateWmRotate(this.value)" onmousedown="event.stopPropagation()" ontouchstart="event.stopPropagation()">
+                                                    <button type="button" onclick="app.upload.stepWmRotate(1)" class="w-7 h-7 sm:w-8 sm:h-8 shrink-0 flex items-center justify-center text-xs bg-white text-gray-700 border border-gray-300 rounded-md hover:bg-gray-100 font-bold transition shadow-sm active:scale-95" title="Xoay theo chiều kim đồng hồ 1°">
+                                                        <i class="fa-solid fa-plus"></i>
                                                     </button>
                                                 </div>
                                             </div>
@@ -7340,7 +7318,7 @@ html.theme-dark .ct-icon {
 
     <!-- KHAY CHỨA TOAST Z-INDEX CAO NHẤT -->
     <div id="toast-container" class="fixed left-0 w-full flex flex-col items-center gap-2 pointer-events-none z-[99999]" style="z-index: 99999 !important;"></div>
-<script src="/app.aed547b70968.js" onerror="if(!window.__app_fallback_loaded){window.__app_fallback_loaded=true;var s=document.createElement('script');s.src='/app.js?v=' + Date.now();document.head.appendChild(s);}"></script>
+<script src="/app.3440ceeffc24.js" onerror="if(!window.__app_fallback_loaded){window.__app_fallback_loaded=true;var s=document.createElement('script');s.src='/app.js?v=' + Date.now();document.head.appendChild(s);}"></script>
 </body>
 </html>
 
