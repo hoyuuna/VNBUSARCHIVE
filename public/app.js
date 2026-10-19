@@ -3210,8 +3210,8 @@ cleanupState: () => {
         x: 0.5, 
         y: 0.5, 
         color: 'white', 
-        scale: (typeof localStorage !== 'undefined' && localStorage.getItem('vnbus_wm_scale') !== null) ? (parseInt(localStorage.getItem('vnbus_wm_scale'), 10) / 100) : 1.0, 
-        rotate: (typeof localStorage !== 'undefined' && localStorage.getItem('vnbus_wm_rotate') !== null) ? parseInt(localStorage.getItem('vnbus_wm_rotate'), 10) : 0,
+        scale: 1.0, 
+        rotate: 0,
         barScale: (typeof localStorage !== 'undefined' && localStorage.getItem('vnbus_wm_bar_scale') !== null) ? (parseInt(localStorage.getItem('vnbus_wm_bar_scale'), 10) / 100) : 1.0,
         mode: (typeof localStorage !== 'undefined' && localStorage.getItem('vnbus_wm_mode')) || 'basic' 
     },
@@ -3992,16 +3992,6 @@ cleanupState: () => {
                                         if (app.upload.setWmMode) app.upload.setWmMode(dbPrefs.wmMode, false);
                                     }
                                 }
-                                if (dbPrefs.wmRotate !== undefined && app.wmState) {
-                                    const r = parseInt(dbPrefs.wmRotate, 10) || 0;
-                                    app.wmState.rotate = r;
-                                    try { localStorage.setItem('vnbus_wm_rotate', r.toString()); } catch(e){}
-                                }
-                                if (dbPrefs.wmScale !== undefined && app.wmState) {
-                                    const s = typeof dbPrefs.wmScale === 'number' && dbPrefs.wmScale <= 1.0 ? dbPrefs.wmScale : (parseInt(dbPrefs.wmScale, 10) / 100);
-                                    app.wmState.scale = s;
-                                    try { localStorage.setItem('vnbus_wm_scale', Math.round(s * 100).toString()); } catch(e){}
-                                }
                                 if (dbPrefs.wmBarScale !== undefined && app.wmState) {
                                     const bs = typeof dbPrefs.wmBarScale === 'number' && dbPrefs.wmBarScale <= 2.0 ? dbPrefs.wmBarScale : (parseInt(dbPrefs.wmBarScale, 10) / 100);
                                     app.wmState.barScale = bs;
@@ -4013,8 +4003,6 @@ cleanupState: () => {
                                         type: localPref, 
                                         wmMode: localWmMode, 
                                         pinnedLocations: [],
-                                        wmRotate: (app.wmState && app.wmState.rotate !== undefined) ? app.wmState.rotate : 0,
-                                        wmScale: (app.wmState && app.wmState.scale !== undefined) ? app.wmState.scale : 1.0,
                                         wmBarScale: (app.wmState && app.wmState.barScale !== undefined) ? app.wmState.barScale : 1.0
                                     }
                                 }).eq('id', user.id).then(()=>{});
@@ -12745,8 +12733,8 @@ Object.assign(window.app, {
                          existingPrefs.type = app.preference.current;
                          existingPrefs.wmMode = app.wmState ? app.wmState.mode : 'basic';
                          existingPrefs.pinnedLocations = app.preference.pinnedLocations || [];
-                         existingPrefs.wmRotate = (app.wmState && app.wmState.rotate !== undefined) ? app.wmState.rotate : 0;
-                         existingPrefs.wmScale = (app.wmState && app.wmState.scale !== undefined) ? app.wmState.scale : 1.0;
+                         delete existingPrefs.wmRotate;
+                         delete existingPrefs.wmScale;
                          existingPrefs.wmBarScale = (app.wmState && app.wmState.barScale !== undefined) ? app.wmState.barScale : 1.0;
                          
                          await window.sb.from('profiles').update({
@@ -13754,11 +13742,9 @@ Object.assign(window.app, {
                                 existingPrefs.type = curPref;
                                 existingPrefs.wmMode = mode;
                                 existingPrefs.pinnedLocations = (app.preference && app.preference.pinnedLocations) || [];
-                                if (app.wmState) {
-                                    if (app.wmState.rotate !== undefined) existingPrefs.wmRotate = app.wmState.rotate;
-                                    if (app.wmState.scale !== undefined) existingPrefs.wmScale = app.wmState.scale;
-                                    if (app.wmState.barScale !== undefined) existingPrefs.wmBarScale = app.wmState.barScale;
-                                }
+                                delete existingPrefs.wmRotate;
+                                delete existingPrefs.wmScale;
+                                if (app.wmState && app.wmState.barScale !== undefined) existingPrefs.wmBarScale = app.wmState.barScale;
                                 window.sb.from('profiles').update({ preferences: existingPrefs }).eq('id', app.user.id).then(()=>{});
                             });
                         }
@@ -13871,13 +13857,6 @@ Object.assign(window.app, {
                     app.wmState.rotate = deg;
                     const valEl = document.getElementById('wm-rotate-val');
                     if (valEl) valEl.innerText = deg + '°';
-                    try { localStorage.setItem('vnbus_wm_rotate', deg.toString()); } catch(e){}
-                    if (!app.upload.debouncedSaveWmPrefs) {
-                        app.upload.debouncedSaveWmPrefs = app.utils.debounce(() => {
-                            if (app.upload.savePreferencesToServer) app.upload.savePreferencesToServer();
-                        }, 500);
-                    }
-                    app.upload.debouncedSaveWmPrefs();
                     if (app.upload.clampWmPosition) app.upload.clampWmPosition();
                 },
                 updateWmScale: (val) => {
@@ -13886,13 +13865,6 @@ Object.assign(window.app, {
                     app.wmState.scale = scaleVal / 100;
                     const valEl = document.getElementById('wm-scale-val');
                     if (valEl) valEl.innerText = scaleVal + '%';
-                    try { localStorage.setItem('vnbus_wm_scale', scaleVal.toString()); } catch(e){}
-                    if (!app.upload.debouncedSaveWmPrefs) {
-                        app.upload.debouncedSaveWmPrefs = app.utils.debounce(() => {
-                            if (app.upload.savePreferencesToServer) app.upload.savePreferencesToServer();
-                        }, 500);
-                    }
-                    app.upload.debouncedSaveWmPrefs();
                     if (app.upload.clampWmPosition) app.upload.clampWmPosition();
                 },
                 updateWmBarScale: (val) => {
@@ -13985,8 +13957,8 @@ Object.assign(window.app, {
                     if (chk) chk.checked = false;
                     
                     try {
-                        localStorage.setItem('vnbus_wm_rotate', '0');
-                        localStorage.setItem('vnbus_wm_scale', '100');
+                        localStorage.removeItem('vnbus_wm_rotate');
+                        localStorage.removeItem('vnbus_wm_scale');
                         localStorage.setItem('vnbus_wm_bar_scale', '100');
                     } catch(e){}
                     
@@ -16578,11 +16550,9 @@ select: (val) => {
                             existingPrefs.type = app.preference.current;
                             existingPrefs.wmMode = curWmMode;
                             existingPrefs.pinnedLocations = app.preference.pinnedLocations || [];
-                            if (app.wmState) {
-                                if (app.wmState.rotate !== undefined) existingPrefs.wmRotate = app.wmState.rotate;
-                                if (app.wmState.scale !== undefined) existingPrefs.wmScale = app.wmState.scale;
-                                if (app.wmState.barScale !== undefined) existingPrefs.wmBarScale = app.wmState.barScale;
-                            }
+                            delete existingPrefs.wmRotate;
+                            delete existingPrefs.wmScale;
+                            if (app.wmState && app.wmState.barScale !== undefined) existingPrefs.wmBarScale = app.wmState.barScale;
                             window.sb.from('profiles').update({ preferences: existingPrefs }).eq('id', app.user.id).then(()=>{});
                         });
                     }

@@ -3208,8 +3208,8 @@ cleanupState: () => {
         x: 0.5, 
         y: 0.5, 
         color: 'white', 
-        scale: (typeof localStorage !== 'undefined' && localStorage.getItem('vnbus_wm_scale') !== null) ? (parseInt(localStorage.getItem('vnbus_wm_scale'), 10) / 100) : 1.0, 
-        rotate: (typeof localStorage !== 'undefined' && localStorage.getItem('vnbus_wm_rotate') !== null) ? parseInt(localStorage.getItem('vnbus_wm_rotate'), 10) : 0,
+        scale: 1.0, 
+        rotate: 0,
         barScale: (typeof localStorage !== 'undefined' && localStorage.getItem('vnbus_wm_bar_scale') !== null) ? (parseInt(localStorage.getItem('vnbus_wm_bar_scale'), 10) / 100) : 1.0,
         mode: (typeof localStorage !== 'undefined' && localStorage.getItem('vnbus_wm_mode')) || 'basic' 
     },
@@ -3990,16 +3990,6 @@ cleanupState: () => {
                                         if (app.upload.setWmMode) app.upload.setWmMode(dbPrefs.wmMode, false);
                                     }
                                 }
-                                if (dbPrefs.wmRotate !== undefined && app.wmState) {
-                                    const r = parseInt(dbPrefs.wmRotate, 10) || 0;
-                                    app.wmState.rotate = r;
-                                    try { localStorage.setItem('vnbus_wm_rotate', r.toString()); } catch(e){}
-                                }
-                                if (dbPrefs.wmScale !== undefined && app.wmState) {
-                                    const s = typeof dbPrefs.wmScale === 'number' && dbPrefs.wmScale <= 1.0 ? dbPrefs.wmScale : (parseInt(dbPrefs.wmScale, 10) / 100);
-                                    app.wmState.scale = s;
-                                    try { localStorage.setItem('vnbus_wm_scale', Math.round(s * 100).toString()); } catch(e){}
-                                }
                                 if (dbPrefs.wmBarScale !== undefined && app.wmState) {
                                     const bs = typeof dbPrefs.wmBarScale === 'number' && dbPrefs.wmBarScale <= 2.0 ? dbPrefs.wmBarScale : (parseInt(dbPrefs.wmBarScale, 10) / 100);
                                     app.wmState.barScale = bs;
@@ -4011,8 +4001,6 @@ cleanupState: () => {
                                         type: localPref, 
                                         wmMode: localWmMode, 
                                         pinnedLocations: [],
-                                        wmRotate: (app.wmState && app.wmState.rotate !== undefined) ? app.wmState.rotate : 0,
-                                        wmScale: (app.wmState && app.wmState.scale !== undefined) ? app.wmState.scale : 1.0,
                                         wmBarScale: (app.wmState && app.wmState.barScale !== undefined) ? app.wmState.barScale : 1.0
                                     }
                                 }).eq('id', user.id).then(()=>{});
