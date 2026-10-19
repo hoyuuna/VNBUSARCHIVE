@@ -58,7 +58,7 @@ Object.assign(window.app, {
                     if (isBanned) {
                         termsHtml = `
                             <div class="text-left text-sm text-gray-600 space-y-2">
-                                <p>Do tác giả đã bị cấm khỏi hệ thống, bạn tuyệt đối không được phép tải về để chia sẻ công khai, đăng tải lại (re-up) lên mạng xã hội hoặc sử dụng cho bất kỳ mục đích nào khác. Mọi hành vi sử dụng trái phép đều có thể bị khiếu nại bản quyền hoặc xử lý theo quy định.</p>
+                                <p>Do tác giả đã bị cấm khỏi hệ thống, bạn tuyệt đối không được phép tải về để chia sẻ công khai, đăng lại lên mạng xã hội hoặc sử dụng cho bất kỳ mục đích nào khác. Mọi hành vi sử dụng trái phép đều có thể bị khiếu nại bản quyền hoặc xử lý theo quy định.</p>
                                 <p>Hình ảnh và dữ liệu này chỉ được phép sử dụng cho mục đích tra cứu, học tập và nghiên cứu cá nhân. Nghiêm cấm cào dữ liệu tự động, thương mại hóa, hoặc cắt ghép chỉnh sửa phục vụ mục đích bôi nhọ, xuyên tạc.</p>
                                 <p>Toàn bộ tư liệu chỉ mang tính chất tham khảo, không có giá trị làm bằng chứng pháp lý để xử lý vi phạm.</p>
                             </div>
@@ -77,7 +77,7 @@ Object.assign(window.app, {
                     } else {
                         termsHtml = `
                             <div class="text-left text-sm text-gray-600 space-y-2">
-                                <p>Do tác giả không cung cấp thông tin liên hệ công khai, bạn tuyệt đối <strong>không được phép</strong> tải về để chia sẻ công khai, đăng tải lại (re-up) lên mạng xã hội hoặc sử dụng cho bất kỳ mục đích nào khác khi chưa có văn bản đồng ý từ tác giả gốc. Mọi hành vi sử dụng trái phép đều có thể bị khiếu nại bản quyền hoặc xử lý theo quy định.</p>
+                                <p>Do tác giả không cung cấp thông tin liên hệ công khai, bạn tuyệt đối <strong>không được phép</strong> tải về để chia sẻ công khai, đăng lại lên mạng xã hội hoặc sử dụng cho bất kỳ mục đích nào khác khi chưa có văn bản đồng ý từ tác giả gốc. Mọi hành vi sử dụng trái phép đều có thể bị khiếu nại bản quyền hoặc xử lý theo quy định.</p>
                                 <p>Hình ảnh và dữ liệu này chỉ được phép sử dụng cho mục đích tra cứu, học tập và nghiên cứu cá nhân. Nghiêm cấm cào dữ liệu tự động, thương mại hóa, hoặc cắt ghép chỉnh sửa phục vụ mục đích bôi nhọ, xuyên tạc.</p>
                                 <p>Toàn bộ tư liệu chỉ mang tính chất tham khảo, không có giá trị làm bằng chứng pháp lý để xử lý vi phạm.</p>
                             </div>

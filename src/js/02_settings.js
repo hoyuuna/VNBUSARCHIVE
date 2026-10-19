@@ -1,4 +1,4 @@
-﻿
+
 Object.assign(window.app, {
     notifications: { init: ()=>{}, add: async ()=>{} },
 
@@ -16,7 +16,7 @@ Object.assign(window.app, {
                         { text: "Bảo mật", tab: "security", parent: "account", icon: "fa-shield-halved" },
                         { text: "Mật khẩu", tab: "security", parent: "account", icon: "fa-shield-halved" },
                         { text: "Email", tab: "security", parent: "account", icon: "fa-shield-halved" },
-                        { text: "Mã định danh (UUID)", tab: "security", parent: "account", icon: "fa-shield-halved" },
+                        { text: "Mã User ID", tab: "security", parent: "account", icon: "fa-shield-halved" },
                         { text: "Liên kết tài khoản", tab: "links", parent: "account", icon: "fa-link" },
                         { text: "Google", tab: "links", parent: "account", icon: "fa-link" },
                         { text: "Discord", tab: "links", parent: "account", icon: "fa-link" },

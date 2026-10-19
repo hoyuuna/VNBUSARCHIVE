@@ -738,7 +738,7 @@ Object.assign(window.app, {
                         }
                     } else if (type === 'dev') {
                         helpUrl = 'https://www.vnbusarchive.io.vn/help/1538729901798989934';
-                        desc = `Danh hiệu <b>VNBUSARCHIVE Code Contributor</b> được cấp cho các lập trình viên đã có đóng góp mã nguồn (Pull Request) hợp lệ trên GitHub, góp phần xây dựng và phát triển nền tảng công nghệ của dự án.<br><br><a href="${helpUrl}" target="_blank" class="text-black hover:underline font-bold text-[13px] inline-flex items-center">Tìm hiểu thêm về danh hiệu này</a>`;
+                        desc = `Danh hiệu <b>VNBUSARCHIVE Code Contributor</b> được cấp cho các lập trình viên đã có đóng góp Pull Request hợp lệ trên GitHub cho dự án.<br><br><a href="${helpUrl}" target="_blank" class="text-black hover:underline font-bold text-[13px] inline-flex items-center">Tìm hiểu thêm về danh hiệu này</a>`;
                         app.ui.showAlert(desc, 
                             null, 
                             null, 
@@ -4491,7 +4491,7 @@ Object.assign(window.app, {
 
 
 /* --- MODULE: 02_settings.js --- */
-﻿
+
 Object.assign(window.app, {
     notifications: { init: ()=>{}, add: async ()=>{} },
 
@@ -4509,7 +4509,7 @@ Object.assign(window.app, {
                         { text: "Bảo mật", tab: "security", parent: "account", icon: "fa-shield-halved" },
                         { text: "Mật khẩu", tab: "security", parent: "account", icon: "fa-shield-halved" },
                         { text: "Email", tab: "security", parent: "account", icon: "fa-shield-halved" },
-                        { text: "Mã định danh (UUID)", tab: "security", parent: "account", icon: "fa-shield-halved" },
+                        { text: "Mã User ID", tab: "security", parent: "account", icon: "fa-shield-halved" },
                         { text: "Liên kết tài khoản", tab: "links", parent: "account", icon: "fa-link" },
                         { text: "Google", tab: "links", parent: "account", icon: "fa-link" },
                         { text: "Discord", tab: "links", parent: "account", icon: "fa-link" },
@@ -5632,7 +5632,7 @@ changePassword: async () => {
                         return;
                     }
                     app.ui.showAlert(
-                        "CẢNH BÁO BẢO MẬT: Mã định danh (UUID) dùng để Admin tra cứu tài khoản của bạn.<br><br><b class='text-red-600'>Vui lòng CHỈ chia sẻ UUID trên các kênh hỗ trợ chính thức được công nhận của VNBUSARCHIVE. Tuyệt đối không gửi cho người lạ!</b>",
+                        "CẢNH BÁO BẢO MẬT: Mã User ID dùng để Admin tra cứu tài khoản của bạn.<br><br><b class='text-red-600'>Vui lòng CHỈ chia sẻ User ID trên các kênh hỗ trợ chính thức của VNBUSARCHIVE. Tuyệt đối không gửi cho người lạ!</b>",
                         () => {
                             uuidForm.classList.remove('hidden');
                             document.getElementById('user-uuid-input').value = app.user.id;
@@ -7796,13 +7796,13 @@ Object.assign(window.app, {
                                 'B1.2': 'Mẹo nhỏ để bạn không mất công tác nghiệp: Hãy bỏ qua các xe mang biển Xanh hoặc Đỏ, xe gia đình và ĐẶC BIỆT là các xe đang gặp tai nạn, va chạm. Với xe khách, bạn cứ nhắm vào các xe có logo/tên nhà xe lớn, hoặc có bảng LED/mica chạy tuyến cố định rõ ràng.',
                                 'B1.3': 'Bối cảnh phía sau tôn lên vẻ đẹp của xe rất nhiều! Lần tới, bạn thử nán lại chờ xe đi qua những đoạn đường gọn gàng, sạch sẽ hơn nhé. Tránh bấm máy vội vã lúc xe chạy ngang bãi rác hoặc khu vực quá lộn xộn. Một hậu cảnh đẹp sẽ làm bức ảnh của bạn giá trị hơn hẳn đấy.',
                                 'B1.4': 'Thư viện luôn tìm kiếm những bức ảnh có góc nhìn sinh động và ánh sáng hài hòa. Thay vì bấm máy vội để lấy số lượng, bạn hãy chăm chút thêm cho khung hình nhé. Chọn thời điểm ban ngày đủ sáng, canh góc sao cho tôn được dáng xe. Một bức ảnh có hồn chắc chắn sẽ mang lại giá trị lưu trữ tuyệt vời!',
-                                'B2.1': 'Hơi tiếc một chút vì chiếc xe chưa nằm trọn vẹn trong ảnh. Lần tới, bạn nhớ thu nhỏ (zoom out) màn hình lại hoặc lùi ra sau một vài bước nhé. Hãy chừa một khoảng lề an toàn xung quanh xe, đảm bảo các chi tiết lồi ra như gương chiếu hậu, cục điều hòa trên nóc hay bánh xe không bị viền ảnh cắt cụt mất.',
+                                'B2.1': 'Hơi tiếc một chút vì chiếc xe chưa nằm trọn vẹn trong ảnh. Lần tới, bạn nhớ thu nhỏ góc chụp lại hoặc lùi ra sau một vài bước nhé. Hãy chừa một khoảng lề an toàn xung quanh xe, đảm bảo các chi tiết lồi ra như gương chiếu hậu, cục điều hòa trên nóc hay bánh xe không bị viền ảnh cắt cụt mất.',
                                 'B2.2': 'Bức ảnh này xe đang bị lệch trọng tâm một chút. Để căn giữa chuẩn xác không trượt phát nào, bạn hãy dùng công cụ Thước ngang có sẵn trên web nhé! Mẹo canh như sau: Bạn xác định 2 mép ngoài cùng (trái/phải) của thân xe (không tính gương chiếu hậu), rồi chỉnh sao cho khoảng cách từ 2 mép này tới vạch tâm (0) của thước bằng nhau. Nhớ lưu ý: Dù không tính vào điểm canh mép, nhưng gương chiếu hậu vẫn phải nằm trọn trong ảnh, và tổng thể xe đừng để bị quá gần hay quá xa khung hình nhé.',
                                 'B2.3': 'Khung hình đang bị nghiêng lệch so với thực tế rồi. Tùy vào góc chụp mà bạn áp dụng mẹo sau để canh thẳng máy nhé: Nếu chụp ngang tầm mắt, hãy căn lề ảnh dọc song song với các cột điện, tòa nhà phía sau. Nếu chụp từ trên cao xuống, hãy căn lề dọc song song với hai cạnh ngoài cùng của thân xe. Nếu lỡ tay chụp nghiêng, bạn hoàn toàn có thể dùng công cụ Cắt/Xoay ảnh trên web để cân bằng lại và đưa về tỷ lệ chuẩn (4:3, 3:2, 16:9) trước khi đăng tải.',
                                 'B2.4': 'Chụp chính diện ngay đầu hoặc đuôi xe sẽ khó nhận diện được toàn bộ thiết kế. Lần tới, bạn thử chọn góc chếch (góc 3/4) xem sao nhé. Cứ chờ xe tiến lại gần hoặc chuẩn bị đi qua rồi bấm máy, như vậy ảnh sẽ lấy được cả mặt trước/sau và sườn xe, trông vừa mượt mắt lại vừa đúng chuẩn.',
                                 'B2.5': 'Kiên nhẫn thêm một chút là có ảnh xịn ngay! Khi bấm máy, bạn cố gắng căn khoảnh khắc giao thông thông thoáng, không có xe máy, người đi đường hay cột điện vướng vào thân xe nhé. Chọn vị trí đứng thoáng đãng một chút sẽ giúp chủ thể xuất hiện trọn vẹn và đẹp mắt hơn rất nhiều.',
-                                'B3.1': 'Bức ảnh đang bị mờ nhòe hoặc nhiễu hạt (noise/grain) khá nặng. Để cải thiện, bạn nhớ giữ chắc tay máy, chạm vào màn hình để khóa nét (focus) vào thân xe và ưu tiên chụp ban ngày, đứng thuận chiều ánh sáng. Nếu trời thiếu sáng, bạn thử tì tay hoặc dùng chân máy để giảm rung nhé. Lưu ý hệ thống áp dụng quy chuẩn đồng bộ, không châm chước cho thiết bị đời cũ, nên nếu ảnh chưa đạt chất lượng thì mình cùng đi "săn" lại ở lần sau nhé!',
-                                'B3.2': 'Hệ thống đề cao vẻ đẹp nguyên bản và chân thực (Documentary Integrity). Bạn cứ đăng trực tiếp ảnh gốc từ máy ảnh/điện thoại, hạn chế kéo Sharpness, Clarity, HDR giả lập hay Saturation quá đà vì dễ tạo viền giả quanh xe và làm sai lệch màu sơn thật của nhà xe. Tuyệt đối không dùng AI để xóa/vẽ lại biển số, logo hay chi tiết bị mất, và không dùng AI làm nét/tăng độ phân giải giả tạo (Remini, Xingtu...). Ảnh gốc lỡ mờ thì mình "săn" lại lần sau nhé!',
+                                'B3.1': 'Bức ảnh đang bị mờ nhòe hoặc nhiễu hạt khá nặng. Để cải thiện, bạn nhớ giữ chắc tay máy, chạm vào màn hình để lấy nét vào thân xe và ưu tiên chụp ban ngày, đứng thuận chiều ánh sáng. Nếu trời thiếu sáng, bạn thử tì tay hoặc dùng chân máy để giảm rung nhé. Lưu ý hệ thống áp dụng quy chuẩn đồng bộ, không châm chước cho thiết bị đời cũ, nên nếu ảnh chưa đạt chất lượng thì mình cùng đi "săn" lại ở lần sau nhé!',
+                                'B3.2': 'Hệ thống đề cao vẻ đẹp nguyên bản và chân thực. Bạn cứ đăng trực tiếp ảnh gốc từ máy ảnh hoặc điện thoại, hạn chế kéo tăng nét, tương phản hay màu quá rực vì dễ tạo viền giả quanh xe và làm sai lệch màu sơn thật của nhà xe. Tuyệt đối không dùng AI để xóa hay vẽ lại biển số, logo, chi tiết bị mất, và không dùng AI làm nét giả tạo. Ảnh gốc lỡ mờ thì mình "săn" lại lần sau nhé!',
                                 'B3.4': 'Bạn hãy tải lên bức ảnh nguyên bản và sạch sẽ nhất nhé! Tuyệt đối không dùng app để chèn tên, logo cá nhân, và nhớ tắt cả tính năng tự đóng dấu watermark của camera điện thoại (ví dụ: chữ "Shot on..."). Bạn yên tâm, khi ảnh được duyệt, hệ thống sẽ tự động đóng dấu bản quyền xịn sò của VNBUSARCHIVE để bảo vệ tác phẩm cho bạn.',
                                 'B3.5': 'Bức ảnh đang bị móp méo và sai lệch tỷ lệ thực tế. Lỗi này thường do bạn sử dụng camera góc siêu rộng (0.5x, 0.6x...) ở khoảng cách quá gần. Để cải thiện, hãy lùi ra xa hơn một chút và sử dụng camera chính (1x) hoặc camera zoom (2x, 3x) để giữ được hình dáng nguyên bản và bề thế của xe nhé.',
                                 'B4.1': 'Biển số là linh hồn của dữ liệu! Bức ảnh này biển số đang bị lóa hoặc mờ quá. Lần sau, bạn để ý đứng ở khoảng cách vừa phải, chú ý hướng nắng để biển không bị chói trắng nhé. Bạn có thể chụp thử một tấm rồi zoom màn hình lên, nếu mắt thường đọc rõ mồn một được cả chữ và số thì hẵng chốt góc đó.',
@@ -14226,9 +14226,9 @@ Object.assign(window.app, {
                                 }
                             }
                             const validateAndResolve = (fraudFlag) => {
-                                if (!model) { reject("EXIF ảnh thiếu trường Tên thiết bị chụp (Camera Model). Bạn vui lòng chọn file ảnh gốc nhé!" + helpLinkHTML); return; }
-                                if (!dateTimeOriginal) { reject("EXIF ảnh thiếu trường Ngày giờ chụp (DateTimeOriginal). Bạn vui lòng chọn file ảnh gốc nhé!" + helpLinkHTML); return; }
-                                if (!exposureTime || !iso) { reject("EXIF ảnh thiếu trường Thông số kỹ thuật (Exposure/ISO). Bạn vui lòng chọn file ảnh gốc nhé!" + helpLinkHTML); return; }
+                                if (!model) { reject("EXIF ảnh thiếu thông tin máy ảnh (Camera Model). Bạn vui lòng chọn file ảnh gốc nhé!" + helpLinkHTML); return; }
+                                if (!dateTimeOriginal) { reject("EXIF ảnh thiếu thông tin ngày giờ chụp. Bạn vui lòng chọn file ảnh gốc nhé!" + helpLinkHTML); return; }
+                                if (!exposureTime || !iso) { reject("EXIF ảnh thiếu thông số phơi sáng/ISO. Bạn vui lòng chọn file ảnh gốc nhé!" + helpLinkHTML); return; }
                                 let shutter = exposureTime;
                                 if (exposureTime && exposureTime < 1) shutter = `1/${Math.round(1 / exposureTime)}`;
                                 let dateStr = "";
@@ -14326,7 +14326,7 @@ Object.assign(window.app, {
                                 if (progToast && progToast.remove) progToast.remove();
                             }
                         } else if (isRawFile) {
-                            const progToast = app.toast.createProgress('Đang giải mã ảnh RAW nét gốc (Full Resolution)...');
+                            const progToast = app.toast.createProgress('Đang giải mã ảnh RAW độ phân giải gốc...');
                             if (progToast) progToast.update(40, 'Đang giải mã ảnh RAW nét gốc...', 'Đang xử lý dữ liệu cảm biến 100% độ phân giải...');
                             try {
                                 fileToLoad = await decodeFullRaw(file);
@@ -14443,7 +14443,7 @@ Object.assign(window.app, {
                                     URL.revokeObjectURL(url);
                                 };
                                 newImg.onerror = () => {
-                                    app.ui.showAlert("Định dạng ảnh (RAW/JPG) không được hỗ trợ hoặc file bị hỏng.");
+                                    app.ui.showAlert("Định dạng ảnh không được hỗ trợ hoặc file bị hỏng.");
                                     const fileInput = document.getElementById('up-file');
                                     if (fileInput) fileInput.value = ''; URL.revokeObjectURL(newUrl); URL.revokeObjectURL(url);
                                     if (app.upload.restoreDropZone) app.upload.restoreDropZone();
@@ -16534,7 +16534,7 @@ Object.assign(window.app, {
                     if (isBanned) {
                         termsHtml = `
                             <div class="text-left text-sm text-gray-600 space-y-2">
-                                <p>Do tác giả đã bị cấm khỏi hệ thống, bạn tuyệt đối không được phép tải về để chia sẻ công khai, đăng tải lại (re-up) lên mạng xã hội hoặc sử dụng cho bất kỳ mục đích nào khác. Mọi hành vi sử dụng trái phép đều có thể bị khiếu nại bản quyền hoặc xử lý theo quy định.</p>
+                                <p>Do tác giả đã bị cấm khỏi hệ thống, bạn tuyệt đối không được phép tải về để chia sẻ công khai, đăng lại lên mạng xã hội hoặc sử dụng cho bất kỳ mục đích nào khác. Mọi hành vi sử dụng trái phép đều có thể bị khiếu nại bản quyền hoặc xử lý theo quy định.</p>
                                 <p>Hình ảnh và dữ liệu này chỉ được phép sử dụng cho mục đích tra cứu, học tập và nghiên cứu cá nhân. Nghiêm cấm cào dữ liệu tự động, thương mại hóa, hoặc cắt ghép chỉnh sửa phục vụ mục đích bôi nhọ, xuyên tạc.</p>
                                 <p>Toàn bộ tư liệu chỉ mang tính chất tham khảo, không có giá trị làm bằng chứng pháp lý để xử lý vi phạm.</p>
                             </div>
@@ -16553,7 +16553,7 @@ Object.assign(window.app, {
                     } else {
                         termsHtml = `
                             <div class="text-left text-sm text-gray-600 space-y-2">
-                                <p>Do tác giả không cung cấp thông tin liên hệ công khai, bạn tuyệt đối <strong>không được phép</strong> tải về để chia sẻ công khai, đăng tải lại (re-up) lên mạng xã hội hoặc sử dụng cho bất kỳ mục đích nào khác khi chưa có văn bản đồng ý từ tác giả gốc. Mọi hành vi sử dụng trái phép đều có thể bị khiếu nại bản quyền hoặc xử lý theo quy định.</p>
+                                <p>Do tác giả không cung cấp thông tin liên hệ công khai, bạn tuyệt đối <strong>không được phép</strong> tải về để chia sẻ công khai, đăng lại lên mạng xã hội hoặc sử dụng cho bất kỳ mục đích nào khác khi chưa có văn bản đồng ý từ tác giả gốc. Mọi hành vi sử dụng trái phép đều có thể bị khiếu nại bản quyền hoặc xử lý theo quy định.</p>
                                 <p>Hình ảnh và dữ liệu này chỉ được phép sử dụng cho mục đích tra cứu, học tập và nghiên cứu cá nhân. Nghiêm cấm cào dữ liệu tự động, thương mại hóa, hoặc cắt ghép chỉnh sửa phục vụ mục đích bôi nhọ, xuyên tạc.</p>
                                 <p>Toàn bộ tư liệu chỉ mang tính chất tham khảo, không có giá trị làm bằng chứng pháp lý để xử lý vi phạm.</p>
                             </div>
@@ -18422,10 +18422,10 @@ Object.assign(window.app, {
                                         ${p.mod_note ? `<div class="mt-2 p-2.5 bg-gray-100 border border-black rounded-md"><span class="block text-xs font-bold text-black mb-1"><i class="fa-solid fa-shield-halved mr-1"></i>Note dành cho kiểm duyệt (Không công khai):</span><div class="text-xs text-black font-mono leading-relaxed whitespace-pre-wrap">${app.utils.escapeHtml(p.mod_note)}</div></div>` : ''}
                                         
                                         <div class="grid grid-cols-2 gap-2 mt-2">
-                                            <div><span class="admin-label">Ngày chụp (Gốc)</span><input type="text" class="admin-input bg-gray-50 !text-gray-500" value="${p.taken_at ? p.taken_at.split('T')[0] : 'Không rõ'}" disabled></div>
+                                            <div><span class="admin-label">Ngày chụp gốc</span><input type="text" class="admin-input bg-gray-50 !text-gray-500" value="${p.taken_at ? p.taken_at.split('T')[0] : 'Không rõ'}" disabled></div>
                                             <div><span class="admin-label">Thiết bị chụp</span><input type="text" class="admin-input bg-gray-50 !text-gray-500 truncate" value="${p.camera_model || 'Không rõ'}" disabled title="${p.camera_model || 'Không rõ'}"></div>
                                         </div>
-                                        ${p.exif_params ? `<div class="mt-2"><span class="admin-label">Thông số quang học (EXIF)</span><input type="text" class="admin-input bg-gray-50 !text-gray-500 truncate" value="${p.exif_params}" disabled title="${p.exif_params}"></div>` : ''}
+                                        ${p.exif_params ? `<div class="mt-2"><span class="admin-label">Thông số EXIF</span><input type="text" class="admin-input bg-gray-50 !text-gray-500 truncate" value="${p.exif_params}" disabled title="${p.exif_params}"></div>` : ''}
                                         ${(() => {
                                         const isOwnPhoto = p.uploader_id === app.user.id;
                                         const canApprove = (!isOwnPhoto || app.role === 'manager') && !p._isReviewedByMe;
@@ -19914,7 +19914,7 @@ if (app.admin._activeLoadToken !== currentLoadToken || app.adminTab !== tab) ret
                                                      </label>
                                                      <label class="flex items-center gap-1.5 text-xs font-bold text-gray-700 cursor-pointer select-none">
                                                          <input type="checkbox" id="mgr-wm-smooth" checked onchange="if(document.getElementById('mgr-wm-canvas-src')?.width > 0) app.admin.extractBlindWmDCT()" class="w-4 h-4 rounded border-gray-300 text-black focus:ring-black cursor-pointer">
-                                                         Lọc mịn (Smooth)
+                                                         Lọc Smooth
                                                      </label>
                                                      <button type="button" id="mgr-wm-reextract-btn" onclick="app.admin.extractBlindWmDCT()" class="hidden px-3 py-1.5 bg-black text-white rounded-md text-xs font-bold hover:bg-gray-800 transition"><i class="fa-solid fa-rotate-right mr-1"></i> Giải mã lại</button>
                                                  </div>
@@ -19963,7 +19963,7 @@ if (app.admin._activeLoadToken !== currentLoadToken || app.adminTab !== tab) ret
                                                       </div>
                                                       <div class="space-y-1">
                                                           <div class="flex justify-between text-[11px] text-gray-600 font-bold">
-                                                              <span>Khôi phục co giãn (Scale):</span>
+                                                              <span>Khôi phục tỷ lệ:</span>
                                                               <span id="mgr-wm-scale-val" class="font-mono text-black">100%</span>
                                                           </div>
                                                           <div class="flex items-center gap-2">
@@ -20023,7 +20023,7 @@ if (app.admin._activeLoadToken !== currentLoadToken || app.adminTab !== tab) ret
                                         <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                                           <div><label class="text-xs font-bold text-gray-600 block mb-1">Tiêu đề *</label><input type="text" id="ct-new-title" class="admin-input" placeholder="Ví dụ: Bảo trì hệ thống"></div>
                                           <div><label class="text-xs font-bold text-gray-600 block mb-1">Nội dung</label><input type="text" id="ct-new-message" class="admin-input" placeholder="Mô tả ngắn gọn"></div>
-                                          <div><label class="text-xs font-bold text-gray-600 block mb-1">Icon (FontAwesome)</label><input type="text" id="ct-new-icon" class="admin-input font-mono" value="fa-bell" placeholder="fa-bell"></div>
+                                          <div><label class="text-xs font-bold text-gray-600 block mb-1">Icon FontAwesome</label><input type="text" id="ct-new-icon" class="admin-input font-mono" value="fa-bell" placeholder="fa-bell"></div>
                                           <div><label class="text-xs font-bold text-gray-600 block mb-1">Màu</label><div class="flex items-center gap-2"><input type="color" id="ct-new-color" value="#18181b" oninput="app.admin.syncToastColor(this.value)" class="w-10 h-10 rounded border border-gray-300 cursor-pointer bg-white"><input type="text" id="ct-new-color-text" value="#18181b" oninput="app.admin.syncToastColorText(this.value)" class="admin-input font-mono"></div></div>
                                           <div><label class="text-xs font-bold text-gray-600 block mb-1">Thời điểm hiển thị</label><select id="ct-new-mode" class="admin-input"><option value="always">Mỗi lần vào trang</option><option value="once">Chỉ 1 lần duy nhất</option></select></div>
                                           <div><label class="text-xs font-bold text-gray-600 block mb-1">Thời gian tự tắt (giây)</label><input type="number" min="0" id="ct-new-duration" class="admin-input" value="12" placeholder="0 = không tự tắt"></div>
@@ -20180,7 +20180,7 @@ app.admin.fetchManagerData('denied');
                 },
                 autoFindPyramidMatch: async (refImg, patchImg) => {
                     const statusEl = document.getElementById('mgr-wm-ref-status');
-                    if (statusEl) statusEl.innerHTML = `<span class="text-purple-600 font-bold"><i class="fa-solid fa-spinner fa-spin mr-1"></i>Đang đối chiếu mảnh cắt với ảnh gốc qua tháp kim tự tháp (Pyramid Matching)...</span>`;
+                    if (statusEl) statusEl.innerHTML = `<span class="text-purple-600 font-bold"><i class="fa-solid fa-spinner fa-spin mr-1"></i>Đang đối chiếu mảnh cắt với ảnh gốc...</span>`;
                     await new Promise(r => setTimeout(r, 20));
                     const getGray = (img, w, h) => {
                         const canvas = document.createElement('canvas');

@@ -594,7 +594,7 @@ changePassword: async () => {
                         return;
                     }
                     app.ui.showAlert(
-                        "CẢNH BÁO BẢO MẬT: Mã định danh (UUID) dùng để Admin tra cứu tài khoản của bạn.<br><br><b class='text-red-600'>Vui lòng CHỈ chia sẻ UUID trên các kênh hỗ trợ chính thức được công nhận của VNBUSARCHIVE. Tuyệt đối không gửi cho người lạ!</b>",
+                        "CẢNH BÁO BẢO MẬT: Mã User ID dùng để Admin tra cứu tài khoản của bạn.<br><br><b class='text-red-600'>Vui lòng CHỈ chia sẻ User ID trên các kênh hỗ trợ chính thức của VNBUSARCHIVE. Tuyệt đối không gửi cho người lạ!</b>",
                         () => {
                             uuidForm.classList.remove('hidden');
                             document.getElementById('user-uuid-input').value = app.user.id;

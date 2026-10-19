@@ -2169,7 +2169,7 @@ html.theme-dark .ct-icon {
             if (stored === 'system') {
                 theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
             }
-            document.write('<link rel="stylesheet" href="/css/' + theme + '.css?v=1792401133990" id="theme-css">');
+            document.write('<link rel="stylesheet" href="/css/' + theme + '.css?v=1792402610454" id="theme-css">');
             document.documentElement.classList.add('theme-' + theme);
             document.documentElement.style.backgroundColor = theme === 'dark' ? '#18181b' : '#fdfcf8';
         })();
@@ -2411,7 +2411,7 @@ html.theme-dark .ct-icon {
         </div>
 
         <!-- NÚT CHO MANAGER -->
-        <button id="mt-manager-bypass" onclick="app.maintenance.bypass()" class="hidden mt-8 text-[10px] font-bold text-blue-500 hover:underline uppercase tracking-widest">Truy cập Quản trị (Manager)</button>
+        <button id="mt-manager-bypass" onclick="app.maintenance.bypass()" class="hidden mt-8 text-[10px] font-bold text-blue-500 hover:underline uppercase tracking-widest">Truy cập Quản trị</button>
     </div>
 </div>
 
@@ -2608,7 +2608,7 @@ html.theme-dark .ct-icon {
                             <input type="text" id="cr-name-input" maxlength="32" class="w-full bg-white border border-gray-300 rounded-lg p-2.5 text-sm font-medium focus:ring-2 focus:ring-black focus:border-transparent outline-none transition-all shadow-inner text-black" placeholder="VD: Fan 21 số 1 vi en">
                         </div>
                         <div>
-                            <label class="block text-[10px] font-bold text-gray-500 mb-1.5 uppercase tracking-widest">Màu sắc (Hex) <span class="text-red-500">*</span></label>
+                            <label class="block text-[10px] font-bold text-gray-500 mb-1.5 uppercase tracking-widest">Mã màu Hex <span class="text-red-500">*</span></label>
                             <div class="flex gap-2 items-center">
                                 <div class="relative w-11 h-11 rounded-lg overflow-hidden border border-gray-300 shadow-sm shrink-0 bg-white">
                                     <input type="color" id="cr-color-picker" class="absolute -top-2 -left-2 w-16 h-16 cursor-pointer" value="#a855f7" oninput="document.getElementById('cr-color-input').value = this.value.toUpperCase()">
@@ -4492,7 +4492,7 @@ html.theme-dark .ct-icon {
                                 <i class="fa-solid fa-fingerprint"></i>
                             </div>
                             <div class="flex-1 min-w-0">
-                                <h3 class="font-black text-sm md:text-base text-black uppercase tracking-wide">Mã định danh (UUID)</h3>
+                                <h3 class="font-black text-sm md:text-base text-black uppercase tracking-wide">Mã User ID</h3>
                                 <p class="text-xs text-gray-500 font-medium mt-1 leading-relaxed">Dùng để xác minh và tra cứu tài khoản của bạn trong hệ thống với quản trị viên.</p>
                             </div>
                         </div>
@@ -5157,16 +5157,16 @@ html.theme-dark .ct-icon {
                                     </div>
                                     <p class="text-xs text-gray-500 mt-2">Ảnh đủ điều kiện nếu không bật sẽ bị tính là ảnh thường (có thể sẽ không được ưu tiên) và không được cộng điểm thưởng.</p>
                                     <div id="up-doc-alert" class="hidden mt-3 p-3 bg-red-50 border border-red-200 rounded-md">
-                                        <p class="text-red-700 text-sm font-bold mb-2">Các trường hợp áp dụng ưu tiên (Chỉ áp dụng đối với XE BUÝT, KHÔNG áp dụng cho XE KHÁCH):</p>
+                                        <p class="text-red-700 text-sm font-bold mb-2">Các trường hợp được ưu tiên (chỉ áp dụng cho xe buýt, không áp dụng cho xe khách):</p>
                                         <ul class="list-disc pl-5 text-sm text-red-600 mb-2 space-y-1">
-                                            <li>Dòng xe đã không còn hoạt động/khai thác trên thị trường.</li>
+                                            <li>Dòng xe đã ngừng khai thác trên thị trường.</li>
                                             <li>Tuyến xe buýt đã ngừng hoạt động hoàn toàn.</li>
-                                            <li>Tuyến/xe buýt đã chuyển giao đơn vị vận hành hoặc bán/thanh lý/chuyển nhượng (ảnh ghi lại thời điểm còn thuộc đơn vị vận hành cũ).</li>
-                                            <li>Tuyến xe buýt đã thay đổi dòng xe/lô xe (ảnh ghi lại thời điểm tuyến còn sử dụng dòng xe/lô xe cũ).</li>
-                                            <li>Tuyến/xe buýt đã thay đổi biển số/số hiệu xe (ảnh ghi lại thời điểm còn dùng biển số/số hiệu cũ).</li>
-                                            <li>Tuyến/xe buýt đã thay đổi màu sơn/nhận diện thương hiệu (ảnh ghi lại thời điểm còn dùng màu sơn/logo cũ).</li>
-                                            <li>Tuyến/xe buýt đã hết niên hạn sử dụng/bị loại biên.</li>
-                                            <li>Tuyến/xe buýt vận hành theo hợp đồng/sự kiện tạm thời đã ngừng hoạt động (ảnh ghi lại thời điểm tăng cường).</li>
+                                            <li>Xe đã chuyển đơn vị vận hành hoặc thanh lý, chuyển nhượng (ảnh ghi lại thời điểm xe còn thuộc đơn vị cũ).</li>
+                                            <li>Tuyến xe buýt đã thay đổi dòng xe hoặc lô xe mới (ảnh ghi lại thời điểm tuyến còn dùng lô xe cũ).</li>
+                                            <li>Xe đã đổi biển số hoặc số hiệu (ảnh ghi lại thời điểm còn dùng biển số hoặc số hiệu cũ).</li>
+                                            <li>Xe đã đổi màu sơn hoặc nhận diện thương hiệu mới (ảnh ghi lại màu sơn hoặc logo cũ).</li>
+                                            <li>Xe đã hết niên hạn sử dụng hoặc bị loại biên.</li>
+                                            <li>Xe chạy hợp đồng hoặc tăng cường theo sự kiện tạm thời đã kết thúc.</li>
                                         </ul>
                                         <p class="text-red-700 text-sm font-bold">Bạn vui lòng nêu rõ lí do trong "Ghi chú dành cho kiểm duyệt". Nếu ảnh của bạn không thuộc bất cứ trường hợp nào phía trên vui lòng tắt công tắc này NGAY LẬP TỨC. Nếu sử dụng sai có thể bị phạt tới 50 điểm.</p>
                                     </div>
@@ -5191,7 +5191,7 @@ html.theme-dark .ct-icon {
 
                 <div id="admin-realtime-warning" class="hidden mb-6 p-3 bg-red-50 border border-red-100 rounded-xl flex items-start gap-2 shadow-sm">
                     <i class="fa-solid fa-triangle-exclamation text-red-500 mt-0.5 text-xs"></i>
-                    <p class="text-[11px] text-red-700 font-bold leading-tight">Mất kết nối máy chủ thời gian thực (Realtime)! Đã tạm khóa các chức năng duyệt, chỉnh sửa hay can thiệp ảnh để tránh lệch dữ liệu. Đang kết nối lại...</p>
+                    <p class="text-[11px] text-red-700 font-bold leading-tight">Mất kết nối máy chủ thời gian thực! Đã tạm khóa các chức năng duyệt, chỉnh sửa hay can thiệp ảnh để tránh lệch dữ liệu. Đang kết nối lại...</p>
                 </div>
 
                 <div class="flex gap-3 mb-6 overflow-x-auto pb-2">
@@ -7077,7 +7077,7 @@ html.theme-dark .ct-icon {
 
             <!-- NỘI DUNG NHẬP LINK -->
             <div class="p-5 md:p-6 bg-white flex-1 overflow-y-auto custom-scrollbar flex flex-col items-center">
-                <p class="text-sm text-gray-700 mb-4 font-medium text-center w-full">Nhập đường dẫn (link) ảnh trên hệ thống VNBUSARCHIVE mà bạn muốn đặt làm ảnh tâm đắc.</p>
+                <p class="text-sm text-gray-700 mb-4 font-medium text-center w-full">Nhập link ảnh trên hệ thống VNBUSARCHIVE mà bạn muốn đặt làm ảnh tâm đắc.</p>
 
                 <div class="w-full relative mb-2">
                     <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -7287,7 +7287,7 @@ html.theme-dark .ct-icon {
 
     <!-- KHAY CHỨA TOAST Z-INDEX CAO NHẤT -->
     <div id="toast-container" class="fixed left-0 w-full flex flex-col items-center gap-2 pointer-events-none z-[99999]" style="z-index: 99999 !important;"></div>
-<script src="/app.5ddb9b4dc81d.js" onerror="if(!window.__app_fallback_loaded){window.__app_fallback_loaded=true;var s=document.createElement('script');s.src='/app.js?v=' + Date.now();document.head.appendChild(s);}"></script>
+<script src="/app.4f1802271585.js" onerror="if(!window.__app_fallback_loaded){window.__app_fallback_loaded=true;var s=document.createElement('script');s.src='/app.js?v=' + Date.now();document.head.appendChild(s);}"></script>
 </body>
 </html>
 

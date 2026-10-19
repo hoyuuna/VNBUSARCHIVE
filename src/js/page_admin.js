@@ -417,10 +417,10 @@ Object.assign(window.app, {
                                         ${p.mod_note ? `<div class="mt-2 p-2.5 bg-gray-100 border border-black rounded-md"><span class="block text-xs font-bold text-black mb-1"><i class="fa-solid fa-shield-halved mr-1"></i>Note dành cho kiểm duyệt (Không công khai):</span><div class="text-xs text-black font-mono leading-relaxed whitespace-pre-wrap">${app.utils.escapeHtml(p.mod_note)}</div></div>` : ''}
                                         
                                         <div class="grid grid-cols-2 gap-2 mt-2">
-                                            <div><span class="admin-label">Ngày chụp (Gốc)</span><input type="text" class="admin-input bg-gray-50 !text-gray-500" value="${p.taken_at ? p.taken_at.split('T')[0] : 'Không rõ'}" disabled></div>
+                                            <div><span class="admin-label">Ngày chụp gốc</span><input type="text" class="admin-input bg-gray-50 !text-gray-500" value="${p.taken_at ? p.taken_at.split('T')[0] : 'Không rõ'}" disabled></div>
                                             <div><span class="admin-label">Thiết bị chụp</span><input type="text" class="admin-input bg-gray-50 !text-gray-500 truncate" value="${p.camera_model || 'Không rõ'}" disabled title="${p.camera_model || 'Không rõ'}"></div>
                                         </div>
-                                        ${p.exif_params ? `<div class="mt-2"><span class="admin-label">Thông số quang học (EXIF)</span><input type="text" class="admin-input bg-gray-50 !text-gray-500 truncate" value="${p.exif_params}" disabled title="${p.exif_params}"></div>` : ''}
+                                        ${p.exif_params ? `<div class="mt-2"><span class="admin-label">Thông số EXIF</span><input type="text" class="admin-input bg-gray-50 !text-gray-500 truncate" value="${p.exif_params}" disabled title="${p.exif_params}"></div>` : ''}
                                         ${(() => {
                                         const isOwnPhoto = p.uploader_id === app.user.id;
                                         const canApprove = (!isOwnPhoto || app.role === 'manager') && !p._isReviewedByMe;
@@ -1909,7 +1909,7 @@ if (app.admin._activeLoadToken !== currentLoadToken || app.adminTab !== tab) ret
                                                      </label>
                                                      <label class="flex items-center gap-1.5 text-xs font-bold text-gray-700 cursor-pointer select-none">
                                                          <input type="checkbox" id="mgr-wm-smooth" checked onchange="if(document.getElementById('mgr-wm-canvas-src')?.width > 0) app.admin.extractBlindWmDCT()" class="w-4 h-4 rounded border-gray-300 text-black focus:ring-black cursor-pointer">
-                                                         Lọc mịn (Smooth)
+                                                         Lọc Smooth
                                                      </label>
                                                      <button type="button" id="mgr-wm-reextract-btn" onclick="app.admin.extractBlindWmDCT()" class="hidden px-3 py-1.5 bg-black text-white rounded-md text-xs font-bold hover:bg-gray-800 transition"><i class="fa-solid fa-rotate-right mr-1"></i> Giải mã lại</button>
                                                  </div>
@@ -1958,7 +1958,7 @@ if (app.admin._activeLoadToken !== currentLoadToken || app.adminTab !== tab) ret
                                                       </div>
                                                       <div class="space-y-1">
                                                           <div class="flex justify-between text-[11px] text-gray-600 font-bold">
-                                                              <span>Khôi phục co giãn (Scale):</span>
+                                                              <span>Khôi phục tỷ lệ:</span>
                                                               <span id="mgr-wm-scale-val" class="font-mono text-black">100%</span>
                                                           </div>
                                                           <div class="flex items-center gap-2">
@@ -2018,7 +2018,7 @@ if (app.admin._activeLoadToken !== currentLoadToken || app.adminTab !== tab) ret
                                         <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                                           <div><label class="text-xs font-bold text-gray-600 block mb-1">Tiêu đề *</label><input type="text" id="ct-new-title" class="admin-input" placeholder="Ví dụ: Bảo trì hệ thống"></div>
                                           <div><label class="text-xs font-bold text-gray-600 block mb-1">Nội dung</label><input type="text" id="ct-new-message" class="admin-input" placeholder="Mô tả ngắn gọn"></div>
-                                          <div><label class="text-xs font-bold text-gray-600 block mb-1">Icon (FontAwesome)</label><input type="text" id="ct-new-icon" class="admin-input font-mono" value="fa-bell" placeholder="fa-bell"></div>
+                                          <div><label class="text-xs font-bold text-gray-600 block mb-1">Icon FontAwesome</label><input type="text" id="ct-new-icon" class="admin-input font-mono" value="fa-bell" placeholder="fa-bell"></div>
                                           <div><label class="text-xs font-bold text-gray-600 block mb-1">Màu</label><div class="flex items-center gap-2"><input type="color" id="ct-new-color" value="#18181b" oninput="app.admin.syncToastColor(this.value)" class="w-10 h-10 rounded border border-gray-300 cursor-pointer bg-white"><input type="text" id="ct-new-color-text" value="#18181b" oninput="app.admin.syncToastColorText(this.value)" class="admin-input font-mono"></div></div>
                                           <div><label class="text-xs font-bold text-gray-600 block mb-1">Thời điểm hiển thị</label><select id="ct-new-mode" class="admin-input"><option value="always">Mỗi lần vào trang</option><option value="once">Chỉ 1 lần duy nhất</option></select></div>
                                           <div><label class="text-xs font-bold text-gray-600 block mb-1">Thời gian tự tắt (giây)</label><input type="number" min="0" id="ct-new-duration" class="admin-input" value="12" placeholder="0 = không tự tắt"></div>
@@ -2175,7 +2175,7 @@ app.admin.fetchManagerData('denied');
                 },
                 autoFindPyramidMatch: async (refImg, patchImg) => {
                     const statusEl = document.getElementById('mgr-wm-ref-status');
-                    if (statusEl) statusEl.innerHTML = `<span class="text-purple-600 font-bold"><i class="fa-solid fa-spinner fa-spin mr-1"></i>Đang đối chiếu mảnh cắt với ảnh gốc qua tháp kim tự tháp (Pyramid Matching)...</span>`;
+                    if (statusEl) statusEl.innerHTML = `<span class="text-purple-600 font-bold"><i class="fa-solid fa-spinner fa-spin mr-1"></i>Đang đối chiếu mảnh cắt với ảnh gốc...</span>`;
                     await new Promise(r => setTimeout(r, 20));
                     const getGray = (img, w, h) => {
                         const canvas = document.createElement('canvas');

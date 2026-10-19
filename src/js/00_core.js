@@ -736,7 +736,7 @@ Object.assign(window.app, {
                         }
                     } else if (type === 'dev') {
                         helpUrl = 'https://www.vnbusarchive.io.vn/help/1538729901798989934';
-                        desc = `Danh hiệu <b>VNBUSARCHIVE Code Contributor</b> được cấp cho các lập trình viên đã có đóng góp mã nguồn (Pull Request) hợp lệ trên GitHub, góp phần xây dựng và phát triển nền tảng công nghệ của dự án.<br><br><a href="${helpUrl}" target="_blank" class="text-black hover:underline font-bold text-[13px] inline-flex items-center">Tìm hiểu thêm về danh hiệu này</a>`;
+                        desc = `Danh hiệu <b>VNBUSARCHIVE Code Contributor</b> được cấp cho các lập trình viên đã có đóng góp Pull Request hợp lệ trên GitHub cho dự án.<br><br><a href="${helpUrl}" target="_blank" class="text-black hover:underline font-bold text-[13px] inline-flex items-center">Tìm hiểu thêm về danh hiệu này</a>`;
                         app.ui.showAlert(desc, 
                             null, 
                             null, 

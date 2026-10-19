@@ -1675,9 +1675,9 @@ Object.assign(window.app, {
                                 }
                             }
                             const validateAndResolve = (fraudFlag) => {
-                                if (!model) { reject("EXIF ảnh thiếu trường Tên thiết bị chụp (Camera Model). Bạn vui lòng chọn file ảnh gốc nhé!" + helpLinkHTML); return; }
-                                if (!dateTimeOriginal) { reject("EXIF ảnh thiếu trường Ngày giờ chụp (DateTimeOriginal). Bạn vui lòng chọn file ảnh gốc nhé!" + helpLinkHTML); return; }
-                                if (!exposureTime || !iso) { reject("EXIF ảnh thiếu trường Thông số kỹ thuật (Exposure/ISO). Bạn vui lòng chọn file ảnh gốc nhé!" + helpLinkHTML); return; }
+                                if (!model) { reject("EXIF ảnh thiếu thông tin máy ảnh (Camera Model). Bạn vui lòng chọn file ảnh gốc nhé!" + helpLinkHTML); return; }
+                                if (!dateTimeOriginal) { reject("EXIF ảnh thiếu thông tin ngày giờ chụp. Bạn vui lòng chọn file ảnh gốc nhé!" + helpLinkHTML); return; }
+                                if (!exposureTime || !iso) { reject("EXIF ảnh thiếu thông số phơi sáng/ISO. Bạn vui lòng chọn file ảnh gốc nhé!" + helpLinkHTML); return; }
                                 let shutter = exposureTime;
                                 if (exposureTime && exposureTime < 1) shutter = `1/${Math.round(1 / exposureTime)}`;
                                 let dateStr = "";
@@ -1775,7 +1775,7 @@ Object.assign(window.app, {
                                 if (progToast && progToast.remove) progToast.remove();
                             }
                         } else if (isRawFile) {
-                            const progToast = app.toast.createProgress('Đang giải mã ảnh RAW nét gốc (Full Resolution)...');
+                            const progToast = app.toast.createProgress('Đang giải mã ảnh RAW độ phân giải gốc...');
                             if (progToast) progToast.update(40, 'Đang giải mã ảnh RAW nét gốc...', 'Đang xử lý dữ liệu cảm biến 100% độ phân giải...');
                             try {
                                 fileToLoad = await decodeFullRaw(file);
@@ -1892,7 +1892,7 @@ Object.assign(window.app, {
                                     URL.revokeObjectURL(url);
                                 };
                                 newImg.onerror = () => {
-                                    app.ui.showAlert("Định dạng ảnh (RAW/JPG) không được hỗ trợ hoặc file bị hỏng.");
+                                    app.ui.showAlert("Định dạng ảnh không được hỗ trợ hoặc file bị hỏng.");
                                     const fileInput = document.getElementById('up-file');
                                     if (fileInput) fileInput.value = ''; URL.revokeObjectURL(newUrl); URL.revokeObjectURL(url);
                                     if (app.upload.restoreDropZone) app.upload.restoreDropZone();
