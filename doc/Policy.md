@@ -30,7 +30,7 @@ Khi tải ảnh lên hệ thống, bạn cần tuân thủ các quy chuẩn sau:
 * **Giới hạn tải lên:** Nhằm duy trì độ ổn định của máy chủ, hệ thống giới hạn số lượng ảnh tải lên trong ngày đối với mỗi tài khoản. Hạn mức này tự động làm mới vào lúc 7:00 sáng hàng ngày theo giờ Việt Nam.
 
 ### 4. Quyền sở hữu trí tuệ và cấp phép
-* **Quyền của người chụp:** Bạn giữ toàn bộ bản quyền đối với tệp ảnh gốc của mình. Khi tải lên, bạn cấp cho VNBUSARCHIVE quyền không độc quyền, miễn phí để lưu trữ, hiển thị, tối ưu hóa và gắn nhãn bản quyền phục vụ cộng đồng. Bạn tự chịu trách nhiệm về bản quyền của ảnh gốc.
+* **Quyền của người chụp và giấy phép không hủy ngang:** Bạn giữ toàn bộ bản quyền đối với tệp ảnh gốc của mình. Khi tải lên và được duyệt vào hệ thống, bạn cấp cho VNBUSARCHIVE giấy phép không độc quyền, miễn phí, vĩnh viễn và không hủy ngang để lưu trữ, hiển thị, tối ưu hóa và gắn nhãn bản quyền phục vụ mục đích phi thương mại của cộng đồng. Giấy phép này tiếp tục có hiệu lực ngay cả khi bạn ngừng sử dụng dịch vụ hoặc xóa tài khoản. Bạn tự chịu trách nhiệm về bản quyền của ảnh gốc.
 * **Quyền của cộng đồng:** Người dùng khi sử dụng lại ảnh hoặc dữ liệu từ hệ thống cần ghi nguồn rõ ràng. Không tự ý cào dữ liệu tự động quy mô lớn để kinh doanh hoặc thương mại hóa.
 * **Bảo vệ tác phẩm:** Khi tải ảnh lên và đóng dấu hệ thống, bạn đồng ý để VNBUSARCHIVE hỗ trợ bảo vệ hình ảnh trên không gian mạng:
   * Bạn có quyền tự mình khiếu nại bản quyền DMCA với bất kỳ bên nào sử dụng ảnh của bạn trái phép.
@@ -52,6 +52,7 @@ API dữ liệu mở được cung cấp miễn phí cho mục đích cá nhân 
 * **Tính chính xác:** Dữ liệu do cộng đồng đóng góp mang tính tham khảo. Chúng tôi cố gắng kiểm tra nhưng không cam kết dữ liệu luôn chính xác 100% ở mọi thời điểm.
 * **Lưu trữ kỹ thuật:** Chúng tôi nỗ lực duy trì hệ thống hoạt động ổn định, nhưng không chịu trách nhiệm trong các tình huống mất mát dữ liệu do sự cố bất khả kháng. Bạn nên chủ động lưu trữ bản gốc hình ảnh của mình.
 * **Giá trị pháp lý:** Dữ liệu và hình ảnh trên website không dùng làm căn cứ pháp lý để xử phạt vi phạm giao thông hay tranh chấp nội bộ doanh nghiệp.
+* **Tính công cộng của phương tiện giao thông:** Phương tiện giao thông vận tải và biển kiểm soát khi tham gia lưu thông trên đường giao thông công cộng không thuộc phạm vi bí mật đời tư cá nhân.
 * **Trách nhiệm người dùng:** Người dùng tự chịu trách nhiệm về hình ảnh mình tải lên, bao gồm các vấn đề liên quan đến quyền riêng tư hoặc bản quyền với bên thứ ba.
 * **An toàn khi tác nghiệp:** VNBUSARCHIVE không tổ chức, xúi giục hay chịu trách nhiệm đối với hành vi của người dùng trong quá trình đi chụp ảnh ngoài đời thực. Người chụp tự chịu trách nhiệm về an toàn giao thông, tuân thủ an ninh trật tự và không xâm phạm khu vực cấm.
 * Trong trường hợp xảy ra sự cố kỹ thuật ngoài tầm kiểm soát hoặc tấn công mạng, VNBUSARCHIVE sẽ nỗ lực khắc phục, thông báo cho người dùng và được miễn trừ nghĩa vụ bồi thường tài chính.
@@ -74,9 +75,10 @@ Hồ sơ cá nhân được hiển thị công khai trên hệ thống. Để gi
 
 ### 9. Tiếp nhận và xử lý khiếu nại quyền riêng tư
 Nhằm đảm bảo quyền riêng tư cá nhân theo quy định pháp luật:
-* **Quyền yêu cầu:** Nếu bạn xuất hiện rõ mặt hoặc có thông tin nhận diện riêng tư trong ảnh lưu trữ trên hệ thống, bạn có quyền gửi yêu cầu hỗ trợ qua mục [Liên hệ] của website.
+* **Quyền yêu cầu:** Nếu bạn xuất hiện rõ mặt hoặc có thông tin nhận diện riêng tư trong ảnh lưu trữ trên hệ thống, bạn có quyền gửi yêu cầu hỗ trợ qua mục [Liên hệ] của website để được hỗ trợ làm mờ.
 * **Quy trình tiếp nhận:** Ban quản trị sẽ phản hồi và kiểm tra nội dung trong vòng 24–72 giờ sau khi nhận đủ thông tin.
-* **Biện pháp xử lý:** Tùy trường hợp, ban quản trị sẽ làm mờ phần nhận diện cá nhân trực tiếp trên ảnh hoặc gỡ bỏ ảnh khỏi chế độ công khai.
+* **Biện pháp xử lý:** Tùy trường hợp, ban quản trị sẽ làm mờ phần nhận diện cá nhân trực tiếp trên ảnh hoặc tạm ẩn ảnh trong thời gian xử lý.
+* **Yêu cầu gỡ ảnh từ phía nhà xe hoặc tài xế:** Để phục vụ mục đích tư liệu lịch sử giao thông công cộng, VNBUSARCHIVE luôn hỗ trợ làm mờ khuôn mặt người (tài xế, tiếp viên, hành khách) khi nhận được yêu cầu hợp lệ. Tuy nhiên, hệ thống **từ chối các yêu cầu gỡ bỏ hình ảnh phương tiện** được chụp hợp pháp tại không gian công cộng, trừ khi có yêu cầu bằng văn bản chính thức từ cơ quan quản lý Nhà nước có thẩm quyền.
 * Để đảm bảo an toàn cho dự án, ban quản trị có quyền chủ động làm mờ bổ sung hoặc gỡ ảnh có khiếu nại mà không cần sự đồng ý trước của người đã tải ảnh.
 
 ### 10. Quy chuẩn nhận diện thương hiệu và logo VNBUSARCHIVE
@@ -125,7 +127,7 @@ Chúng tôi không bán, cho thuê hay chia sẻ dữ liệu cá nhân của ng�
 ### 5. Quyền của người dùng với dữ liệu
 * **Xem và chỉnh sửa:** Bạn có thể tự do cập nhật thông tin cá nhân và liên kết mạng xã hội trong phần Cài đặt.
 * **Xóa ảnh:** Bạn có thể rút lại ảnh khi đang chờ duyệt. Với ảnh đã được duyệt, bạn có thể gửi yêu cầu gỡ ảnh để quản trị viên xem xét.
-* **Xóa tài khoản:** Khi bạn yêu cầu xóa tài khoản, các thông tin cá nhân như email, mật khẩu, tên hiển thị và liên kết tài khoản sẽ bị xóa hoàn toàn. Để đảm bảo tính liền mạch của kho tư liệu, các bức ảnh đã được duyệt trước đó sẽ tiếp tục được lưu giữ trên hệ thống dưới tên "Người dùng ẩn danh", trừ khi bạn có yêu cầu xóa ảnh cụ thể được chấp thuận trước đó. Dấu bản quyền đã đóng trên ảnh tại thời điểm duyệt sẽ được giữ nguyên.
+* **Xóa tài khoản:** Khi bạn yêu cầu xóa tài khoản, các thông tin cá nhân như email, mật khẩu, tên hiển thị và liên kết tài khoản sẽ bị xóa hoàn toàn. Theo giấy phép vĩnh viễn và không hủy ngang đã cấp khi duyệt ảnh (Mục 4 Phần 1), việc xóa tài khoản không làm phát sinh nghĩa vụ phải gỡ bỏ các hình ảnh và dữ liệu đã được duyệt. Để đảm bảo tính toàn vẹn và liên tục của kho tư liệu lịch sử phục vụ cộng đồng, các bức ảnh này sẽ tiếp tục được lưu giữ công khai trên hệ thống và chuyển quyền hiển thị dưới tên "Người dùng ẩn danh". Dấu bản quyền đã đóng trên ảnh tại thời điểm duyệt sẽ được giữ nguyên.
 * **Vị trí chụp:** Nếu không muốn chia sẻ tọa độ GPS, bạn có thể tắt tính năng vị trí trên máy ảnh hoặc điện thoại trước khi chụp.
 
 ### 6. Độ tuổi sử dụng

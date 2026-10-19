@@ -24,6 +24,7 @@ VNBUSARCHIVE là kho tư liệu chung cho cộng đồng, các tiêu chuẩn duy
 * **Phạm vi châm chước:** 
   * Chấp nhận châm chước các hạn chế về điều kiện chụp khách quan như độ nét, ánh sáng, thời tiết, khoảng cách chụp thời xưa bằng thiết bị cũ.
   * Không châm chước các lỗi do thao tác chủ quan như làm mờ ẩu, che lấp thân xe theo quy tắc B4 hoặc ảnh chứa chi tiết phản cảm, rác thải theo quy định tại B1.3.
+  * **Không thỏa hiệp về đạo đức và pháp luật:** Giá trị tư liệu lịch sử tuyệt đối không phải là lý do để bao biện cho các vi phạm về đạo đức, an toàn hay pháp luật theo quy định tại Phần B5. Những bức ảnh liên quan đến tai nạn có thương vong, xâm nhập trái phép khu vực cấm/quân sự, hoặc người chụp có hành vi vi phạm giao thông nguy hiểm khi tác nghiệp đều bị kiên quyết từ chối.
 * Ban quản trị giữ quyền áp dụng linh hoạt chính sách ưu tiên tùy thuộc vào giá trị tư liệu thực tế của từng bức ảnh.
 
 ---
@@ -37,7 +38,7 @@ VNBUSARCHIVE là kho tư liệu chung cho cộng đồng, các tiêu chuẩn duy
 * **B1.2. Hạn chế chủ thể:** 
   * Không tiếp nhận xe thuộc cơ quan nhà nước hoặc quân sự như biển xanh, biển đỏ.
   * Không tiếp nhận ảnh chụp hiện trường tai nạn, va chạm giao thông hoặc xe bị biến dạng nặng do va chạm.
-  * **Quy mô đối với xe khách:** Chỉ tiếp nhận phương tiện của các công ty, doanh nghiệp vận tải có thương hiệu rõ ràng hoặc chạy tuyến cố định. Không tiếp nhận xe cá nhân, hộ gia đình hay nhà xe nhỏ lẻ.
+  * **Quy mô đối với xe khách:** Chỉ tiếp nhận phương tiện của các công ty, doanh nghiệp vận tải hoặc hợp tác xã có thương hiệu nhận diện rõ ràng hoặc chạy tuyến cố định liên tỉnh. Hệ thống không tiếp nhận xe cá nhân, hộ gia đình hoặc nhà xe nhỏ lẻ (cụ thể: các hình thức xe ghép, xe tiện chuyến, xe dù chở khách không theo tuyến, hoặc xe hợp đồng quy mô nhỏ lẻ 1-2 xe của cá nhân/hộ gia đình không có bộ nhận diện thương hiệu hay tem tuyến cố định).
 * **B1.3. Bối cảnh chụp:** Khung hình sạch sẽ, không để rác thải, vết bẩn lớn hoặc chi tiết phản cảm lọt vào khung hình. Tránh chụp vội hoặc thiếu chủ đích.
 * **B1.4. Giá trị lưu trữ:**
   * Dự án hướng tới chất lượng lưu trữ lâu dài nên ưu tiên ảnh có góc nhìn rõ ràng, ánh sáng tốt và thể hiện rõ đặc trưng của xe.
