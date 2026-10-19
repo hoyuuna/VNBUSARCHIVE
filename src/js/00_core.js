@@ -2300,11 +2300,13 @@ cleanupState: () => {
                                         }
                                     });
                                 }
-                                const barHeight = height * 0.0576;
+                                const barScale = (pos && typeof pos.barScale === 'number') ? pos.barScale : 1.0;
+                                const barHeight = height * 0.0576 * barScale;
                                 const barY = height - barHeight;
                                 const fontSize = barHeight * 0.4;
-                                const scale = pos.scale || 1.0;
+                                const scale = (pos && typeof pos.scale === 'number') ? pos.scale : 1.0;
                                 const wmFontSize = height * 0.096 * scale;
+                                const rotate = (pos && typeof pos.rotate === 'number') ? pos.rotate : 0;
                                 const fontFace = '"Montserrat", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif';
                                 try {
                                     if (document.fonts && document.fonts.load) {
@@ -2332,7 +2334,7 @@ cleanupState: () => {
                                 ctx.fillStyle = 'rgba(0, 0, 0, 0.25)';
                                 ctx.fillRect(0, safeBarY, width, safeBarHeight);
                                 ctx.fillStyle = "rgba(255, 255, 255, 0.15)";
-                                ctx.fillRect(0, barY, width, 1.5);
+                                ctx.fillRect(0, barY, width, Math.max(1, 1.5 * barScale));
                                 ctx.fillStyle = "white";
                                 ctx.textBaseline = 'alphabetic';
                                 ctx.textAlign = 'left';
@@ -2355,8 +2357,24 @@ cleanupState: () => {
                                     ctx.font = `700 ${wmFontSize}px ${fontFace}`;
                                     ctx.textAlign = 'center';
                                     ctx.textBaseline = 'middle';
-                                    ctx.translate(width * pos.x, height * pos.y);
-                                    ctx.fillText(`© ${username}`, 0, 0);
+                                    const text = `© ${username}`;
+                                    const textMetrics = ctx.measureText(text);
+                                    const textW = textMetrics.width;
+                                    const textH = wmFontSize * 1.5;
+                                    const rad = Math.abs((rotate || 0) * Math.PI / 180);
+                                    const cos = Math.abs(Math.cos(rad));
+                                    const sin = Math.abs(Math.sin(rad));
+                                    const wHalf = (textW * cos + textH * sin) / 2;
+                                    const hHalf = (textW * sin + textH * cos) / 2;
+                                    let posX = width * (pos.x !== undefined ? pos.x : 0.5);
+                                    let posY = height * (pos.y !== undefined ? pos.y : 0.5);
+                                    posX = Math.max(wHalf, Math.min(posX, width - wHalf));
+                                    posY = Math.max(hHalf, Math.min(posY, height - barHeight - hHalf));
+                                    ctx.translate(posX, posY);
+                                    if (rotate) {
+                                        ctx.rotate((rotate * Math.PI) / 180);
+                                    }
+                                    ctx.fillText(text, 0, 0);
                                     ctx.restore();
                                 }
                                  const isBlind = options.embedBlind && ((currentMode === 'advanced') || (app.upload && app.upload.isBlindWatermarkEnabled));
@@ -3186,7 +3204,15 @@ cleanupState: () => {
 
     rawFile: null,
 
-    wmState: { x: 0.5, y: 0.5, color: 'white', scale: 1.0, mode: (typeof localStorage !== 'undefined' && localStorage.getItem('vnbus_wm_mode')) || 'basic' },
+    wmState: { 
+        x: 0.5, 
+        y: 0.5, 
+        color: 'white', 
+        scale: (typeof localStorage !== 'undefined' && localStorage.getItem('vnbus_wm_scale') !== null) ? (parseInt(localStorage.getItem('vnbus_wm_scale'), 10) / 100) : 1.0, 
+        rotate: (typeof localStorage !== 'undefined' && localStorage.getItem('vnbus_wm_rotate') !== null) ? parseInt(localStorage.getItem('vnbus_wm_rotate'), 10) : 0,
+        barScale: (typeof localStorage !== 'undefined' && localStorage.getItem('vnbus_wm_bar_scale') !== null) ? (parseInt(localStorage.getItem('vnbus_wm_bar_scale'), 10) / 100) : 1.0,
+        mode: (typeof localStorage !== 'undefined' && localStorage.getItem('vnbus_wm_mode')) || 'basic' 
+    },
 
     vehicleLocked: false,
 
@@ -3964,9 +3990,31 @@ cleanupState: () => {
                                         if (app.upload.setWmMode) app.upload.setWmMode(dbPrefs.wmMode, false);
                                     }
                                 }
+                                if (dbPrefs.wmRotate !== undefined && app.wmState) {
+                                    const r = parseInt(dbPrefs.wmRotate, 10) || 0;
+                                    app.wmState.rotate = r;
+                                    try { localStorage.setItem('vnbus_wm_rotate', r.toString()); } catch(e){}
+                                }
+                                if (dbPrefs.wmScale !== undefined && app.wmState) {
+                                    const s = typeof dbPrefs.wmScale === 'number' && dbPrefs.wmScale <= 1.0 ? dbPrefs.wmScale : (parseInt(dbPrefs.wmScale, 10) / 100);
+                                    app.wmState.scale = s;
+                                    try { localStorage.setItem('vnbus_wm_scale', Math.round(s * 100).toString()); } catch(e){}
+                                }
+                                if (dbPrefs.wmBarScale !== undefined && app.wmState) {
+                                    const bs = typeof dbPrefs.wmBarScale === 'number' && dbPrefs.wmBarScale <= 2.0 ? dbPrefs.wmBarScale : (parseInt(dbPrefs.wmBarScale, 10) / 100);
+                                    app.wmState.barScale = bs;
+                                    try { localStorage.setItem('vnbus_wm_bar_scale', Math.round(bs * 100).toString()); } catch(e){}
+                                }
                             } else {
                                 window.sb.from('profiles').update({
-                                    preferences: { type: localPref, wmMode: localWmMode, pinnedLocations: [] }
+                                    preferences: { 
+                                        type: localPref, 
+                                        wmMode: localWmMode, 
+                                        pinnedLocations: [],
+                                        wmRotate: (app.wmState && app.wmState.rotate !== undefined) ? app.wmState.rotate : 0,
+                                        wmScale: (app.wmState && app.wmState.scale !== undefined) ? app.wmState.scale : 1.0,
+                                        wmBarScale: (app.wmState && app.wmState.barScale !== undefined) ? app.wmState.barScale : 1.0
+                                    }
                                 }).eq('id', user.id).then(()=>{});
                                 app.preference.current = localPref;
                                 app.preference.pinnedLocations = [];

@@ -2169,7 +2169,7 @@ html.theme-dark .ct-icon {
             if (stored === 'system') {
                 theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
             }
-            document.write('<link rel="stylesheet" href="/css/' + theme + '.css?v=1792402610454" id="theme-css">');
+            document.write('<link rel="stylesheet" href="/css/' + theme + '.css?v=1792412723151" id="theme-css">');
             document.documentElement.classList.add('theme-' + theme);
             document.documentElement.style.backgroundColor = theme === 'dark' ? '#18181b' : '#fdfcf8';
         })();
@@ -4941,10 +4941,35 @@ html.theme-dark .ct-icon {
                                                     <div class="w-11 h-6 bg-black rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white dark:after:bg-black after:border-gray-300 dark:after:border-black after:border after:rounded-full after:h-5 after:w-5 after:transition-all shadow-inner"></div>
                                                 </label>
                                             </div>
+                                            <!-- 1. XOAY DẤU CHÌM TÊN -->
                                             <div>
-                                                <div class="flex justify-between items-center mb-2"><label class="text-[11px] font-bold text-gray-700 uppercase tracking-wider">Kích thước</label><span id="wm-scale-val" class="text-[10px] font-mono font-bold text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded border border-gray-200">100%</span></div>
-                                                <input type="range" id="wm-scale-slider" min="50" max="100" value="100" class="vnbus-slider" oninput="app.upload.updateWmScale(this.value)" onmousedown="event.stopPropagation()" ontouchstart="event.stopPropagation()">
+                                                <div class="flex justify-between items-center mb-2">
+                                                    <label class="text-[11px] font-bold text-gray-700 uppercase tracking-wider">Xoay dấu chìm tên</label>
+                                                    <span id="wm-rotate-val" class="text-[10px] font-mono font-bold text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded border border-gray-200">0°</span>
+                                                </div>
+                                                <input type="range" id="wm-rotate-slider" min="-180" max="180" value="0" step="1" class="vnbus-slider" oninput="app.upload.updateWmRotate(this.value)" onmousedown="event.stopPropagation()" ontouchstart="event.stopPropagation()">
+                                                <div class="flex justify-between text-[10px] text-gray-400 font-bold px-1 mt-1"><span>-180°</span><span>-90°</span><span>0°</span><span>90°</span><span>180°</span></div>
                                             </div>
+
+                                            <!-- 2. KÍCH THƯỚC DẤU CHÌM TÊN -->
+                                            <div>
+                                                <div class="flex justify-between items-center mb-2">
+                                                    <label class="text-[11px] font-bold text-gray-700 uppercase tracking-wider">Kích thước dấu chìm tên</label>
+                                                    <span id="wm-scale-val" class="text-[10px] font-mono font-bold text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded border border-gray-200">100%</span>
+                                                </div>
+                                                <input type="range" id="wm-scale-slider" min="50" max="100" value="100" class="vnbus-slider" oninput="app.upload.updateWmScale(this.value)" onmousedown="event.stopPropagation()" ontouchstart="event.stopPropagation()">
+                                                <div class="flex justify-between text-[10px] text-gray-400 font-bold px-1 mt-1"><span>50%</span><span>75%</span><span>100%</span></div>
+                                            </div>
+                                        </div>
+
+                                        <!-- 3. KÍCH THƯỚC DẤU CHÌM DƯỚI -->
+                                        <div>
+                                            <div class="flex justify-between items-center mb-2">
+                                                <label class="text-[11px] font-bold text-gray-700 uppercase tracking-wider">Kích thước dấu chìm dưới</label>
+                                                <span id="wm-bar-scale-val" class="text-[10px] font-mono font-bold text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded border border-gray-200">100%</span>
+                                            </div>
+                                            <input type="range" id="wm-bar-scale-slider" min="50" max="150" step="50" value="100" class="vnbus-slider" oninput="app.upload.updateWmBarScale(this.value)" onmousedown="event.stopPropagation()" ontouchstart="event.stopPropagation()">
+                                            <div class="flex justify-between text-[10px] text-gray-400 font-bold px-1 mt-1"><span>50%</span><span>100%</span><span>150%</span></div>
                                         </div>
                                     </div>
                                     <div class="text-right mt-4">
@@ -7287,7 +7312,7 @@ html.theme-dark .ct-icon {
 
     <!-- KHAY CHỨA TOAST Z-INDEX CAO NHẤT -->
     <div id="toast-container" class="fixed left-0 w-full flex flex-col items-center gap-2 pointer-events-none z-[99999]" style="z-index: 99999 !important;"></div>
-<script src="/app.4f1802271585.js" onerror="if(!window.__app_fallback_loaded){window.__app_fallback_loaded=true;var s=document.createElement('script');s.src='/app.js?v=' + Date.now();document.head.appendChild(s);}"></script>
+<script src="/app.51a043c8e4c3.js" onerror="if(!window.__app_fallback_loaded){window.__app_fallback_loaded=true;var s=document.createElement('script');s.src='/app.js?v=' + Date.now();document.head.appendChild(s);}"></script>
 </body>
 </html>
 

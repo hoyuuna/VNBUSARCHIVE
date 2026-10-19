@@ -2302,11 +2302,13 @@ cleanupState: () => {
                                         }
                                     });
                                 }
-                                const barHeight = height * 0.0576;
+                                const barScale = (pos && typeof pos.barScale === 'number') ? pos.barScale : 1.0;
+                                const barHeight = height * 0.0576 * barScale;
                                 const barY = height - barHeight;
                                 const fontSize = barHeight * 0.4;
-                                const scale = pos.scale || 1.0;
+                                const scale = (pos && typeof pos.scale === 'number') ? pos.scale : 1.0;
                                 const wmFontSize = height * 0.096 * scale;
+                                const rotate = (pos && typeof pos.rotate === 'number') ? pos.rotate : 0;
                                 const fontFace = '"Montserrat", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif';
                                 try {
                                     if (document.fonts && document.fonts.load) {
@@ -2334,7 +2336,7 @@ cleanupState: () => {
                                 ctx.fillStyle = 'rgba(0, 0, 0, 0.25)';
                                 ctx.fillRect(0, safeBarY, width, safeBarHeight);
                                 ctx.fillStyle = "rgba(255, 255, 255, 0.15)";
-                                ctx.fillRect(0, barY, width, 1.5);
+                                ctx.fillRect(0, barY, width, Math.max(1, 1.5 * barScale));
                                 ctx.fillStyle = "white";
                                 ctx.textBaseline = 'alphabetic';
                                 ctx.textAlign = 'left';
@@ -2357,8 +2359,24 @@ cleanupState: () => {
                                     ctx.font = `700 ${wmFontSize}px ${fontFace}`;
                                     ctx.textAlign = 'center';
                                     ctx.textBaseline = 'middle';
-                                    ctx.translate(width * pos.x, height * pos.y);
-                                    ctx.fillText(`© ${username}`, 0, 0);
+                                    const text = `© ${username}`;
+                                    const textMetrics = ctx.measureText(text);
+                                    const textW = textMetrics.width;
+                                    const textH = wmFontSize * 1.5;
+                                    const rad = Math.abs((rotate || 0) * Math.PI / 180);
+                                    const cos = Math.abs(Math.cos(rad));
+                                    const sin = Math.abs(Math.sin(rad));
+                                    const wHalf = (textW * cos + textH * sin) / 2;
+                                    const hHalf = (textW * sin + textH * cos) / 2;
+                                    let posX = width * (pos.x !== undefined ? pos.x : 0.5);
+                                    let posY = height * (pos.y !== undefined ? pos.y : 0.5);
+                                    posX = Math.max(wHalf, Math.min(posX, width - wHalf));
+                                    posY = Math.max(hHalf, Math.min(posY, height - barHeight - hHalf));
+                                    ctx.translate(posX, posY);
+                                    if (rotate) {
+                                        ctx.rotate((rotate * Math.PI) / 180);
+                                    }
+                                    ctx.fillText(text, 0, 0);
                                     ctx.restore();
                                 }
                                  const isBlind = options.embedBlind && ((currentMode === 'advanced') || (app.upload && app.upload.isBlindWatermarkEnabled));
@@ -3188,7 +3206,15 @@ cleanupState: () => {
 
     rawFile: null,
 
-    wmState: { x: 0.5, y: 0.5, color: 'white', scale: 1.0, mode: (typeof localStorage !== 'undefined' && localStorage.getItem('vnbus_wm_mode')) || 'basic' },
+    wmState: { 
+        x: 0.5, 
+        y: 0.5, 
+        color: 'white', 
+        scale: (typeof localStorage !== 'undefined' && localStorage.getItem('vnbus_wm_scale') !== null) ? (parseInt(localStorage.getItem('vnbus_wm_scale'), 10) / 100) : 1.0, 
+        rotate: (typeof localStorage !== 'undefined' && localStorage.getItem('vnbus_wm_rotate') !== null) ? parseInt(localStorage.getItem('vnbus_wm_rotate'), 10) : 0,
+        barScale: (typeof localStorage !== 'undefined' && localStorage.getItem('vnbus_wm_bar_scale') !== null) ? (parseInt(localStorage.getItem('vnbus_wm_bar_scale'), 10) / 100) : 1.0,
+        mode: (typeof localStorage !== 'undefined' && localStorage.getItem('vnbus_wm_mode')) || 'basic' 
+    },
 
     vehicleLocked: false,
 
@@ -3966,9 +3992,31 @@ cleanupState: () => {
                                         if (app.upload.setWmMode) app.upload.setWmMode(dbPrefs.wmMode, false);
                                     }
                                 }
+                                if (dbPrefs.wmRotate !== undefined && app.wmState) {
+                                    const r = parseInt(dbPrefs.wmRotate, 10) || 0;
+                                    app.wmState.rotate = r;
+                                    try { localStorage.setItem('vnbus_wm_rotate', r.toString()); } catch(e){}
+                                }
+                                if (dbPrefs.wmScale !== undefined && app.wmState) {
+                                    const s = typeof dbPrefs.wmScale === 'number' && dbPrefs.wmScale <= 1.0 ? dbPrefs.wmScale : (parseInt(dbPrefs.wmScale, 10) / 100);
+                                    app.wmState.scale = s;
+                                    try { localStorage.setItem('vnbus_wm_scale', Math.round(s * 100).toString()); } catch(e){}
+                                }
+                                if (dbPrefs.wmBarScale !== undefined && app.wmState) {
+                                    const bs = typeof dbPrefs.wmBarScale === 'number' && dbPrefs.wmBarScale <= 2.0 ? dbPrefs.wmBarScale : (parseInt(dbPrefs.wmBarScale, 10) / 100);
+                                    app.wmState.barScale = bs;
+                                    try { localStorage.setItem('vnbus_wm_bar_scale', Math.round(bs * 100).toString()); } catch(e){}
+                                }
                             } else {
                                 window.sb.from('profiles').update({
-                                    preferences: { type: localPref, wmMode: localWmMode, pinnedLocations: [] }
+                                    preferences: { 
+                                        type: localPref, 
+                                        wmMode: localWmMode, 
+                                        pinnedLocations: [],
+                                        wmRotate: (app.wmState && app.wmState.rotate !== undefined) ? app.wmState.rotate : 0,
+                                        wmScale: (app.wmState && app.wmState.scale !== undefined) ? app.wmState.scale : 1.0,
+                                        wmBarScale: (app.wmState && app.wmState.barScale !== undefined) ? app.wmState.barScale : 1.0
+                                    }
                                 }).eq('id', user.id).then(()=>{});
                                 app.preference.current = localPref;
                                 app.preference.pinnedLocations = [];
@@ -12697,6 +12745,9 @@ Object.assign(window.app, {
                          existingPrefs.type = app.preference.current;
                          existingPrefs.wmMode = app.wmState ? app.wmState.mode : 'basic';
                          existingPrefs.pinnedLocations = app.preference.pinnedLocations || [];
+                         existingPrefs.wmRotate = (app.wmState && app.wmState.rotate !== undefined) ? app.wmState.rotate : 0;
+                         existingPrefs.wmScale = (app.wmState && app.wmState.scale !== undefined) ? app.wmState.scale : 1.0;
+                         existingPrefs.wmBarScale = (app.wmState && app.wmState.barScale !== undefined) ? app.wmState.barScale : 1.0;
                          
                          await window.sb.from('profiles').update({
                              preferences: existingPrefs
@@ -13703,6 +13754,11 @@ Object.assign(window.app, {
                                 existingPrefs.type = curPref;
                                 existingPrefs.wmMode = mode;
                                 existingPrefs.pinnedLocations = (app.preference && app.preference.pinnedLocations) || [];
+                                if (app.wmState) {
+                                    if (app.wmState.rotate !== undefined) existingPrefs.wmRotate = app.wmState.rotate;
+                                    if (app.wmState.scale !== undefined) existingPrefs.wmScale = app.wmState.scale;
+                                    if (app.wmState.barScale !== undefined) existingPrefs.wmBarScale = app.wmState.barScale;
+                                }
                                 window.sb.from('profiles').update({ preferences: existingPrefs }).eq('id', app.user.id).then(()=>{});
                             });
                         }
@@ -13768,6 +13824,7 @@ Object.assign(window.app, {
                         }
                     }
                 },
+                debouncedSaveWmPrefs: null,
                 toggleWmPanel: () => {
                     const panel = document.getElementById('wm-adjust-panel');
                     const btn = document.getElementById('btn-adjust-wm');
@@ -13785,52 +13842,167 @@ Object.assign(window.app, {
                         } else if (app.upload.updateWmModeSlider) {
                             setTimeout(() => app.upload.updateWmModeSlider(false), 10);
                         }
+                        const rotSlider = document.getElementById('wm-rotate-slider');
+                        const rotVal = document.getElementById('wm-rotate-val');
+                        if (rotSlider) {
+                            const r = (app.wmState && app.wmState.rotate !== undefined) ? app.wmState.rotate : 0;
+                            rotSlider.value = r;
+                            if (rotVal) rotVal.innerText = r + '°';
+                        }
+                        const scaleSlider = document.getElementById('wm-scale-slider');
+                        const scaleVal = document.getElementById('wm-scale-val');
+                        if (scaleSlider) {
+                            const s = Math.round(((app.wmState && app.wmState.scale !== undefined) ? app.wmState.scale : 1.0) * 100);
+                            scaleSlider.value = s;
+                            if (scaleVal) scaleVal.innerText = s + '%';
+                        }
+                        const barScaleSlider = document.getElementById('wm-bar-scale-slider');
+                        const barScaleVal = document.getElementById('wm-bar-scale-val');
+                        if (barScaleSlider) {
+                            const bs = Math.round(((app.wmState && app.wmState.barScale !== undefined) ? app.wmState.barScale : 1.0) * 100);
+                            barScaleSlider.value = bs;
+                            if (barScaleVal) barScaleVal.innerText = bs + '%';
+                        }
                     }
+                },
+                updateWmRotate: (val) => {
+                    const deg = parseInt(val, 10) || 0;
+                    if (!app.wmState) app.wmState = {};
+                    app.wmState.rotate = deg;
+                    const valEl = document.getElementById('wm-rotate-val');
+                    if (valEl) valEl.innerText = deg + '°';
+                    try { localStorage.setItem('vnbus_wm_rotate', deg.toString()); } catch(e){}
+                    if (!app.upload.debouncedSaveWmPrefs) {
+                        app.upload.debouncedSaveWmPrefs = app.utils.debounce(() => {
+                            if (app.upload.savePreferencesToServer) app.upload.savePreferencesToServer();
+                        }, 500);
+                    }
+                    app.upload.debouncedSaveWmPrefs();
+                    if (app.upload.clampWmPosition) app.upload.clampWmPosition();
                 },
                 updateWmScale: (val) => {
-                    app.wmState.scale = parseInt(val) / 100;
+                    const scaleVal = parseInt(val, 10) || 100;
+                    if (!app.wmState) app.wmState = {};
+                    app.wmState.scale = scaleVal / 100;
                     const valEl = document.getElementById('wm-scale-val');
-                    if (valEl) valEl.innerText = val + '%';
+                    if (valEl) valEl.innerText = scaleVal + '%';
+                    try { localStorage.setItem('vnbus_wm_scale', scaleVal.toString()); } catch(e){}
+                    if (!app.upload.debouncedSaveWmPrefs) {
+                        app.upload.debouncedSaveWmPrefs = app.utils.debounce(() => {
+                            if (app.upload.savePreferencesToServer) app.upload.savePreferencesToServer();
+                        }, 500);
+                    }
+                    app.upload.debouncedSaveWmPrefs();
+                    if (app.upload.clampWmPosition) app.upload.clampWmPosition();
+                },
+                updateWmBarScale: (val) => {
+                    const barScaleVal = parseInt(val, 10) || 100;
+                    if (!app.wmState) app.wmState = {};
+                    app.wmState.barScale = barScaleVal / 100;
+                    const valEl = document.getElementById('wm-bar-scale-val');
+                    if (valEl) valEl.innerText = barScaleVal + '%';
+                    try { localStorage.setItem('vnbus_wm_bar_scale', barScaleVal.toString()); } catch(e){}
+                    if (!app.upload.debouncedSaveWmPrefs) {
+                        app.upload.debouncedSaveWmPrefs = app.utils.debounce(() => {
+                            if (app.upload.savePreferencesToServer) app.upload.savePreferencesToServer();
+                        }, 500);
+                    }
+                    app.upload.debouncedSaveWmPrefs();
+                    if (app.previewUpdateSize) app.previewUpdateSize();
+                    if (app.upload.clampWmPosition) app.upload.clampWmPosition();
+                },
+                clampWmPosition: () => {
                     const el = document.getElementById('draggable-watermark');
                     const container = document.getElementById('preview-container');
-                    if (el && container) {
-                        el.style.transform = `translate(-50%, -50%) scale(${app.wmState.scale})`;
-                        const cRect = container.getBoundingClientRect();
-                        let currentLeft = app.wmState.x * cRect.width;
-                        let currentTop = app.wmState.y * cRect.height;
-                        const wHalf = (el.offsetWidth * app.wmState.scale) / 2;
-                        const hHalf = (el.offsetHeight * app.wmState.scale) / 2;
-                        const minLeft = wHalf;
-                        const maxLeft = Math.max(minLeft, cRect.width - wHalf);
-                        const minTop = hHalf;
-                        const maxTop = Math.max(minTop, cRect.height - hHalf - (cRect.height * 0.08));
-                        let newLeft = Math.max(minLeft, Math.min(currentLeft, maxLeft));
-                        let newTop = Math.max(minTop, Math.min(currentTop, maxTop));
-                        el.style.left = newLeft + 'px';
-                        el.style.top = newTop + 'px';
-                        app.wmState.x = newLeft / cRect.width;
-                        app.wmState.y = newTop / cRect.height;
-                    }
+                    if (!el || !container) return;
+                    
+                    const scale = (app.wmState && app.wmState.scale !== undefined) ? app.wmState.scale : 1.0;
+                    const rotate = (app.wmState && app.wmState.rotate !== undefined) ? app.wmState.rotate : 0;
+                    const barScale = (app.wmState && app.wmState.barScale !== undefined) ? app.wmState.barScale : 1.0;
+                    
+                    el.style.transform = `translate(-50%, -50%) rotate(${rotate}deg) scale(${scale})`;
+                    
+                    const cWidth = container.clientWidth;
+                    const cHeight = container.clientHeight;
+                    if (!cWidth || !cHeight) return;
+                    
+                    const wmCanvas = document.getElementById('preview-wm-canvas');
+                    const rawW = wmCanvas ? wmCanvas.width : (el.offsetWidth || 100);
+                    const rawH = wmCanvas ? wmCanvas.height : (el.offsetHeight || 30);
+                    
+                    const rad = Math.abs((rotate || 0) * Math.PI / 180);
+                    const cos = Math.abs(Math.cos(rad));
+                    const sin = Math.abs(Math.sin(rad));
+                    
+                    const wHalf = (scale * (rawW * cos + rawH * sin)) / 2;
+                    const hHalf = (scale * (rawW * sin + rawH * cos)) / 2;
+                    
+                    const footerBar = document.getElementById('preview-footer-bar');
+                    const footerBarH = footerBar ? footerBar.offsetHeight : (cHeight * 0.0576 * barScale);
+                    
+                    const minLeft = wHalf;
+                    const maxLeft = Math.max(minLeft, cWidth - wHalf);
+                    const minTop = hHalf;
+                    const maxTop = Math.max(minTop, cHeight - footerBarH - hHalf);
+                    
+                    let currentLeft = (app.wmState.x !== undefined ? app.wmState.x : 0.5) * cWidth;
+                    let currentTop = (app.wmState.y !== undefined ? app.wmState.y : 0.5) * cHeight;
+                    
+                    let newLeft = Math.max(minLeft, Math.min(currentLeft, maxLeft));
+                    let newTop = Math.max(minTop, Math.min(currentTop, maxTop));
+                    
+                    el.style.left = newLeft + 'px';
+                    el.style.top = newTop + 'px';
+                    
+                    app.wmState.x = newLeft / cWidth;
+                    app.wmState.y = newTop / cHeight;
                 },
                 resetWm: () => {
+                    if (!app.wmState) app.wmState = {};
+                    app.wmState.rotate = 0;
                     app.wmState.scale = 1.0;
+                    app.wmState.barScale = 1.0;
                     app.wmState.color = 'white';
                     app.wmState.x = 0.5;
                     app.wmState.y = 0.5;
+                    
+                    const rotSlider = document.getElementById('wm-rotate-slider');
+                    if (rotSlider) rotSlider.value = 0;
+                    const rotVal = document.getElementById('wm-rotate-val');
+                    if (rotVal) rotVal.innerText = '0°';
+                    
                     const slider = document.getElementById('wm-scale-slider');
                     if (slider) slider.value = 100;
                     const valEl = document.getElementById('wm-scale-val');
                     if (valEl) valEl.innerText = '100%';
+                    
+                    const barSlider = document.getElementById('wm-bar-scale-slider');
+                    if (barSlider) barSlider.value = 100;
+                    const barValEl = document.getElementById('wm-bar-scale-val');
+                    if (barValEl) barValEl.innerText = '100%';
+                    
                     const chk = document.getElementById('chk-wm-black');
                     if (chk) chk.checked = false;
+                    
+                    try {
+                        localStorage.setItem('vnbus_wm_rotate', '0');
+                        localStorage.setItem('vnbus_wm_scale', '100');
+                        localStorage.setItem('vnbus_wm_bar_scale', '100');
+                    } catch(e){}
+                    
+                    if (app.upload.savePreferencesToServer) app.upload.savePreferencesToServer();
+                    
                     const savedMode = (typeof localStorage !== 'undefined' && localStorage.getItem('vnbus_wm_mode')) || (app.wmState && app.wmState.mode) || 'basic';
                     app.upload.setWmMode(savedMode, false);
                     app.upload.toggleColor(false);
+                    
+                    if (app.previewUpdateSize) app.previewUpdateSize();
+                    
                     const el = document.getElementById('draggable-watermark');
                     if (el) {
                         el.style.left = '50%';
                         el.style.top = '50%';
-                        el.style.transform = `translate(-50%, -50%) scale(1.0)`;
+                        el.style.transform = `translate(-50%, -50%) rotate(0deg) scale(1.0)`;
                     }
                 },
                 previewBlob: async (btn) => {
@@ -14504,8 +14676,9 @@ Object.assign(window.app, {
                             }
                             container.style.width = finalW + 'px';
                             container.style.height = finalH + 'px';
-                            const barHeight = finalH * 0.0576;
-                            const baseFontSize = finalH * 0.02304;
+                            const barScale = (app.wmState && app.wmState.barScale !== undefined) ? app.wmState.barScale : 1.0;
+                            const barHeight = finalH * 0.0576 * barScale;
+                            const baseFontSize = finalH * 0.02304 * barScale;
                             const watermarkFontSize = finalH * 0.096;
                             const footerBar = document.getElementById('preview-footer-bar');
                             if (footerBar) {
@@ -14542,12 +14715,14 @@ Object.assign(window.app, {
                                 ctx.fillStyle = wmDrag.classList.contains('wm-black') ? 'black' : 'white';
                                 ctx.clearRect(0, 0, wmCanvas.width, wmCanvas.height);
                                 ctx.fillText(text, wmCanvas.width / 2, wmCanvas.height / 2);
-                                const currentScale = app.wmState ? (app.wmState.scale || 1.0) : 1.0;
-                                wmDrag.style.transform = `translate(-50%, -50%) scale(${currentScale})`;
+                                const currentScale = app.wmState ? (app.wmState.scale !== undefined ? app.wmState.scale : 1.0) : 1.0;
+                                const currentRotate = app.wmState ? (app.wmState.rotate !== undefined ? app.wmState.rotate : 0) : 0;
+                                wmDrag.style.transform = `translate(-50%, -50%) rotate(${currentRotate}deg) scale(${currentScale})`;
                                 if (app.wmState) {
                                     wmDrag.style.left = (app.wmState.x * finalW) + 'px';
                                     wmDrag.style.top = (app.wmState.y * finalH) + 'px';
                                 }
+                                if (app.upload.clampWmPosition) app.upload.clampWmPosition();
                             }
                         };
                         updateSize();
@@ -14564,7 +14739,9 @@ Object.assign(window.app, {
                                     const ch = container.clientHeight;
                                     wmDrag.style.left = (app.wmState.x * cw) + 'px';
                                     wmDrag.style.top = (app.wmState.y * ch) + 'px';
-                                    wmDrag.style.transform = `translate(-50%, -50%) scale(${app.wmState.scale})`;
+                                    const rot = (app.wmState.rotate !== undefined) ? app.wmState.rotate : 0;
+                                    const sc = (app.wmState.scale !== undefined) ? app.wmState.scale : 1.0;
+                                    wmDrag.style.transform = `translate(-50%, -50%) rotate(${rot}deg) scale(${sc})`;
                                 }
                             }
                             if (pending.blurs && pending.blurs.length > 0) {
@@ -14649,14 +14826,30 @@ Object.assign(window.app, {
                         const dy = clientY - startY;
                         let newLeft = initialLeft + dx;
                         let newTop = initialTop + dy;
-                        const scale = app.wmState.scale || 1.0;
-                        const wHalf = (el.offsetWidth * scale) / 2;
-                        const hHalf = (el.offsetHeight * scale) / 2;
+                        const scale = (app.wmState && app.wmState.scale !== undefined) ? app.wmState.scale : 1.0;
+                        const rotate = (app.wmState && app.wmState.rotate !== undefined) ? app.wmState.rotate : 0;
+                        const barScale = (app.wmState && app.wmState.barScale !== undefined) ? app.wmState.barScale : 1.0;
+
+                        const wmCanvas = document.getElementById('preview-wm-canvas');
+                        const rawW = wmCanvas ? wmCanvas.width : (el.offsetWidth || 100);
+                        const rawH = wmCanvas ? wmCanvas.height : (el.offsetHeight || 30);
+
+                        const rad = Math.abs(rotate * Math.PI / 180);
+                        const cos = Math.abs(Math.cos(rad));
+                        const sin = Math.abs(Math.sin(rad));
+
+                        const wHalf = (scale * (rawW * cos + rawH * sin)) / 2;
+                        const hHalf = (scale * (rawW * sin + rawH * cos)) / 2;
+
                         const cRect = container.getBoundingClientRect();
+                        const footerBar = document.getElementById('preview-footer-bar');
+                        const footerBarH = footerBar ? footerBar.offsetHeight : (cRect.height * 0.0576 * barScale);
+
                         const minLeft = wHalf;
                         const maxLeft = Math.max(minLeft, cRect.width - wHalf);
                         const minTop = hHalf;
-                        const maxTop = Math.max(minTop, cRect.height - hHalf - (cRect.height * 0.08));
+                        const maxTop = Math.max(minTop, cRect.height - footerBarH - hHalf);
+
                         newLeft = Math.max(minLeft, Math.min(newLeft, maxLeft));
                         newTop = Math.max(minTop, Math.min(newTop, maxTop));
                         el.style.left = newLeft + 'px';
@@ -16385,6 +16578,11 @@ select: (val) => {
                             existingPrefs.type = app.preference.current;
                             existingPrefs.wmMode = curWmMode;
                             existingPrefs.pinnedLocations = app.preference.pinnedLocations || [];
+                            if (app.wmState) {
+                                if (app.wmState.rotate !== undefined) existingPrefs.wmRotate = app.wmState.rotate;
+                                if (app.wmState.scale !== undefined) existingPrefs.wmScale = app.wmState.scale;
+                                if (app.wmState.barScale !== undefined) existingPrefs.wmBarScale = app.wmState.barScale;
+                            }
                             window.sb.from('profiles').update({ preferences: existingPrefs }).eq('id', app.user.id).then(()=>{});
                         });
                     }
