@@ -2335,8 +2335,6 @@ cleanupState: () => {
                                 ctx.drawImage(tempCanvas, 0, safeBarY);
                                 ctx.fillStyle = 'rgba(0, 0, 0, 0.25)';
                                 ctx.fillRect(0, safeBarY, width, safeBarHeight);
-                                ctx.fillStyle = "rgba(255, 255, 255, 0.15)";
-                                ctx.fillRect(0, barY, width, Math.max(1, 1.5 * barScale));
                                 ctx.fillStyle = "white";
                                 ctx.textBaseline = 'alphabetic';
                                 ctx.textAlign = 'left';
@@ -14711,10 +14709,6 @@ Object.assign(window.app, {
                                 fCtx.clearRect(0, 0, footerCanvas.width, footerCanvas.height);
                                 fCtx.save();
                                 fCtx.scale(dpr, dpr);
-
-                                // Đường viền mờ 15% trắng trên thanh đáy y hệt ảnh xuất thật:
-                                fCtx.fillStyle = "rgba(255, 255, 255, 0.15)";
-                                fCtx.fillRect(0, 0, finalW, Math.max(1, 1.5 * barScale * (finalH / 1080)));
 
                                 fCtx.fillStyle = "white";
                                 fCtx.textBaseline = 'alphabetic';

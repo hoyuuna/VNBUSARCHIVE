@@ -2111,10 +2111,6 @@ Object.assign(window.app, {
                                 fCtx.save();
                                 fCtx.scale(dpr, dpr);
 
-                                // Đường viền mờ 15% trắng trên thanh đáy y hệt ảnh xuất thật:
-                                fCtx.fillStyle = "rgba(255, 255, 255, 0.15)";
-                                fCtx.fillRect(0, 0, finalW, Math.max(1, 1.5 * barScale * (finalH / 1080)));
-
                                 fCtx.fillStyle = "white";
                                 fCtx.textBaseline = 'alphabetic';
 

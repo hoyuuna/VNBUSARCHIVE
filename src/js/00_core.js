@@ -2333,8 +2333,6 @@ cleanupState: () => {
                                 ctx.drawImage(tempCanvas, 0, safeBarY);
                                 ctx.fillStyle = 'rgba(0, 0, 0, 0.25)';
                                 ctx.fillRect(0, safeBarY, width, safeBarHeight);
-                                ctx.fillStyle = "rgba(255, 255, 255, 0.15)";
-                                ctx.fillRect(0, barY, width, Math.max(1, 1.5 * barScale));
                                 ctx.fillStyle = "white";
                                 ctx.textBaseline = 'alphabetic';
                                 ctx.textAlign = 'left';
