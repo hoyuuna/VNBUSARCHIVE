@@ -2367,9 +2367,22 @@ cleanupState: () => {
                                     const wHalf = (textW * cos + textH * sin) / 2;
                                     const hHalf = (textW * sin + textH * cos) / 2;
                                     let posX = width * (pos.x !== undefined ? pos.x : 0.5);
-                                    let posY = height * (pos.y !== undefined ? pos.y : 0.5);
-                                    posX = Math.max(wHalf, Math.min(posX, width - wHalf));
-                                    posY = Math.max(hHalf, Math.min(posY, height - barHeight - hHalf));
+                                    let minX = wHalf;
+                                    let maxX = width - wHalf;
+                                    if (minX > maxX) {
+                                        minX = width / 2;
+                                        maxX = width / 2;
+                                    }
+
+                                    let minY = hHalf;
+                                    let maxY = height - barHeight - hHalf;
+                                    if (minY > maxY) {
+                                        minY = (height - barHeight) / 2;
+                                        maxY = (height - barHeight) / 2;
+                                    }
+
+                                    posX = Math.max(minX, Math.min(posX, maxX));
+                                    posY = Math.max(minY, Math.min(posY, maxY));
                                     ctx.translate(posX, posY);
                                     if (rotate) {
                                         ctx.rotate((rotate * Math.PI) / 180);

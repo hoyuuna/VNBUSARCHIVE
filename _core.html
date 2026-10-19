@@ -4762,9 +4762,8 @@ html.theme-dark .ct-icon {
                                     </button>
                                     <!-- ================================== -->
 
-                                    <div id="preview-footer-bar" class="absolute bottom-0 left-0 w-full z-10 pointer-events-none flex items-center justify-between border-t-2 border-solid border-red-500/90">
-                                        <span class="footer-text-left" style="font-weight: 900; font-style: italic; opacity: 0.9; color: white; white-space: nowrap;">VNBUSARCHIVE<span style="font-size: 80%; font-weight: 700;">.io.vn</span></span>
-                                        <span id="preview-footer-copy" class="footer-text-right" style="font-weight: 700; color: white; white-space: nowrap; opacity: 0.9;"></span>
+                                    <div id="preview-footer-bar" class="absolute bottom-0 left-0 w-full z-10 pointer-events-none overflow-hidden" style="padding: 0 !important; margin: 0 !important; border: none !important;">
+                                        <canvas id="preview-footer-canvas" class="w-full h-full block pointer-events-none"></canvas>
                                     </div>
                                     <div id="draggable-watermark" class="wm-draggable hidden">
                                         &copy; <span id="wm-username">Username</span>

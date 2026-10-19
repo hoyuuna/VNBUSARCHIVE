@@ -197,6 +197,13 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }, { passive: true });
     if (app.toast && app.toast.updatePosition) app.toast.updatePosition();
+    document.addEventListener('input', (e) => {
+        if (e.target && e.target.tagName === 'TEXTAREA' && e.target.classList && e.target.classList.contains('info-input')) {
+            if (window.app && window.app.utils && window.app.utils.autoResizeTextarea) {
+                window.app.utils.autoResizeTextarea(e.target);
+            }
+        }
+    });
 });
 
 Object.assign(window.app, {
@@ -537,6 +544,67 @@ Object.assign(window.app, {
                 }
             },
 
+            _initialLoadingDismissed: false,
+            _headerLogoTimer: null,
+            _headerLogoTransitioned: false,
+            _headerLogoComplete: false,
+            transitionHeaderLogo: () => {
+                if (app._headerLogoTransitioned) return;
+                app._headerLogoTransitioned = true;
+                if (app._headerLogoTimer) {
+                    clearTimeout(app._headerLogoTimer);
+                    app._headerLogoTimer = null;
+                }
+                const textEl = document.getElementById('header-logo-text');
+                const imgEl = document.getElementById('header-logo-img');
+                const containerEl = document.getElementById('header-logo');
+                if (!textEl || !imgEl) return;
+
+                textEl.style.transition = 'transform 0.45s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.35s ease-out, filter 0.35s ease-out';
+                imgEl.style.transition = 'transform 0.45s cubic-bezier(0.16, 1, 0.3, 1) 0.05s, opacity 0.38s cubic-bezier(0.16, 1, 0.3, 1) 0.05s';
+
+                textEl.style.transform = 'translateX(90px)';
+                textEl.style.opacity = '0';
+                textEl.style.filter = 'blur(8px)';
+                imgEl.style.transform = 'translateX(0)';
+                imgEl.style.opacity = '1';
+                imgEl.style.pointerEvents = 'auto';
+                setTimeout(() => {
+                    app._headerLogoComplete = true;
+                    textEl.style.display = 'none';
+                    imgEl.style.position = 'static';
+                    imgEl.style.transform = 'none';
+                    imgEl.style.transition = 'none';
+                    if (containerEl) {
+                        containerEl.style.overflow = 'visible';
+                    }
+                }, 520);
+            },
+            dismissInitialLoadingScreen: () => {
+                if (app._initialLoadingDismissed) return;
+                app._initialLoadingDismissed = true;
+                const loadingScreen = document.getElementById('loading-screen');
+                const appContainer = document.getElementById('app-container');
+                if (appContainer) {
+                    appContainer.style.display = 'block';
+                    void appContainer.offsetHeight;
+                    appContainer.style.opacity = '1';
+                }
+                if (loadingScreen) {
+                    loadingScreen.style.opacity = '0';
+                    loadingScreen.style.pointerEvents = 'none';
+                    setTimeout(() => {
+                        loadingScreen.style.display = 'none';
+                    }, 400);
+                }
+                if (!app._headerLogoTransitioned) {
+                    if (app._headerLogoTimer) clearTimeout(app._headerLogoTimer);
+                    app._headerLogoTimer = setTimeout(() => {
+                        app.transitionHeaderLogo();
+                    }, 3000);
+                }
+            },
+
     ui: {
                 alertInterval: null,
                 showAlert: (msg, okCallback = null, cancelCallback = null, options = {}) => {
@@ -670,7 +738,7 @@ Object.assign(window.app, {
                         }
                     } else if (type === 'dev') {
                         helpUrl = 'https://www.vnbusarchive.io.vn/help/1538729901798989934';
-                        desc = `Danh hiệu <b>VNBUSARCHIVE Code Contributor</b> được cấp cho các lập trình viên đã có đóng góp mã nguồn (Pull Request) hợp lệ trên GitHub, góp phần xây dựng và phát triển nền tảng công nghệ của dự án.<br><br><a href="${helpUrl}" target="_blank" class="text-black hover:underline font-bold text-[13px] inline-flex items-center">Tìm hiểu thêm về danh hiệu này</a>`;
+                        desc = `Danh hiệu <b>VNBUSARCHIVE Code Contributor</b> được cấp cho các lập trình viên đã có đóng góp Pull Request hợp lệ trên GitHub cho dự án.<br><br><a href="${helpUrl}" target="_blank" class="text-black hover:underline font-bold text-[13px] inline-flex items-center">Tìm hiểu thêm về danh hiệu này</a>`;
                         app.ui.showAlert(desc, 
                             null, 
                             null, 
@@ -1344,65 +1412,71 @@ closeCustomRolePrompt: () => {
                         ctx.drawImage(img, 0, 0, w, h);
                     }
 
-                    let bestBlob = null;
-                    let hasWebpNative = false;
-
-                    // Thử với WebP Native
-                    let minQ = 0.70;
-                    let maxQ = 0.95;
-                    while (maxQ - minQ >= 0.02) {
-                        let midQ = (minQ + maxQ) / 2;
-                        let q = parseFloat(midQ.toFixed(3));
-                        let compressedBlob = await new Promise(resolve => canvas.toBlob(resolve, 'image/webp', q));
-                        if (compressedBlob && compressedBlob.type === 'image/webp') {
-                            hasWebpNative = true;
-                            if (compressedBlob.size <= targetBytes) {
-                                bestBlob = compressedBlob;
-                                minQ = midQ;
+                    // Helper nhị phân tìm chất lượng WebP tối ưu nhất nhưng <= targetBytes trên canvas (giữ cố định 1080p, không scale)
+                    const searchBestWebpNative = async (cv, minQuality = 0.70, maxQuality = 0.95) => {
+                        let best = null;
+                        let minQ = minQuality;
+                        let maxQ = maxQuality;
+                        let supported = false;
+                        while (maxQ - minQ >= 0.02) {
+                            let midQ = (minQ + maxQ) / 2;
+                            let q = parseFloat(midQ.toFixed(3));
+                            let compressedBlob = await new Promise(resolve => cv.toBlob(resolve, 'image/webp', q));
+                            if (compressedBlob && compressedBlob.type === 'image/webp') {
+                                supported = true;
+                                if (compressedBlob.size <= targetBytes) {
+                                    best = compressedBlob;
+                                    minQ = midQ;
+                                } else {
+                                    maxQ = midQ;
+                                }
                             } else {
-                                maxQ = midQ;
+                                break;
                             }
-                        } else {
-                            break;
                         }
-                    }
-                    if (!bestBlob && hasWebpNative) {
-                        let finalBlob = await new Promise(resolve => canvas.toBlob(resolve, 'image/webp', 0.70));
-                        if (finalBlob && finalBlob.size <= targetBytes) bestBlob = finalBlob;
-                    }
-                    if (bestBlob) return bestBlob;
+                        if (!best && supported) {
+                            let finalBlob = await new Promise(resolve => cv.toBlob(resolve, 'image/webp', minQuality));
+                            if (finalBlob && finalBlob.size <= targetBytes) best = finalBlob;
+                        }
+                        return { best, supported };
+                    };
 
-                    // Nếu không có webp native
-                    if (!hasWebpNative) {
+                    // Thử nén giữ nguyên 100% kích thước 1080p ở chất lượng tối thiểu 70% (0.70 - 0.95)
+                    let nativeResult = await searchBestWebpNative(canvas, 0.70, 0.95);
+                    if (nativeResult.best) return nativeResult.best;
+
+                    // Fallback WASM WebP (nếu trình duyệt không hỗ trợ WebP Native)
+                    if (!nativeResult.supported) {
                         try {
                             const { encode } = await import("https://esm.sh/@jsquash/webp@1.5.0");
-                            const imageData = ctx.getImageData(0, 0, w, h);
-                            // use_sharp_yuv: lọc chroma sắc nét hơn cho chi tiết nhỏ (libwebp)
-                            minQ = 70;
-                            maxQ = 95;
+                            const cctx = canvas.getContext('2d');
+                            const imgData = cctx.getImageData(0, 0, canvas.width, canvas.height);
+                            let best = null;
+                            let minQ = 70;
+                            let maxQ = 95;
                             while (maxQ - minQ >= 2) {
                                 let midQ = Math.round((minQ + maxQ) / 2);
-                                let webpBuffer = await encode(imageData, { quality: midQ, use_sharp_yuv: 1 });
-                                let wasmBlob = new Blob([webpBuffer], { type: 'image/webp' });
-                                if (wasmBlob.size <= targetBytes) {
-                                    bestBlob = wasmBlob;
+                                let buf = await encode(imgData, { quality: midQ, use_sharp_yuv: 1 });
+                                let blob = new Blob([buf], { type: 'image/webp' });
+                                if (blob.size <= targetBytes) {
+                                    best = blob;
                                     minQ = midQ;
                                 } else {
                                     maxQ = midQ;
                                 }
                             }
-                            if (!bestBlob) {
-                                let webpBuffer = await encode(imageData, { quality: 70, use_sharp_yuv: 1 });
-                                let wasmBlob = new Blob([webpBuffer], { type: 'image/webp' });
-                                if (wasmBlob.size <= targetBytes) bestBlob = wasmBlob;
+                            if (!best) {
+                                let buf = await encode(imgData, { quality: 70, use_sharp_yuv: 1 });
+                                let blob = new Blob([buf], { type: 'image/webp' });
+                                if (blob.size <= targetBytes) best = blob;
                             }
-                            if (bestBlob) return bestBlob;
+                            if (best) return best;
                         } catch (e) {
                             console.warn("WASM WebP fallback error:", e);
                         }
                     }
 
-                    // Tuyệt đối không hỗ trợ fallback sang JPEG. Hệ thống CHỈ chấp nhận định dạng WebP.
+                    // Không thể nén xuống dưới targetBytes ở mức chất lượng tối thiểu 70%
                     throw new Error(`BLIND_WM_ERROR:Ảnh quá chi tiết, không thể nén thành WebP xuống dưới ${targetKB}KB (chất lượng tối thiểu 70%). Vui lòng cắt nhỏ hoặc chọn ảnh khác.`);
                 },
                 canvasToBlobUniversal: async (canvas, targetMime = 'image/webp', quality = 0.95) => {
@@ -1467,6 +1541,7 @@ closeCustomRolePrompt: () => {
                     }
                     app.previousPath = prevFull;
                     window.history.pushState({ parentInfo: isDestLeaf ? parentInfo : null }, '', url);
+                    if (app.transitionHeaderLogo) app.transitionHeaderLogo();
                     app.handleRoute();
                 },
 cleanupState: () => {
@@ -1753,6 +1828,11 @@ cleanupState: () => {
                             }
                         }
                     }
+                },
+                autoResizeTextarea: (el) => {
+                    if (!el || el.tagName !== 'TEXTAREA') return;
+                    el.style.height = 'auto';
+                    el.style.height = Math.max(38, el.scrollHeight) + 'px';
                 },
                 formatPlateInput: (el) => {
                     let val = el.value;
@@ -2131,7 +2211,7 @@ cleanupState: () => {
                     }
                     ctx.drawImage(tmp, dx - sx, dy - sy, dw, dh, dx, dy, dw, dh);
                 },
-                applySmartSharpen: (ctx, width, height, amount = 0.20) => {
+                applySmartSharpen: (ctx, width, height, amount = 0.20, threshold = 3.5) => {
                     if (!ctx || width <= 2 || height <= 2) return;
                     const imgData = ctx.getImageData(0, 0, width, height);
                     const src = imgData.data;
@@ -2139,7 +2219,6 @@ cleanupState: () => {
                     const dst = output.data;
                     dst.set(src);
                     const a = amount;
-                    const center = 1 + 4 * a;
                     const w = width;
                     const h = height;
                     for (let y = 1; y < h - 1; y++) {
@@ -2153,14 +2232,17 @@ cleanupState: () => {
                             const left = (curRow + x - 1) << 2;
                             const right = (curRow + x + 1) << 2;
 
-                            const r = src[idx] * center - (src[up] + src[down] + src[left] + src[right]) * a;
-                            dst[idx] = r < 0 ? 0 : (r > 255 ? 255 : r);
-
-                            const g = src[idx + 1] * center - (src[up + 1] + src[down + 1] + src[left + 1] + src[right + 1]) * a;
-                            dst[idx + 1] = g < 0 ? 0 : (g > 255 ? 255 : g);
-
-                            const b = src[idx + 2] * center - (src[up + 2] + src[down + 2] + src[left + 2] + src[right + 2]) * a;
-                            dst[idx + 2] = b < 0 ? 0 : (b > 255 ? 255 : b);
+                            for (let c = 0; c < 3; c++) {
+                                const centerVal = src[idx + c];
+                                const neighborAvg = (src[up + c] + src[down + c] + src[left + c] + src[right + c]) * 0.25;
+                                const diff = centerVal - neighborAvg;
+                                // Edge-aware coring: chỉ làm nét các đường viền/chi tiết rõ ràng (|diff| > threshold),
+                                // không khuếch đại hạt nhiễu cảm biến ở vùng phẳng (bầu trời, mặt sơn xe) để tránh phình dung lượng WebP
+                                if (Math.abs(diff) > threshold) {
+                                    const sharpened = centerVal + diff * (4 * a);
+                                    dst[idx + c] = sharpened < 0 ? 0 : (sharpened > 255 ? 255 : Math.round(sharpened));
+                                }
+                            }
                         }
                     }
                     ctx.putImageData(output, 0, 0);
@@ -2188,9 +2270,17 @@ cleanupState: () => {
                                 ctx.drawImage(img, 0, 0, width, height);
                                 ctx.filter = 'none';
 
+                                const denoiseStrength = (options && typeof options.denoise === 'number') ? options.denoise : (app.upload ? (app.upload.currentDenoise || 0) : 0);
+                                if (denoiseStrength > 0 && app.denoise && app.denoise.processCanvas) {
+                                    app.denoise.processCanvas(canvas, denoiseStrength);
+                                }
+
                                 // Khôi phục độ sắc nét vi mô bị giảm sau khi thu nhỏ kích thước (Downsampling Blur)
                                 if (app.utils.applySmartSharpen && !options.skipSharpen) {
-                                    app.utils.applySmartSharpen(ctx, width, height, 0.20);
+                                    const sharpenAmount = (options && typeof options.sharpenAmount === 'number') ? options.sharpenAmount : 0.20;
+                                    if (sharpenAmount > 0) {
+                                        app.utils.applySmartSharpen(ctx, width, height, sharpenAmount);
+                                    }
                                 }
                                 const imgEl = document.getElementById('preview-img');
                                 const blurPanels = document.querySelectorAll('.blur-panel');
@@ -2212,11 +2302,13 @@ cleanupState: () => {
                                         }
                                     });
                                 }
-                                const barHeight = height * 0.0576;
+                                const barScale = (pos && typeof pos.barScale === 'number') ? pos.barScale : 1.0;
+                                const barHeight = height * 0.0576 * barScale;
                                 const barY = height - barHeight;
                                 const fontSize = barHeight * 0.4;
-                                const scale = pos.scale || 1.0;
+                                const scale = (pos && typeof pos.scale === 'number') ? pos.scale : 1.0;
                                 const wmFontSize = height * 0.096 * scale;
+                                const rotate = (pos && typeof pos.rotate === 'number') ? pos.rotate : 0;
                                 const fontFace = '"Montserrat", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif';
                                 try {
                                     if (document.fonts && document.fonts.load) {
@@ -2244,7 +2336,7 @@ cleanupState: () => {
                                 ctx.fillStyle = 'rgba(0, 0, 0, 0.25)';
                                 ctx.fillRect(0, safeBarY, width, safeBarHeight);
                                 ctx.fillStyle = "rgba(255, 255, 255, 0.15)";
-                                ctx.fillRect(0, barY, width, 1.5);
+                                ctx.fillRect(0, barY, width, Math.max(1, 1.5 * barScale));
                                 ctx.fillStyle = "white";
                                 ctx.textBaseline = 'alphabetic';
                                 ctx.textAlign = 'left';
@@ -2267,8 +2359,37 @@ cleanupState: () => {
                                     ctx.font = `700 ${wmFontSize}px ${fontFace}`;
                                     ctx.textAlign = 'center';
                                     ctx.textBaseline = 'middle';
-                                    ctx.translate(width * pos.x, height * pos.y);
-                                    ctx.fillText(`© ${username}`, 0, 0);
+                                    const text = `© ${username}`;
+                                    const textMetrics = ctx.measureText(text);
+                                    const textW = textMetrics.width;
+                                    const textH = wmFontSize * 1.5;
+                                    const rad = Math.abs((rotate || 0) * Math.PI / 180);
+                                    const cos = Math.abs(Math.cos(rad));
+                                    const sin = Math.abs(Math.sin(rad));
+                                    const wHalf = (textW * cos + textH * sin) / 2;
+                                    const hHalf = (textW * sin + textH * cos) / 2;
+                                    let posX = width * (pos.x !== undefined ? pos.x : 0.5);
+                                    let minX = wHalf;
+                                    let maxX = width - wHalf;
+                                    if (minX > maxX) {
+                                        minX = width / 2;
+                                        maxX = width / 2;
+                                    }
+
+                                    let minY = hHalf;
+                                    let maxY = height - barHeight - hHalf;
+                                    if (minY > maxY) {
+                                        minY = (height - barHeight) / 2;
+                                        maxY = (height - barHeight) / 2;
+                                    }
+
+                                    posX = Math.max(minX, Math.min(posX, maxX));
+                                    posY = Math.max(minY, Math.min(posY, maxY));
+                                    ctx.translate(posX, posY);
+                                    if (rotate) {
+                                        ctx.rotate((rotate * Math.PI) / 180);
+                                    }
+                                    ctx.fillText(text, 0, 0);
                                     ctx.restore();
                                 }
                                  const isBlind = options.embedBlind && ((currentMode === 'advanced') || (app.upload && app.upload.isBlindWatermarkEnabled));
@@ -3098,7 +3219,15 @@ cleanupState: () => {
 
     rawFile: null,
 
-    wmState: { x: 0.5, y: 0.5, color: 'white', scale: 1.0, mode: (typeof localStorage !== 'undefined' && localStorage.getItem('vnbus_wm_mode')) || 'basic' },
+    wmState: { 
+        x: 0.5, 
+        y: 0.5, 
+        color: 'white', 
+        scale: 1.0, 
+        rotate: 0,
+        barScale: (typeof localStorage !== 'undefined' && localStorage.getItem('vnbus_wm_bar_scale') !== null) ? (parseInt(localStorage.getItem('vnbus_wm_bar_scale'), 10) / 100) : 1.0,
+        mode: (typeof localStorage !== 'undefined' && localStorage.getItem('vnbus_wm_mode')) || 'basic' 
+    },
 
     vehicleLocked: false,
 
@@ -3876,9 +4005,19 @@ cleanupState: () => {
                                         if (app.upload.setWmMode) app.upload.setWmMode(dbPrefs.wmMode, false);
                                     }
                                 }
+                                if (dbPrefs.wmBarScale !== undefined && app.wmState) {
+                                    const bs = typeof dbPrefs.wmBarScale === 'number' && dbPrefs.wmBarScale <= 2.0 ? dbPrefs.wmBarScale : (parseInt(dbPrefs.wmBarScale, 10) / 100);
+                                    app.wmState.barScale = bs;
+                                    try { localStorage.setItem('vnbus_wm_bar_scale', Math.round(bs * 100).toString()); } catch(e){}
+                                }
                             } else {
                                 window.sb.from('profiles').update({
-                                    preferences: { type: localPref, wmMode: localWmMode, pinnedLocations: [] }
+                                    preferences: { 
+                                        type: localPref, 
+                                        wmMode: localWmMode, 
+                                        pinnedLocations: [],
+                                        wmBarScale: (app.wmState && app.wmState.barScale !== undefined) ? app.wmState.barScale : 1.0
+                                    }
                                 }).eq('id', user.id).then(()=>{});
                                 app.preference.current = localPref;
                                 app.preference.pinnedLocations = [];
@@ -3996,7 +4135,10 @@ window.INITIAL_SEARCH = window.location.search;
 window.INITIAL_HASH = window.location.hash;
 Object.assign(window.app, {
     init: async () => {
-        window.onpopstate = () => app.handleRoute();
+        window.onpopstate = () => {
+            if (app.transitionHeaderLogo) app.transitionHeaderLogo();
+            app.handleRoute();
+        };
         if (!window._spaClickListenerRegistered) {
             window._spaClickListenerRegistered = true;
             document.body.addEventListener('click', e => {
@@ -4021,19 +4163,14 @@ Object.assign(window.app, {
                     }).catch(()=>{});
                 }
                 if (session && session.user && !session.user.email_confirmed_at) {
-                    document.getElementById('loading-screen').style.display = 'none';
+                    if (app.dismissInitialLoadingScreen) app.dismissInitialLoadingScreen();
                     if(document.getElementById('app-container')) document.getElementById('app-container').style.display = 'none';
                     app.auth.showVerificationModal(session.user.email);
                     return;
                 }
                 setTimeout(() => {
-                    document.getElementById('loading-screen').style.display = 'none';
-                    const appContainer = document.getElementById('app-container');
-                    appContainer.style.display = 'block';
-                    setTimeout(() => {
-                        appContainer.style.opacity = '1';
-                    }, 50);
-                }, 400);
+                    if (app.dismissInitialLoadingScreen) app.dismissInitialLoadingScreen();
+                }, 4000);
                 // Check if there is an error from OAuth linking
                 if (window.location.search.includes('error=unlinked_sso')) {
                     setTimeout(() => {
@@ -4107,12 +4244,7 @@ Object.assign(window.app, {
                         }
                     });
                 } catch (e) {
-                    document.getElementById('loading-screen').style.display = 'none';
-                    const appContainer = document.getElementById('app-container');
-                    if(appContainer) {
-                        appContainer.style.display = 'block';
-                        appContainer.style.opacity = '1';
-                    }
+                    if (app.dismissInitialLoadingScreen) app.dismissInitialLoadingScreen();
                     await app.setUser(null);
                 }
                 let offlineTimer = null;
@@ -4161,6 +4293,7 @@ Object.assign(window.app, {
                 app.preference.load();
                 app.onboarding.check();
                 app.handleRoute();
+                if (app.dismissInitialLoadingScreen) app.dismissInitialLoadingScreen();
                 const upFileEl = document.getElementById('up-file');
                 if (upFileEl) upFileEl.addEventListener('change', app.upload.handleFileSelect);
                 const isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
@@ -4407,7 +4540,7 @@ Object.assign(window.app, {
 
 
 /* --- MODULE: 02_settings.js --- */
-﻿
+
 Object.assign(window.app, {
     notifications: { init: ()=>{}, add: async ()=>{} },
 
@@ -4425,7 +4558,7 @@ Object.assign(window.app, {
                         { text: "Bảo mật", tab: "security", parent: "account", icon: "fa-shield-halved" },
                         { text: "Mật khẩu", tab: "security", parent: "account", icon: "fa-shield-halved" },
                         { text: "Email", tab: "security", parent: "account", icon: "fa-shield-halved" },
-                        { text: "Mã định danh (UUID)", tab: "security", parent: "account", icon: "fa-shield-halved" },
+                        { text: "Mã User ID", tab: "security", parent: "account", icon: "fa-shield-halved" },
                         { text: "Liên kết tài khoản", tab: "links", parent: "account", icon: "fa-link" },
                         { text: "Google", tab: "links", parent: "account", icon: "fa-link" },
                         { text: "Discord", tab: "links", parent: "account", icon: "fa-link" },
@@ -4952,7 +5085,7 @@ grid.innerHTML = tiers.map(tier => {
 });
 
 /* --- MODULE: 03_auth.js --- */
-﻿
+
 Object.assign(window.app, {
     auth: {
                 mode: 'login',
@@ -5073,6 +5206,10 @@ Object.assign(window.app, {
                             await app.setUser(data.user);
                             app.ui.showAlert("Đăng nhập thành công!", () => { window.location.reload(); });
                         } else if (app.auth.mode === 'register') {
+                            const agreeCheckbox = document.getElementById('auth-agree-terms');
+                            if (agreeCheckbox && !agreeCheckbox.checked) {
+                                throw new Error("Vui lòng tích chọn đồng ý với Chính sách VNBUSARCHIVE và cam kết sẽ tuân thủ.");
+                            }
                             const username = document.getElementById('auth-username').value.trim();
                             if (!username) throw new Error("Vui lòng nhập tên hiển thị.");
                             if (!app.utils.isValidUsername(username)) throw new Error("Tên hiển thị từ 3 đến 20 ký tự, chỉ gồm chữ cái, số và dấu cách (không chứa ký tự đặc biệt, kí hiệu hay emoji).");
@@ -5544,7 +5681,7 @@ changePassword: async () => {
                         return;
                     }
                     app.ui.showAlert(
-                        "CẢNH BÁO BẢO MẬT: Mã định danh (UUID) dùng để Admin tra cứu tài khoản của bạn.<br><br><b class='text-red-600'>Vui lòng CHỈ chia sẻ UUID trên các kênh hỗ trợ chính thức được công nhận của VNBUSARCHIVE. Tuyệt đối không gửi cho người lạ!</b>",
+                        "CẢNH BÁO BẢO MẬT: Mã User ID dùng để Admin tra cứu tài khoản của bạn.<br><br><b class='text-red-600'>Vui lòng CHỈ chia sẻ User ID trên các kênh hỗ trợ chính thức của VNBUSARCHIVE. Tuyệt đối không gửi cho người lạ!</b>",
                         () => {
                             uuidForm.classList.remove('hidden');
                             document.getElementById('user-uuid-input').value = app.user.id;
@@ -6360,13 +6497,19 @@ Object.assign(window.app, {
                     }
                     const targetEl = document.getElementById(id);
                     if (targetEl) {
-                        targetEl.classList.add('active', animationClass);
-                        targetEl.onanimationend = () => {
-                            targetEl.classList.remove(animationClass);
-                            targetEl.onanimationend = null;
-                        };
+                        if (!app._initialLoadingDismissed) {
+                            targetEl.classList.add('active');
+                        } else {
+                            targetEl.classList.add('active', animationClass);
+                            targetEl.onanimationend = () => {
+                                targetEl.classList.remove(animationClass);
+                                targetEl.onanimationend = null;
+                            };
+                            if (app.transitionHeaderLogo) app.transitionHeaderLogo();
+                        }
                     }
                     if (app.utils && app.utils.updateCanonical) app.utils.updateCanonical();
+                    if (app.dismissInitialLoadingScreen) app.dismissInitialLoadingScreen();
                 },
                 loadUserProfile: (username) => {
                     app.utils.navigate(`/user/${encodeURIComponent(username)}`);
@@ -7348,12 +7491,16 @@ Object.assign(window.app, {
                         let contextText = '';
                         if (req.new_data?.request_type === 'delete_photo' && req.new_data?.photo_id) {
                             contextText = `Ảnh ${req.new_data.photo_id} ${req.license_plate ? '- ' + req.license_plate : ''}`;
-                        } else if (req.license_plate) {
-                            contextText = req.license_plate;
-                        } else if (req.new_data?.operator_name) {
-                            contextText = req.new_data.operator_name;
                         } else if (req.new_data?.model_name) {
                             contextText = req.new_data.model_name;
+                        } else if (req.new_data?.operator_name) {
+                            contextText = req.new_data.operator_name;
+                        } else if (req.new_data?.route_name) {
+                            contextText = req.new_data.route_name;
+                        } else if (req.license_plate && !['MODEL_INFO', 'OP_INFO', 'ROUTE_INFO'].includes(req.license_plate)) {
+                            contextText = req.license_plate;
+                        } else if (req.license_plate) {
+                            contextText = req.license_plate;
                         }
                         let dotHtml = '';
                         if (req.status === 'approved') {
@@ -7405,12 +7552,16 @@ Object.assign(window.app, {
                     let contextText = '';
                     if (req.new_data?.request_type === 'delete_photo' && req.new_data?.photo_id) {
                         contextText = `Ảnh ${req.new_data.photo_id} ${req.license_plate ? '- ' + req.license_plate : ''}`;
-                    } else if (req.license_plate) {
-                        contextText = req.license_plate;
-                    } else if (req.new_data?.operator_name) {
-                        contextText = req.new_data.operator_name;
                     } else if (req.new_data?.model_name) {
                         contextText = req.new_data.model_name;
+                    } else if (req.new_data?.operator_name) {
+                        contextText = req.new_data.operator_name;
+                    } else if (req.new_data?.route_name) {
+                        contextText = req.new_data.route_name;
+                    } else if (req.license_plate && !['MODEL_INFO', 'OP_INFO', 'ROUTE_INFO'].includes(req.license_plate)) {
+                        contextText = req.license_plate;
+                    } else if (req.license_plate) {
+                        contextText = req.license_plate;
                     }
                     let detailsHtml = `
                         <div class="flex justify-between items-center mb-3">
@@ -7694,13 +7845,13 @@ Object.assign(window.app, {
                                 'B1.2': 'Mẹo nhỏ để bạn không mất công tác nghiệp: Hãy bỏ qua các xe mang biển Xanh hoặc Đỏ, xe gia đình và ĐẶC BIỆT là các xe đang gặp tai nạn, va chạm. Với xe khách, bạn cứ nhắm vào các xe có logo/tên nhà xe lớn, hoặc có bảng LED/mica chạy tuyến cố định rõ ràng.',
                                 'B1.3': 'Bối cảnh phía sau tôn lên vẻ đẹp của xe rất nhiều! Lần tới, bạn thử nán lại chờ xe đi qua những đoạn đường gọn gàng, sạch sẽ hơn nhé. Tránh bấm máy vội vã lúc xe chạy ngang bãi rác hoặc khu vực quá lộn xộn. Một hậu cảnh đẹp sẽ làm bức ảnh của bạn giá trị hơn hẳn đấy.',
                                 'B1.4': 'Thư viện luôn tìm kiếm những bức ảnh có góc nhìn sinh động và ánh sáng hài hòa. Thay vì bấm máy vội để lấy số lượng, bạn hãy chăm chút thêm cho khung hình nhé. Chọn thời điểm ban ngày đủ sáng, canh góc sao cho tôn được dáng xe. Một bức ảnh có hồn chắc chắn sẽ mang lại giá trị lưu trữ tuyệt vời!',
-                                'B2.1': 'Hơi tiếc một chút vì chiếc xe chưa nằm trọn vẹn trong ảnh. Lần tới, bạn nhớ thu nhỏ (zoom out) màn hình lại hoặc lùi ra sau một vài bước nhé. Hãy chừa một khoảng lề an toàn xung quanh xe, đảm bảo các chi tiết lồi ra như gương chiếu hậu, cục điều hòa trên nóc hay bánh xe không bị viền ảnh cắt cụt mất.',
+                                'B2.1': 'Hơi tiếc một chút vì chiếc xe chưa nằm trọn vẹn trong ảnh. Lần tới, bạn nhớ thu nhỏ góc chụp lại hoặc lùi ra sau một vài bước nhé. Hãy chừa một khoảng lề an toàn xung quanh xe, đảm bảo các chi tiết lồi ra như gương chiếu hậu, cục điều hòa trên nóc hay bánh xe không bị viền ảnh cắt cụt mất.',
                                 'B2.2': 'Bức ảnh này xe đang bị lệch trọng tâm một chút. Để căn giữa chuẩn xác không trượt phát nào, bạn hãy dùng công cụ Thước ngang có sẵn trên web nhé! Mẹo canh như sau: Bạn xác định 2 mép ngoài cùng (trái/phải) của thân xe (không tính gương chiếu hậu), rồi chỉnh sao cho khoảng cách từ 2 mép này tới vạch tâm (0) của thước bằng nhau. Nhớ lưu ý: Dù không tính vào điểm canh mép, nhưng gương chiếu hậu vẫn phải nằm trọn trong ảnh, và tổng thể xe đừng để bị quá gần hay quá xa khung hình nhé.',
                                 'B2.3': 'Khung hình đang bị nghiêng lệch so với thực tế rồi. Tùy vào góc chụp mà bạn áp dụng mẹo sau để canh thẳng máy nhé: Nếu chụp ngang tầm mắt, hãy căn lề ảnh dọc song song với các cột điện, tòa nhà phía sau. Nếu chụp từ trên cao xuống, hãy căn lề dọc song song với hai cạnh ngoài cùng của thân xe. Nếu lỡ tay chụp nghiêng, bạn hoàn toàn có thể dùng công cụ Cắt/Xoay ảnh trên web để cân bằng lại và đưa về tỷ lệ chuẩn (4:3, 3:2, 16:9) trước khi đăng tải.',
                                 'B2.4': 'Chụp chính diện ngay đầu hoặc đuôi xe sẽ khó nhận diện được toàn bộ thiết kế. Lần tới, bạn thử chọn góc chếch (góc 3/4) xem sao nhé. Cứ chờ xe tiến lại gần hoặc chuẩn bị đi qua rồi bấm máy, như vậy ảnh sẽ lấy được cả mặt trước/sau và sườn xe, trông vừa mượt mắt lại vừa đúng chuẩn.',
                                 'B2.5': 'Kiên nhẫn thêm một chút là có ảnh xịn ngay! Khi bấm máy, bạn cố gắng căn khoảnh khắc giao thông thông thoáng, không có xe máy, người đi đường hay cột điện vướng vào thân xe nhé. Chọn vị trí đứng thoáng đãng một chút sẽ giúp chủ thể xuất hiện trọn vẹn và đẹp mắt hơn rất nhiều.',
-                                'B3.1': 'Bức ảnh đang bị mờ nhòe hoặc nhiễu hạt (noise/grain) khá nặng. Để cải thiện, bạn nhớ giữ chắc tay máy, chạm vào màn hình để khóa nét (focus) vào thân xe và ưu tiên chụp ban ngày, đứng thuận chiều ánh sáng. Nếu trời thiếu sáng, bạn thử tì tay hoặc dùng chân máy để giảm rung nhé. Lưu ý hệ thống áp dụng quy chuẩn đồng bộ, không châm chước cho thiết bị đời cũ, nên nếu ảnh chưa đạt chất lượng thì mình cùng đi "săn" lại ở lần sau nhé!',
-                                'B3.2': 'Hệ thống đề cao vẻ đẹp nguyên bản và chân thực (Documentary Integrity). Bạn cứ đăng trực tiếp ảnh gốc từ máy ảnh/điện thoại, hạn chế kéo Sharpness, Clarity, HDR giả lập hay Saturation quá đà vì dễ tạo viền giả quanh xe và làm sai lệch màu sơn thật của nhà xe. Tuyệt đối không dùng AI để xóa/vẽ lại biển số, logo hay chi tiết bị mất, và không dùng AI làm nét/tăng độ phân giải giả tạo (Remini, Xingtu...). Ảnh gốc lỡ mờ thì mình "săn" lại lần sau nhé!',
+                                'B3.1': 'Bức ảnh đang bị mờ nhòe hoặc nhiễu hạt khá nặng. Để cải thiện, bạn nhớ giữ chắc tay máy, chạm vào màn hình để lấy nét vào thân xe và ưu tiên chụp ban ngày, đứng thuận chiều ánh sáng. Nếu trời thiếu sáng, bạn thử tì tay hoặc dùng chân máy để giảm rung nhé. Lưu ý hệ thống áp dụng quy chuẩn đồng bộ, không châm chước cho thiết bị đời cũ, nên nếu ảnh chưa đạt chất lượng thì mình cùng đi "săn" lại ở lần sau nhé!',
+                                'B3.2': 'Hệ thống đề cao vẻ đẹp nguyên bản và chân thực. Bạn cứ đăng trực tiếp ảnh gốc từ máy ảnh hoặc điện thoại, hạn chế kéo tăng nét, tương phản hay màu quá rực vì dễ tạo viền giả quanh xe và làm sai lệch màu sơn thật của nhà xe. Tuyệt đối không dùng AI để xóa hay vẽ lại biển số, logo, chi tiết bị mất, và không dùng AI làm nét giả tạo. Ảnh gốc lỡ mờ thì mình "săn" lại lần sau nhé!',
                                 'B3.4': 'Bạn hãy tải lên bức ảnh nguyên bản và sạch sẽ nhất nhé! Tuyệt đối không dùng app để chèn tên, logo cá nhân, và nhớ tắt cả tính năng tự đóng dấu watermark của camera điện thoại (ví dụ: chữ "Shot on..."). Bạn yên tâm, khi ảnh được duyệt, hệ thống sẽ tự động đóng dấu bản quyền xịn sò của VNBUSARCHIVE để bảo vệ tác phẩm cho bạn.',
                                 'B3.5': 'Bức ảnh đang bị móp méo và sai lệch tỷ lệ thực tế. Lỗi này thường do bạn sử dụng camera góc siêu rộng (0.5x, 0.6x...) ở khoảng cách quá gần. Để cải thiện, hãy lùi ra xa hơn một chút và sử dụng camera chính (1x) hoặc camera zoom (2x, 3x) để giữ được hình dáng nguyên bản và bề thế của xe nhé.',
                                 'B4.1': 'Biển số là linh hồn của dữ liệu! Bức ảnh này biển số đang bị lóa hoặc mờ quá. Lần sau, bạn để ý đứng ở khoảng cách vừa phải, chú ý hướng nắng để biển không bị chói trắng nhé. Bạn có thể chụp thử một tấm rồi zoom màn hình lên, nếu mắt thường đọc rõ mồn một được cả chữ và số thì hẵng chốt góc đó.',
@@ -7943,6 +8094,12 @@ Object.assign(window.app, {
                     }
                     if (elInfoCamera) elInfoCamera.value = photo.camera_model || 'N/A';
                     if (elInfoExif) elInfoExif.value = photo.exif_params || 'N/A';
+                    setTimeout(() => {
+                        ['info-plate', 'info-operator', 'info-route', 'info-model', 'info-location', 'info-camera', 'info-exif-params'].forEach(id => {
+                            const el = document.getElementById(id);
+                            if (el && app.utils && app.utils.autoResizeTextarea) app.utils.autoResizeTextarea(el);
+                        });
+                    }, 0);
                     const statUploaderEl = document.getElementById('stat-uploader');
                     if (Object.keys(app.topUploaders).length === 0) {
                         await app.utils.fetchTopUploaders();
@@ -8490,14 +8647,16 @@ let currentRouteProvName = null;
                                             <tr id="vehicle-edit-operator-row" ${currentRouteClientSide === 'Dừng hoạt động' ? 'class="hidden"' : ''}>
                                                 <td class="label bg-gray-50 border-r border-b border-gray-200" style="width: 35%">Đơn vị vận hành</td>
                                                 <td class="value-cell border-b border-gray-200">
-                                                    <input type="text" id="vehicle-edit-operator" value="${currentRouteClientSide === 'Dừng hoạt động' ? 'N/A' : currentOpClientSide}" class="info-input text-gray-700 w-full ${currentOpClientSide ? 'clickable-search' : 'cursor-not-allowed'}" readonly ${currentOpClientSide ? `onclick="if(this.readOnly && this.value && this.value!=='---' && this.value!=='N/A') app.utils.navigate('/operator/' + encodeURIComponent(this.value))"` : ''}>
+                                                    <div class="relative w-full h-full flex flex-col justify-center">
+                                                        <textarea rows="1" id="vehicle-edit-operator" class="info-input text-gray-700 w-full ${currentOpClientSide ? 'clickable-search' : 'cursor-not-allowed'}" readonly ${currentOpClientSide ? `onclick="if(this.readOnly && this.value && this.value!=='---' && this.value!=='N/A') app.utils.navigate('/operator/' + encodeURIComponent(this.value))"` : ''}>${currentRouteClientSide === 'Dừng hoạt động' ? 'N/A' : (currentOpClientSide || 'Đã bị xóa')}</textarea>
+                                                    </div>
                                                 </td>
                                             </tr>
                                             <tr>
                                                 <td class="label bg-gray-50 border-r border-b border-gray-200">${isCoach ? 'Lộ trình' : 'Mã số tuyến'} hiện tại</td>
                                                 <td class="value-cell border-b border-gray-200">
-                                                    <div class="relative w-full h-full">
-                                                        <input type="text" id="vehicle-edit-route" value="${currentRouteClientSide}" autocomplete="off" class="info-input text-gray-700 w-full ${currentRouteClientSide ? 'clickable-search' : 'cursor-not-allowed'}" readonly ${currentRouteClientSide ? `onclick="if(this.readOnly && this.value && this.value!=='---') { const special = ['Dừng hoạt động', 'Ngoài giờ hoạt động', 'Chưa hoạt động']; if (${isCoach} || special.includes(this.value.trim())) { app.searchRedirect(this.value, 'route'); } else { app.utils.navigate('${vehProvName}' ? '/route/' + encodeURIComponent('${vehProvName}') + '/' + encodeURIComponent(this.value) : '/route/' + encodeURIComponent(this.value)); } }"` : ''} onfocus="if(!this.readOnly) app.utils.triggerRouteSuggestion('vehicle-edit-route', 'veh-sug-route', '')" oninput="app.utils.triggerRouteSuggestion('vehicle-edit-route', 'veh-sug-route', this.value); app.utils.checkRouteStatus(this.value, 'vehicle-edit-operator', 'vehicle-edit-operator-row')">
+                                                    <div class="relative w-full h-full flex flex-col justify-center">
+                                                        <textarea rows="1" id="vehicle-edit-route" autocomplete="off" class="info-input text-gray-700 w-full ${currentRouteClientSide ? 'clickable-search' : 'cursor-not-allowed'}" readonly ${currentRouteClientSide ? `onclick="if(this.readOnly && this.value && this.value!=='---') { const special = ['Dừng hoạt động', 'Ngoài giờ hoạt động', 'Chưa hoạt động']; if (${isCoach} || special.includes(this.value.trim())) { app.searchRedirect(this.value, 'route'); } else { app.utils.navigate('${vehProvName}' ? '/route/' + encodeURIComponent('${vehProvName}') + '/' + encodeURIComponent(this.value) : '/route/' + encodeURIComponent(this.value)); } }"` : ''} onfocus="if(!this.readOnly) app.utils.triggerRouteSuggestion('vehicle-edit-route', 'veh-sug-route', '')" oninput="app.utils.triggerRouteSuggestion('vehicle-edit-route', 'veh-sug-route', this.value); app.utils.checkRouteStatus(this.value, 'vehicle-edit-operator', 'vehicle-edit-operator-row')">${currentRouteClientSide}</textarea>
                                                         <div id="veh-sug-route" class="suggestion-box"></div>
                                                     </div>
                                                 </td>
@@ -8505,8 +8664,8 @@ let currentRouteProvName = null;
                                             <tr>
                                                 <td class="label bg-gray-50 border-r border-b border-gray-200">Dòng xe</td>
                                                 <td class="value-cell border-b border-gray-200">
-                                                    <div class="relative w-full h-full">
-                                                        <input type="text" id="vehicle-edit-model" value="${app.utils.escapeAttr(vehicle.model || '')}" autocomplete="off" class="info-input text-gray-700 w-full ${vehicle.model ? 'clickable-search' : 'cursor-not-allowed'}" readonly ${vehicle.model ? `onclick="if(this.readOnly && this.value && this.value!=='---') app.utils.navigate('/model/' + encodeURIComponent(this.value))"` : ''} oninput="app.utils.triggerSuggestion('vehicle-edit-model', 'veh-sug-model', this.value, 'model')">
+                                                    <div class="relative w-full h-full flex flex-col justify-center">
+                                                        <textarea rows="1" id="vehicle-edit-model" autocomplete="off" class="info-input text-gray-700 w-full ${vehicle.model ? 'clickable-search' : 'cursor-not-allowed'}" readonly ${vehicle.model ? `onclick="if(this.readOnly && this.value && this.value!=='---') app.utils.navigate('/model/' + encodeURIComponent(this.value))"` : ''} oninput="app.utils.triggerSuggestion('vehicle-edit-model', 'veh-sug-model', this.value, 'model')">${app.utils.escapeAttr(vehicle.model || '')}</textarea>
                                                         <div id="veh-sug-model" class="suggestion-box"></div>
                                                     </div>
                                                 </td>
@@ -8560,6 +8719,12 @@ let currentRouteProvName = null;
                             ${loadMoreHtml}
                         `;
                         container.innerHTML = html;
+                        setTimeout(() => {
+                            ['vehicle-edit-operator', 'vehicle-edit-route', 'vehicle-edit-model'].forEach(id => {
+                                const el = document.getElementById(id);
+                                if (el && app.utils && app.utils.autoResizeTextarea) app.utils.autoResizeTextarea(el);
+                            });
+                        }, 0);
                         if (typeof app.vehicle.renderVehiclePagination === 'function') {
                             app.vehicle.renderVehiclePagination();
                         }
@@ -11159,7 +11324,7 @@ Object.assign(window.app, {
 });
 
 /* --- MODULE: page_reference.js --- */
-﻿
+
 Object.assign(window.app, {
     operator: {
                 modelStatsData: [],
@@ -11379,9 +11544,18 @@ Object.assign(window.app, {
                                 }
                                 app.toast.show('success', 'Thành công', 'Đã lưu thông tin Đơn vị vận hành!');
                                 app.operator.closeEditPrompt();
-                                app.views.loadOperatorPage(app.currentOperator);
+                                const opDescEl = document.getElementById('op-desc');
+                                if (opDescEl) {
+                                    if (desc) {
+                                        opDescEl.innerHTML = app.utils.cleanText(desc).replace(/\n/g, '<br>');
+                                        opDescEl.classList.remove('hidden');
+                                    } else {
+                                        opDescEl.classList.add('hidden');
+                                    }
+                                }
+                                app.views.loadOperatorPage(app.currentOperator, true);
                                 if (app.admin && app.admin.logAction) {
-                                    app.admin.logAction('update_operator_direct', app.currentOperator, { logo_url: null, description: desc, parent_operator: parentOp });
+                                    app.admin.logAction('update_operator_direct', app.currentOperator, { logo_url: logo || null, description: desc, parent_operator: parentOp });
                                 }
                             } else {
                                 const { count, error: checkErr } = await window.sb.from('edit_requests')
@@ -11561,10 +11735,15 @@ Object.assign(window.app, {
                     }
                     try {
                         const brandName = app.model.currentModel.split(' ')[0];
-                        const { data: exactInfo } = await window.sb.from('model_info').select('description').eq('model_name', app.model.currentModel).maybeSingle();
-                        if (exactInfo) document.getElementById('mdl-edit-desc').value = exactInfo.description || '';
-                        const { data: brandLogoData } = await window.sb.from('model_info').select('logo_url').ilike('model_name', `${brandName}%`).not('logo_url', 'is', null).limit(1).maybeSingle();
-                        if (brandLogoData) document.getElementById('mdl-edit-logo').value = brandLogoData.logo_url || '';
+                        const { data: exactInfo } = await window.sb.from('model_info').select('description, logo_url').eq('model_name', app.model.currentModel).maybeSingle();
+                        if (exactInfo) {
+                            if (exactInfo.description) document.getElementById('mdl-edit-desc').value = exactInfo.description;
+                            if (exactInfo.logo_url) document.getElementById('mdl-edit-logo').value = exactInfo.logo_url;
+                        }
+                        if (!document.getElementById('mdl-edit-logo').value) {
+                            const { data: brandLogoData } = await window.sb.from('model_info').select('logo_url').ilike('model_name', `${brandName}%`).not('logo_url', 'is', null).limit(1).maybeSingle();
+                            if (brandLogoData && brandLogoData.logo_url) document.getElementById('mdl-edit-logo').value = brandLogoData.logo_url;
+                        }
                     } catch(e) {}
                     modal.classList.remove('hidden');
                     app.ui.lockScroll();
@@ -11619,24 +11798,49 @@ Object.assign(window.app, {
                         try {
                             const brandName = app.model.currentModel.split(' ')[0];
                             if (app.role === 'admin' || app.role === 'manager') {
-                                if (!desc) {
+                                if (!logo && !desc) {
                                     const { error: delErr } = await window.sb.from('model_info').delete().eq('model_name', app.model.currentModel);
                                     if (delErr) throw delErr;
                                 } else {
-                                    const { error: upsertErr } = await window.sb.from('model_info').upsert({
+                                    const upsertData = {
                                         model_name: app.model.currentModel,
-                                                                                description: desc || null
-                                    });
+                                        description: desc || null,
+                                        logo_url: logo || null
+                                    };
+                                    const { error: upsertErr } = await window.sb.from('model_info').upsert(upsertData, { onConflict: 'model_name' });
                                     if (upsertErr) throw upsertErr;
                                 }
-                                await window.sb.from('model_info')
-                                    .update({ logo_url: null || null })
-                                    .ilike('model_name', `${brandName}%`);
+                                if (logo) {
+                                    await window.sb.from('model_info')
+                                        .update({ logo_url: logo })
+                                        .ilike('model_name', `${brandName}%`);
+                                }
                                 app.toast.show('success', 'Thành công', 'Đã lưu và đồng bộ thông tin Dòng xe!');
                                 app.model.closeEditPrompt();
-                                app.model.loadModelPage(app.model.currentModel);
+                                const descEl = document.getElementById('model-desc');
+                                if (descEl) {
+                                    if (desc) {
+                                        descEl.innerHTML = app.utils.cleanText(desc).replace(/\n/g, '<br>');
+                                        descEl.classList.remove('hidden');
+                                    } else {
+                                        descEl.classList.add('hidden');
+                                    }
+                                }
+                                const logoEl = document.getElementById('model-logo');
+                                const fallbackEl = document.getElementById('model-logo-fallback');
+                                if (logoEl && fallbackEl) {
+                                    if (logo) {
+                                        logoEl.src = logo.includes('wsrv.nl') ? logo : 'https://wsrv.nl/?url=' + encodeURIComponent(logo);
+                                        logoEl.classList.remove('hidden');
+                                        fallbackEl.classList.add('hidden');
+                                    } else {
+                                        logoEl.classList.add('hidden');
+                                        fallbackEl.classList.remove('hidden');
+                                    }
+                                }
+                                app.model.loadModelPage(app.model.currentModel, true);
                                 if (app.admin && app.admin.logAction) {
-                                    app.admin.logAction('update_model_direct', app.model.currentModel, { logo_url: null, description: desc, brand_sync: brandName });
+                                    app.admin.logAction('update_model_direct', app.model.currentModel, { logo_url: logo || null, description: desc, brand_sync: brandName });
                                 }
                             } else {
                                 const { count, error: checkErr } = await window.sb.from('edit_requests')
@@ -11651,8 +11855,8 @@ Object.assign(window.app, {
                                     new_data: {
                                         request_type: 'update_model_info',
                                         model_name: app.model.currentModel,
-                                        description: desc,
-                                        logo_url: null
+                                        description: desc || null,
+                                        logo_url: logo || null
                                     },
                                     status: 'pending'
                                 };
@@ -11874,51 +12078,34 @@ if (!decodedProvince || decodedProvince.trim() === '') {
                         const opEl = document.getElementById('route-info-operator');
                         const mdlEl = document.getElementById('route-info-model');
                         
-                        opEl.className = 'info-input text-gray-700 w-full cursor-not-allowed flex items-center h-full min-h-[36px]';
-                        opEl.onclick = null;
-                        mdlEl.className = 'info-input text-gray-700 w-full cursor-not-allowed flex items-center h-full min-h-[36px]';
-                        mdlEl.onclick = null;
-                        
-                        if (app.route.routePhotos.length > 0) {
-                            const topPhoto = app.route.routePhotos[0];
-                            
-                            const opText = topPhoto.operator || '---';
-                            opEl.innerText = opText;
-                            if (opText !== '---') {
-                                opEl.classList.remove('cursor-not-allowed', 'text-gray-700');
-                                opEl.classList.add('cursor-pointer', 'text-blue-600', 'font-bold', 'hover:underline');
-                                opEl.onclick = () => app.views.loadOperatorPage(opText);
+                        const renderInfoValue = (el, items, clickHandler) => {
+                            if (!el) return;
+                            el.innerHTML = '';
+                            el.className = 'info-input text-gray-700 dark:text-gray-200 w-full flex items-center flex-wrap h-full min-h-[36px] py-1';
+                            el.onclick = null;
+                            if (!items || items.length === 0) {
+                                el.innerText = '---';
+                                el.classList.add('cursor-not-allowed');
+                                return;
                             }
-                            
-                            let modelCounts = {};
-                            let seenVehicles = new Set();
-                            app.route.routePhotos.forEach(p => {
-                                let lp = p.license_plate?.trim().toUpperCase();
-                                let model = p.vehicles?.model;
-                                if (lp && model && !seenVehicles.has(lp)) {
-                                    seenVehicles.add(lp);
-                                    modelCounts[model] = (modelCounts[model] || 0) + 1;
+                            items.forEach((item, index) => {
+                                if (index > 0) {
+                                    const sep = document.createElement('span');
+                                    sep.textContent = ',';
+                                    sep.className = 'text-gray-600 dark:text-gray-400 mr-1.5 select-none';
+                                    el.appendChild(sep);
                                 }
+                                const span = document.createElement('span');
+                                span.textContent = item;
+                                span.className = 'cursor-pointer text-black dark:text-white font-medium hover:underline transition';
+                                span.onclick = (e) => {
+                                    e.stopPropagation();
+                                    clickHandler(item);
+                                };
+                                el.appendChild(span);
                             });
-                            let mostFrequentModel = null;
-                            let maxCount = 0;
-                            for (const [model, count] of Object.entries(modelCounts)) {
-                                if (count > maxCount) {
-                                    maxCount = count;
-                                    mostFrequentModel = model;
-                                }
-                            }
-                            const mdlText = mostFrequentModel ? mostFrequentModel : '---';
-                            mdlEl.innerText = mdlText;
-                            if (mdlText !== '---') {
-                                mdlEl.classList.remove('cursor-not-allowed', 'text-gray-700');
-                                mdlEl.classList.add('cursor-pointer', 'text-blue-600', 'font-bold', 'hover:underline');
-                                mdlEl.onclick = () => app.views.loadModelPage(mdlText);
-                            }
-                        } else {
-                            opEl.innerText = '---';
-                            mdlEl.innerText = '---';
-                        }
+                        };
+                        
                         app.route.totalCount = app.route.routePhotos.length;
                         app.route.totalPages = Math.ceil(app.route.totalCount / app.route.ROUTE_PAGE_SIZE);
                         
@@ -11926,16 +12113,25 @@ if (!decodedProvince || decodedProvince.trim() === '') {
                         
                         let totalViews = 0;
                         const uniqueVehicles = new Set();
+                        const vehicleModelMap = {};
                         
                         app.route.routePhotos.forEach(p => {
                             totalViews += (p.views || 0);
-                            if (p.license_plate) uniqueVehicles.add(p.license_plate.trim().toUpperCase());
+                            const lp = p.license_plate?.trim().toUpperCase();
+                            if (lp) {
+                                uniqueVehicles.add(lp);
+                                if (p.vehicles?.model && !vehicleModelMap[lp]) {
+                                    vehicleModelMap[lp] = p.vehicles.model.trim();
+                                }
+                            }
                         });
                         
                         document.getElementById('rte-stat-views').innerText = app.utils.formatCompact(totalViews);
                         
                         const platesArr = Array.from(uniqueVehicles);
                         let activeVehiclesCount = 0;
+                        const activeOpCounts = {};
+                        const activeModelCounts = {};
                         
                         if (platesArr.length > 0) {
                             try {
@@ -11945,44 +12141,118 @@ if (!decodedProvince || decodedProvince.trim() === '') {
                                 for (let i = 0; i < platesArr.length; i += chunkSize) {
                                     const chunk = platesArr.slice(i, i + chunkSize);
                                     const [pRes, hRes] = await Promise.all([
-                                        window.sb.from('photos').select('license_plate, route_no, borrowed_route, taken_at').eq('status', 'approved').in('license_plate', chunk),
-                                        window.sb.from('vehicle_history').select('plate, route, effective_date').in('plate', chunk)
+                                        window.sb.from('photos').select('license_plate, route_no, operator, borrowed_route, taken_at, created_at, vehicles(model)').eq('status', 'approved').in('license_plate', chunk),
+                                        window.sb.from('vehicle_history').select('id, license_plate, plate, operator, route, note, effective_date, display_order').or(`license_plate.in.(${chunk.join(',')}),plate.in.(${chunk.join(',')})`)
                                     ]);
                                     if (pRes.data) allVehPhotos = allVehPhotos.concat(pRes.data);
                                     if (hRes.data) allVehHist = allVehHist.concat(hRes.data);
                                 }
                                 
-                                allVehPhotos.sort((a, b) => new Date(b.taken_at || '1970-01-01') - new Date(a.taken_at || '1970-01-01'));
-                                allVehHist.sort((a, b) => new Date(b.effective_date || '1970-01-01') - new Date(a.effective_date || '1970-01-01'));
+                                allVehPhotos.forEach(p => {
+                                    const lp = p.license_plate?.trim().toUpperCase();
+                                    if (lp && p.vehicles?.model && !vehicleModelMap[lp]) {
+                                        vehicleModelMap[lp] = p.vehicles.model.trim();
+                                    }
+                                });
                                 
                                 const specialRoutes = ['Dừng hoạt động', 'Ngoài giờ hoạt động', 'Chưa hoạt động'];
                                 
                                 platesArr.forEach(plate => {
-                                    const vPhotos = allVehPhotos.filter(p => p.license_plate.toUpperCase() === plate);
-                                    const vHist = allVehHist.filter(h => h.plate.toUpperCase() === plate);
+                                    const vPhotos = allVehPhotos
+                                        .filter(p => p.license_plate && p.license_plate.trim().toUpperCase() === plate)
+                                        .sort((a, b) => {
+                                            const timeA = new Date(a.taken_at || a.created_at || '1970-01-01').getTime();
+                                            const timeB = new Date(b.taken_at || b.created_at || '1970-01-01').getTime();
+                                            return timeB - timeA;
+                                        });
+                                    
+                                    const vHist = allVehHist
+                                        .filter(h => (h.license_plate && h.license_plate.trim().toUpperCase() === plate) || (h.plate && h.plate.trim().toUpperCase() === plate))
+                                        .map(h => {
+                                            let effDate = h.effective_date;
+                                            if (!effDate && h.note) {
+                                                const dateMatch = h.note.match(/Từ ngày:\s*(\d{1,2}\/\d{1,2}\/\d{4})/i);
+                                                if (dateMatch) {
+                                                    const parts = dateMatch[1].split('/');
+                                                    effDate = `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
+                                                }
+                                            }
+                                            return {
+                                                ...h,
+                                                parsed_effective_date: effDate
+                                            };
+                                        })
+                                        .sort((a, b) => {
+                                            const timeA = new Date(a.parsed_effective_date || '1970-01-01').getTime();
+                                            const timeB = new Date(b.parsed_effective_date || '1970-01-01').getTime();
+                                            if (timeA !== timeB) return timeA - timeB;
+                                            return (a.display_order || 0) - (b.display_order || 0);
+                                        });
                                     
                                     let currentRouteClientSide = '';
+                                    let currentOpClientSide = '';
+                                    let currentRouteProvName = null;
+                                    let photoTime = 0;
+                                    
                                     if (vPhotos.length > 0) {
                                         const latestPhoto = vPhotos[0];
+                                        photoTime = new Date(latestPhoto.taken_at || latestPhoto.created_at || '1970-01-01').getTime();
+                                        currentOpClientSide = (latestPhoto.operator || '').trim();
                                         const r = (latestPhoto.route_no || '').trim();
                                         if (r && !specialRoutes.includes(r)) {
                                             currentRouteClientSide = r;
+                                            if (latestPhoto.borrowed_route) {
+                                                const parts = latestPhoto.borrowed_route.split(' - ');
+                                                if (parts.length > 1) currentRouteProvName = parts[1].trim();
+                                            }
                                         } else if (r === 'Ngoài giờ hoạt động') {
-                                            const valid = vPhotos.find(p => p.route_no && !specialRoutes.includes(p.route_no));
-                                            if (valid) currentRouteClientSide = (valid.route_no || '').trim();
+                                            const validPhotos = vPhotos.filter(p => p.route_no && !specialRoutes.includes(p.route_no.trim()));
+                                            if (validPhotos.length > 0) {
+                                                const latestValid = validPhotos[0];
+                                                currentRouteClientSide = (latestValid.route_no || '').trim();
+                                                if (latestValid.operator) currentOpClientSide = latestValid.operator.trim();
+                                                if (latestValid.borrowed_route) {
+                                                    const parts = latestValid.borrowed_route.split(' - ');
+                                                    if (parts.length > 1) currentRouteProvName = parts[1].trim();
+                                                }
+                                            }
                                         } else if (r === 'Dừng hoạt động' || r === 'Chưa hoạt động') {
                                             currentRouteClientSide = r;
                                         }
                                     }
+                                    
                                     if (vHist.length > 0) {
-                                        const histRoute = (vHist[0].route || '').trim();
-                                        if (histRoute && histRoute !== '-' && histRoute !== '---') {
-                                            currentRouteClientSide = histRoute;
+                                        const latestHist = vHist[vHist.length - 1];
+                                        const histTime = latestHist.parsed_effective_date ? new Date(latestHist.parsed_effective_date).getTime() : 0;
+                                        
+                                        if (!histTime || !photoTime || histTime >= photoTime) {
+                                            const histRoute = (latestHist.route || '').trim();
+                                            if (histRoute && histRoute !== '-' && histRoute !== '---') {
+                                                currentRouteClientSide = histRoute;
+                                            }
+                                            const histOp = (latestHist.operator || '').trim();
+                                            if (histOp && histOp !== '-' && histOp !== '---') {
+                                                currentOpClientSide = histOp;
+                                            }
                                         }
                                     }
                                     
-                                    if (currentRouteClientSide === decodedRoute) {
+                                    const isRouteMatch = currentRouteClientSide.toLowerCase() === decodedRoute.toLowerCase();
+                                    const isNotSpecial = !specialRoutes.includes(currentRouteClientSide);
+                                    let isProvMatch = true;
+                                    if (decodedProvince && currentRouteProvName) {
+                                        isProvMatch = currentRouteProvName.toLowerCase() === decodedProvince.toLowerCase();
+                                    }
+                                    
+                                    if (isRouteMatch && isNotSpecial && isProvMatch) {
                                         activeVehiclesCount++;
+                                        if (currentOpClientSide && currentOpClientSide !== '---' && currentOpClientSide !== 'N/A') {
+                                            activeOpCounts[currentOpClientSide] = (activeOpCounts[currentOpClientSide] || 0) + 1;
+                                        }
+                                        const vModel = vehicleModelMap[plate];
+                                        if (vModel && vModel !== '---') {
+                                            activeModelCounts[vModel] = (activeModelCounts[vModel] || 0) + 1;
+                                        }
                                     }
                                 });
                             } catch (e) {
@@ -11992,7 +12262,38 @@ if (!decodedProvince || decodedProvince.trim() === '') {
                         }
                         
                         document.getElementById('rte-stat-vehicles').innerText = app.utils.formatCompact(activeVehiclesCount);
-app.views.fetchRoutePhotosPage(1);
+                        
+                        // Xác định danh sách đơn vị vận hành và dòng xe hiển thị
+                        let dominantOps = Object.keys(activeOpCounts).sort((a, b) => activeOpCounts[b] - activeOpCounts[a]);
+                        let dominantModels = Object.keys(activeModelCounts).sort((a, b) => activeModelCounts[b] - activeModelCounts[a]);
+                        
+                        // Nếu không có xe nào đang hoạt động (ví dụ tuyến đã ngừng hoặc thiếu lịch sử), lấy theo dữ liệu ảnh của tuyến làm dự phòng
+                        if (dominantOps.length === 0 && app.route.routePhotos.length > 0) {
+                            const fallbackOpCounts = {};
+                            app.route.routePhotos.forEach(p => {
+                                const op = p.operator?.trim();
+                                if (op && op !== '---' && op !== 'N/A') {
+                                    fallbackOpCounts[op] = (fallbackOpCounts[op] || 0) + 1;
+                                }
+                            });
+                            dominantOps = Object.keys(fallbackOpCounts).sort((a, b) => fallbackOpCounts[b] - fallbackOpCounts[a]);
+                        }
+                        
+                        if (dominantModels.length === 0 && app.route.routePhotos.length > 0) {
+                            const fallbackModelCounts = {};
+                            app.route.routePhotos.forEach(p => {
+                                const mdl = p.vehicles?.model?.trim();
+                                if (mdl && mdl !== '---') {
+                                    fallbackModelCounts[mdl] = (fallbackModelCounts[mdl] || 0) + 1;
+                                }
+                            });
+                            dominantModels = Object.keys(fallbackModelCounts).sort((a, b) => fallbackModelCounts[b] - fallbackModelCounts[a]);
+                        }
+                        
+                        renderInfoValue(opEl, dominantOps, op => app.utils.navigate('/operator/' + encodeURIComponent(op)));
+                        renderInfoValue(mdlEl, dominantModels, mdl => app.utils.navigate('/model/' + encodeURIComponent(mdl)));
+                        
+                        app.views.fetchRoutePhotosPage(1);
                      } catch (err) {
                          console.error("Lỗi khi tải dữ liệu tuyến:", err);
                          grid.innerHTML = '<div class="col-span-full text-center py-10 text-red-500">Đã xảy ra lỗi khi tải dữ liệu. Vui lòng thử lại sau.</div>';
@@ -12445,6 +12746,9 @@ Object.assign(window.app, {
                          existingPrefs.type = app.preference.current;
                          existingPrefs.wmMode = app.wmState ? app.wmState.mode : 'basic';
                          existingPrefs.pinnedLocations = app.preference.pinnedLocations || [];
+                         delete existingPrefs.wmRotate;
+                         delete existingPrefs.wmScale;
+                         existingPrefs.wmBarScale = (app.wmState && app.wmState.barScale !== undefined) ? app.wmState.barScale : 1.0;
                          
                          await window.sb.from('profiles').update({
                              preferences: existingPrefs
@@ -13451,6 +13755,9 @@ Object.assign(window.app, {
                                 existingPrefs.type = curPref;
                                 existingPrefs.wmMode = mode;
                                 existingPrefs.pinnedLocations = (app.preference && app.preference.pinnedLocations) || [];
+                                delete existingPrefs.wmRotate;
+                                delete existingPrefs.wmScale;
+                                if (app.wmState && app.wmState.barScale !== undefined) existingPrefs.wmBarScale = app.wmState.barScale;
                                 window.sb.from('profiles').update({ preferences: existingPrefs }).eq('id', app.user.id).then(()=>{});
                             });
                         }
@@ -13516,6 +13823,7 @@ Object.assign(window.app, {
                         }
                     }
                 },
+                debouncedSaveWmPrefs: null,
                 toggleWmPanel: () => {
                     const panel = document.getElementById('wm-adjust-panel');
                     const btn = document.getElementById('btn-adjust-wm');
@@ -13533,52 +13841,162 @@ Object.assign(window.app, {
                         } else if (app.upload.updateWmModeSlider) {
                             setTimeout(() => app.upload.updateWmModeSlider(false), 10);
                         }
+                        const rotSlider = document.getElementById('wm-rotate-slider');
+                        const rotVal = document.getElementById('wm-rotate-val');
+                        if (rotSlider) {
+                            const r = (app.wmState && app.wmState.rotate !== undefined) ? app.wmState.rotate : 0;
+                            rotSlider.value = r;
+                            if (rotVal) rotVal.innerText = r + '°';
+                        }
+                        const scaleSlider = document.getElementById('wm-scale-slider');
+                        const scaleVal = document.getElementById('wm-scale-val');
+                        if (scaleSlider) {
+                            const s = Math.round(((app.wmState && app.wmState.scale !== undefined) ? app.wmState.scale : 1.0) * 100);
+                            scaleSlider.value = s;
+                            if (scaleVal) scaleVal.innerText = s + '%';
+                        }
+                        const barScaleSlider = document.getElementById('wm-bar-scale-slider');
+                        const barScaleVal = document.getElementById('wm-bar-scale-val');
+                        if (barScaleSlider) {
+                            const bs = Math.round(((app.wmState && app.wmState.barScale !== undefined) ? app.wmState.barScale : 1.0) * 100);
+                            barScaleSlider.value = bs;
+                            if (barScaleVal) barScaleVal.innerText = bs + '%';
+                        }
                     }
+                },
+                updateWmRotate: (val) => {
+                    const deg = parseInt(val, 10) || 0;
+                    if (!app.wmState) app.wmState = {};
+                    app.wmState.rotate = deg;
+                    const valEl = document.getElementById('wm-rotate-val');
+                    if (valEl) valEl.innerText = deg + '°';
+                    if (app.upload.clampWmPosition) app.upload.clampWmPosition();
                 },
                 updateWmScale: (val) => {
-                    app.wmState.scale = parseInt(val) / 100;
+                    const scaleVal = parseInt(val, 10) || 100;
+                    if (!app.wmState) app.wmState = {};
+                    app.wmState.scale = scaleVal / 100;
                     const valEl = document.getElementById('wm-scale-val');
-                    if (valEl) valEl.innerText = val + '%';
+                    if (valEl) valEl.innerText = scaleVal + '%';
+                    if (app.upload.clampWmPosition) app.upload.clampWmPosition();
+                },
+                updateWmBarScale: (val) => {
+                    const barScaleVal = parseInt(val, 10) || 100;
+                    if (!app.wmState) app.wmState = {};
+                    app.wmState.barScale = barScaleVal / 100;
+                    const valEl = document.getElementById('wm-bar-scale-val');
+                    if (valEl) valEl.innerText = barScaleVal + '%';
+                    try { localStorage.setItem('vnbus_wm_bar_scale', barScaleVal.toString()); } catch(e){}
+                    if (!app.upload.debouncedSaveWmPrefs) {
+                        app.upload.debouncedSaveWmPrefs = app.utils.debounce(() => {
+                            if (app.upload.savePreferencesToServer) app.upload.savePreferencesToServer();
+                        }, 500);
+                    }
+                    app.upload.debouncedSaveWmPrefs();
+                    if (app.previewUpdateSize) app.previewUpdateSize();
+                    if (app.upload.clampWmPosition) app.upload.clampWmPosition();
+                },
+                clampWmPosition: () => {
                     const el = document.getElementById('draggable-watermark');
                     const container = document.getElementById('preview-container');
-                    if (el && container) {
-                        el.style.transform = `translate(-50%, -50%) scale(${app.wmState.scale})`;
-                        const cRect = container.getBoundingClientRect();
-                        let currentLeft = app.wmState.x * cRect.width;
-                        let currentTop = app.wmState.y * cRect.height;
-                        const wHalf = (el.offsetWidth * app.wmState.scale) / 2;
-                        const hHalf = (el.offsetHeight * app.wmState.scale) / 2;
-                        const minLeft = wHalf;
-                        const maxLeft = Math.max(minLeft, cRect.width - wHalf);
-                        const minTop = hHalf;
-                        const maxTop = Math.max(minTop, cRect.height - hHalf - (cRect.height * 0.08));
-                        let newLeft = Math.max(minLeft, Math.min(currentLeft, maxLeft));
-                        let newTop = Math.max(minTop, Math.min(currentTop, maxTop));
-                        el.style.left = newLeft + 'px';
-                        el.style.top = newTop + 'px';
-                        app.wmState.x = newLeft / cRect.width;
-                        app.wmState.y = newTop / cRect.height;
+                    if (!el || !container) return;
+                    
+                    const scale = (app.wmState && app.wmState.scale !== undefined) ? app.wmState.scale : 1.0;
+                    const rotate = (app.wmState && app.wmState.rotate !== undefined) ? app.wmState.rotate : 0;
+                    const barScale = (app.wmState && app.wmState.barScale !== undefined) ? app.wmState.barScale : 1.0;
+                    
+                    el.style.transform = `translate(-50%, -50%) rotate(${rotate}deg) scale(${scale})`;
+                    
+                    const cWidth = container.clientWidth;
+                    const cHeight = container.clientHeight;
+                    if (!cWidth || !cHeight) return;
+                    
+                    const wmCanvas = document.getElementById('preview-wm-canvas');
+                    const rawW = wmCanvas ? (parseFloat(wmCanvas.style.width) || wmCanvas.width) : (el.offsetWidth || 100);
+                    const rawH = wmCanvas ? (parseFloat(wmCanvas.style.height) || wmCanvas.height) : (el.offsetHeight || 30);
+                    
+                    const rad = Math.abs((rotate || 0) * Math.PI / 180);
+                    const cos = Math.abs(Math.cos(rad));
+                    const sin = Math.abs(Math.sin(rad));
+                    
+                    const wHalf = (scale * (rawW * cos + rawH * sin)) / 2;
+                    const hHalf = (scale * (rawW * sin + rawH * cos)) / 2;
+                    
+                    const footerBarH = cHeight * 0.0576 * barScale;
+                    
+                    let minLeft = wHalf;
+                    let maxLeft = cWidth - wHalf;
+                    if (minLeft > maxLeft) {
+                        minLeft = cWidth / 2;
+                        maxLeft = cWidth / 2;
                     }
+
+                    let minTop = hHalf;
+                    let maxTop = cHeight - footerBarH - hHalf;
+                    if (minTop > maxTop) {
+                        minTop = (cHeight - footerBarH) / 2;
+                        maxTop = (cHeight - footerBarH) / 2;
+                    }
+                    
+                    let currentLeft = (app.wmState.x !== undefined ? app.wmState.x : 0.5) * cWidth;
+                    let currentTop = (app.wmState.y !== undefined ? app.wmState.y : 0.5) * cHeight;
+                    
+                    let newLeft = Math.max(minLeft, Math.min(currentLeft, maxLeft));
+                    let newTop = Math.max(minTop, Math.min(currentTop, maxTop));
+                    
+                    el.style.left = newLeft + 'px';
+                    el.style.top = newTop + 'px';
+                    
+                    app.wmState.x = newLeft / cWidth;
+                    app.wmState.y = newTop / cHeight;
                 },
                 resetWm: () => {
+                    if (!app.wmState) app.wmState = {};
+                    app.wmState.rotate = 0;
                     app.wmState.scale = 1.0;
+                    const savedBarScale = (typeof localStorage !== 'undefined' && localStorage.getItem('vnbus_wm_bar_scale') !== null) ? (parseInt(localStorage.getItem('vnbus_wm_bar_scale'), 10) / 100) : 1.0;
+                    if (app.wmState.barScale === undefined) {
+                        app.wmState.barScale = savedBarScale;
+                    }
                     app.wmState.color = 'white';
                     app.wmState.x = 0.5;
                     app.wmState.y = 0.5;
+                    
+                    const rotSlider = document.getElementById('wm-rotate-slider');
+                    if (rotSlider) rotSlider.value = 0;
+                    const rotVal = document.getElementById('wm-rotate-val');
+                    if (rotVal) rotVal.innerText = '0°';
+                    
                     const slider = document.getElementById('wm-scale-slider');
                     if (slider) slider.value = 100;
                     const valEl = document.getElementById('wm-scale-val');
                     if (valEl) valEl.innerText = '100%';
+                    
+                    const barSlider = document.getElementById('wm-bar-scale-slider');
+                    const bsPercent = Math.round((app.wmState.barScale !== undefined ? app.wmState.barScale : 1.0) * 100);
+                    if (barSlider) barSlider.value = bsPercent;
+                    const barValEl = document.getElementById('wm-bar-scale-val');
+                    if (barValEl) barValEl.innerText = bsPercent + '%';
+                    
                     const chk = document.getElementById('chk-wm-black');
                     if (chk) chk.checked = false;
+                    
+                    try {
+                        localStorage.removeItem('vnbus_wm_rotate');
+                        localStorage.removeItem('vnbus_wm_scale');
+                    } catch(e){}
+                    
                     const savedMode = (typeof localStorage !== 'undefined' && localStorage.getItem('vnbus_wm_mode')) || (app.wmState && app.wmState.mode) || 'basic';
                     app.upload.setWmMode(savedMode, false);
                     app.upload.toggleColor(false);
+                    
+                    if (app.previewUpdateSize) app.previewUpdateSize();
+                    
                     const el = document.getElementById('draggable-watermark');
                     if (el) {
                         el.style.left = '50%';
                         el.style.top = '50%';
-                        el.style.transform = `translate(-50%, -50%) scale(1.0)`;
+                        el.style.transform = `translate(-50%, -50%) rotate(0deg) scale(1.0)`;
                     }
                 },
                 previewBlob: async (btn) => {
@@ -13600,9 +14018,24 @@ Object.assign(window.app, {
                         }
                         if (!username) username = app.username || "Guest";
                         // Preview đúng hệ pipeline với nút upload: watermark trực tiếp Canvas
-                        // rồi nén WebP <=500KB trực tiếp không qua decode trung gian
-                        const wmCanvas = await app.utils.watermark(app.rawFile, username, app.wmState, app.upload.currentFilters || 'none', { embedBlind: true, returnCanvas: true });
-                        const previewBlob = await app.utils.compressToSizeLoop(wmCanvas, app.utils.getTargetMimeType(), 500);
+                        // Nấc 1: Làm nét chuẩn 100% (sharpenAmount: 0.20)
+                        let wmCanvas = await app.utils.watermark(app.rawFile, username, app.wmState, app.upload.currentFilters || 'none', { embedBlind: true, returnCanvas: true, skipSharpen: false, sharpenAmount: 0.20 });
+                        let previewBlob = null;
+                        try {
+                            previewBlob = await app.utils.compressToSizeLoop(wmCanvas, app.utils.getTargetMimeType(), 500);
+                        } catch (e) {
+                            // Nấc 2: Nếu vượt 500KB khi làm nét 100%, thử lại với làm nét nhẹ 50% (sharpenAmount: 0.10)
+                            console.warn("Ảnh vượt 500KB khi làm nét 100% ở 1080p, thử lại nấc 2: làm nét nhẹ 50%...", e);
+                            try {
+                                wmCanvas = await app.utils.watermark(app.rawFile, username, app.wmState, app.upload.currentFilters || 'none', { embedBlind: true, returnCanvas: true, sharpenAmount: 0.10 });
+                                previewBlob = await app.utils.compressToSizeLoop(wmCanvas, app.utils.getTargetMimeType(), 500);
+                            } catch (e2) {
+                                // Nấc 3 (Last Resort): Nếu vẫn vượt 500KB khi làm nét nhẹ 50%, cắt bỏ làm nét hoàn toàn
+                                console.warn("Ảnh vẫn vượt 500KB khi làm nét nhẹ 50%, kích hoạt Last Resort: bỏ qua làm nét...", e2);
+                                wmCanvas = await app.utils.watermark(app.rawFile, username, app.wmState, app.upload.currentFilters || 'none', { embedBlind: true, returnCanvas: true, skipSharpen: true });
+                                previewBlob = await app.utils.compressToSizeLoop(wmCanvas, app.utils.getTargetMimeType(), 500);
+                            }
+                        }
                         const url = URL.createObjectURL(previewBlob);
                         app.ui.showAlert(`<img src="${url}" class="w-full rounded-lg shadow-sm" style="max-height: 70vh; object-fit: contain;">`, null, null, { title: "Xem trước ảnh xuất ra", btnOkText: "Đóng" });
                     } catch (err) {
@@ -13646,29 +14079,110 @@ Object.assign(window.app, {
                         }
                     }
                 },
+                currentDenoise: 0,
+                basePreviewUrl: null,
+                basePreviewImage: null,
+                previewDenoiseUrl: null,
+                denoiseTimeout: null,
+                previewCanvas: null,
                 updateFilters: () => {
                     const b = Number(document.getElementById('adj-brightness')?.value || 100);
                     const c = Number(document.getElementById('adj-contrast')?.value || 100);
                     const s = Number(document.getElementById('adj-saturation')?.value || 100);
+                    const d = Number(document.getElementById('adj-denoise')?.value || 0);
                     const vb = document.getElementById('val-brightness');
                     const vc = document.getElementById('val-contrast');
                     const vs = document.getElementById('val-saturation');
+                    const vd = document.getElementById('val-denoise');
                     if(vb) vb.innerText = b + '%';
                     if(vc) vc.innerText = c + '%';
                     if(vs) vs.innerText = s + '%';
+                    if(vd) vd.innerText = d + '%';
                     const isDefault = (b === 100 && c === 100 && s === 100);
                     const filterString = isDefault ? 'none' : `brightness(${b}%) contrast(${c}%) saturate(${s}%)`;
                     const previewImg = document.getElementById('preview-img');
                     if(previewImg) previewImg.style.filter = filterString;
                     app.upload.currentFilters = filterString;
+                    app.upload.currentDenoise = d;
+
+                    if (app.upload.denoiseTimeout) clearTimeout(app.upload.denoiseTimeout);
+                    app.upload.denoiseTimeout = setTimeout(() => {
+                        app.upload.applyDenoisePreview();
+                    }, 50);
+                },
+                applyDenoisePreview: () => {
+                    const previewImg = document.getElementById('preview-img');
+                    if (!previewImg || !app.upload.basePreviewUrl) return;
+                    const d = app.upload.currentDenoise || 0;
+                    if (d <= 0) {
+                        if (app.upload.previewDenoiseUrl) {
+                            URL.revokeObjectURL(app.upload.previewDenoiseUrl);
+                            app.upload.previewDenoiseUrl = null;
+                        }
+                        if (app.upload.basePreviewUrl && previewImg.src !== app.upload.basePreviewUrl) {
+                            previewImg.src = app.upload.basePreviewUrl;
+                        }
+                        return;
+                    }
+                    const baseImg = (app.upload.basePreviewImage && app.upload.basePreviewImage.naturalWidth) ? app.upload.basePreviewImage : previewImg;
+                    const nw = baseImg.naturalWidth;
+                    const nh = baseImg.naturalHeight;
+                    if (!nw || !nh) return;
+
+                    if (!app.upload.previewCanvas) {
+                        app.upload.previewCanvas = document.createElement('canvas');
+                    }
+                    const cv = app.upload.previewCanvas;
+                    const maxDim = 1600;
+                    let pw = nw, ph = nh;
+                    if (pw > maxDim || ph > maxDim) {
+                        if (pw > ph) {
+                            ph = Math.round((ph * maxDim) / pw);
+                            pw = maxDim;
+                        } else {
+                            pw = Math.round((pw * maxDim) / ph);
+                            ph = maxDim;
+                        }
+                    }
+                    cv.width = pw;
+                    cv.height = ph;
+                    const ctx = cv.getContext('2d');
+                    ctx.drawImage(baseImg, 0, 0, pw, ph);
+
+                    if (app.denoise && app.denoise.processCanvas) {
+                        app.denoise.processCanvas(cv, d);
+                    }
+
+                    cv.toBlob((blob) => {
+                        if (!blob) return;
+                        if (app.upload.previewDenoiseUrl) {
+                            URL.revokeObjectURL(app.upload.previewDenoiseUrl);
+                        }
+                        app.upload.previewDenoiseUrl = URL.createObjectURL(blob);
+                        previewImg.src = app.upload.previewDenoiseUrl;
+                    }, 'image/jpeg', 0.92);
                 },
                 resetFilters: () => {
                     const b = document.getElementById('adj-brightness');
                     const c = document.getElementById('adj-contrast');
                     const s = document.getElementById('adj-saturation');
+                    const d = document.getElementById('adj-denoise');
                     if(b) b.value = 100;
                     if(c) c.value = 100;
                     if(s) s.value = 100;
+                    if(d) d.value = 0;
+                    app.upload.updateFilters();
+                },
+                stepFilter: (type, delta) => {
+                    const input = document.getElementById(`adj-${type}`);
+                    if (!input) return;
+                    const min = input.min !== '' ? Number(input.min) : 0;
+                    const max = input.max !== '' ? Number(input.max) : 100;
+                    const current = Number(input.value) || 0;
+                    let next = current + delta;
+                    if (next < min) next = min;
+                    if (next > max) next = max;
+                    input.value = next;
                     app.upload.updateFilters();
                 },
                 removeImage: () => {
@@ -13697,6 +14211,20 @@ Object.assign(window.app, {
                         previewImg.onload = null;
                         previewImg.onerror = null;
                         previewImg.removeAttribute('src');
+                    }
+                    if (app.upload.previewDenoiseUrl) {
+                        URL.revokeObjectURL(app.upload.previewDenoiseUrl);
+                        app.upload.previewDenoiseUrl = null;
+                    }
+                    if (app.upload.basePreviewUrl) {
+                        URL.revokeObjectURL(app.upload.basePreviewUrl);
+                        app.upload.basePreviewUrl = null;
+                    }
+                    app.upload.basePreviewImage = null;
+                    app.upload.currentDenoise = 0;
+                    if (app.upload.denoiseTimeout) {
+                        clearTimeout(app.upload.denoiseTimeout);
+                        app.upload.denoiseTimeout = null;
                     }
                     if (app.webrtc && app.webrtc.resetMobile) app.webrtc.resetMobile();
                     app.rawFile = null;
@@ -13864,9 +14392,9 @@ Object.assign(window.app, {
                                 }
                             }
                             const validateAndResolve = (fraudFlag) => {
-                                if (!model) { reject("EXIF ảnh thiếu trường Tên thiết bị chụp (Camera Model). Bạn vui lòng chọn file ảnh gốc nhé!" + helpLinkHTML); return; }
-                                if (!dateTimeOriginal) { reject("EXIF ảnh thiếu trường Ngày giờ chụp (DateTimeOriginal). Bạn vui lòng chọn file ảnh gốc nhé!" + helpLinkHTML); return; }
-                                if (!exposureTime || !iso) { reject("EXIF ảnh thiếu trường Thông số kỹ thuật (Exposure/ISO). Bạn vui lòng chọn file ảnh gốc nhé!" + helpLinkHTML); return; }
+                                if (!model) { reject("EXIF ảnh thiếu thông tin máy ảnh (Camera Model). Bạn vui lòng chọn file ảnh gốc nhé!" + helpLinkHTML); return; }
+                                if (!dateTimeOriginal) { reject("EXIF ảnh thiếu thông tin ngày giờ chụp. Bạn vui lòng chọn file ảnh gốc nhé!" + helpLinkHTML); return; }
+                                if (!exposureTime || !iso) { reject("EXIF ảnh thiếu thông số phơi sáng/ISO. Bạn vui lòng chọn file ảnh gốc nhé!" + helpLinkHTML); return; }
                                 let shutter = exposureTime;
                                 if (exposureTime && exposureTime < 1) shutter = `1/${Math.round(1 / exposureTime)}`;
                                 let dateStr = "";
@@ -13964,7 +14492,7 @@ Object.assign(window.app, {
                                 if (progToast && progToast.remove) progToast.remove();
                             }
                         } else if (isRawFile) {
-                            const progToast = app.toast.createProgress('Đang giải mã ảnh RAW nét gốc (Full Resolution)...');
+                            const progToast = app.toast.createProgress('Đang giải mã ảnh RAW độ phân giải gốc...');
                             if (progToast) progToast.update(40, 'Đang giải mã ảnh RAW nét gốc...', 'Đang xử lý dữ liệu cảm biến 100% độ phân giải...');
                             try {
                                 fileToLoad = await decodeFullRaw(file);
@@ -14081,7 +14609,7 @@ Object.assign(window.app, {
                                     URL.revokeObjectURL(url);
                                 };
                                 newImg.onerror = () => {
-                                    app.ui.showAlert("Định dạng ảnh (RAW/JPG) không được hỗ trợ hoặc file bị hỏng.");
+                                    app.ui.showAlert("Định dạng ảnh không được hỗ trợ hoặc file bị hỏng.");
                                     const fileInput = document.getElementById('up-file');
                                     if (fileInput) fileInput.value = ''; URL.revokeObjectURL(newUrl); URL.revokeObjectURL(url);
                                     if (app.upload.restoreDropZone) app.upload.restoreDropZone();
@@ -14111,8 +14639,21 @@ Object.assign(window.app, {
                     if (!app.crop.sourceImage) {
                         app.crop.sourceImage = file;
                     }
+                    if (app.upload.previewDenoiseUrl) {
+                        URL.revokeObjectURL(app.upload.previewDenoiseUrl);
+                        app.upload.previewDenoiseUrl = null;
+                    }
+                    if (app.upload.basePreviewUrl) {
+                        URL.revokeObjectURL(app.upload.basePreviewUrl);
+                    }
                     const url = URL.createObjectURL(file);
-                    const previewImg = document.getElementById('preview-img');
+                    app.upload.basePreviewUrl = url;
+                    app.upload.basePreviewImage = new Image();
+                    app.upload.basePreviewImage.src = url;
+                    document.getElementById('preview-box').classList.remove('hidden');
+                    document.getElementById('drop-zone').classList.add('hidden');
+                    if (app.upload.restoreDropZone) app.upload.restoreDropZone();
+
                     previewImg.onload = () => {
                         const updateSize = () => {
                             const nw = previewImg.naturalWidth, nh = previewImg.naturalHeight;
@@ -14121,7 +14662,13 @@ Object.assign(window.app, {
                             const box = document.getElementById('preview-box');
                             container.style.width = '100%';
                             container.style.height = 'auto';
-                            const availableWidth = box.clientWidth;
+                            let availableWidth = box ? box.clientWidth : 0;
+                            if (!availableWidth && box && box.parentElement) {
+                                availableWidth = box.parentElement.clientWidth;
+                            }
+                            if (!availableWidth) {
+                                availableWidth = Math.min(window.innerWidth - 32, 600);
+                            }
                             const availableHeight = window.innerHeight * 0.65;
                             const ratio = nw / nh;
                             let finalW = availableWidth;
@@ -14130,21 +14677,59 @@ Object.assign(window.app, {
                                 finalH = availableHeight;
                                 finalW = finalH * ratio;
                             }
+                            finalW = Math.round(finalW);
+                            finalH = Math.round(finalH);
                             container.style.width = finalW + 'px';
                             container.style.height = finalH + 'px';
-                            const barHeight = finalH * 0.0576;
-                            const baseFontSize = finalH * 0.02304;
-                            const watermarkFontSize = finalH * 0.096;
+
+                            const barScale = (app.wmState && app.wmState.barScale !== undefined) ? app.wmState.barScale : 1.0;
+                            const barHeight = finalH * 0.0576 * barScale;
                             const footerBar = document.getElementById('preview-footer-bar');
                             if (footerBar) {
                                 footerBar.style.height = barHeight + 'px';
-                                footerBar.style.paddingLeft = (barHeight / 2) + 'px';
-                                footerBar.style.paddingRight = (barHeight / 2) + 'px';
+                                let footerCanvas = document.getElementById('preview-footer-canvas');
+                                if (!footerCanvas) {
+                                    footerCanvas = document.createElement('canvas');
+                                    footerCanvas.id = 'preview-footer-canvas';
+                                    footerCanvas.className = 'w-full h-full block pointer-events-none';
+                                    footerBar.innerHTML = '';
+                                    footerBar.appendChild(footerCanvas);
+                                }
+                                const dpr = window.devicePixelRatio || 1;
+                                const ch = Math.max(1, Math.round(barHeight));
+                                footerCanvas.width = Math.round(finalW * dpr);
+                                footerCanvas.height = Math.round(ch * dpr);
+                                footerCanvas.style.width = finalW + 'px';
+                                footerCanvas.style.height = ch + 'px';
+
+                                const fCtx = footerCanvas.getContext('2d');
+                                fCtx.scale(dpr, dpr);
+                                fCtx.clearRect(0, 0, finalW, ch);
+
+                                fCtx.fillStyle = "rgba(255, 255, 255, 0.2)";
+                                fCtx.fillRect(0, 0, finalW, Math.max(1, 1.5 * barScale * (finalH / 1080)));
+
+                                const fontFace = '"Montserrat", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif';
+                                const fontSize = barHeight * 0.4;
+                                const textY = (barHeight / 2) + (fontSize * 0.35);
+                                const padX = barHeight / 2;
+
+                                fCtx.fillStyle = "white";
+                                fCtx.textBaseline = 'alphabetic';
+                                fCtx.textAlign = 'left';
+                                fCtx.font = `italic 900 ${fontSize}px ${fontFace}`;
+                                fCtx.fillText("VNBUSARCHIVE", padX, textY);
+                                const vnbusWidth = fCtx.measureText("VNBUSARCHIVE").width;
+                                fCtx.font = `italic 700 ${fontSize * 0.8}px ${fontFace}`;
+                                fCtx.fillText(".io.vn", padX + vnbusWidth, textY);
+
+                                fCtx.textBaseline = 'middle';
+                                fCtx.font = `700 ${fontSize}px ${fontFace}`;
+                                fCtx.textAlign = 'right';
+                                const name = app.username || "Guest";
+                                fCtx.fillText(`Bản quyền bởi ${name}`, finalW - padX, barHeight / 2);
                             }
-                            const leftText = document.querySelector('.footer-text-left');
-                            const rightText = document.getElementById('preview-footer-copy');
-                            if (leftText) leftText.style.fontSize = baseFontSize + 'px';
-                            if (rightText) rightText.style.fontSize = baseFontSize + 'px';
+
                             const wmDrag = document.getElementById('draggable-watermark');
                             if (wmDrag) {
                                 let wmCanvas = document.getElementById('preview-wm-canvas');
@@ -14158,24 +14743,34 @@ Object.assign(window.app, {
                                 }
                                 const text = `© ${app.username || 'Guest'}`;
                                 const fontFace = '"Montserrat", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif';
+                                const watermarkFontSize = finalH * 0.096;
                                 const font = `700 ${watermarkFontSize}px ${fontFace}`;
                                 const ctx = wmCanvas.getContext('2d');
                                 ctx.font = font;
                                 const metrics = ctx.measureText(text);
-                                wmCanvas.width = metrics.width + 4; 
-                                wmCanvas.height = watermarkFontSize * 1.5; 
+                                const rawW = Math.ceil(metrics.width + 4);
+                                const rawH = Math.ceil(watermarkFontSize * 1.5);
+                                const dpr = window.devicePixelRatio || 1;
+                                wmCanvas.width = rawW * dpr;
+                                wmCanvas.height = rawH * dpr;
+                                wmCanvas.style.width = rawW + 'px';
+                                wmCanvas.style.height = rawH + 'px';
+                                ctx.scale(dpr, dpr);
                                 ctx.font = font;
                                 ctx.textAlign = 'center';
                                 ctx.textBaseline = 'middle';
                                 ctx.fillStyle = wmDrag.classList.contains('wm-black') ? 'black' : 'white';
-                                ctx.clearRect(0, 0, wmCanvas.width, wmCanvas.height);
-                                ctx.fillText(text, wmCanvas.width / 2, wmCanvas.height / 2);
-                                const currentScale = app.wmState ? (app.wmState.scale || 1.0) : 1.0;
-                                wmDrag.style.transform = `translate(-50%, -50%) scale(${currentScale})`;
+                                ctx.clearRect(0, 0, rawW, rawH);
+                                ctx.fillText(text, rawW / 2, rawH / 2);
+
+                                const currentScale = app.wmState ? (app.wmState.scale !== undefined ? app.wmState.scale : 1.0) : 1.0;
+                                const currentRotate = app.wmState ? (app.wmState.rotate !== undefined ? app.wmState.rotate : 0) : 0;
+                                wmDrag.style.transform = `translate(-50%, -50%) rotate(${currentRotate}deg) scale(${currentScale})`;
                                 if (app.wmState) {
                                     wmDrag.style.left = (app.wmState.x * finalW) + 'px';
                                     wmDrag.style.top = (app.wmState.y * finalH) + 'px';
                                 }
+                                if (app.upload.clampWmPosition) app.upload.clampWmPosition();
                             }
                         };
                         updateSize();
@@ -14192,7 +14787,9 @@ Object.assign(window.app, {
                                     const ch = container.clientHeight;
                                     wmDrag.style.left = (app.wmState.x * cw) + 'px';
                                     wmDrag.style.top = (app.wmState.y * ch) + 'px';
-                                    wmDrag.style.transform = `translate(-50%, -50%) scale(${app.wmState.scale})`;
+                                    const rot = (app.wmState.rotate !== undefined) ? app.wmState.rotate : 0;
+                                    const sc = (app.wmState.scale !== undefined) ? app.wmState.scale : 1.0;
+                                    wmDrag.style.transform = `translate(-50%, -50%) rotate(${rot}deg) scale(${sc})`;
                                 }
                             }
                             if (pending.blurs && pending.blurs.length > 0) {
@@ -14214,14 +14811,9 @@ Object.assign(window.app, {
                         if (app.upload.updateBlurBtn) app.upload.updateBlurBtn();
                     };
                     previewImg.src = url;
-                    document.getElementById('preview-box').classList.remove('hidden');
-                    document.getElementById('drop-zone').classList.add('hidden');
-                    if (app.upload.restoreDropZone) app.upload.restoreDropZone();
                     const name = app.username || "Guest";
                     const wmName = document.getElementById('wm-username');
                     if (wmName) wmName.innerText = name;
-                    const footerCopy = document.getElementById('preview-footer-copy');
-                    if (footerCopy) footerCopy.innerText = `Bản quyền bởi ${name}`;
                     const wmDrag = document.getElementById('draggable-watermark');
                     if (wmDrag) {
                         if (app.wmState && app.wmState.mode === 'standard') {
@@ -14231,7 +14823,7 @@ Object.assign(window.app, {
                         }
                         wmDrag.classList.remove('wm-active');
                     }
-                    if (app.upload.resetWm) app.upload.resetWm();
+                    if (!app.upload._draftPending && app.upload.resetWm) app.upload.resetWm();
                     if (app.upload.resetFilters) app.upload.resetFilters();
                 },
                 initDraggable: () => {
@@ -14277,14 +14869,38 @@ Object.assign(window.app, {
                         const dy = clientY - startY;
                         let newLeft = initialLeft + dx;
                         let newTop = initialTop + dy;
-                        const scale = app.wmState.scale || 1.0;
-                        const wHalf = (el.offsetWidth * scale) / 2;
-                        const hHalf = (el.offsetHeight * scale) / 2;
+                        const scale = (app.wmState && app.wmState.scale !== undefined) ? app.wmState.scale : 1.0;
+                        const rotate = (app.wmState && app.wmState.rotate !== undefined) ? app.wmState.rotate : 0;
+                        const barScale = (app.wmState && app.wmState.barScale !== undefined) ? app.wmState.barScale : 1.0;
+
+                        const wmCanvas = document.getElementById('preview-wm-canvas');
+                        const rawW = wmCanvas ? (parseFloat(wmCanvas.style.width) || wmCanvas.width) : (el.offsetWidth || 100);
+                        const rawH = wmCanvas ? (parseFloat(wmCanvas.style.height) || wmCanvas.height) : (el.offsetHeight || 30);
+
+                        const rad = Math.abs(rotate * Math.PI / 180);
+                        const cos = Math.abs(Math.cos(rad));
+                        const sin = Math.abs(Math.sin(rad));
+
+                        const wHalf = (scale * (rawW * cos + rawH * sin)) / 2;
+                        const hHalf = (scale * (rawW * sin + rawH * cos)) / 2;
+
                         const cRect = container.getBoundingClientRect();
-                        const minLeft = wHalf;
-                        const maxLeft = Math.max(minLeft, cRect.width - wHalf);
-                        const minTop = hHalf;
-                        const maxTop = Math.max(minTop, cRect.height - hHalf - (cRect.height * 0.08));
+                        const footerBarH = cRect.height * 0.0576 * barScale;
+
+                        let minLeft = wHalf;
+                        let maxLeft = cRect.width - wHalf;
+                        if (minLeft > maxLeft) {
+                            minLeft = cRect.width / 2;
+                            maxLeft = cRect.width / 2;
+                        }
+
+                        let minTop = hHalf;
+                        let maxTop = cRect.height - footerBarH - hHalf;
+                        if (minTop > maxTop) {
+                            minTop = (cRect.height - footerBarH) / 2;
+                            maxTop = (cRect.height - footerBarH) / 2;
+                        }
+
                         newLeft = Math.max(minLeft, Math.min(newLeft, maxLeft));
                         newTop = Math.max(minTop, Math.min(newTop, maxTop));
                         el.style.left = newLeft + 'px';
@@ -14371,14 +14987,29 @@ Object.assign(window.app, {
                     const bgWebpPromise = new Promise((resolve, reject) => {
                         setTimeout(async () => {
                             try {
-                                const finalCanvas = await app.utils.watermark(rawFile, username, app.wmState, currentFilters, { embedBlind: true, returnCanvas: true });
+                                // Nấc 1: Làm nét chuẩn 100% (sharpenAmount: 0.20)
+                                let finalCanvas = await app.utils.watermark(rawFile, username, app.wmState, currentFilters, { embedBlind: true, returnCanvas: true, skipSharpen: false, sharpenAmount: 0.20 });
                                 let blobToProcess = null;
                                 try {
                                     blobToProcess = await app.utils.compressToSizeLoop(finalCanvas, targetMime, 500);
                                 } catch (e) {
-                                    console.warn("compressToSizeLoop lỗi:", e);
-                                    reject(e);
-                                    return;
+                                    // Nấc 2: Nếu vượt 500KB khi làm nét 100%, thử lại với làm nét nhẹ 50% (sharpenAmount: 0.10)
+                                    console.warn("Ảnh vượt 500KB khi làm nét 100% ở 1080p, thử lại nấc 2: làm nét nhẹ 50%...", e);
+                                    try {
+                                        finalCanvas = await app.utils.watermark(rawFile, username, app.wmState, currentFilters, { embedBlind: true, returnCanvas: true, sharpenAmount: 0.10 });
+                                        blobToProcess = await app.utils.compressToSizeLoop(finalCanvas, targetMime, 500);
+                                    } catch (e2) {
+                                        // Nấc 3 (Last Resort): Nếu vẫn vượt 500KB khi làm nét nhẹ 50%, kích hoạt Last Resort: bỏ qua làm nét hoàn toàn
+                                        console.warn("Ảnh vẫn vượt 500KB khi làm nét nhẹ 50%, kích hoạt Last Resort: bỏ qua làm nét...", e2);
+                                        try {
+                                            finalCanvas = await app.utils.watermark(rawFile, username, app.wmState, currentFilters, { embedBlind: true, returnCanvas: true, skipSharpen: true });
+                                            blobToProcess = await app.utils.compressToSizeLoop(finalCanvas, targetMime, 500);
+                                        } catch (retryErr) {
+                                            console.warn("compressToSizeLoop lỗi cả khi bỏ qua làm nét:", retryErr);
+                                            reject(retryErr);
+                                            return;
+                                        }
+                                    }
                                 }
                                 if (blobToProcess && blobToProcess instanceof Blob && !(blobToProcess instanceof File)) {
                                     resolve(new File([blobToProcess], rawFile.name.replace(/\.[^/.]+$/, "") + ".webp", { type: 'image/webp' }));
@@ -15080,8 +15711,14 @@ Object.assign(window.app, {
             const sw = sourceCanvas.width;
             const sh = sourceCanvas.height;
 
+            // Đảm bảo context của sourceCanvas ở trạng thái ma trận đơn vị (identity transform)
+            const srcCtx = sourceCanvas.getContext('2d');
+            srcCtx.save();
+            srcCtx.setTransform(1, 0, 0, 1, 0, 0);
+
             if (sw <= maxSafeDim && sh <= maxSafeDim) {
                 this._renderGL(sourceCanvas, 0, 0, sw, sh, strength);
+                srcCtx.restore();
                 return sourceCanvas;
             }
 
@@ -15090,12 +15727,13 @@ Object.assign(window.app, {
             const pad = 6;
             const tempCv = document.createElement('canvas');
             const tempCtx = tempCv.getContext('2d');
-            const srcCtx = sourceCanvas.getContext('2d');
 
             const originalCopyCv = document.createElement('canvas');
             originalCopyCv.width = sw;
             originalCopyCv.height = sh;
-            originalCopyCv.getContext('2d').drawImage(sourceCanvas, 0, 0);
+            const copyCtx = originalCopyCv.getContext('2d');
+            copyCtx.setTransform(1, 0, 0, 1, 0, 0);
+            copyCtx.drawImage(sourceCanvas, 0, 0);
 
             for (let y = 0; y < sh; y += tileSize) {
                 for (let x = 0; x < sw; x += tileSize) {
@@ -15111,16 +15749,19 @@ Object.assign(window.app, {
 
                     tempCv.width = cropW;
                     tempCv.height = cropH;
+                    tempCtx.setTransform(1, 0, 0, 1, 0, 0);
                     tempCtx.drawImage(originalCopyCv, sx, sy, cropW, cropH, 0, 0, cropW, cropH);
 
                     this._renderGL(tempCv, 0, 0, cropW, cropH, strength);
 
                     const offsetX = x - sx;
                     const offsetY = y - sy;
+                    srcCtx.setTransform(1, 0, 0, 1, 0, 0);
                     srcCtx.drawImage(tempCv, offsetX, offsetY, tw, th, x, y, tw, th);
                 }
             }
 
+            srcCtx.restore();
             return sourceCanvas;
         },
 
@@ -15156,7 +15797,10 @@ Object.assign(window.app, {
             gl.drawArrays(gl.TRIANGLES, 0, 6);
 
             const ctx = targetCanvas.getContext('2d');
+            ctx.save();
+            ctx.setTransform(1, 0, 0, 1, 0, 0);
             ctx.drawImage(this.glCanvas, 0, 0);
+            ctx.restore();
 
             gl.deleteTexture(texture);
         },
@@ -15224,7 +15868,7 @@ Object.assign(window.app, {
     },
 
     crop: {
-        state: { x: 0, y: 0, scale: 1, rotation: 0, minScale: 1, denoise: 0 },
+        state: { x: 0, y: 0, scale: 1, rotation: 0, minScale: 1 },
         isDragging: false,
         eventsAttached: false,
         startX: 0,
@@ -15240,12 +15884,8 @@ Object.assign(window.app, {
         isMandatory: false,
         isProcessing: false,
         closeTimeout: null,
-        denoiseTimeout: null,
-        previewCanvas: null,
-        previewDenoiseUrl: null,
         baseSrc: null,
         baseImageElement: null,
-        isComparingDenoise: false,
         open: async (mode, file = null, isMandatory = false) => {
             if (app.crop.closeTimeout) {
                 clearTimeout(app.crop.closeTimeout);
@@ -15307,10 +15947,6 @@ Object.assign(window.app, {
             app.crop.baseSrc = url;
             app.crop.baseImageElement = new Image();
             app.crop.baseImageElement.src = url;
-            if (app.crop.previewDenoiseUrl) {
-                URL.revokeObjectURL(app.crop.previewDenoiseUrl);
-                app.crop.previewDenoiseUrl = null;
-            }
             img.onload = () => {
                 img.onload = null;
                 img.onerror = null;
@@ -15325,7 +15961,7 @@ Object.assign(window.app, {
                         if (app.crop.savedState && mode === 'main') {
                             app.crop.state = { ...app.crop.savedState };
                         } else {
-                            app.crop.state = { x: 0, y: 0, scale: 1, rotation: 0, baseRotation: 0, minScale: 1, denoise: 0 };
+                            app.crop.state = { x: 0, y: 0, scale: 1, rotation: 0, baseRotation: 0, minScale: 1 };
                         }
                         const freeRotation = app.crop.state.rotation - (app.crop.state.baseRotation || 0);
                         const rotateSlider = document.getElementById('crop-rotate-slider');
@@ -15333,14 +15969,6 @@ Object.assign(window.app, {
                         const rotateVal = document.getElementById('crop-rotate-val');
                         if (rotateVal) rotateVal.innerText = (freeRotation > 0 ? '+' : '') + freeRotation + '°';
 
-                        const denoiseVal = (typeof app.crop.state.denoise === 'number') ? app.crop.state.denoise : 0;
-                        const denoiseSlider = document.getElementById('crop-denoise-slider');
-                        if (denoiseSlider) denoiseSlider.value = denoiseVal;
-                        const denoiseValLabel = document.getElementById('crop-denoise-val');
-                        if (denoiseValLabel) denoiseValLabel.innerText = denoiseVal + '%';
-                        if (denoiseVal > 0) {
-                            app.crop.applyDenoisePreview();
-                        }
                         const rulerBtn = document.getElementById('btn-crop-toggle-ruler');
                         if (mode === 'avatar') {
                             if (modePanel) modePanel.classList.add('hidden');
@@ -15572,17 +16200,15 @@ Object.assign(window.app, {
             const slider = document.getElementById('crop-mode-slider');
             const btnRatio = document.getElementById('btn-crop-mode-ratio');
             const btnRotate = document.getElementById('btn-crop-mode-rotate');
-            const btnDenoise = document.getElementById('btn-crop-mode-denoise');
             const ratioControls = document.getElementById('crop-ratios');
             const rotateControls = document.getElementById('crop-rotate-controls');
-            const denoiseControls = document.getElementById('crop-denoise-controls');
 
-            [btnRatio, btnRotate, btnDenoise].forEach(btn => {
+            [btnRatio, btnRotate].forEach(btn => {
                 if (!btn) return;
                 btn.classList.remove('text-black');
                 btn.classList.add('text-gray-500', 'hover:text-black');
             });
-            [ratioControls, rotateControls, denoiseControls].forEach(c => {
+            [ratioControls, rotateControls].forEach(c => {
                 if (!c) return;
                 c.classList.add('hidden');
                 c.classList.remove('flex');
@@ -15591,104 +16217,18 @@ Object.assign(window.app, {
             if (tab === 'ratio') {
                 if (slider) {
                     slider.style.left = '4px';
-                    slider.style.width = 'calc((100% - 14px) / 3)';
+                    slider.style.width = 'calc((100% - 14px) / 2)';
                 }
                 if (btnRatio) { btnRatio.classList.add('text-black'); btnRatio.classList.remove('text-gray-500', 'hover:text-black'); }
                 if (ratioControls) { ratioControls.classList.remove('hidden'); ratioControls.classList.add('flex'); }
             } else if (tab === 'rotate') {
                 if (slider) {
-                    slider.style.left = 'calc((100% - 14px) / 3 + 7px)';
-                    slider.style.width = 'calc((100% - 14px) / 3)';
+                    slider.style.left = 'calc((100% - 14px) / 2 + 7px)';
+                    slider.style.width = 'calc((100% - 14px) / 2)';
                 }
                 if (btnRotate) { btnRotate.classList.add('text-black'); btnRotate.classList.remove('text-gray-500', 'hover:text-black'); }
                 if (rotateControls) { rotateControls.classList.remove('hidden'); rotateControls.classList.add('flex'); }
-            } else if (tab === 'denoise') {
-                if (slider) {
-                    slider.style.left = 'calc(2 * (100% - 14px) / 3 + 10px)';
-                    slider.style.width = 'calc((100% - 14px) / 3)';
-                }
-                if (btnDenoise) { btnDenoise.classList.add('text-black'); btnDenoise.classList.remove('text-gray-500', 'hover:text-black'); }
-                if (denoiseControls) { denoiseControls.classList.remove('hidden'); denoiseControls.classList.add('flex'); }
             }
-        },
-        slideDenoise: (val) => {
-            const v = parseInt(val) || 0;
-            app.crop.state.denoise = v;
-            const label = document.getElementById('crop-denoise-val');
-            if (label) label.innerText = v + '%';
-
-            if (app.crop.denoiseTimeout) clearTimeout(app.crop.denoiseTimeout);
-            app.crop.denoiseTimeout = setTimeout(() => {
-                app.crop.applyDenoisePreview();
-            }, 50);
-        },
-        stepDenoise: (delta) => {
-            const slider = document.getElementById('crop-denoise-slider');
-            let current = slider ? (parseInt(slider.value) || 0) : 0;
-            let newVal = current + delta;
-            if (newVal < 0) newVal = 0;
-            if (newVal > 100) newVal = 100;
-            if (slider) slider.value = newVal;
-            app.crop.slideDenoise(newVal);
-        },
-        applyDenoisePreview: () => {
-            const img = document.getElementById('crop-image');
-            if (!img) return;
-            const v = app.crop.state.denoise;
-            if (v <= 0) {
-                if (app.crop.previewDenoiseUrl) {
-                    URL.revokeObjectURL(app.crop.previewDenoiseUrl);
-                    app.crop.previewDenoiseUrl = null;
-                }
-                if (app.crop.baseSrc) {
-                    if (app.crop.originalWidth && app.crop.originalHeight) {
-                        img.style.setProperty('width', app.crop.originalWidth + 'px', 'important');
-                        img.style.setProperty('height', app.crop.originalHeight + 'px', 'important');
-                    }
-                    img.src = app.crop.baseSrc;
-                }
-                return;
-            }
-
-            const baseImg = (app.crop.baseImageElement && app.crop.baseImageElement.naturalWidth) ? app.crop.baseImageElement : img;
-            const origW = app.crop.originalWidth || baseImg.naturalWidth;
-            const origH = app.crop.originalHeight || baseImg.naturalHeight;
-            if (!origW || !origH) return;
-
-            if (!app.crop.previewCanvas) {
-                app.crop.previewCanvas = document.createElement('canvas');
-            }
-            const cv = app.crop.previewCanvas;
-
-            const maxDim = 1600;
-            let pw = origW;
-            let ph = origH;
-            if (pw > maxDim || ph > maxDim) {
-                if (pw > ph) {
-                    ph = Math.round((ph * maxDim) / pw);
-                    pw = maxDim;
-                } else {
-                    pw = Math.round((pw * maxDim) / ph);
-                    ph = maxDim;
-                }
-            }
-            cv.width = pw;
-            cv.height = ph;
-            const ctx = cv.getContext('2d');
-            ctx.drawImage(baseImg, 0, 0, pw, ph);
-
-            app.denoise.processCanvas(cv, v);
-
-            cv.toBlob((blob) => {
-                if (!blob) return;
-                if (app.crop.previewDenoiseUrl) {
-                    URL.revokeObjectURL(app.crop.previewDenoiseUrl);
-                }
-                app.crop.previewDenoiseUrl = URL.createObjectURL(blob);
-                img.style.setProperty('width', origW + 'px', 'important');
-                img.style.setProperty('height', origH + 'px', 'important');
-                img.src = app.crop.previewDenoiseUrl;
-            }, 'image/jpeg', 0.92);
         },
         slideRotate: (val) => {
             const freeRotation = parseFloat(val);
@@ -15811,10 +16351,6 @@ Object.assign(window.app, {
                 clearTimeout(app.crop.closeTimeout);
                 app.crop.closeTimeout = null;
             }
-            if (app.crop.denoiseTimeout) {
-                clearTimeout(app.crop.denoiseTimeout);
-                app.crop.denoiseTimeout = null;
-            }
             const img = document.getElementById('crop-image');
             if (img) {
                 img.onload = null;
@@ -15839,10 +16375,6 @@ Object.assign(window.app, {
                         transform-origin: center center;
                         pointer-events: none;
                     `;
-                }
-                if (app.crop.previewDenoiseUrl) {
-                    URL.revokeObjectURL(app.crop.previewDenoiseUrl);
-                    app.crop.previewDenoiseUrl = null;
                 }
                 app.ui.unlockScroll();
                 if (app.crop.isMandatory) {
@@ -15886,6 +16418,7 @@ Object.assign(window.app, {
                 const ctx = canvas.getContext('2d');
                 ctx.imageSmoothingEnabled = true;
                 ctx.imageSmoothingQuality = 'high';
+                ctx.save();
                 ctx.translate(
                     canvas.width / 2 + (app.crop.state.x * multiplier),
                     canvas.height / 2 + (app.crop.state.y * multiplier)
@@ -15904,10 +16437,8 @@ Object.assign(window.app, {
                     origW,
                     origH
                 );
-
-                if (app.crop.state.denoise > 0) {
-                    app.denoise.processCanvas(canvas, app.crop.state.denoise);
-                }
+                ctx.restore();
+                ctx.setTransform(1, 0, 0, 1, 0, 0);
 
                 if (app.crop.mode === 'main') {
                     if (canvas.height < 1080) {
@@ -15929,7 +16460,17 @@ Object.assign(window.app, {
                             app.upload.setupPreview(blob);
                         } else {
                             app.rawFile = blob;
+                            if (app.upload.previewDenoiseUrl) {
+                                URL.revokeObjectURL(app.upload.previewDenoiseUrl);
+                                app.upload.previewDenoiseUrl = null;
+                            }
+                            if (app.upload.basePreviewUrl) {
+                                URL.revokeObjectURL(app.upload.basePreviewUrl);
+                            }
                             const url = URL.createObjectURL(blob);
+                            app.upload.basePreviewUrl = url;
+                            app.upload.basePreviewImage = new Image();
+                            app.upload.basePreviewImage.src = url;
                             const previewImg = document.getElementById('preview-img');
                             previewImg.src = url;
                             document.querySelectorAll('.blur-panel').forEach(p => p.remove());
@@ -15954,25 +16495,17 @@ Object.assign(window.app, {
             }, 50);
         },
         confirmReset: () => {
-            app.ui.showAlert('Bạn có chắc muốn đặt lại ảnh từ đầu? Các thao tác cắt, xoay, khử nhiễu sẽ bị hủy.', () => {
+            app.ui.showAlert('Bạn có chắc muốn đặt lại ảnh từ đầu? Các thao tác cắt, xoay sẽ bị hủy.', () => {
                 app.crop.reset();
             }, () => {}, { isConfirm: true, confirmText: 'Đặt lại', confirmColor: 'bg-red-600 hover:bg-red-700' });
         },
         reset: () => {
             app.crop.savedState = null;
-            app.crop.state = { x: 0, y: 0, scale: 1, rotation: 0, baseRotation: 0, minScale: 1, denoise: 0 };
+            app.crop.state = { x: 0, y: 0, scale: 1, rotation: 0, baseRotation: 0, minScale: 1 };
             const rotateSlider = document.getElementById('crop-rotate-slider');
             if (rotateSlider) rotateSlider.value = 0;
             const rotateVal = document.getElementById('crop-rotate-val');
             if (rotateVal) rotateVal.innerText = '0°';
-            const denoiseSlider = document.getElementById('crop-denoise-slider');
-            if (denoiseSlider) denoiseSlider.value = 0;
-            const denoiseVal = document.getElementById('crop-denoise-val');
-            if (denoiseVal) denoiseVal.innerText = '0%';
-            if (app.crop.previewDenoiseUrl) {
-                URL.revokeObjectURL(app.crop.previewDenoiseUrl);
-                app.crop.previewDenoiseUrl = null;
-            }
             const img = document.getElementById('crop-image');
             if (img && app.crop.baseSrc) {
                 if (app.crop.originalWidth && app.crop.originalHeight) {
@@ -15989,7 +16522,17 @@ Object.assign(window.app, {
             app.crop.updateRatioButtons(currentRatio);
             if (app.crop.mode === 'main' && app.crop.originalFile) {
                 app.rawFile = app.crop.originalFile;
+                if (app.upload.previewDenoiseUrl) {
+                    URL.revokeObjectURL(app.upload.previewDenoiseUrl);
+                    app.upload.previewDenoiseUrl = null;
+                }
+                if (app.upload.basePreviewUrl) {
+                    URL.revokeObjectURL(app.upload.basePreviewUrl);
+                }
                 const url = URL.createObjectURL(app.rawFile);
+                app.upload.basePreviewUrl = url;
+                app.upload.basePreviewImage = new Image();
+                app.upload.basePreviewImage.src = url;
                 const previewImg = document.getElementById('preview-img');
                 if (previewImg) previewImg.src = url;
                 document.querySelectorAll('.blur-panel').forEach(p => p.remove());
@@ -16086,6 +16629,9 @@ select: (val) => {
                             existingPrefs.type = app.preference.current;
                             existingPrefs.wmMode = curWmMode;
                             existingPrefs.pinnedLocations = app.preference.pinnedLocations || [];
+                            delete existingPrefs.wmRotate;
+                            delete existingPrefs.wmScale;
+                            if (app.wmState && app.wmState.barScale !== undefined) existingPrefs.wmBarScale = app.wmState.barScale;
                             window.sb.from('profiles').update({ preferences: existingPrefs }).eq('id', app.user.id).then(()=>{});
                         });
                     }
@@ -16235,7 +16781,7 @@ Object.assign(window.app, {
                     if (isBanned) {
                         termsHtml = `
                             <div class="text-left text-sm text-gray-600 space-y-2">
-                                <p>Do tác giả đã bị cấm khỏi hệ thống, bạn tuyệt đối không được phép tải về để chia sẻ công khai, đăng tải lại (re-up) lên mạng xã hội hoặc sử dụng cho bất kỳ mục đích nào khác. Mọi hành vi sử dụng trái phép đều có thể bị khiếu nại bản quyền hoặc xử lý theo quy định.</p>
+                                <p>Do tác giả đã bị cấm khỏi hệ thống, bạn tuyệt đối không được phép tải về để chia sẻ công khai, đăng lại lên mạng xã hội hoặc sử dụng cho bất kỳ mục đích nào khác. Mọi hành vi sử dụng trái phép đều có thể bị khiếu nại bản quyền hoặc xử lý theo quy định.</p>
                                 <p>Hình ảnh và dữ liệu này chỉ được phép sử dụng cho mục đích tra cứu, học tập và nghiên cứu cá nhân. Nghiêm cấm cào dữ liệu tự động, thương mại hóa, hoặc cắt ghép chỉnh sửa phục vụ mục đích bôi nhọ, xuyên tạc.</p>
                                 <p>Toàn bộ tư liệu chỉ mang tính chất tham khảo, không có giá trị làm bằng chứng pháp lý để xử lý vi phạm.</p>
                             </div>
@@ -16254,7 +16800,7 @@ Object.assign(window.app, {
                     } else {
                         termsHtml = `
                             <div class="text-left text-sm text-gray-600 space-y-2">
-                                <p>Do tác giả không cung cấp thông tin liên hệ công khai, bạn tuyệt đối <strong>không được phép</strong> tải về để chia sẻ công khai, đăng tải lại (re-up) lên mạng xã hội hoặc sử dụng cho bất kỳ mục đích nào khác khi chưa có văn bản đồng ý từ tác giả gốc. Mọi hành vi sử dụng trái phép đều có thể bị khiếu nại bản quyền hoặc xử lý theo quy định.</p>
+                                <p>Do tác giả không cung cấp thông tin liên hệ công khai, bạn tuyệt đối <strong>không được phép</strong> tải về để chia sẻ công khai, đăng lại lên mạng xã hội hoặc sử dụng cho bất kỳ mục đích nào khác khi chưa có văn bản đồng ý từ tác giả gốc. Mọi hành vi sử dụng trái phép đều có thể bị khiếu nại bản quyền hoặc xử lý theo quy định.</p>
                                 <p>Hình ảnh và dữ liệu này chỉ được phép sử dụng cho mục đích tra cứu, học tập và nghiên cứu cá nhân. Nghiêm cấm cào dữ liệu tự động, thương mại hóa, hoặc cắt ghép chỉnh sửa phục vụ mục đích bôi nhọ, xuyên tạc.</p>
                                 <p>Toàn bộ tư liệu chỉ mang tính chất tham khảo, không có giá trị làm bằng chứng pháp lý để xử lý vi phạm.</p>
                             </div>
@@ -18039,8 +18585,10 @@ Object.assign(window.app, {
                     const note = app.utils.cleanText(p.note);
                     const safeUsername = app.utils.cleanText(p.profiles?.username || 'Ẩn danh');
                     const safePlate = app.utils.cleanText(p.license_plate);
+                    const plateKey = (safePlate || '').trim().toUpperCase();
+                    const isNewVehicle = Boolean(!plateKey || plateKey === '---' || !approvedPlateSet.has(plateKey));
                     if (!app.admin.originalData) app.admin.originalData = {};
-                    app.admin.originalData['photo_' + p.id] = { plate: safePlate, operator: op, type: type, route: route, model: model, location: location };
+                    app.admin.originalData['photo_' + p.id] = { plate: safePlate, operator: op, type: type, route: route, model: model, location: location, isNewVehicle: isNewVehicle };
                     const tagNew = '<span class="bg-black text-white px-1.5 py-0.5 rounded text-[9px] font-bold ml-1 tracking-wider">MỚI</span>';
                     const opKey = app.utils.cleanText(op || '').trim().toLowerCase();
                     const rawRouteKey = app.utils.cleanText(route || '').trim().toLowerCase();
@@ -18048,7 +18596,6 @@ Object.assign(window.app, {
                     const numRouteKey = /^\d+$/.test(strippedRouteKey) ? String(parseInt(strippedRouteKey, 10)) : strippedRouteKey;
                     const paddedRouteKey = /^\d+$/.test(strippedRouteKey) ? strippedRouteKey.padStart(2, '0') : strippedRouteKey;
                     const modelKey = app.utils.cleanText(model || '').trim().toLowerCase();
-                    const plateKey = (safePlate || '').trim().toUpperCase();
                     const isNewOp = opKey && opKey !== '---' && opKey !== 'đang cập nhật' && opKey !== 'không rõ' && !approvedOpSet.has(opKey);
                     const isNewRoute = route && rawRouteKey !== '---' && rawRouteKey !== 'đang cập nhật' && rawRouteKey !== 'không rõ' && 
                         !approvedRouteSet.has(rawRouteKey) && 
@@ -18107,7 +18654,11 @@ Object.assign(window.app, {
                                             <div>
                                                 <span class="admin-label">Dòng xe${isNewModel ? tagNew : ''}</span>
                                                 <div class="relative">
-                                                    <input type="text" id="adm-p-model-${p.id}" value="${model}" class="admin-input" autocomplete="off" oninput="app.utils.triggerSuggestion('adm-p-model-${p.id}', 'adm-sug-model-${p.id}', this.value, 'model')">
+                                                    ${isNewVehicle ? `
+                                                        <input type="text" id="adm-p-model-${p.id}" value="${model}" class="admin-input" autocomplete="off" oninput="app.utils.triggerSuggestion('adm-p-model-${p.id}', 'adm-sug-model-${p.id}', this.value, 'model')">
+                                                    ` : `
+                                                        <input type="text" id="adm-p-model-${p.id}" value="${model}" class="admin-input cursor-pointer" autocomplete="off" readonly onclick="app.admin.showModelDisabledAlert('${app.utils.escapeAttr(safePlate)}', '${p.id}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();app.admin.showModelDisabledAlert('${app.utils.escapeAttr(safePlate)}', '${p.id}');}" title="Bấm để xem hồ sơ xe">
+                                                    `}
                                                     <div id="adm-sug-model-${p.id}" class="suggestion-box"></div>
                                                 </div>
                                             </div>
@@ -18118,10 +18669,10 @@ Object.assign(window.app, {
                                         ${p.mod_note ? `<div class="mt-2 p-2.5 bg-gray-100 border border-black rounded-md"><span class="block text-xs font-bold text-black mb-1"><i class="fa-solid fa-shield-halved mr-1"></i>Note dành cho kiểm duyệt (Không công khai):</span><div class="text-xs text-black font-mono leading-relaxed whitespace-pre-wrap">${app.utils.escapeHtml(p.mod_note)}</div></div>` : ''}
                                         
                                         <div class="grid grid-cols-2 gap-2 mt-2">
-                                            <div><span class="admin-label">Ngày chụp (Gốc)</span><input type="text" class="admin-input bg-gray-50 !text-gray-500" value="${p.taken_at ? p.taken_at.split('T')[0] : 'Không rõ'}" disabled></div>
+                                            <div><span class="admin-label">Ngày chụp gốc</span><input type="text" class="admin-input bg-gray-50 !text-gray-500" value="${p.taken_at ? p.taken_at.split('T')[0] : 'Không rõ'}" disabled></div>
                                             <div><span class="admin-label">Thiết bị chụp</span><input type="text" class="admin-input bg-gray-50 !text-gray-500 truncate" value="${p.camera_model || 'Không rõ'}" disabled title="${p.camera_model || 'Không rõ'}"></div>
                                         </div>
-                                        ${p.exif_params ? `<div class="mt-2"><span class="admin-label">Thông số quang học (EXIF)</span><input type="text" class="admin-input bg-gray-50 !text-gray-500 truncate" value="${p.exif_params}" disabled title="${p.exif_params}"></div>` : ''}
+                                        ${p.exif_params ? `<div class="mt-2"><span class="admin-label">Thông số EXIF</span><input type="text" class="admin-input bg-gray-50 !text-gray-500 truncate" value="${p.exif_params}" disabled title="${p.exif_params}"></div>` : ''}
                                         ${(() => {
                                         const isOwnPhoto = p.uploader_id === app.user.id;
                                         const canApprove = (!isOwnPhoto || app.role === 'manager') && !p._isReviewedByMe;
@@ -18245,6 +18796,56 @@ Object.assign(window.app, {
                     return `<div class="admin-photo-ruler-overlay ruler-horizontal-overlay ${isHidden}">${linesHtml}</div>`;
                 },
                 originalData: {},
+                showModelDisabledAlert: (plate, photoId) => {
+                    let targetPlate = (plate || '').trim();
+                    if (photoId) {
+                        const plateInput = document.getElementById(`adm-p-plate-${photoId}`);
+                        if (plateInput && plateInput.value.trim()) {
+                            targetPlate = plateInput.value.trim().toUpperCase();
+                        }
+                    }
+                    const msg = "Để đảm bảo an toàn dữ liệu bạn sẽ không thể chỉnh tại đây, bấm nút đồng ý bên dưới để chuyển vào trang Hồ sơ xe. Lưu ý đọc hướng dẫn đối với các xe tái sử dụng BKS.";
+                    app.ui.showAlert(
+                        msg,
+                        () => {
+                            if (targetPlate && targetPlate !== '---') {
+                                app.utils.navigate('/vehicle/' + encodeURIComponent(targetPlate));
+                            }
+                        },
+                        () => {},
+                        {
+                            title: "Thông báo",
+                            btnOkText: "Đồng ý",
+                            btnCancelText: "Hủy bỏ"
+                        }
+                    );
+                },
+                updateModelFieldState: (photoId, isNew, plate) => {
+                    const elModel = document.getElementById(`adm-p-model-${photoId}`);
+                    if (!elModel) return;
+                    if (isNew) {
+                        elModel.readOnly = false;
+                        elModel.classList.remove('cursor-pointer');
+                        elModel.onclick = null;
+                        elModel.onkeydown = null;
+                        elModel.oninput = function () {
+                            app.utils.triggerSuggestion(this.id, `adm-sug-model-${photoId}`, this.value, 'model');
+                        };
+                        elModel.removeAttribute('title');
+                    } else {
+                        elModel.readOnly = true;
+                        elModel.classList.add('cursor-pointer');
+                        elModel.onclick = () => app.admin.showModelDisabledAlert(plate, photoId);
+                        elModel.onkeydown = (e) => {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                                e.preventDefault();
+                                app.admin.showModelDisabledAlert(plate, photoId);
+                            }
+                        };
+                        elModel.oninput = null;
+                        elModel.title = "Bấm để xem hồ sơ xe";
+                    }
+                },
                 checkPlateAdmin: async (inputEl, id, type) => {
                     const val = inputEl.value.trim().replace(/[^A-Z0-9-]/gi, '').toUpperCase();
                     inputEl.value = val;
@@ -18268,6 +18869,25 @@ Object.assign(window.app, {
                         setTimeout(() => inputEl.classList.remove('ring-2', 'ring-green-500'), 500);
                         const warnEl = document.getElementById(inputEl.id + '-warning');
                         if (warnEl) warnEl.remove();
+                        if (type === 'photo') {
+                            const cardEl = inputEl.closest('.admin-card');
+                            if (cardEl) {
+                                const cardHeader = cardEl.querySelector('.admin-card-header');
+                                if (cardHeader) {
+                                    const plateSpan = cardHeader.querySelector('span.font-bold');
+                                    if (plateSpan) plateSpan.innerText = val;
+                                    const existingBadge = cardHeader.querySelector('.badge-xe-moi');
+                                    if (orig.isNewVehicle && val && val !== '---') {
+                                        if (!existingBadge && plateSpan) {
+                                            plateSpan.insertAdjacentHTML('afterend', ' <span class="badge-xe-moi"><i class="fa-solid fa-sparkles"></i> XE MỚI</span>');
+                                        }
+                                    } else if (existingBadge) {
+                                        existingBadge.remove();
+                                    }
+                                }
+                            }
+                            app.admin.updateModelFieldState(id, orig.isNewVehicle, val);
+                        }
                         return;
                     }
                     try {
@@ -18311,12 +18931,13 @@ Object.assign(window.app, {
                         const cardEl = inputEl.closest('.admin-card');
                         if (cardEl && type === 'photo') {
                             const cardHeader = cardEl.querySelector('.admin-card-header');
+                            const isApprovedPlate = app.admin?.approvedPlateSet?.has(val) || (await window.sb.from('photos').select('id').eq('license_plate', val).eq('status', 'approved').limit(1)).data?.length > 0;
+                            const isNew = !isApprovedPlate && Boolean(val && val !== '---');
                             if (cardHeader) {
                                 const plateSpan = cardHeader.querySelector('span.font-bold');
                                 if (plateSpan) plateSpan.innerText = val;
                                 const existingBadge = cardHeader.querySelector('.badge-xe-moi');
-                                const isApprovedPlate = app.admin?.approvedPlateSet?.has(val) || (await window.sb.from('photos').select('id').eq('license_plate', val).eq('status', 'approved').limit(1)).data?.length > 0;
-                                if (!isApprovedPlate && val && val !== '---') {
+                                if (isNew) {
                                     if (!existingBadge && plateSpan) {
                                         plateSpan.insertAdjacentHTML('afterend', ' <span class="badge-xe-moi"><i class="fa-solid fa-sparkles"></i> XE MỚI</span>');
                                     }
@@ -18324,6 +18945,7 @@ Object.assign(window.app, {
                                     existingBadge.remove();
                                 }
                             }
+                            app.admin.updateModelFieldState(id, isNew, val);
                         }
                     } catch (e) {
                         console.error("Lỗi tự điền BKS Admin:", e);
@@ -19539,7 +20161,7 @@ if (app.admin._activeLoadToken !== currentLoadToken || app.adminTab !== tab) ret
                                                      </label>
                                                      <label class="flex items-center gap-1.5 text-xs font-bold text-gray-700 cursor-pointer select-none">
                                                          <input type="checkbox" id="mgr-wm-smooth" checked onchange="if(document.getElementById('mgr-wm-canvas-src')?.width > 0) app.admin.extractBlindWmDCT()" class="w-4 h-4 rounded border-gray-300 text-black focus:ring-black cursor-pointer">
-                                                         Lọc mịn (Smooth)
+                                                         Lọc Smooth
                                                      </label>
                                                      <button type="button" id="mgr-wm-reextract-btn" onclick="app.admin.extractBlindWmDCT()" class="hidden px-3 py-1.5 bg-black text-white rounded-md text-xs font-bold hover:bg-gray-800 transition"><i class="fa-solid fa-rotate-right mr-1"></i> Giải mã lại</button>
                                                  </div>
@@ -19588,11 +20210,11 @@ if (app.admin._activeLoadToken !== currentLoadToken || app.adminTab !== tab) ret
                                                       </div>
                                                       <div class="space-y-1">
                                                           <div class="flex justify-between text-[11px] text-gray-600 font-bold">
-                                                              <span>Khôi phục co giãn (Scale):</span>
+                                                              <span>Khôi phục tỷ lệ:</span>
                                                               <span id="mgr-wm-scale-val" class="font-mono text-black">100%</span>
                                                           </div>
                                                           <div class="flex items-center gap-2">
-                                                              <input type="range" id="mgr-wm-scale" min="50" max="200" value="100" class="w-full h-1.5 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-purple-600" oninput="document.getElementById('mgr-wm-scale-val').innerText = this.value + '%'" onchange="app.admin.applyBlindWmRST()">
+                                                              <input type="range" id="mgr-wm-scale" min="50" max="200" value="100" class="vnbus-slider w-full" oninput="document.getElementById('mgr-wm-scale-val').innerText = this.value + '%'" onchange="app.admin.applyBlindWmRST()">
                                                               <button type="button" onclick="document.getElementById('mgr-wm-scale').value = 100; document.getElementById('mgr-wm-scale-val').innerText = '100%'; app.admin.applyBlindWmRST();" class="px-1.5 py-0.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded text-[10px] font-bold">100%</button>
                                                           </div>
                                                       </div>
@@ -19601,14 +20223,14 @@ if (app.admin._activeLoadToken !== currentLoadToken || app.adminTab !== tab) ret
                                                               <span>Bù lệch viền X (Crop dX):</span>
                                                               <span id="mgr-wm-dx-val" class="font-mono text-black">0 px</span>
                                                           </div>
-                                                          <input type="range" id="mgr-wm-dx" min="0" max="7" value="0" class="w-full h-1.5 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-purple-600" oninput="document.getElementById('mgr-wm-dx-val').innerText = this.value + ' px'" onchange="app.admin.applyBlindWmRST()">
+                                                          <input type="range" id="mgr-wm-dx" min="0" max="7" value="0" class="vnbus-slider w-full" oninput="document.getElementById('mgr-wm-dx-val').innerText = this.value + ' px'" onchange="app.admin.applyBlindWmRST()">
                                                       </div>
                                                       <div class="space-y-1">
                                                           <div class="flex justify-between text-[11px] text-gray-600 font-bold">
                                                               <span>Bù lệch viền Y (Crop dY):</span>
                                                               <span id="mgr-wm-dy-val" class="font-mono text-black">0 px</span>
                                                           </div>
-                                                          <input type="range" id="mgr-wm-dy" min="0" max="7" value="0" class="w-full h-1.5 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-purple-600" oninput="document.getElementById('mgr-wm-dy-val').innerText = this.value + ' px'" onchange="app.admin.applyBlindWmRST()">
+                                                          <input type="range" id="mgr-wm-dy" min="0" max="7" value="0" class="vnbus-slider w-full" oninput="document.getElementById('mgr-wm-dy-val').innerText = this.value + ' px'" onchange="app.admin.applyBlindWmRST()">
                                                       </div>
                                                   </div>
                                              </div>
@@ -19648,7 +20270,7 @@ if (app.admin._activeLoadToken !== currentLoadToken || app.adminTab !== tab) ret
                                         <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                                           <div><label class="text-xs font-bold text-gray-600 block mb-1">Tiêu đề *</label><input type="text" id="ct-new-title" class="admin-input" placeholder="Ví dụ: Bảo trì hệ thống"></div>
                                           <div><label class="text-xs font-bold text-gray-600 block mb-1">Nội dung</label><input type="text" id="ct-new-message" class="admin-input" placeholder="Mô tả ngắn gọn"></div>
-                                          <div><label class="text-xs font-bold text-gray-600 block mb-1">Icon (FontAwesome)</label><input type="text" id="ct-new-icon" class="admin-input font-mono" value="fa-bell" placeholder="fa-bell"></div>
+                                          <div><label class="text-xs font-bold text-gray-600 block mb-1">Icon FontAwesome</label><input type="text" id="ct-new-icon" class="admin-input font-mono" value="fa-bell" placeholder="fa-bell"></div>
                                           <div><label class="text-xs font-bold text-gray-600 block mb-1">Màu</label><div class="flex items-center gap-2"><input type="color" id="ct-new-color" value="#18181b" oninput="app.admin.syncToastColor(this.value)" class="w-10 h-10 rounded border border-gray-300 cursor-pointer bg-white"><input type="text" id="ct-new-color-text" value="#18181b" oninput="app.admin.syncToastColorText(this.value)" class="admin-input font-mono"></div></div>
                                           <div><label class="text-xs font-bold text-gray-600 block mb-1">Thời điểm hiển thị</label><select id="ct-new-mode" class="admin-input"><option value="always">Mỗi lần vào trang</option><option value="once">Chỉ 1 lần duy nhất</option></select></div>
                                           <div><label class="text-xs font-bold text-gray-600 block mb-1">Thời gian tự tắt (giây)</label><input type="number" min="0" id="ct-new-duration" class="admin-input" value="12" placeholder="0 = không tự tắt"></div>
@@ -19805,7 +20427,7 @@ app.admin.fetchManagerData('denied');
                 },
                 autoFindPyramidMatch: async (refImg, patchImg) => {
                     const statusEl = document.getElementById('mgr-wm-ref-status');
-                    if (statusEl) statusEl.innerHTML = `<span class="text-purple-600 font-bold"><i class="fa-solid fa-spinner fa-spin mr-1"></i>Đang đối chiếu mảnh cắt với ảnh gốc qua tháp kim tự tháp (Pyramid Matching)...</span>`;
+                    if (statusEl) statusEl.innerHTML = `<span class="text-purple-600 font-bold"><i class="fa-solid fa-spinner fa-spin mr-1"></i>Đang đối chiếu mảnh cắt với ảnh gốc...</span>`;
                     await new Promise(r => setTimeout(r, 20));
                     const getGray = (img, w, h) => {
                         const canvas = document.createElement('canvas');
@@ -21619,12 +22241,14 @@ if (cbQuality) newSubroles.push('quality_aud');
                                     model_name: req.new_data.model_name,
                                     logo_url: logo || null,
                                     description: desc || null
-                                });
+                                }, { onConflict: 'model_name' });
                                 if (upsertErr) throw upsertErr;
                             }
-                            await window.sb.from('model_info')
-                                .update({ logo_url: logo || null })
-                                .ilike('model_name', `${brandName}%`);
+                            if (logo) {
+                                await window.sb.from('model_info')
+                                    .update({ logo_url: logo })
+                                    .ilike('model_name', `${brandName}%`);
+                            }
                         }
                         else {
                             let newItems = [];

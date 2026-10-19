@@ -2369,9 +2369,22 @@ cleanupState: () => {
                                     const wHalf = (textW * cos + textH * sin) / 2;
                                     const hHalf = (textW * sin + textH * cos) / 2;
                                     let posX = width * (pos.x !== undefined ? pos.x : 0.5);
-                                    let posY = height * (pos.y !== undefined ? pos.y : 0.5);
-                                    posX = Math.max(wHalf, Math.min(posX, width - wHalf));
-                                    posY = Math.max(hHalf, Math.min(posY, height - barHeight - hHalf));
+                                    let minX = wHalf;
+                                    let maxX = width - wHalf;
+                                    if (minX > maxX) {
+                                        minX = width / 2;
+                                        maxX = width / 2;
+                                    }
+
+                                    let minY = hHalf;
+                                    let maxY = height - barHeight - hHalf;
+                                    if (minY > maxY) {
+                                        minY = (height - barHeight) / 2;
+                                        maxY = (height - barHeight) / 2;
+                                    }
+
+                                    posX = Math.max(minX, Math.min(posX, maxX));
+                                    posY = Math.max(minY, Math.min(posY, maxY));
                                     ctx.translate(posX, posY);
                                     if (rotate) {
                                         ctx.rotate((rotate * Math.PI) / 180);
@@ -13899,8 +13912,8 @@ Object.assign(window.app, {
                     if (!cWidth || !cHeight) return;
                     
                     const wmCanvas = document.getElementById('preview-wm-canvas');
-                    const rawW = wmCanvas ? wmCanvas.width : (el.offsetWidth || 100);
-                    const rawH = wmCanvas ? wmCanvas.height : (el.offsetHeight || 30);
+                    const rawW = wmCanvas ? (parseFloat(wmCanvas.style.width) || wmCanvas.width) : (el.offsetWidth || 100);
+                    const rawH = wmCanvas ? (parseFloat(wmCanvas.style.height) || wmCanvas.height) : (el.offsetHeight || 30);
                     
                     const rad = Math.abs((rotate || 0) * Math.PI / 180);
                     const cos = Math.abs(Math.cos(rad));
@@ -13909,13 +13922,21 @@ Object.assign(window.app, {
                     const wHalf = (scale * (rawW * cos + rawH * sin)) / 2;
                     const hHalf = (scale * (rawW * sin + rawH * cos)) / 2;
                     
-                    const footerBar = document.getElementById('preview-footer-bar');
-                    const footerBarH = footerBar ? footerBar.offsetHeight : (cHeight * 0.0576 * barScale);
+                    const footerBarH = cHeight * 0.0576 * barScale;
                     
-                    const minLeft = wHalf;
-                    const maxLeft = Math.max(minLeft, cWidth - wHalf);
-                    const minTop = hHalf;
-                    const maxTop = Math.max(minTop, cHeight - footerBarH - hHalf);
+                    let minLeft = wHalf;
+                    let maxLeft = cWidth - wHalf;
+                    if (minLeft > maxLeft) {
+                        minLeft = cWidth / 2;
+                        maxLeft = cWidth / 2;
+                    }
+
+                    let minTop = hHalf;
+                    let maxTop = cHeight - footerBarH - hHalf;
+                    if (minTop > maxTop) {
+                        minTop = (cHeight - footerBarH) / 2;
+                        maxTop = (cHeight - footerBarH) / 2;
+                    }
                     
                     let currentLeft = (app.wmState.x !== undefined ? app.wmState.x : 0.5) * cWidth;
                     let currentTop = (app.wmState.y !== undefined ? app.wmState.y : 0.5) * cHeight;
@@ -13933,7 +13954,10 @@ Object.assign(window.app, {
                     if (!app.wmState) app.wmState = {};
                     app.wmState.rotate = 0;
                     app.wmState.scale = 1.0;
-                    app.wmState.barScale = 1.0;
+                    const savedBarScale = (typeof localStorage !== 'undefined' && localStorage.getItem('vnbus_wm_bar_scale') !== null) ? (parseInt(localStorage.getItem('vnbus_wm_bar_scale'), 10) / 100) : 1.0;
+                    if (app.wmState.barScale === undefined) {
+                        app.wmState.barScale = savedBarScale;
+                    }
                     app.wmState.color = 'white';
                     app.wmState.x = 0.5;
                     app.wmState.y = 0.5;
@@ -13949,9 +13973,10 @@ Object.assign(window.app, {
                     if (valEl) valEl.innerText = '100%';
                     
                     const barSlider = document.getElementById('wm-bar-scale-slider');
-                    if (barSlider) barSlider.value = 100;
+                    const bsPercent = Math.round((app.wmState.barScale !== undefined ? app.wmState.barScale : 1.0) * 100);
+                    if (barSlider) barSlider.value = bsPercent;
                     const barValEl = document.getElementById('wm-bar-scale-val');
-                    if (barValEl) barValEl.innerText = '100%';
+                    if (barValEl) barValEl.innerText = bsPercent + '%';
                     
                     const chk = document.getElementById('chk-wm-black');
                     if (chk) chk.checked = false;
@@ -13959,10 +13984,7 @@ Object.assign(window.app, {
                     try {
                         localStorage.removeItem('vnbus_wm_rotate');
                         localStorage.removeItem('vnbus_wm_scale');
-                        localStorage.setItem('vnbus_wm_bar_scale', '100');
                     } catch(e){}
-                    
-                    if (app.upload.savePreferencesToServer) app.upload.savePreferencesToServer();
                     
                     const savedMode = (typeof localStorage !== 'undefined' && localStorage.getItem('vnbus_wm_mode')) || (app.wmState && app.wmState.mode) || 'basic';
                     app.upload.setWmMode(savedMode, false);
@@ -14628,7 +14650,10 @@ Object.assign(window.app, {
                     app.upload.basePreviewUrl = url;
                     app.upload.basePreviewImage = new Image();
                     app.upload.basePreviewImage.src = url;
-                    const previewImg = document.getElementById('preview-img');
+                    document.getElementById('preview-box').classList.remove('hidden');
+                    document.getElementById('drop-zone').classList.add('hidden');
+                    if (app.upload.restoreDropZone) app.upload.restoreDropZone();
+
                     previewImg.onload = () => {
                         const updateSize = () => {
                             const nw = previewImg.naturalWidth, nh = previewImg.naturalHeight;
@@ -14637,7 +14662,13 @@ Object.assign(window.app, {
                             const box = document.getElementById('preview-box');
                             container.style.width = '100%';
                             container.style.height = 'auto';
-                            const availableWidth = box.clientWidth;
+                            let availableWidth = box ? box.clientWidth : 0;
+                            if (!availableWidth && box && box.parentElement) {
+                                availableWidth = box.parentElement.clientWidth;
+                            }
+                            if (!availableWidth) {
+                                availableWidth = Math.min(window.innerWidth - 32, 600);
+                            }
                             const availableHeight = window.innerHeight * 0.65;
                             const ratio = nw / nh;
                             let finalW = availableWidth;
@@ -14646,22 +14677,59 @@ Object.assign(window.app, {
                                 finalH = availableHeight;
                                 finalW = finalH * ratio;
                             }
+                            finalW = Math.round(finalW);
+                            finalH = Math.round(finalH);
                             container.style.width = finalW + 'px';
                             container.style.height = finalH + 'px';
+
                             const barScale = (app.wmState && app.wmState.barScale !== undefined) ? app.wmState.barScale : 1.0;
                             const barHeight = finalH * 0.0576 * barScale;
-                            const baseFontSize = finalH * 0.02304 * barScale;
-                            const watermarkFontSize = finalH * 0.096;
                             const footerBar = document.getElementById('preview-footer-bar');
                             if (footerBar) {
                                 footerBar.style.height = barHeight + 'px';
-                                footerBar.style.paddingLeft = (barHeight / 2) + 'px';
-                                footerBar.style.paddingRight = (barHeight / 2) + 'px';
+                                let footerCanvas = document.getElementById('preview-footer-canvas');
+                                if (!footerCanvas) {
+                                    footerCanvas = document.createElement('canvas');
+                                    footerCanvas.id = 'preview-footer-canvas';
+                                    footerCanvas.className = 'w-full h-full block pointer-events-none';
+                                    footerBar.innerHTML = '';
+                                    footerBar.appendChild(footerCanvas);
+                                }
+                                const dpr = window.devicePixelRatio || 1;
+                                const ch = Math.max(1, Math.round(barHeight));
+                                footerCanvas.width = Math.round(finalW * dpr);
+                                footerCanvas.height = Math.round(ch * dpr);
+                                footerCanvas.style.width = finalW + 'px';
+                                footerCanvas.style.height = ch + 'px';
+
+                                const fCtx = footerCanvas.getContext('2d');
+                                fCtx.scale(dpr, dpr);
+                                fCtx.clearRect(0, 0, finalW, ch);
+
+                                fCtx.fillStyle = "rgba(255, 255, 255, 0.2)";
+                                fCtx.fillRect(0, 0, finalW, Math.max(1, 1.5 * barScale * (finalH / 1080)));
+
+                                const fontFace = '"Montserrat", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif';
+                                const fontSize = barHeight * 0.4;
+                                const textY = (barHeight / 2) + (fontSize * 0.35);
+                                const padX = barHeight / 2;
+
+                                fCtx.fillStyle = "white";
+                                fCtx.textBaseline = 'alphabetic';
+                                fCtx.textAlign = 'left';
+                                fCtx.font = `italic 900 ${fontSize}px ${fontFace}`;
+                                fCtx.fillText("VNBUSARCHIVE", padX, textY);
+                                const vnbusWidth = fCtx.measureText("VNBUSARCHIVE").width;
+                                fCtx.font = `italic 700 ${fontSize * 0.8}px ${fontFace}`;
+                                fCtx.fillText(".io.vn", padX + vnbusWidth, textY);
+
+                                fCtx.textBaseline = 'middle';
+                                fCtx.font = `700 ${fontSize}px ${fontFace}`;
+                                fCtx.textAlign = 'right';
+                                const name = app.username || "Guest";
+                                fCtx.fillText(`Bản quyền bởi ${name}`, finalW - padX, barHeight / 2);
                             }
-                            const leftText = document.querySelector('.footer-text-left');
-                            const rightText = document.getElementById('preview-footer-copy');
-                            if (leftText) leftText.style.fontSize = baseFontSize + 'px';
-                            if (rightText) rightText.style.fontSize = baseFontSize + 'px';
+
                             const wmDrag = document.getElementById('draggable-watermark');
                             if (wmDrag) {
                                 let wmCanvas = document.getElementById('preview-wm-canvas');
@@ -14675,18 +14743,26 @@ Object.assign(window.app, {
                                 }
                                 const text = `© ${app.username || 'Guest'}`;
                                 const fontFace = '"Montserrat", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif';
+                                const watermarkFontSize = finalH * 0.096;
                                 const font = `700 ${watermarkFontSize}px ${fontFace}`;
                                 const ctx = wmCanvas.getContext('2d');
                                 ctx.font = font;
                                 const metrics = ctx.measureText(text);
-                                wmCanvas.width = metrics.width + 4; 
-                                wmCanvas.height = watermarkFontSize * 1.5; 
+                                const rawW = Math.ceil(metrics.width + 4);
+                                const rawH = Math.ceil(watermarkFontSize * 1.5);
+                                const dpr = window.devicePixelRatio || 1;
+                                wmCanvas.width = rawW * dpr;
+                                wmCanvas.height = rawH * dpr;
+                                wmCanvas.style.width = rawW + 'px';
+                                wmCanvas.style.height = rawH + 'px';
+                                ctx.scale(dpr, dpr);
                                 ctx.font = font;
                                 ctx.textAlign = 'center';
                                 ctx.textBaseline = 'middle';
                                 ctx.fillStyle = wmDrag.classList.contains('wm-black') ? 'black' : 'white';
-                                ctx.clearRect(0, 0, wmCanvas.width, wmCanvas.height);
-                                ctx.fillText(text, wmCanvas.width / 2, wmCanvas.height / 2);
+                                ctx.clearRect(0, 0, rawW, rawH);
+                                ctx.fillText(text, rawW / 2, rawH / 2);
+
                                 const currentScale = app.wmState ? (app.wmState.scale !== undefined ? app.wmState.scale : 1.0) : 1.0;
                                 const currentRotate = app.wmState ? (app.wmState.rotate !== undefined ? app.wmState.rotate : 0) : 0;
                                 wmDrag.style.transform = `translate(-50%, -50%) rotate(${currentRotate}deg) scale(${currentScale})`;
@@ -14735,14 +14811,9 @@ Object.assign(window.app, {
                         if (app.upload.updateBlurBtn) app.upload.updateBlurBtn();
                     };
                     previewImg.src = url;
-                    document.getElementById('preview-box').classList.remove('hidden');
-                    document.getElementById('drop-zone').classList.add('hidden');
-                    if (app.upload.restoreDropZone) app.upload.restoreDropZone();
                     const name = app.username || "Guest";
                     const wmName = document.getElementById('wm-username');
                     if (wmName) wmName.innerText = name;
-                    const footerCopy = document.getElementById('preview-footer-copy');
-                    if (footerCopy) footerCopy.innerText = `Bản quyền bởi ${name}`;
                     const wmDrag = document.getElementById('draggable-watermark');
                     if (wmDrag) {
                         if (app.wmState && app.wmState.mode === 'standard') {
@@ -14752,7 +14823,7 @@ Object.assign(window.app, {
                         }
                         wmDrag.classList.remove('wm-active');
                     }
-                    if (app.upload.resetWm) app.upload.resetWm();
+                    if (!app.upload._draftPending && app.upload.resetWm) app.upload.resetWm();
                     if (app.upload.resetFilters) app.upload.resetFilters();
                 },
                 initDraggable: () => {
@@ -14803,8 +14874,8 @@ Object.assign(window.app, {
                         const barScale = (app.wmState && app.wmState.barScale !== undefined) ? app.wmState.barScale : 1.0;
 
                         const wmCanvas = document.getElementById('preview-wm-canvas');
-                        const rawW = wmCanvas ? wmCanvas.width : (el.offsetWidth || 100);
-                        const rawH = wmCanvas ? wmCanvas.height : (el.offsetHeight || 30);
+                        const rawW = wmCanvas ? (parseFloat(wmCanvas.style.width) || wmCanvas.width) : (el.offsetWidth || 100);
+                        const rawH = wmCanvas ? (parseFloat(wmCanvas.style.height) || wmCanvas.height) : (el.offsetHeight || 30);
 
                         const rad = Math.abs(rotate * Math.PI / 180);
                         const cos = Math.abs(Math.cos(rad));
@@ -14814,13 +14885,21 @@ Object.assign(window.app, {
                         const hHalf = (scale * (rawW * sin + rawH * cos)) / 2;
 
                         const cRect = container.getBoundingClientRect();
-                        const footerBar = document.getElementById('preview-footer-bar');
-                        const footerBarH = footerBar ? footerBar.offsetHeight : (cRect.height * 0.0576 * barScale);
+                        const footerBarH = cRect.height * 0.0576 * barScale;
 
-                        const minLeft = wHalf;
-                        const maxLeft = Math.max(minLeft, cRect.width - wHalf);
-                        const minTop = hHalf;
-                        const maxTop = Math.max(minTop, cRect.height - footerBarH - hHalf);
+                        let minLeft = wHalf;
+                        let maxLeft = cRect.width - wHalf;
+                        if (minLeft > maxLeft) {
+                            minLeft = cRect.width / 2;
+                            maxLeft = cRect.width / 2;
+                        }
+
+                        let minTop = hHalf;
+                        let maxTop = cRect.height - footerBarH - hHalf;
+                        if (minTop > maxTop) {
+                            minTop = (cRect.height - footerBarH) / 2;
+                            maxTop = (cRect.height - footerBarH) / 2;
+                        }
 
                         newLeft = Math.max(minLeft, Math.min(newLeft, maxLeft));
                         newTop = Math.max(minTop, Math.min(newTop, maxTop));
