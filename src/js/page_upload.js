@@ -2177,6 +2177,11 @@ Object.assign(window.app, {
                         };
                         updateSize();
                         app.previewUpdateSize = updateSize;
+                        if (typeof document !== 'undefined' && document.fonts && document.fonts.ready) {
+                            document.fonts.ready.then(() => {
+                                if (app.previewUpdateSize) app.previewUpdateSize();
+                            });
+                        }
                         
                         if (app.upload._draftPending) {
                             const pending = app.upload._draftPending;

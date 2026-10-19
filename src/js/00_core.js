@@ -2344,11 +2344,11 @@ cleanupState: () => {
                                 const vnbusWidth = ctx.measureText("VNBUSARCHIVE").width;
                                 ctx.font = `italic 700 ${fontSize * 0.8}px ${fontFace}`;
                                 ctx.fillText(".io.vn", (barHeight / 2) + vnbusWidth, textY);
+                                ctx.textAlign = 'right';
                                 ctx.textBaseline = 'middle'; 
                                 ctx.font = `700 ${fontSize}px ${fontFace}`;
                                 const rightText = `Bản quyền bởi ${username}`;
-                                const rightWidth = ctx.measureText(rightText).width;
-                                ctx.fillText(rightText, width - rightWidth - (barHeight / 2), height - barHeight / 2);
+                                ctx.fillText(rightText, width - (barHeight / 2), height - barHeight / 2);
                                 const currentMode = pos.mode || (app.wmState && app.wmState.mode) || (typeof localStorage !== 'undefined' && localStorage.getItem('vnbus_wm_mode')) || 'basic';
                                 if (currentMode !== 'standard') {
                                     ctx.save();
@@ -2367,6 +2367,7 @@ cleanupState: () => {
                                     const wHalf = (textW * cos + textH * sin) / 2;
                                     const hHalf = (textW * sin + textH * cos) / 2;
                                     let posX = width * (pos.x !== undefined ? pos.x : 0.5);
+                                    let posY = height * (pos.y !== undefined ? pos.y : 0.5);
                                     let minX = wHalf;
                                     let maxX = width - wHalf;
                                     if (minX > maxX) {
