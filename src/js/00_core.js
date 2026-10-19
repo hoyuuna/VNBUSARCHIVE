@@ -202,6 +202,9 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
     });
+    if (window.app && window.app.ui && window.app.ui.initSliderEditableBadges) {
+        window.app.ui.initSliderEditableBadges();
+    }
 });
 
 Object.assign(window.app, {
@@ -604,6 +607,210 @@ Object.assign(window.app, {
             },
 
     ui: {
+                initSliderEditableBadges: () => {
+                    if (window._sliderEditableBadgesInit) return;
+                    window._sliderEditableBadgesInit = true;
+
+                    const sliderMap = {
+                        'crop-rotate-val': { slider: 'crop-rotate-slider', unit: '°' },
+                        'val-brightness': { slider: 'adj-brightness', unit: '%' },
+                        'val-contrast': { slider: 'adj-contrast', unit: '%' },
+                        'val-saturation': { slider: 'adj-saturation', unit: '%' },
+                        'val-denoise': { slider: 'adj-denoise', unit: '%' },
+                        'wm-rotate-val': { slider: 'wm-rotate-slider', unit: '°' },
+                        'wm-scale-val': { slider: 'wm-scale-slider', unit: '%' },
+                        'wm-bar-scale-val': { slider: 'wm-bar-scale-slider', unit: '%' },
+                        'mgr-wm-scale-val': { slider: 'mgr-wm-scale', unit: '%' },
+                        'mgr-wm-dx-val': { slider: 'mgr-wm-dx', unit: ' px' },
+                        'mgr-wm-dy-val': { slider: 'mgr-wm-dy', unit: ' px' }
+                    };
+
+                    document.addEventListener('click', (e) => {
+                        const badge = e.target.closest('[data-slider], #crop-rotate-val, #val-brightness, #val-contrast, #val-saturation, #val-denoise, #wm-rotate-val, #wm-scale-val, #wm-bar-scale-val, #mgr-wm-scale-val, #mgr-wm-dx-val, #mgr-wm-dy-val');
+                        if (!badge) return;
+
+                        if (badge.dataset.isEditing === 'true') return;
+
+                        let sliderId = badge.getAttribute('data-slider');
+                        let unit = badge.getAttribute('data-unit');
+                        if (!sliderId && sliderMap[badge.id]) {
+                            sliderId = sliderMap[badge.id].slider;
+                            unit = sliderMap[badge.id].unit;
+                        }
+
+                        const slider = sliderId ? document.getElementById(sliderId) : null;
+                        if (!slider) return;
+
+                        e.preventDefault();
+                        e.stopPropagation();
+
+                        if (!unit) {
+                            const text = badge.textContent || '';
+                            if (text.includes('°')) unit = '°';
+                            else if (text.includes('%')) unit = '%';
+                            else if (text.includes('px')) unit = ' px';
+                            else unit = '';
+                        }
+
+                        const min = slider.min !== '' ? parseFloat(slider.min) : -Infinity;
+                        const max = slider.max !== '' ? parseFloat(slider.max) : Infinity;
+                        const step = (slider.step !== '' && slider.step !== 'any') ? parseFloat(slider.step) : 1;
+
+                        const currentVal = slider.value !== undefined ? slider.value : '';
+                        const oldVal = currentVal;
+
+                        badge.dataset.isEditing = 'true';
+
+                        const wrapper = document.createElement('span');
+                        wrapper.className = 'inline-flex items-center justify-center p-0 m-0';
+
+                        const input = document.createElement('input');
+                        input.type = 'text';
+                        input.inputMode = (min < 0 || step < 1) ? 'text' : 'numeric';
+                        input.value = currentVal;
+                        input.className = 'bg-transparent text-center font-mono font-bold text-[10px] text-black dark:text-white outline-none p-0 m-0 border-none';
+                        input.style.width = Math.max(22, (String(currentVal).length + 0.5) * 7.5) + 'px';
+                        input.style.lineHeight = '1';
+
+                        const unitSpan = document.createElement('span');
+                        unitSpan.className = 'font-mono font-bold text-[10px] text-gray-500 dark:text-gray-400 select-none pointer-events-none';
+                        unitSpan.style.lineHeight = '1';
+                        unitSpan.innerText = unit;
+
+                        wrapper.appendChild(input);
+                        if (unit) wrapper.appendChild(unitSpan);
+
+                        badge.innerHTML = '';
+                        badge.appendChild(wrapper);
+
+                        badge.classList.add('ring-1', 'ring-black', 'dark:ring-white', 'border-black', 'dark:border-white', 'bg-white', 'dark:bg-black');
+
+                        setTimeout(() => {
+                            input.focus();
+                            input.select();
+                        }, 20);
+
+                        let finished = false;
+
+                        const cleanup = () => {
+                            badge.dataset.isEditing = 'false';
+                            badge.classList.remove('ring-1', 'ring-black', 'dark:ring-white', 'border-black', 'dark:border-white', 'bg-white', 'dark:bg-black');
+                        };
+
+                        const revert = () => {
+                            if (finished) return;
+                            finished = true;
+                            cleanup();
+                            badge.innerText = oldVal + unit;
+                        };
+
+                        const commit = () => {
+                            if (finished) return;
+                            finished = true;
+                            cleanup();
+
+                            let raw = input.value.trim();
+                            if (unit) {
+                                const escapedUnit = unit.trim().replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+                                if (escapedUnit) {
+                                    raw = raw.replace(new RegExp('[\\s' + escapedUnit + ']', 'g'), '');
+                                }
+                            }
+
+                            if (raw === '' || isNaN(Number(raw)) || raw === '-' || raw === '+') {
+                                badge.innerText = oldVal + unit;
+                                return;
+                            }
+
+                            let num = parseFloat(raw);
+                            if (isNaN(num)) {
+                                badge.innerText = oldVal + unit;
+                                return;
+                            }
+
+                            if (num < min) num = min;
+                            if (num > max) num = max;
+
+                            if (step && step > 0) {
+                                const base = min !== -Infinity ? min : 0;
+                                num = Math.round((num - base) / step) * step + base;
+                                if (step < 1) num = parseFloat(num.toFixed(4));
+                            }
+
+                            slider.value = num;
+
+                            if (typeof slider.oninput === 'function') {
+                                try { slider.oninput.call(slider); } catch(err) {}
+                            }
+                            slider.dispatchEvent(new Event('input', { bubbles: true }));
+                            if (typeof slider.onchange === 'function') {
+                                try { slider.onchange.call(slider); } catch(err) {}
+                            }
+                            slider.dispatchEvent(new Event('change', { bubbles: true }));
+
+                            badge.innerText = num + unit;
+                        };
+
+                        input.addEventListener('input', () => {
+                            let v = input.value;
+                            if (min >= 0) v = v.replace(/-/g, '');
+                            if (step >= 1) v = v.replace(/\./g, '');
+                            v = v.replace(/[^0-9\.\-]/g, '');
+                            if (v !== input.value) input.value = v;
+                            input.style.width = Math.max(22, (input.value.length + 0.5) * 7.5) + 'px';
+                        });
+
+                        input.addEventListener('keydown', (ke) => {
+                            if (ke.key === 'Enter') {
+                                ke.preventDefault();
+                                commit();
+                            } else if (ke.key === 'Escape') {
+                                ke.preventDefault();
+                                revert();
+                            } else if (ke.key === 'ArrowUp') {
+                                ke.preventDefault();
+                                let cur = parseFloat(input.value) || 0;
+                                cur = Math.min(max, cur + step);
+                                if (step < 1) cur = parseFloat(cur.toFixed(4));
+                                input.value = cur;
+                                input.dispatchEvent(new Event('input'));
+                            } else if (ke.key === 'ArrowDown') {
+                                ke.preventDefault();
+                                let cur = parseFloat(input.value) || 0;
+                                cur = Math.max(min, cur - step);
+                                if (step < 1) cur = parseFloat(cur.toFixed(4));
+                                input.value = cur;
+                                input.dispatchEvent(new Event('input'));
+                            } else {
+                                const allowedControlKeys = [
+                                    'Backspace', 'Delete', 'Tab', 'Escape', 'Enter',
+                                    'ArrowLeft', 'ArrowRight', 'Home', 'End'
+                                ];
+                                if (allowedControlKeys.includes(ke.key) || ke.ctrlKey || ke.metaKey) {
+                                    return;
+                                }
+                                if (ke.key === '-' && min < 0) {
+                                    if (input.selectionStart === 0 && (!input.value.includes('-') || input.selectionEnd > 0)) {
+                                        return;
+                                    }
+                                }
+                                if (ke.key === '.' && step < 1) {
+                                    if (!input.value.includes('.')) {
+                                        return;
+                                    }
+                                }
+                                if (/^[0-9]$/.test(ke.key)) {
+                                    return;
+                                }
+                                ke.preventDefault();
+                            }
+                        });
+
+                        input.addEventListener('blur', () => {
+                            commit();
+                        });
+                    });
+                },
                 alertInterval: null,
                 showAlert: (msg, okCallback = null, cancelCallback = null, options = {}) => {
                     const cleanMsg = (msg || '').toLowerCase();
@@ -4125,3 +4332,7 @@ app.utils.updateUptime = function() {
 };
 setInterval(app.utils.updateUptime, 60000);
 setTimeout(app.utils.updateUptime, 500);
+if (window.app && window.app.ui && window.app.ui.initSliderEditableBadges) {
+    window.app.ui.initSliderEditableBadges();
+}
+

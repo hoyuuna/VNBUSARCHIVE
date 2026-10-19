@@ -2169,7 +2169,7 @@ html.theme-dark .ct-icon {
             if (stored === 'system') {
                 theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
             }
-            document.write('<link rel="stylesheet" href="/css/' + theme + '.css?v=1792418317959" id="theme-css">');
+            document.write('<link rel="stylesheet" href="/css/' + theme + '.css?v=1792419067665" id="theme-css">');
             document.documentElement.classList.add('theme-' + theme);
             document.documentElement.style.backgroundColor = theme === 'dark' ? '#18181b' : '#fdfcf8';
         })();
@@ -2525,7 +2525,7 @@ html.theme-dark .ct-icon {
                                 <div class="flex flex-col items-center justify-center px-1 flex-1">
                                     <div class="flex justify-between w-full text-[10px] font-bold text-gray-500 mb-1">
                                         <span>-45°</span>
-                                        <span id="crop-rotate-val">0°</span>
+                                        <span id="crop-rotate-val" data-slider="crop-rotate-slider" data-unit="°" class="cursor-pointer hover:border-black dark:hover:border-white transition-colors select-none text-[10px] font-mono font-bold text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded border border-gray-200" title="Nhấp để nhập góc xoay">0°</span>
                                         <span>+45°</span>
                                     </div>
                                     <input type="range" id="crop-rotate-slider" min="-45" max="45" step="0.5" value="0" class="vnbus-slider w-full" oninput="app.crop.slideRotate(this.value)" onchange="app.crop.pushHistory()">
@@ -4853,7 +4853,7 @@ html.theme-dark .ct-icon {
                                 <!-- Khối trượt -->
                                 <div class="grid grid-cols-1 gap-4">
                                     <div>
-                                        <div class="flex justify-between items-center mb-2"><label class="text-[11px] font-bold text-gray-700 uppercase tracking-wider">Độ sáng</label><span id="val-brightness" class="text-[10px] font-mono font-bold text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded border border-gray-200">100%</span></div>
+                                        <div class="flex justify-between items-center mb-2"><label class="text-[11px] font-bold text-gray-700 uppercase tracking-wider">Độ sáng</label><span id="val-brightness" data-slider="adj-brightness" data-unit="%" class="cursor-pointer hover:border-black dark:hover:border-white transition-colors select-none text-[10px] font-mono font-bold text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded border border-gray-200" title="Nhấp để nhập giá trị">100%</span></div>
                                         <div class="flex items-center gap-2">
                                             <button type="button" onclick="app.upload.stepFilter('brightness', -1)" class="w-7 h-7 sm:w-8 sm:h-8 shrink-0 flex items-center justify-center text-xs bg-white text-gray-700 border border-gray-300 rounded-md hover:bg-gray-100 font-bold transition shadow-sm active:scale-95" title="Giảm độ sáng 1%">
                                                 <i class="fa-solid fa-minus"></i>
@@ -4865,7 +4865,7 @@ html.theme-dark .ct-icon {
                                         </div>
                                     </div>
                                     <div>
-                                        <div class="flex justify-between items-center mb-2"><label class="text-[11px] font-bold text-gray-700 uppercase tracking-wider">Tương phản</label><span id="val-contrast" class="text-[10px] font-mono font-bold text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded border border-gray-200">100%</span></div>
+                                        <div class="flex justify-between items-center mb-2"><label class="text-[11px] font-bold text-gray-700 uppercase tracking-wider">Tương phản</label><span id="val-contrast" data-slider="adj-contrast" data-unit="%" class="cursor-pointer hover:border-black dark:hover:border-white transition-colors select-none text-[10px] font-mono font-bold text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded border border-gray-200" title="Nhấp để nhập giá trị">100%</span></div>
                                         <div class="flex items-center gap-2">
                                             <button type="button" onclick="app.upload.stepFilter('contrast', -1)" class="w-7 h-7 sm:w-8 sm:h-8 shrink-0 flex items-center justify-center text-xs bg-white text-gray-700 border border-gray-300 rounded-md hover:bg-gray-100 font-bold transition shadow-sm active:scale-95" title="Giảm tương phản 1%">
                                                 <i class="fa-solid fa-minus"></i>
@@ -4877,7 +4877,7 @@ html.theme-dark .ct-icon {
                                         </div>
                                     </div>
                                     <div>
-                                        <div class="flex justify-between items-center mb-2"><label class="text-[11px] font-bold text-gray-700 uppercase tracking-wider">Độ bão hòa (Màu sắc)</label><span id="val-saturation" class="text-[10px] font-mono font-bold text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded border border-gray-200">100%</span></div>
+                                        <div class="flex justify-between items-center mb-2"><label class="text-[11px] font-bold text-gray-700 uppercase tracking-wider">Độ bão hòa (Màu sắc)</label><span id="val-saturation" data-slider="adj-saturation" data-unit="%" class="cursor-pointer hover:border-black dark:hover:border-white transition-colors select-none text-[10px] font-mono font-bold text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded border border-gray-200" title="Nhấp để nhập giá trị">100%</span></div>
                                         <div class="flex items-center gap-2">
                                             <button type="button" onclick="app.upload.stepFilter('saturation', -1)" class="w-7 h-7 sm:w-8 sm:h-8 shrink-0 flex items-center justify-center text-xs bg-white text-gray-700 border border-gray-300 rounded-md hover:bg-gray-100 font-bold transition shadow-sm active:scale-95" title="Giảm độ bão hòa 1%">
                                                 <i class="fa-solid fa-minus"></i>
@@ -4889,7 +4889,7 @@ html.theme-dark .ct-icon {
                                         </div>
                                     </div>
                                     <div>
-                                        <div class="flex justify-between items-center mb-2"><label class="text-[11px] font-bold text-gray-700 uppercase tracking-wider">Khử nhiễu</label><span id="val-denoise" class="text-[10px] font-mono font-bold text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded border border-gray-200">0%</span></div>
+                                        <div class="flex justify-between items-center mb-2"><label class="text-[11px] font-bold text-gray-700 uppercase tracking-wider">Khử nhiễu</label><span id="val-denoise" data-slider="adj-denoise" data-unit="%" class="cursor-pointer hover:border-black dark:hover:border-white transition-colors select-none text-[10px] font-mono font-bold text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded border border-gray-200" title="Nhấp để nhập giá trị">0%</span></div>
                                         <div class="flex items-center gap-2">
                                             <button type="button" onclick="app.upload.stepFilter('denoise', -5)" class="w-7 h-7 sm:w-8 sm:h-8 shrink-0 flex items-center justify-center text-xs bg-white text-gray-700 border border-gray-300 rounded-md hover:bg-gray-100 font-bold transition shadow-sm active:scale-95" title="Giảm khử nhiễu 5%">
                                                 <i class="fa-solid fa-minus"></i>
@@ -4944,7 +4944,7 @@ html.theme-dark .ct-icon {
                                             <div>
                                                 <div class="flex justify-between items-center mb-2">
                                                     <label class="text-[11px] font-bold text-gray-700 uppercase tracking-wider">Xoay dấu chìm tên</label>
-                                                    <span id="wm-rotate-val" class="text-[10px] font-mono font-bold text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded border border-gray-200">0°</span>
+                                                    <span id="wm-rotate-val" data-slider="wm-rotate-slider" data-unit="°" class="cursor-pointer hover:border-black dark:hover:border-white transition-colors select-none text-[10px] font-mono font-bold text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded border border-gray-200" title="Nhấp để nhập góc xoay">0°</span>
                                                 </div>
                                                 <div class="flex items-center gap-2">
                                                     <button type="button" onclick="app.upload.stepWmRotate(-1)" class="w-7 h-7 sm:w-8 sm:h-8 shrink-0 flex items-center justify-center text-xs bg-white text-gray-700 border border-gray-300 rounded-md hover:bg-gray-100 font-bold transition shadow-sm active:scale-95" title="Xoay ngược chiều kim đồng hồ 1°">
@@ -4961,7 +4961,7 @@ html.theme-dark .ct-icon {
                                             <div>
                                                 <div class="flex justify-between items-center mb-2">
                                                     <label class="text-[11px] font-bold text-gray-700 uppercase tracking-wider">Kích thước dấu chìm tên</label>
-                                                    <span id="wm-scale-val" class="text-[10px] font-mono font-bold text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded border border-gray-200">100%</span>
+                                                    <span id="wm-scale-val" data-slider="wm-scale-slider" data-unit="%" class="cursor-pointer hover:border-black dark:hover:border-white transition-colors select-none text-[10px] font-mono font-bold text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded border border-gray-200" title="Nhấp để nhập kích thước">100%</span>
                                                 </div>
                                                 <input type="range" id="wm-scale-slider" min="50" max="100" value="100" class="vnbus-slider" oninput="app.upload.updateWmScale(this.value)" onmousedown="event.stopPropagation()" ontouchstart="event.stopPropagation()">
                                                 <div class="flex justify-between text-[10px] text-gray-400 font-bold px-1 mt-1"><span>50%</span><span>75%</span><span>100%</span></div>
@@ -4972,7 +4972,7 @@ html.theme-dark .ct-icon {
                                         <div>
                                             <div class="flex justify-between items-center mb-2">
                                                 <label class="text-[11px] font-bold text-gray-700 uppercase tracking-wider">Kích thước dấu chìm dưới</label>
-                                                <span id="wm-bar-scale-val" class="text-[10px] font-mono font-bold text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded border border-gray-200">100%</span>
+                                                <span id="wm-bar-scale-val" data-slider="wm-bar-scale-slider" data-unit="%" class="cursor-pointer hover:border-black dark:hover:border-white transition-colors select-none text-[10px] font-mono font-bold text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded border border-gray-200" title="Nhấp để nhập kích thước">100%</span>
                                             </div>
                                             <input type="range" id="wm-bar-scale-slider" min="50" max="150" step="50" value="100" class="vnbus-slider" oninput="app.upload.updateWmBarScale(this.value)" onmousedown="event.stopPropagation()" ontouchstart="event.stopPropagation()">
                                             <div class="flex justify-between text-[10px] text-gray-400 font-bold px-1 mt-1"><span>50%</span><span>100%</span><span>150%</span></div>
@@ -7318,7 +7318,7 @@ html.theme-dark .ct-icon {
 
     <!-- KHAY CHỨA TOAST Z-INDEX CAO NHẤT -->
     <div id="toast-container" class="fixed left-0 w-full flex flex-col items-center gap-2 pointer-events-none z-[99999]" style="z-index: 99999 !important;"></div>
-<script src="/app.3440ceeffc24.js" onerror="if(!window.__app_fallback_loaded){window.__app_fallback_loaded=true;var s=document.createElement('script');s.src='/app.js?v=' + Date.now();document.head.appendChild(s);}"></script>
+<script src="/app.471810073238.js" onerror="if(!window.__app_fallback_loaded){window.__app_fallback_loaded=true;var s=document.createElement('script');s.src='/app.js?v=' + Date.now();document.head.appendChild(s);}"></script>
 </body>
 </html>
 
