@@ -14653,6 +14653,8 @@ Object.assign(window.app, {
                     document.getElementById('preview-box').classList.remove('hidden');
                     document.getElementById('drop-zone').classList.add('hidden');
                     if (app.upload.restoreDropZone) app.upload.restoreDropZone();
+                    const previewImg = document.getElementById('preview-img');
+                    if (!previewImg) return;
 
                     previewImg.onload = () => {
                         const updateSize = () => {
@@ -14811,6 +14813,9 @@ Object.assign(window.app, {
                         if (app.upload.updateBlurBtn) app.upload.updateBlurBtn();
                     };
                     previewImg.src = url;
+                    if (previewImg.complete && previewImg.naturalWidth) {
+                        previewImg.onload();
+                    }
                     const name = app.username || "Guest";
                     const wmName = document.getElementById('wm-username');
                     if (wmName) wmName.innerText = name;
@@ -14825,18 +14830,23 @@ Object.assign(window.app, {
                     }
                     if (!app.upload._draftPending && app.upload.resetWm) app.upload.resetWm();
                     if (app.upload.resetFilters) app.upload.resetFilters();
+                    if (app.upload.initDraggable) app.upload.initDraggable();
                 },
                 initDraggable: () => {
-                    if (app.draggableInitialized) return;
-                    app.draggableInitialized = true;
                     const el = document.getElementById('draggable-watermark');
                     const container = document.getElementById('preview-container');
+                    if (!el || !container) return;
+                    if (app.draggableInitialized) return;
+                    app.draggableInitialized = true;
                     let isDragging = false;
                     let startX, startY, initialLeft, initialTop;
-                    const resizeObserver = new ResizeObserver(() => {
-                        if (app.previewUpdateSize) app.previewUpdateSize();
-                    });
-                    resizeObserver.observe(document.getElementById('preview-box'));
+                    const previewBox = document.getElementById('preview-box');
+                    if (previewBox && typeof ResizeObserver !== 'undefined') {
+                        const resizeObserver = new ResizeObserver(() => {
+                            if (app.previewUpdateSize) app.previewUpdateSize();
+                        });
+                        resizeObserver.observe(previewBox);
+                    }
                     document.addEventListener('mousedown', (e) => {
                         if (!el.contains(e.target)) el.classList.remove('wm-active');
                     });
