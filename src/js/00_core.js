@@ -1723,6 +1723,25 @@ closeCustomRolePrompt: () => {
                     let shadowCount = 0;
                     let highlightCount = 0;
                     
+                    let centerLumaTotal = 0;
+                    let centerPixels = 0;
+                    let centerShadowCount = 0;
+                    let centerHighlightCount = 0;
+                    
+                    let topLumaTotal = 0;
+                    let topPixels = 0;
+                    
+                    let neutralRTotal = 0, neutralGTotal = 0, neutralBTotal = 0;
+                    let neutralPixels = 0;
+                    
+                    let rClipCount = 0, gClipCount = 0, bClipCount = 0;
+                    
+                    const minCenterX = sw * 0.12;
+                    const maxCenterX = sw * 0.88;
+                    const minCenterY = sh * 0.15;
+                    const maxCenterY = sh * 0.85;
+                    const maxTopY = sh * 0.25;
+                    
                     for (let i = 0; i < data.length; i += 4) {
                         const r = data[i];
                         const g = data[i + 1];
@@ -1741,12 +1760,44 @@ closeCustomRolePrompt: () => {
                         
                         const maxVal = Math.max(r, g, b);
                         const minVal = Math.min(r, g, b);
+                        let sat = 0;
                         if (maxVal > 0) {
-                            totalSat += (maxVal - minVal) / maxVal;
+                            sat = (maxVal - minVal) / maxVal;
+                            totalSat += sat;
                         }
                         
                         if (luma <= 5) shadowCount++;
                         if (luma >= 250) highlightCount++;
+                        
+                        if (r >= 252) rClipCount++;
+                        if (g >= 252) gClipCount++;
+                        if (b >= 252) bClipCount++;
+                        
+                        const pixelIdx = i / 4;
+                        const px = pixelIdx % sw;
+                        const py = (pixelIdx / sw) | 0;
+                        
+                        // Center zone (Vehicle body)
+                        if (px >= minCenterX && px <= maxCenterX && py >= minCenterY && py <= maxCenterY) {
+                            centerPixels++;
+                            centerLumaTotal += luma;
+                            if (luma <= 8) centerShadowCount++;
+                            if (luma >= 248) centerHighlightCount++;
+                        }
+                        
+                        // Top zone (Sky / Background)
+                        if (py <= maxTopY) {
+                            topPixels++;
+                            topLumaTotal += luma;
+                        }
+                        
+                        // Neutral surfaces (Asphalt road, curb, gray decals, concrete, neutral background)
+                        if (sat < 0.26 && luma >= 40 && luma <= 220) {
+                            neutralPixels++;
+                            neutralRTotal += r;
+                            neutralGTotal += g;
+                            neutralBTotal += b;
+                        }
                     }
                     
                     let shadowZoneCount = 0;
@@ -1772,6 +1823,10 @@ closeCustomRolePrompt: () => {
                         if (count >= t90 && p90 === 255) p90 = i;
                     }
                     
+                    const avgNeutralR = neutralPixels > 0 ? (neutralRTotal / neutralPixels) : 128;
+                    const avgNeutralG = neutralPixels > 0 ? (neutralGTotal / neutralPixels) : 128;
+                    const avgNeutralB = neutralPixels > 0 ? (neutralBTotal / neutralPixels) : 128;
+                    
                     return {
                         totalPixels,
                         lumaBins,
@@ -1790,7 +1845,23 @@ closeCustomRolePrompt: () => {
                         midZonePct: totalPixels > 0 ? ((midZoneCount / totalPixels) * 100) : 0,
                         highlightZonePct: totalPixels > 0 ? ((highlightZoneCount / totalPixels) * 100) : 0,
                         p50,
-                        dynamicSpan: p90 - p10
+                        dynamicSpan: p90 - p10,
+                        centerLuma: centerPixels > 0 ? (centerLumaTotal / centerPixels) : (totalLuma / totalPixels),
+                        centerShadowPct: centerPixels > 0 ? ((centerShadowCount / centerPixels) * 100) : 0,
+                        centerHighlightPct: centerPixels > 0 ? ((centerHighlightCount / centerPixels) * 100) : 0,
+                        topLuma: topPixels > 0 ? (topLumaTotal / topPixels) : (totalLuma / totalPixels),
+                        neutralPixels,
+                        avgNeutralR,
+                        avgNeutralG,
+                        avgNeutralB,
+                        neutralDiffRB: avgNeutralR - avgNeutralB,
+                        neutralDiffGB: avgNeutralG - avgNeutralB,
+                        neutralDiffRG: avgNeutralR - avgNeutralG,
+                        neutralDiffGR: avgNeutralG - avgNeutralR,
+                        neutralDiffBR: avgNeutralB - avgNeutralR,
+                        channelClipR: totalPixels > 0 ? ((rClipCount / totalPixels) * 100) : 0,
+                        channelClipG: totalPixels > 0 ? ((gClipCount / totalPixels) * 100) : 0,
+                        channelClipB: totalPixels > 0 ? ((bClipCount / totalPixels) * 100) : 0
                     };
                 },
                 drawHistogramCanvas: (canvas, data, mode = 'luma') => {

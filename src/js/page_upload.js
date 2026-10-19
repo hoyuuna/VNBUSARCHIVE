@@ -1573,12 +1573,12 @@ Object.assign(window.app, {
                     if (avgEl) avgEl.innerText = `${avgPct}%`;
                     if (shadowEl) {
                         shadowEl.innerText = `${data.shadowPercent.toFixed(1)}%`;
-                        if (data.shadowPercent > 10) shadowEl.className = "text-xs font-bold text-red-600 font-mono";
+                        if (data.shadowPercent > 18) shadowEl.className = "text-xs font-bold text-red-600 font-mono";
                         else shadowEl.className = "text-xs font-bold text-black dark:text-white font-mono";
                     }
                     if (highEl) {
                         highEl.innerText = `${data.highlightPercent.toFixed(1)}%`;
-                        if (data.highlightPercent > 10) highEl.className = "text-xs font-bold text-red-600 font-mono";
+                        if (data.highlightPercent > 5) highEl.className = "text-xs font-bold text-red-600 font-mono";
                         else highEl.className = "text-xs font-bold text-black dark:text-white font-mono";
                     }
                 },

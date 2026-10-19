@@ -1725,6 +1725,25 @@ closeCustomRolePrompt: () => {
                     let shadowCount = 0;
                     let highlightCount = 0;
                     
+                    let centerLumaTotal = 0;
+                    let centerPixels = 0;
+                    let centerShadowCount = 0;
+                    let centerHighlightCount = 0;
+                    
+                    let topLumaTotal = 0;
+                    let topPixels = 0;
+                    
+                    let neutralRTotal = 0, neutralGTotal = 0, neutralBTotal = 0;
+                    let neutralPixels = 0;
+                    
+                    let rClipCount = 0, gClipCount = 0, bClipCount = 0;
+                    
+                    const minCenterX = sw * 0.12;
+                    const maxCenterX = sw * 0.88;
+                    const minCenterY = sh * 0.15;
+                    const maxCenterY = sh * 0.85;
+                    const maxTopY = sh * 0.25;
+                    
                     for (let i = 0; i < data.length; i += 4) {
                         const r = data[i];
                         const g = data[i + 1];
@@ -1743,12 +1762,44 @@ closeCustomRolePrompt: () => {
                         
                         const maxVal = Math.max(r, g, b);
                         const minVal = Math.min(r, g, b);
+                        let sat = 0;
                         if (maxVal > 0) {
-                            totalSat += (maxVal - minVal) / maxVal;
+                            sat = (maxVal - minVal) / maxVal;
+                            totalSat += sat;
                         }
                         
                         if (luma <= 5) shadowCount++;
                         if (luma >= 250) highlightCount++;
+                        
+                        if (r >= 252) rClipCount++;
+                        if (g >= 252) gClipCount++;
+                        if (b >= 252) bClipCount++;
+                        
+                        const pixelIdx = i / 4;
+                        const px = pixelIdx % sw;
+                        const py = (pixelIdx / sw) | 0;
+                        
+                        // Center zone (Vehicle body)
+                        if (px >= minCenterX && px <= maxCenterX && py >= minCenterY && py <= maxCenterY) {
+                            centerPixels++;
+                            centerLumaTotal += luma;
+                            if (luma <= 8) centerShadowCount++;
+                            if (luma >= 248) centerHighlightCount++;
+                        }
+                        
+                        // Top zone (Sky / Background)
+                        if (py <= maxTopY) {
+                            topPixels++;
+                            topLumaTotal += luma;
+                        }
+                        
+                        // Neutral surfaces (Asphalt road, curb, gray decals, concrete, neutral background)
+                        if (sat < 0.26 && luma >= 40 && luma <= 220) {
+                            neutralPixels++;
+                            neutralRTotal += r;
+                            neutralGTotal += g;
+                            neutralBTotal += b;
+                        }
                     }
                     
                     let shadowZoneCount = 0;
@@ -1774,6 +1825,10 @@ closeCustomRolePrompt: () => {
                         if (count >= t90 && p90 === 255) p90 = i;
                     }
                     
+                    const avgNeutralR = neutralPixels > 0 ? (neutralRTotal / neutralPixels) : 128;
+                    const avgNeutralG = neutralPixels > 0 ? (neutralGTotal / neutralPixels) : 128;
+                    const avgNeutralB = neutralPixels > 0 ? (neutralBTotal / neutralPixels) : 128;
+                    
                     return {
                         totalPixels,
                         lumaBins,
@@ -1792,7 +1847,23 @@ closeCustomRolePrompt: () => {
                         midZonePct: totalPixels > 0 ? ((midZoneCount / totalPixels) * 100) : 0,
                         highlightZonePct: totalPixels > 0 ? ((highlightZoneCount / totalPixels) * 100) : 0,
                         p50,
-                        dynamicSpan: p90 - p10
+                        dynamicSpan: p90 - p10,
+                        centerLuma: centerPixels > 0 ? (centerLumaTotal / centerPixels) : (totalLuma / totalPixels),
+                        centerShadowPct: centerPixels > 0 ? ((centerShadowCount / centerPixels) * 100) : 0,
+                        centerHighlightPct: centerPixels > 0 ? ((centerHighlightCount / centerPixels) * 100) : 0,
+                        topLuma: topPixels > 0 ? (topLumaTotal / topPixels) : (totalLuma / totalPixels),
+                        neutralPixels,
+                        avgNeutralR,
+                        avgNeutralG,
+                        avgNeutralB,
+                        neutralDiffRB: avgNeutralR - avgNeutralB,
+                        neutralDiffGB: avgNeutralG - avgNeutralB,
+                        neutralDiffRG: avgNeutralR - avgNeutralG,
+                        neutralDiffGR: avgNeutralG - avgNeutralR,
+                        neutralDiffBR: avgNeutralB - avgNeutralR,
+                        channelClipR: totalPixels > 0 ? ((rClipCount / totalPixels) * 100) : 0,
+                        channelClipG: totalPixels > 0 ? ((gClipCount / totalPixels) * 100) : 0,
+                        channelClipB: totalPixels > 0 ? ((bClipCount / totalPixels) * 100) : 0
                     };
                 },
                 drawHistogramCanvas: (canvas, data, mode = 'luma') => {
@@ -14548,12 +14619,12 @@ Object.assign(window.app, {
                     if (avgEl) avgEl.innerText = `${avgPct}%`;
                     if (shadowEl) {
                         shadowEl.innerText = `${data.shadowPercent.toFixed(1)}%`;
-                        if (data.shadowPercent > 10) shadowEl.className = "text-xs font-bold text-red-600 font-mono";
+                        if (data.shadowPercent > 18) shadowEl.className = "text-xs font-bold text-red-600 font-mono";
                         else shadowEl.className = "text-xs font-bold text-black dark:text-white font-mono";
                     }
                     if (highEl) {
                         highEl.innerText = `${data.highlightPercent.toFixed(1)}%`;
-                        if (data.highlightPercent > 10) highEl.className = "text-xs font-bold text-red-600 font-mono";
+                        if (data.highlightPercent > 5) highEl.className = "text-xs font-bold text-red-600 font-mono";
                         else highEl.className = "text-xs font-bold text-black dark:text-white font-mono";
                     }
                 },
@@ -19129,12 +19200,12 @@ Object.assign(window.app, {
                     if (avgEl) avgEl.innerText = `${avgPct}%`;
                     if (shadowEl) {
                         shadowEl.innerText = `${data.shadowPercent.toFixed(1)}%`;
-                        if (data.shadowPercent > 10) shadowEl.className = "text-xs font-bold text-red-600 font-mono";
+                        if (data.shadowPercent > 18) shadowEl.className = "text-xs font-bold text-red-600 font-mono";
                         else shadowEl.className = "text-xs font-bold text-black dark:text-white font-mono";
                     }
                     if (highEl) {
                         highEl.innerText = `${data.highlightPercent.toFixed(1)}%`;
-                        if (data.highlightPercent > 3) highEl.className = "text-xs font-bold text-red-600 font-mono";
+                        if (data.highlightPercent > 5) highEl.className = "text-xs font-bold text-red-600 font-mono";
                         else highEl.className = "text-xs font-bold text-black dark:text-white font-mono";
                     }
                     if (diagEl) {
@@ -19146,46 +19217,55 @@ Object.assign(window.app, {
                         const highlightZonePct = data.highlightZonePct || 0;
                         const p50 = data.p50 || 128;
                         const dynamicSpan = data.dynamicSpan || 150;
+                        const centerLuma = data.centerLuma !== undefined ? data.centerLuma : data.avgLuma;
+                        const centerShadowPct = data.centerShadowPct || 0;
+                        const centerHighlightPct = data.centerHighlightPct || 0;
+                        const topLuma = data.topLuma !== undefined ? data.topLuma : data.avgLuma;
 
-                        // 1. Cháy sáng
-                        if (data.highlightPercent > 3.0) {
-                            lightIssues.push("Có dấu hiệu cháy sáng");
-                            if (data.highlightPercent > 6.0) isSevere = true;
+                        // 1. Cháy sáng thân xe vs Cháy sáng bầu trời
+                        if (centerHighlightPct > 4.5 || (centerLuma > 165 && data.highlightPercent > 5.0)) {
+                            lightIssues.push("Cháy sáng thân xe (mất chi tiết tem / BKS)");
+                            if (centerHighlightPct > 8.0 || centerLuma > 185) isSevere = true;
+                        } else if (data.highlightPercent > 3.5) {
+                            lightIssues.push("Cháy sáng vùng trời / hậu cảnh (chủ thể xe vẫn rõ)");
                         }
 
-                        // 2. Cháy tối
-                        if (data.shadowPercent > 10.0) {
-                            lightIssues.push("Cháy tối (mất chi tiết vùng đen)");
-                            if (data.shadowPercent > 20.0) isSevere = true;
+                        // 2. Cháy tối thân xe vs Vùng tối tự nhiên của lốp xe/mặt đường
+                        if (centerShadowPct > 18.0 || data.shadowPercent > 22.0) {
+                            lightIssues.push("Cháy tối thân xe (mất chi tiết vùng tối)");
+                            if (centerShadowPct > 30.0 || data.shadowPercent > 32.0) isSevere = true;
                         }
 
-                        // 3. Ảnh ngược sáng / chênh sáng mạnh (Backlit)
-                        // Chỉ báo ngược sáng khi trung vị tối (p50 < 82), vùng tối lấn át vùng trung gian (shadowZonePct > 1.4 * midZonePct), và có hậu cảnh sáng (highlightZonePct > 7%)
-                        const isBacklit = p50 < 82 && shadowZonePct > 48 && (shadowZonePct > 1.4 * midZonePct) && highlightZonePct > 7 && avgPct < 48;
-
+                        // 3. Ảnh ngược sáng (Backlit)
+                        const isBacklit = (centerLuma < 85 || p50 < 82) && (topLuma > 165 || highlightZonePct > 7) && (shadowZonePct > 1.3 * midZonePct);
                         if (isBacklit) {
-                            lightIssues.push("Ảnh bị ngược sáng (chủ thể tối, hậu cảnh sáng)");
-                            if (p50 < 68 && shadowZonePct > 60) isSevere = true;
-                        } else if (p50 < 75 && shadowZonePct > 58 && highlightZonePct <= 7) {
-                            // 4. Thiếu sáng / tối vùng xe
-                            lightIssues.push("Ảnh thiếu sáng (chủ thể xe bị tối)");
-                            if (p50 < 60 || shadowZonePct > 72) isSevere = true;
-                        } else if (avgPct < 25 && data.shadowPercent <= 10.0) {
-                            lightIssues.push("Tổng thể ảnh tối");
+                            lightIssues.push("Ảnh bị ngược sáng (thân xe tối, hậu cảnh sáng)");
+                            if (centerLuma < 65 || p50 < 68) isSevere = true;
+                        } else if (centerLuma < 75 && shadowZonePct > 50 && highlightZonePct <= 7) {
+                            // 4. Thiếu sáng tổng thể
+                            lightIssues.push("Ảnh thiếu sáng (thân xe bị chìm vào bóng tối)");
+                            if (centerLuma < 58 || p50 < 60) isSevere = true;
+                        } else if (avgPct < 28 && data.shadowPercent <= 16.0) {
+                            lightIssues.push("Tổng thể ảnh hơi tối");
                         }
 
-                        // 5. Quá sáng
-                        if (p50 > 165 && highlightZonePct > 35 && data.highlightPercent <= 3.0) {
-                            lightIssues.push("Tổng thể ảnh quá sáng");
+                        // 5. Quá sáng / bạc màu
+                        if (centerLuma > 158 && highlightZonePct > 35 && data.highlightPercent <= 3.5) {
+                            lightIssues.push("Tổng thể ảnh bị dư sáng / bạc màu");
                         }
 
-                        // 6. Mờ đục / thiếu tương phản
-                        if (shadowZonePct < 8 && highlightZonePct < 8 && dynamicSpan < 80) {
-                            lightIssues.push("Ảnh bị mờ đục / thiếu tương phản");
+                        // 6. Chênh sáng gắt / bóng đổ sâu (Chụp trưa nắng gắt)
+                        if (highlightZonePct > 20 && shadowZonePct > 32 && midZonePct < 30) {
+                            lightIssues.push("Chênh sáng gắt / bóng đổ sâu (nắng gắt)");
+                        }
+
+                        // 7. Đục mờ / thiếu tương phản (Thời tiết mù / mưa)
+                        if (shadowZonePct < 8 && highlightZonePct < 8 && dynamicSpan < 85) {
+                            lightIssues.push("Ảnh đục mờ / thiếu tương phản (thời tiết mù)");
                         }
 
                         if (lightIssues.length === 0) {
-                            diagEl.innerHTML = `<span class="inline-flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400"><i class="fa-solid fa-circle-check"></i> Ánh sáng: Đo sáng tốt, dải sáng cân bằng</span>`;
+                            diagEl.innerHTML = `<span class="inline-flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400"><i class="fa-solid fa-circle-check"></i> Ánh sáng: Đo sáng tốt, rõ chi tiết xe</span>`;
                         } else if (isSevere) {
                             diagEl.innerHTML = `<span class="inline-flex items-center gap-1.5 text-red-600 dark:text-red-400"><i class="fa-solid fa-circle-exclamation"></i> Ánh sáng: ${app.utils.escapeHtml(lightIssues.join(' • '))}</span>`;
                         } else {
@@ -19198,26 +19278,51 @@ Object.assign(window.app, {
                         const avgG = data.avgG || 128;
                         const avgB = data.avgB || 128;
                         const avgSat = data.avgSat || 0;
+                        const neutralPixels = data.neutralPixels || 0;
+                        const neutralDiffRB = data.neutralDiffRB !== undefined ? data.neutralDiffRB : (avgR - avgB);
+                        const neutralDiffGB = data.neutralDiffGB !== undefined ? data.neutralDiffGB : (avgG - avgB);
+                        const neutralDiffRG = data.neutralDiffRG !== undefined ? data.neutralDiffRG : (avgR - avgG);
+                        const neutralDiffGR = data.neutralDiffGR !== undefined ? data.neutralDiffGR : (avgG - avgR);
+                        const neutralDiffBR = data.neutralDiffBR !== undefined ? data.neutralDiffBR : (avgB - avgR);
+                        const channelClipR = data.channelClipR || 0;
+                        const channelClipG = data.channelClipG || 0;
+                        const channelClipB = data.channelClipB || 0;
                         const colorIssues = [];
 
-                        if ((avgR - avgB) > 28 && (avgG - avgB) > 12) {
-                            colorIssues.push("Ảnh bị ám vàng / nóng màu");
-                        } else if ((avgB - avgR) > 24) {
-                            colorIssues.push("Ảnh bị ám xanh / lạnh màu");
-                        } else if ((avgR - avgG) > 22 && (avgB - avgG) > 14) {
-                            colorIssues.push("Ảnh bị ám tím / hồng");
-                        } else if ((avgG - avgR) > 20 && (avgG - avgB) > 15) {
-                            colorIssues.push("Ảnh bị ám xanh lá");
+                        // 1. Phân tích Cân bằng trắng (White Balance) trên bề mặt trung tính (mặt đường, vỉa hè, kính, trần xe)
+                        // Giúp không bị đánh lừa bởi màu sơn đặc trưng của xe (VinBus xanh lá, Phương Trang cam, Hanoibus đỏ-vàng...)
+                        if (neutralPixels > 300) {
+                            if (neutralDiffRB > 22 && neutralDiffGB > 10) {
+                                colorIssues.push("Ảnh bị ám vàng / nóng màu");
+                            } else if (neutralDiffBR > 20) {
+                                colorIssues.push("Ảnh bị ám xanh / lạnh màu");
+                            } else if (neutralDiffRG > 18 && neutralDiffBR > 12) {
+                                colorIssues.push("Ảnh bị ám tím / hồng");
+                            } else if (neutralDiffGR > 18 && neutralDiffGB > 12) {
+                                colorIssues.push("Ảnh bị ám xanh lá");
+                            }
+                        } else {
+                            // Dự phòng khi ảnh không đủ điểm ảnh trung tính (dùng ngưỡng lệch lớn để không báo nhầm màu sơn xe)
+                            if ((avgR - avgB) > 36 && (avgG - avgB) > 18) {
+                                colorIssues.push("Ảnh bị ám vàng / nóng màu");
+                            } else if ((avgB - avgR) > 32) {
+                                colorIssues.push("Ảnh bị ám xanh / lạnh màu");
+                            } else if ((avgG - avgR) > 32 && (avgG - avgB) > 22) {
+                                colorIssues.push("Ảnh bị ám xanh lá");
+                            }
                         }
 
-                        if (avgSat > 50) {
-                            colorIssues.push("Màu sắc quá rực, dễ bệt màu");
-                        } else if (avgSat < 11) {
+                        // 2. Phân tích Bệt màu & Độ tươi (Saturation & Channel Clipping)
+                        if (channelClipR > 4.0 || channelClipG > 4.0 || channelClipB > 4.0) {
+                            colorIssues.push("Màu sắc bị bệt / mất khối chi tiết sơn xe");
+                        } else if (avgSat > 52) {
+                            colorIssues.push("Màu sắc quá rực, dễ bệt màu sơn xe");
+                        } else if (avgSat < 10) {
                             colorIssues.push("Màu sắc nhợt nhạt, thiếu độ tươi");
                         }
 
                         if (colorIssues.length === 0) {
-                            colorDiagEl.innerHTML = `<span class="inline-flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400"><i class="fa-solid fa-circle-check"></i> Màu sắc: Màu sắc tự nhiên, cân bằng tốt</span>`;
+                            colorDiagEl.innerHTML = `<span class="inline-flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400"><i class="fa-solid fa-circle-check"></i> Màu sắc: Cân bằng trắng chuẩn, màu sắc tự nhiên</span>`;
                         } else {
                             colorDiagEl.innerHTML = `<span class="inline-flex items-center gap-1.5 text-amber-600 dark:text-amber-400"><i class="fa-solid fa-triangle-exclamation"></i> Màu sắc: ${app.utils.escapeHtml(colorIssues.join(' • '))}</span>`;
                         }
