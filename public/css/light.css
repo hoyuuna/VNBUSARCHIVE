@@ -239,15 +239,14 @@ input:focus, textarea:focus, select:focus {
     color: white !important;
 }
 
-/* ===== FIX: PREVIEW FOOTER BAR - Restore blur gradient ===== */
+/* ===== FIX: PREVIEW FOOTER BAR - Flat dark blur overlay matching real output ===== */
 #preview-footer-bar {
-    background: linear-gradient(to top, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0) 100%) !important;
+    background: rgba(0, 0, 0, 0.25) !important;
     backdrop-filter: blur(4px) !important;
     -webkit-backdrop-filter: blur(4px) !important;
-    padding-top: 0 !important;
-    padding-bottom: 0 !important;
+    padding: 0 !important;
     margin: 0 !important;
-    border-top: 1px solid rgba(255, 255, 255, 0.2) !important;
+    border: none !important;
 }
 
 /* Additional Tailwind colors for inline alerts */

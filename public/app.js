@@ -2309,7 +2309,7 @@ cleanupState: () => {
                                 const scale = (pos && typeof pos.scale === 'number') ? pos.scale : 1.0;
                                 const wmFontSize = height * 0.096 * scale;
                                 const rotate = (pos && typeof pos.rotate === 'number') ? pos.rotate : 0;
-                                const fontFace = '"Montserrat", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif';
+                                const fontFace = 'Montserrat, sans-serif';
                                 try {
                                     if (document.fonts && document.fonts.load) {
                                         await Promise.all([
@@ -14686,21 +14686,57 @@ Object.assign(window.app, {
                             container.style.height = finalH + 'px';
 
                             const barScale = (app.wmState && app.wmState.barScale !== undefined) ? app.wmState.barScale : 1.0;
-                            const barHeight = Math.round(finalH * 0.0576 * barScale);
-                            const baseFontSize = Math.max(9, Math.round(barHeight * 0.42));
-                            const padX = Math.max(6, Math.round(barHeight * 0.5));
+                            const barHeight = finalH * 0.0576 * barScale;
+                            const fontSize = barHeight * 0.4;
+                            const padX = barHeight / 2;
+
                             const footerBar = document.getElementById('preview-footer-bar');
                             if (footerBar) {
                                 footerBar.style.height = barHeight + 'px';
-                                footerBar.style.paddingLeft = padX + 'px';
-                                footerBar.style.paddingRight = padX + 'px';
-                            }
-                            const leftText = document.querySelector('.footer-text-left');
-                            const rightText = document.getElementById('preview-footer-copy');
-                            if (leftText) leftText.style.fontSize = baseFontSize + 'px';
-                            if (rightText) {
-                                rightText.style.fontSize = baseFontSize + 'px';
-                                rightText.innerText = `Bản quyền bởi ${app.username || 'Guest'}`;
+                                let footerCanvas = document.getElementById('preview-footer-canvas');
+                                if (!footerCanvas) {
+                                    footerCanvas = document.createElement('canvas');
+                                    footerCanvas.id = 'preview-footer-canvas';
+                                    footerCanvas.className = 'w-full h-full block pointer-events-none';
+                                    footerBar.innerHTML = '';
+                                    footerBar.appendChild(footerCanvas);
+                                }
+                                const dpr = Math.max(1, window.devicePixelRatio || 1);
+                                footerCanvas.width = Math.round(finalW * dpr);
+                                footerCanvas.height = Math.round(barHeight * dpr);
+                                footerCanvas.style.width = finalW + 'px';
+                                footerCanvas.style.height = barHeight + 'px';
+
+                                const fCtx = footerCanvas.getContext('2d');
+                                fCtx.clearRect(0, 0, footerCanvas.width, footerCanvas.height);
+                                fCtx.save();
+                                fCtx.scale(dpr, dpr);
+
+                                // Đường viền mờ 15% trắng trên thanh đáy y hệt ảnh xuất thật:
+                                fCtx.fillStyle = "rgba(255, 255, 255, 0.15)";
+                                fCtx.fillRect(0, 0, finalW, Math.max(1, 1.5 * barScale * (finalH / 1080)));
+
+                                fCtx.fillStyle = "white";
+                                fCtx.textBaseline = 'alphabetic';
+
+                                const fontFace = 'Montserrat, sans-serif';
+                                const textY = (barHeight / 2) + (fontSize * 0.35);
+
+                                // Chữ bên trái: VNBUSARCHIVE.io.vn
+                                fCtx.textAlign = 'left';
+                                fCtx.font = `italic 900 ${fontSize}px ${fontFace}`;
+                                fCtx.fillText("VNBUSARCHIVE", padX, textY);
+                                const vnbusWidth = fCtx.measureText("VNBUSARCHIVE").width;
+                                fCtx.font = `italic 700 ${fontSize * 0.8}px ${fontFace}`;
+                                fCtx.fillText(".io.vn", padX + vnbusWidth, textY);
+
+                                // Chữ bên phải: Bản quyền bởi [name] (dùng chung textY để thẳng tắp một hàng ngang)
+                                fCtx.textAlign = 'right';
+                                fCtx.font = `700 ${fontSize}px ${fontFace}`;
+                                const name = app.username || "Guest";
+                                fCtx.fillText(`Bản quyền bởi ${name}`, finalW - padX, textY);
+
+                                fCtx.restore();
                             }
 
                             const wmDrag = document.getElementById('draggable-watermark');
@@ -14715,7 +14751,7 @@ Object.assign(window.app, {
                                     wmDrag.style.border = 'none';
                                 }
                                 const text = `© ${app.username || 'Guest'}`;
-                                const fontFace = '"Montserrat", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif';
+                                const fontFace = 'Montserrat, sans-serif';
                                 const watermarkFontSize = finalH * 0.096;
                                 const font = `700 ${watermarkFontSize}px ${fontFace}`;
                                 const ctx = wmCanvas.getContext('2d');
@@ -14723,11 +14759,12 @@ Object.assign(window.app, {
                                 const metrics = ctx.measureText(text);
                                 const rawW = Math.ceil(metrics.width + 4);
                                 const rawH = Math.ceil(watermarkFontSize * 1.5);
-                                const dpr = window.devicePixelRatio || 1;
-                                wmCanvas.width = rawW * dpr;
-                                wmCanvas.height = rawH * dpr;
+                                const dpr = Math.max(1, window.devicePixelRatio || 1);
+                                wmCanvas.width = Math.round(rawW * dpr);
+                                wmCanvas.height = Math.round(rawH * dpr);
                                 wmCanvas.style.width = rawW + 'px';
                                 wmCanvas.style.height = rawH + 'px';
+                                ctx.save();
                                 ctx.scale(dpr, dpr);
                                 ctx.font = font;
                                 ctx.textAlign = 'center';
@@ -14735,6 +14772,7 @@ Object.assign(window.app, {
                                 ctx.fillStyle = wmDrag.classList.contains('wm-black') ? 'black' : 'white';
                                 ctx.clearRect(0, 0, rawW, rawH);
                                 ctx.fillText(text, rawW / 2, rawH / 2);
+                                ctx.restore();
 
                                 const currentScale = app.wmState ? (app.wmState.scale !== undefined ? app.wmState.scale : 1.0) : 1.0;
                                 const currentRotate = app.wmState ? (app.wmState.rotate !== undefined ? app.wmState.rotate : 0) : 0;
@@ -14748,10 +14786,15 @@ Object.assign(window.app, {
                         };
                         updateSize();
                         app.previewUpdateSize = updateSize;
-                        if (typeof document !== 'undefined' && document.fonts && document.fonts.ready) {
-                            document.fonts.ready.then(() => {
+                        if (typeof document !== 'undefined' && document.fonts && document.fonts.load) {
+                            Promise.all([
+                                document.fonts.load(`italic 900 16px Montserrat`),
+                                document.fonts.load(`italic 700 16px Montserrat`),
+                                document.fonts.load(`700 16px Montserrat`),
+                                document.fonts.load(`700 32px Montserrat`)
+                            ]).then(() => {
                                 if (app.previewUpdateSize) app.previewUpdateSize();
-                            });
+                            }).catch(() => {});
                         }
                         
                         if (app.upload._draftPending) {

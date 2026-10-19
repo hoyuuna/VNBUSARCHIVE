@@ -2307,7 +2307,7 @@ cleanupState: () => {
                                 const scale = (pos && typeof pos.scale === 'number') ? pos.scale : 1.0;
                                 const wmFontSize = height * 0.096 * scale;
                                 const rotate = (pos && typeof pos.rotate === 'number') ? pos.rotate : 0;
-                                const fontFace = '"Montserrat", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif';
+                                const fontFace = 'Montserrat, sans-serif';
                                 try {
                                     if (document.fonts && document.fonts.load) {
                                         await Promise.all([
