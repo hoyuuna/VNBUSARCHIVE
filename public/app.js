@@ -1701,6 +1701,171 @@ closeCustomRolePrompt: () => {
                         canvas.toBlob((blob) => resolve(blob), targetMime, quality);
                     });
                 },
+                computeHistogramData: (img, filterString = 'none') => {
+                    const sw = 256;
+                    const sh = Math.max(1, Math.round(sw * ((img.naturalHeight || img.height || 150) / (img.naturalWidth || img.width || 256))));
+                    const offCanvas = document.createElement('canvas');
+                    offCanvas.width = sw;
+                    offCanvas.height = sh;
+                    const ctx = offCanvas.getContext('2d', { willReadFrequently: true });
+                    if (filterString && filterString !== 'none') {
+                        ctx.filter = filterString;
+                    }
+                    ctx.drawImage(img, 0, 0, sw, sh);
+                    const data = ctx.getImageData(0, 0, sw, sh).data;
+                    
+                    const lumaBins = new Uint32Array(256);
+                    const rBins = new Uint32Array(256);
+                    const gBins = new Uint32Array(256);
+                    const bBins = new Uint32Array(256);
+                    let totalLuma = 0;
+                    let totalR = 0, totalG = 0, totalB = 0;
+                    let totalSat = 0;
+                    const totalPixels = data.length / 4;
+                    let shadowCount = 0;
+                    let highlightCount = 0;
+                    
+                    for (let i = 0; i < data.length; i += 4) {
+                        const r = data[i];
+                        const g = data[i + 1];
+                        const b = data[i + 2];
+                        const luma = Math.round(0.299 * r + 0.587 * g + 0.114 * b);
+                        
+                        rBins[r]++;
+                        gBins[g]++;
+                        bBins[b]++;
+                        lumaBins[luma]++;
+                        
+                        totalLuma += luma;
+                        totalR += r;
+                        totalG += g;
+                        totalB += b;
+                        
+                        const maxVal = Math.max(r, g, b);
+                        const minVal = Math.min(r, g, b);
+                        if (maxVal > 0) {
+                            totalSat += (maxVal - minVal) / maxVal;
+                        }
+                        
+                        if (luma <= 5) shadowCount++;
+                        if (luma >= 250) highlightCount++;
+                    }
+                    
+                    let shadowZoneCount = 0;
+                    let deepShadowCount = 0;
+                    let midZoneCount = 0;
+                    let highlightZoneCount = 0;
+                    let count = 0;
+                    let p10 = 0, p50 = 128, p90 = 255;
+                    const t10 = totalPixels * 0.1;
+                    const t50 = totalPixels * 0.5;
+                    const t90 = totalPixels * 0.9;
+                    
+                    for (let i = 0; i < 256; i++) {
+                        const bin = lumaBins[i];
+                        if (i < 50) deepShadowCount += bin;
+                        if (i < 85) shadowZoneCount += bin;
+                        else if (i <= 175) midZoneCount += bin;
+                        else highlightZoneCount += bin;
+                        
+                        count += bin;
+                        if (p10 === 0 && count >= t10) p10 = i;
+                        if (p50 === 128 && count >= t50) p50 = i;
+                        if (count >= t90 && p90 === 255) p90 = i;
+                    }
+                    
+                    return {
+                        totalPixels,
+                        lumaBins,
+                        rBins,
+                        gBins,
+                        bBins,
+                        avgLuma: totalPixels > 0 ? (totalLuma / totalPixels) : 128,
+                        avgR: totalPixels > 0 ? (totalR / totalPixels) : 128,
+                        avgG: totalPixels > 0 ? (totalG / totalPixels) : 128,
+                        avgB: totalPixels > 0 ? (totalB / totalPixels) : 128,
+                        avgSat: totalPixels > 0 ? ((totalSat / totalPixels) * 100) : 0,
+                        shadowPercent: totalPixels > 0 ? ((shadowCount / totalPixels) * 100) : 0,
+                        highlightPercent: totalPixels > 0 ? ((highlightCount / totalPixels) * 100) : 0,
+                        shadowZonePct: totalPixels > 0 ? ((shadowZoneCount / totalPixels) * 100) : 0,
+                        deepShadowPct: totalPixels > 0 ? ((deepShadowCount / totalPixels) * 100) : 0,
+                        midZonePct: totalPixels > 0 ? ((midZoneCount / totalPixels) * 100) : 0,
+                        highlightZonePct: totalPixels > 0 ? ((highlightZoneCount / totalPixels) * 100) : 0,
+                        p50,
+                        dynamicSpan: p90 - p10
+                    };
+                },
+                drawHistogramCanvas: (canvas, data, mode = 'luma') => {
+                    if (!canvas || !data) return;
+                    const ctx = canvas.getContext('2d');
+                    if (!ctx) return;
+                    const w = canvas.width;
+                    const h = canvas.height;
+                    ctx.clearRect(0, 0, w, h);
+                    
+                    const smoothBins = (bins) => {
+                        const res = new Float32Array(256);
+                        for (let i = 0; i < 256; i++) {
+                            let sum = 0, count = 0;
+                            for (let j = Math.max(0, i - 2); j <= Math.min(255, i + 2); j++) {
+                                sum += bins[j];
+                                count++;
+                            }
+                            res[i] = sum / count;
+                        }
+                        return res;
+                    };
+                    
+                    const drawCurve = (bins, fillColor, strokeColor, compositeOp = 'source-over') => {
+                        let maxVal = 1;
+                        for (let i = 1; i < 255; i++) {
+                            if (bins[i] > maxVal) maxVal = bins[i];
+                        }
+                        
+                        ctx.save();
+                        ctx.globalCompositeOperation = compositeOp;
+                        ctx.beginPath();
+                        ctx.moveTo(0, h);
+                        
+                        for (let i = 0; i < 256; i++) {
+                            const x = (i / 255) * w;
+                            const normVal = Math.min(1.05, bins[i] / maxVal);
+                            const y = h - (normVal * (h - 8));
+                            ctx.lineTo(x, y);
+                        }
+                        
+                        ctx.lineTo(w, h);
+                        ctx.closePath();
+                        
+                        if (fillColor) {
+                            ctx.fillStyle = fillColor;
+                            ctx.fill();
+                        }
+                        if (strokeColor) {
+                            ctx.strokeStyle = strokeColor;
+                            ctx.lineWidth = 2;
+                            ctx.stroke();
+                        }
+                        ctx.restore();
+                    };
+                    
+                    if (mode === 'luma') {
+                        const smoothed = smoothBins(data.lumaBins);
+                        const grad = ctx.createLinearGradient(0, 0, 0, h);
+                        grad.addColorStop(0, 'rgba(255, 255, 255, 0.7)');
+                        grad.addColorStop(0.6, 'rgba(210, 210, 210, 0.35)');
+                        grad.addColorStop(1, 'rgba(160, 160, 160, 0.08)');
+                        drawCurve(smoothed, grad, '#ffffff');
+                    } else {
+                        const rSmooth = smoothBins(data.rBins);
+                        const gSmooth = smoothBins(data.gBins);
+                        const bSmooth = smoothBins(data.bBins);
+                        
+                        drawCurve(rSmooth, 'rgba(239, 68, 68, 0.4)', '#ef4444', 'screen');
+                        drawCurve(gSmooth, 'rgba(34, 197, 94, 0.4)', '#22c55e', 'screen');
+                        drawCurve(bSmooth, 'rgba(59, 130, 246, 0.4)', '#3b82f6', 'screen');
+                    }
+                },
                 handleImgLoad: (img) => {
                     img.style.opacity = '1';
                     img.style.pointerEvents = 'auto';
@@ -14274,11 +14439,11 @@ Object.assign(window.app, {
                 },
                 currentFilters: 'none',
                 closeAllUploadPanels: () => {
-                    ['color-adjust-panel', 'blur-adjust-panel', 'wm-adjust-panel'].forEach(id => {
+                    ['color-adjust-panel', 'histogram-panel', 'blur-adjust-panel', 'wm-adjust-panel'].forEach(id => {
                         const el = document.getElementById(id);
                         if (el) el.classList.add('hidden');
                     });
-                    ['btn-adjust-color', 'btn-add-blur', 'btn-adjust-wm'].forEach(id => {
+                    ['btn-adjust-color', 'btn-histogram', 'btn-add-blur', 'btn-adjust-wm'].forEach(id => {
                         const el = document.getElementById(id);
                         if (el) {
                             el.classList.remove('bg-black', 'text-white', 'border-black');
@@ -14297,6 +14462,99 @@ Object.assign(window.app, {
                             btn.classList.remove('bg-white', 'text-gray-700', 'border-gray-300', 'hover:bg-gray-100', 'hover:text-black');
                             btn.classList.add('bg-black', 'text-white', 'border-black');
                         }
+                    }
+                },
+                histogramMode: 'luma',
+                histogramData: null,
+                histDebounce: null,
+                toggleHistogramPanel: () => {
+                    const panel = document.getElementById('histogram-panel');
+                    const btn = document.getElementById('btn-histogram');
+                    const isHidden = panel ? panel.classList.contains('hidden') : true;
+                    if (app.upload.closeAllUploadPanels) app.upload.closeAllUploadPanels();
+                    if (isHidden && panel) {
+                        panel.classList.remove('hidden');
+                        if (btn) {
+                            btn.classList.remove('bg-white', 'text-gray-700', 'border-gray-300', 'hover:bg-gray-100', 'hover:text-black');
+                            btn.classList.add('bg-black', 'text-white', 'border-black');
+                        }
+                        app.upload.renderHistogram();
+                    }
+                },
+                switchHistogramMode: (mode) => {
+                    app.upload.histogramMode = mode;
+                    if (app.upload.histogramData) {
+                        app.upload.drawHistogram(app.upload.histogramData, mode);
+                    } else {
+                        app.upload.renderHistogram();
+                    }
+                },
+                renderHistogram: () => {
+                    const previewImg = document.getElementById('preview-img');
+                    if (!previewImg || !previewImg.src) return;
+                    const loadingEl = document.getElementById('up-hist-loading');
+                    if (loadingEl) loadingEl.classList.remove('hidden');
+
+                    const doCompute = () => {
+                        try {
+                            const data = app.utils.computeHistogramData(previewImg, app.upload.currentFilters || 'none');
+                            app.upload.histogramData = data;
+                            app.upload.drawHistogram(data, app.upload.histogramMode || 'luma');
+                        } catch (err) {
+                            console.error('Lỗi tính toán Histogram:', err);
+                            if (loadingEl) {
+                                loadingEl.innerHTML = '<span class="text-red-400 text-xs">Không thể phân tích ảnh</span>';
+                            }
+                        }
+                    };
+
+                    if (!previewImg.complete || previewImg.naturalWidth === 0) {
+                        previewImg.onload = () => {
+                            doCompute();
+                        };
+                        return;
+                    }
+                    setTimeout(doCompute, 20);
+                },
+                drawHistogram: (data, mode = null) => {
+                    const canvas = document.getElementById('up-hist-canvas');
+                    if (!canvas || !data) return;
+
+                    const activeMode = mode || app.upload.histogramMode || 'luma';
+                    app.upload.histogramMode = activeMode;
+
+                    const btnLuma = document.getElementById('up-hist-btn-luma');
+                    const btnRgb = document.getElementById('up-hist-btn-rgb');
+                    if (btnLuma && btnRgb) {
+                        if (activeMode === 'luma') {
+                            btnLuma.className = "text-[10px] font-bold px-2.5 py-1 rounded border border-black dark:border-white bg-black text-white dark:bg-white dark:text-black transition";
+                            btnRgb.className = "text-[10px] font-bold px-2.5 py-1 rounded border border-black dark:border-white bg-white text-black dark:bg-black dark:text-white hover:bg-gray-100 dark:hover:bg-gray-800 transition";
+                        } else {
+                            btnRgb.className = "text-[10px] font-bold px-2.5 py-1 rounded border border-black dark:border-white bg-black text-white dark:bg-white dark:text-black transition";
+                            btnLuma.className = "text-[10px] font-bold px-2.5 py-1 rounded border border-black dark:border-white bg-white text-black dark:bg-black dark:text-white hover:bg-gray-100 dark:hover:bg-gray-800 transition";
+                        }
+                    }
+
+                    app.utils.drawHistogramCanvas(canvas, data, activeMode);
+
+                    const loadingEl = document.getElementById('up-hist-loading');
+                    if (loadingEl) loadingEl.classList.add('hidden');
+
+                    const avgEl = document.getElementById('up-hist-avg');
+                    const shadowEl = document.getElementById('up-hist-shadow');
+                    const highEl = document.getElementById('up-hist-high');
+
+                    const avgPct = Math.round((data.avgLuma / 255) * 100);
+                    if (avgEl) avgEl.innerText = `${avgPct}%`;
+                    if (shadowEl) {
+                        shadowEl.innerText = `${data.shadowPercent.toFixed(1)}%`;
+                        if (data.shadowPercent > 10) shadowEl.className = "text-xs font-bold text-red-600 font-mono";
+                        else shadowEl.className = "text-xs font-bold text-black dark:text-white font-mono";
+                    }
+                    if (highEl) {
+                        highEl.innerText = `${data.highlightPercent.toFixed(1)}%`;
+                        if (data.highlightPercent > 10) highEl.className = "text-xs font-bold text-red-600 font-mono";
+                        else highEl.className = "text-xs font-bold text-black dark:text-white font-mono";
                     }
                 },
                 currentDenoise: 0,
@@ -14324,6 +14582,14 @@ Object.assign(window.app, {
                     if(previewImg) previewImg.style.filter = filterString;
                     app.upload.currentFilters = filterString;
                     app.upload.currentDenoise = d;
+
+                    if (app.upload.histDebounce) clearTimeout(app.upload.histDebounce);
+                    const histPanel = document.getElementById('histogram-panel');
+                    if (histPanel && !histPanel.classList.contains('hidden')) {
+                        app.upload.histDebounce = setTimeout(() => {
+                            app.upload.renderHistogram();
+                        }, 60);
+                    }
 
                     if (app.upload.denoiseTimeout) clearTimeout(app.upload.denoiseTimeout);
                     app.upload.denoiseTimeout = setTimeout(() => {
@@ -14464,6 +14730,8 @@ Object.assign(window.app, {
                     if(app.upload.resetFilters) app.upload.resetFilters();
                     document.querySelectorAll('.blur-panel').forEach(p => p.remove());
                     if (app.upload.updateBlurBtn) app.upload.updateBlurBtn();
+                    if (app.upload.closeAllUploadPanels) app.upload.closeAllUploadPanels();
+                    app.upload.histogramData = null;
                 },
                 handleFileSelect: async (e) => {
                     const fileInput = document.getElementById('up-file');
@@ -15045,6 +15313,10 @@ Object.assign(window.app, {
                         }
 
                         if (app.upload.updateBlurBtn) app.upload.updateBlurBtn();
+                        const histPanel = document.getElementById('histogram-panel');
+                        if (histPanel && !histPanel.classList.contains('hidden')) {
+                            app.upload.renderHistogram();
+                        }
                     };
                     previewImg.src = url;
                     if (previewImg.complete && previewImg.naturalWidth) {
@@ -18821,101 +19093,11 @@ Object.assign(window.app, {
                 histogramCache: {},
                 histogramMode: {},
                 computeHistogramData: (img) => {
-                    const sw = 256;
-                    const sh = Math.max(1, Math.round(sw * ((img.naturalHeight || img.height || 150) / (img.naturalWidth || img.width || 256))));
-                    const offCanvas = document.createElement('canvas');
-                    offCanvas.width = sw;
-                    offCanvas.height = sh;
-                    const ctx = offCanvas.getContext('2d', { willReadFrequently: true });
-                    ctx.drawImage(img, 0, 0, sw, sh);
-                    const data = ctx.getImageData(0, 0, sw, sh).data;
-                    
-                    const lumaBins = new Uint32Array(256);
-                    const rBins = new Uint32Array(256);
-                    const gBins = new Uint32Array(256);
-                    const bBins = new Uint32Array(256);
-                    let totalLuma = 0;
-                    let totalR = 0, totalG = 0, totalB = 0;
-                    let totalSat = 0;
-                    const totalPixels = data.length / 4;
-                    let shadowCount = 0;
-                    let highlightCount = 0;
-                    
-                    for (let i = 0; i < data.length; i += 4) {
-                        const r = data[i];
-                        const g = data[i + 1];
-                        const b = data[i + 2];
-                        const luma = Math.round(0.299 * r + 0.587 * g + 0.114 * b);
-                        
-                        rBins[r]++;
-                        gBins[g]++;
-                        bBins[b]++;
-                        lumaBins[luma]++;
-                        
-                        totalLuma += luma;
-                        totalR += r;
-                        totalG += g;
-                        totalB += b;
-                        
-                        const maxVal = Math.max(r, g, b);
-                        const minVal = Math.min(r, g, b);
-                        if (maxVal > 0) {
-                            totalSat += (maxVal - minVal) / maxVal;
-                        }
-                        
-                        if (luma <= 5) shadowCount++;
-                        if (luma >= 250) highlightCount++;
-                    }
-                    
-                    let shadowZoneCount = 0;
-                    let deepShadowCount = 0;
-                    let midZoneCount = 0;
-                    let highlightZoneCount = 0;
-                    let count = 0;
-                    let p10 = 0, p50 = 128, p90 = 255;
-                    const t10 = totalPixels * 0.1;
-                    const t50 = totalPixels * 0.5;
-                    const t90 = totalPixels * 0.9;
-                    
-                    for (let i = 0; i < 256; i++) {
-                        const bin = lumaBins[i];
-                        if (i < 50) deepShadowCount += bin;
-                        if (i < 85) shadowZoneCount += bin;
-                        else if (i <= 175) midZoneCount += bin;
-                        else highlightZoneCount += bin;
-                        
-                        count += bin;
-                        if (p10 === 0 && count >= t10) p10 = i;
-                        if (p50 === 128 && count >= t50) p50 = i;
-                        if (count >= t90 && p90 === 255) p90 = i;
-                    }
-                    
-                    return {
-                        totalPixels,
-                        lumaBins,
-                        rBins,
-                        gBins,
-                        bBins,
-                        avgLuma: totalPixels > 0 ? (totalLuma / totalPixels) : 128,
-                        avgR: totalPixels > 0 ? (totalR / totalPixels) : 128,
-                        avgG: totalPixels > 0 ? (totalG / totalPixels) : 128,
-                        avgB: totalPixels > 0 ? (totalB / totalPixels) : 128,
-                        avgSat: totalPixels > 0 ? ((totalSat / totalPixels) * 100) : 0,
-                        shadowPercent: totalPixels > 0 ? ((shadowCount / totalPixels) * 100) : 0,
-                        highlightPercent: totalPixels > 0 ? ((highlightCount / totalPixels) * 100) : 0,
-                        shadowZonePct: totalPixels > 0 ? ((shadowZoneCount / totalPixels) * 100) : 0,
-                        deepShadowPct: totalPixels > 0 ? ((deepShadowCount / totalPixels) * 100) : 0,
-                        midZonePct: totalPixels > 0 ? ((midZoneCount / totalPixels) * 100) : 0,
-                        highlightZonePct: totalPixels > 0 ? ((highlightZoneCount / totalPixels) * 100) : 0,
-                        p50,
-                        dynamicSpan: p90 - p10
-                    };
+                    return app.utils.computeHistogramData(img);
                 },
                 drawHistogram: (photoId, data, mode = null) => {
                     const canvas = document.getElementById(`adm-hist-canvas-${photoId}`);
                     if (!canvas) return;
-                    const ctx = canvas.getContext('2d');
-                    if (!ctx) return;
                     
                     const loadingEl = document.getElementById(`adm-hist-loading-${photoId}`);
                     if (loadingEl) loadingEl.classList.add('hidden');
@@ -18936,72 +19118,7 @@ Object.assign(window.app, {
                         }
                     }
                     
-                    const w = canvas.width;
-                    const h = canvas.height;
-                    ctx.clearRect(0, 0, w, h);
-                    
-                    const smoothBins = (bins) => {
-                        const res = new Float32Array(256);
-                        for (let i = 0; i < 256; i++) {
-                            let sum = 0, count = 0;
-                            for (let j = Math.max(0, i - 2); j <= Math.min(255, i + 2); j++) {
-                                sum += bins[j];
-                                count++;
-                            }
-                            res[i] = sum / count;
-                        }
-                        return res;
-                    };
-                    
-                    const drawCurve = (bins, fillColor, strokeColor, compositeOp = 'source-over') => {
-                        let maxVal = 1;
-                        for (let i = 1; i < 255; i++) {
-                            if (bins[i] > maxVal) maxVal = bins[i];
-                        }
-                        
-                        ctx.save();
-                        ctx.globalCompositeOperation = compositeOp;
-                        ctx.beginPath();
-                        ctx.moveTo(0, h);
-                        
-                        for (let i = 0; i < 256; i++) {
-                            const x = (i / 255) * w;
-                            const normVal = Math.min(1.05, bins[i] / maxVal);
-                            const y = h - (normVal * (h - 8));
-                            ctx.lineTo(x, y);
-                        }
-                        
-                        ctx.lineTo(w, h);
-                        ctx.closePath();
-                        
-                        if (fillColor) {
-                            ctx.fillStyle = fillColor;
-                            ctx.fill();
-                        }
-                        if (strokeColor) {
-                            ctx.strokeStyle = strokeColor;
-                            ctx.lineWidth = 2;
-                            ctx.stroke();
-                        }
-                        ctx.restore();
-                    };
-                    
-                    if (activeMode === 'luma') {
-                        const smoothed = smoothBins(data.lumaBins);
-                        const grad = ctx.createLinearGradient(0, 0, 0, h);
-                        grad.addColorStop(0, 'rgba(255, 255, 255, 0.7)');
-                        grad.addColorStop(0.6, 'rgba(210, 210, 210, 0.35)');
-                        grad.addColorStop(1, 'rgba(160, 160, 160, 0.08)');
-                        drawCurve(smoothed, grad, '#ffffff');
-                    } else {
-                        const rSmooth = smoothBins(data.rBins);
-                        const gSmooth = smoothBins(data.gBins);
-                        const bSmooth = smoothBins(data.bBins);
-                        
-                        drawCurve(rSmooth, 'rgba(239, 68, 68, 0.4)', '#ef4444', 'screen');
-                        drawCurve(gSmooth, 'rgba(34, 197, 94, 0.4)', '#22c55e', 'screen');
-                        drawCurve(bSmooth, 'rgba(59, 130, 246, 0.4)', '#3b82f6', 'screen');
-                    }
+                    app.utils.drawHistogramCanvas(canvas, data, activeMode);
                     
                     const avgEl = document.getElementById(`adm-hist-avg-${photoId}`);
                     const shadowEl = document.getElementById(`adm-hist-shadow-${photoId}`);

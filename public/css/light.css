@@ -592,8 +592,9 @@ label:hover .custom-cb-box {
     color: #ffffff !important;
 }
 
-/* ===== ADMIN HISTOGRAM (Light Mode) ===== */
-.admin-hist-box {
+/* ===== HISTOGRAM (Light Mode) ===== */
+.admin-hist-box,
+#histogram-panel {
     border: 1px solid #18181b !important;
     background-color: #ffffff !important;
 }

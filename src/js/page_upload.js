@@ -1464,11 +1464,11 @@ Object.assign(window.app, {
                 },
                 currentFilters: 'none',
                 closeAllUploadPanels: () => {
-                    ['color-adjust-panel', 'blur-adjust-panel', 'wm-adjust-panel'].forEach(id => {
+                    ['color-adjust-panel', 'histogram-panel', 'blur-adjust-panel', 'wm-adjust-panel'].forEach(id => {
                         const el = document.getElementById(id);
                         if (el) el.classList.add('hidden');
                     });
-                    ['btn-adjust-color', 'btn-add-blur', 'btn-adjust-wm'].forEach(id => {
+                    ['btn-adjust-color', 'btn-histogram', 'btn-add-blur', 'btn-adjust-wm'].forEach(id => {
                         const el = document.getElementById(id);
                         if (el) {
                             el.classList.remove('bg-black', 'text-white', 'border-black');
@@ -1487,6 +1487,99 @@ Object.assign(window.app, {
                             btn.classList.remove('bg-white', 'text-gray-700', 'border-gray-300', 'hover:bg-gray-100', 'hover:text-black');
                             btn.classList.add('bg-black', 'text-white', 'border-black');
                         }
+                    }
+                },
+                histogramMode: 'luma',
+                histogramData: null,
+                histDebounce: null,
+                toggleHistogramPanel: () => {
+                    const panel = document.getElementById('histogram-panel');
+                    const btn = document.getElementById('btn-histogram');
+                    const isHidden = panel ? panel.classList.contains('hidden') : true;
+                    if (app.upload.closeAllUploadPanels) app.upload.closeAllUploadPanels();
+                    if (isHidden && panel) {
+                        panel.classList.remove('hidden');
+                        if (btn) {
+                            btn.classList.remove('bg-white', 'text-gray-700', 'border-gray-300', 'hover:bg-gray-100', 'hover:text-black');
+                            btn.classList.add('bg-black', 'text-white', 'border-black');
+                        }
+                        app.upload.renderHistogram();
+                    }
+                },
+                switchHistogramMode: (mode) => {
+                    app.upload.histogramMode = mode;
+                    if (app.upload.histogramData) {
+                        app.upload.drawHistogram(app.upload.histogramData, mode);
+                    } else {
+                        app.upload.renderHistogram();
+                    }
+                },
+                renderHistogram: () => {
+                    const previewImg = document.getElementById('preview-img');
+                    if (!previewImg || !previewImg.src) return;
+                    const loadingEl = document.getElementById('up-hist-loading');
+                    if (loadingEl) loadingEl.classList.remove('hidden');
+
+                    const doCompute = () => {
+                        try {
+                            const data = app.utils.computeHistogramData(previewImg, app.upload.currentFilters || 'none');
+                            app.upload.histogramData = data;
+                            app.upload.drawHistogram(data, app.upload.histogramMode || 'luma');
+                        } catch (err) {
+                            console.error('Lỗi tính toán Histogram:', err);
+                            if (loadingEl) {
+                                loadingEl.innerHTML = '<span class="text-red-400 text-xs">Không thể phân tích ảnh</span>';
+                            }
+                        }
+                    };
+
+                    if (!previewImg.complete || previewImg.naturalWidth === 0) {
+                        previewImg.onload = () => {
+                            doCompute();
+                        };
+                        return;
+                    }
+                    setTimeout(doCompute, 20);
+                },
+                drawHistogram: (data, mode = null) => {
+                    const canvas = document.getElementById('up-hist-canvas');
+                    if (!canvas || !data) return;
+
+                    const activeMode = mode || app.upload.histogramMode || 'luma';
+                    app.upload.histogramMode = activeMode;
+
+                    const btnLuma = document.getElementById('up-hist-btn-luma');
+                    const btnRgb = document.getElementById('up-hist-btn-rgb');
+                    if (btnLuma && btnRgb) {
+                        if (activeMode === 'luma') {
+                            btnLuma.className = "text-[10px] font-bold px-2.5 py-1 rounded border border-black dark:border-white bg-black text-white dark:bg-white dark:text-black transition";
+                            btnRgb.className = "text-[10px] font-bold px-2.5 py-1 rounded border border-black dark:border-white bg-white text-black dark:bg-black dark:text-white hover:bg-gray-100 dark:hover:bg-gray-800 transition";
+                        } else {
+                            btnRgb.className = "text-[10px] font-bold px-2.5 py-1 rounded border border-black dark:border-white bg-black text-white dark:bg-white dark:text-black transition";
+                            btnLuma.className = "text-[10px] font-bold px-2.5 py-1 rounded border border-black dark:border-white bg-white text-black dark:bg-black dark:text-white hover:bg-gray-100 dark:hover:bg-gray-800 transition";
+                        }
+                    }
+
+                    app.utils.drawHistogramCanvas(canvas, data, activeMode);
+
+                    const loadingEl = document.getElementById('up-hist-loading');
+                    if (loadingEl) loadingEl.classList.add('hidden');
+
+                    const avgEl = document.getElementById('up-hist-avg');
+                    const shadowEl = document.getElementById('up-hist-shadow');
+                    const highEl = document.getElementById('up-hist-high');
+
+                    const avgPct = Math.round((data.avgLuma / 255) * 100);
+                    if (avgEl) avgEl.innerText = `${avgPct}%`;
+                    if (shadowEl) {
+                        shadowEl.innerText = `${data.shadowPercent.toFixed(1)}%`;
+                        if (data.shadowPercent > 10) shadowEl.className = "text-xs font-bold text-red-600 font-mono";
+                        else shadowEl.className = "text-xs font-bold text-black dark:text-white font-mono";
+                    }
+                    if (highEl) {
+                        highEl.innerText = `${data.highlightPercent.toFixed(1)}%`;
+                        if (data.highlightPercent > 10) highEl.className = "text-xs font-bold text-red-600 font-mono";
+                        else highEl.className = "text-xs font-bold text-black dark:text-white font-mono";
                     }
                 },
                 currentDenoise: 0,
@@ -1514,6 +1607,14 @@ Object.assign(window.app, {
                     if(previewImg) previewImg.style.filter = filterString;
                     app.upload.currentFilters = filterString;
                     app.upload.currentDenoise = d;
+
+                    if (app.upload.histDebounce) clearTimeout(app.upload.histDebounce);
+                    const histPanel = document.getElementById('histogram-panel');
+                    if (histPanel && !histPanel.classList.contains('hidden')) {
+                        app.upload.histDebounce = setTimeout(() => {
+                            app.upload.renderHistogram();
+                        }, 60);
+                    }
 
                     if (app.upload.denoiseTimeout) clearTimeout(app.upload.denoiseTimeout);
                     app.upload.denoiseTimeout = setTimeout(() => {
@@ -1654,6 +1755,8 @@ Object.assign(window.app, {
                     if(app.upload.resetFilters) app.upload.resetFilters();
                     document.querySelectorAll('.blur-panel').forEach(p => p.remove());
                     if (app.upload.updateBlurBtn) app.upload.updateBlurBtn();
+                    if (app.upload.closeAllUploadPanels) app.upload.closeAllUploadPanels();
+                    app.upload.histogramData = null;
                 },
                 handleFileSelect: async (e) => {
                     const fileInput = document.getElementById('up-file');
@@ -2235,6 +2338,10 @@ Object.assign(window.app, {
                         }
 
                         if (app.upload.updateBlurBtn) app.upload.updateBlurBtn();
+                        const histPanel = document.getElementById('histogram-panel');
+                        if (histPanel && !histPanel.classList.contains('hidden')) {
+                            app.upload.renderHistogram();
+                        }
                     };
                     previewImg.src = url;
                     if (previewImg.complete && previewImg.naturalWidth) {
