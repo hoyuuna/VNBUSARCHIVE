@@ -339,6 +339,8 @@ Object.assign(window.app, {
                     const gBins = new Uint32Array(256);
                     const bBins = new Uint32Array(256);
                     let totalLuma = 0;
+                    let totalR = 0, totalG = 0, totalB = 0;
+                    let totalSat = 0;
                     const totalPixels = data.length / 4;
                     let shadowCount = 0;
                     let highlightCount = 0;
@@ -355,6 +357,16 @@ Object.assign(window.app, {
                         lumaBins[luma]++;
                         
                         totalLuma += luma;
+                        totalR += r;
+                        totalG += g;
+                        totalB += b;
+                        
+                        const maxVal = Math.max(r, g, b);
+                        const minVal = Math.min(r, g, b);
+                        if (maxVal > 0) {
+                            totalSat += (maxVal - minVal) / maxVal;
+                        }
+                        
                         if (luma <= 5) shadowCount++;
                         if (luma >= 250) highlightCount++;
                     }
@@ -366,6 +378,10 @@ Object.assign(window.app, {
                         gBins,
                         bBins,
                         avgLuma: totalPixels > 0 ? (totalLuma / totalPixels) : 128,
+                        avgR: totalPixels > 0 ? (totalR / totalPixels) : 128,
+                        avgG: totalPixels > 0 ? (totalG / totalPixels) : 128,
+                        avgB: totalPixels > 0 ? (totalB / totalPixels) : 128,
+                        avgSat: totalPixels > 0 ? ((totalSat / totalPixels) * 100) : 0,
                         shadowPercent: totalPixels > 0 ? ((shadowCount / totalPixels) * 100) : 0,
                         highlightPercent: totalPixels > 0 ? ((highlightCount / totalPixels) * 100) : 0
                     };
@@ -492,6 +508,29 @@ Object.assign(window.app, {
                             diagEl.innerHTML = `<span class="inline-flex items-center gap-1 text-green-600 dark:text-green-400"><i class="fa-solid fa-check"></i> Đo sáng tốt, dải sáng cân bằng</span>`;
                         }
                     }
+                    const colorDiagEl = document.getElementById(`adm-hist-color-diag-${photoId}`);
+                    if (colorDiagEl) {
+                        const avgR = data.avgR || 128;
+                        const avgG = data.avgG || 128;
+                        const avgB = data.avgB || 128;
+                        const avgSat = data.avgSat || 0;
+                        
+                        if ((avgR - avgB) > 28 && (avgG - avgB) > 12) {
+                            colorDiagEl.innerHTML = `<span class="inline-flex items-center gap-1 text-amber-600 dark:text-amber-400"><i class="fa-solid fa-temperature-arrow-up"></i> Ảnh bị ám vàng / nóng màu</span>`;
+                        } else if ((avgB - avgR) > 24) {
+                            colorDiagEl.innerHTML = `<span class="inline-flex items-center gap-1 text-blue-600 dark:text-blue-400"><i class="fa-solid fa-temperature-arrow-down"></i> Ảnh bị ám xanh / lạnh màu</span>`;
+                        } else if ((avgR - avgG) > 22 && (avgB - avgG) > 14) {
+                            colorDiagEl.innerHTML = `<span class="inline-flex items-center gap-1 text-purple-600 dark:text-purple-400"><i class="fa-solid fa-palette"></i> Ảnh bị ám tím / hồng</span>`;
+                        } else if ((avgG - avgR) > 20 && (avgG - avgB) > 15) {
+                            colorDiagEl.innerHTML = `<span class="inline-flex items-center gap-1 text-emerald-600 dark:text-emerald-400"><i class="fa-solid fa-palette"></i> Ảnh bị ám xanh lá</span>`;
+                        } else if (avgSat > 50) {
+                            colorDiagEl.innerHTML = `<span class="inline-flex items-center gap-1 text-orange-600 dark:text-orange-400"><i class="fa-solid fa-droplet"></i> Màu sắc quá rực, dễ bệt màu</span>`;
+                        } else if (avgSat < 11) {
+                            colorDiagEl.innerHTML = `<span class="inline-flex items-center gap-1 text-gray-500"><i class="fa-solid fa-droplet-slash"></i> Màu sắc nhợt nhạt, thiếu độ tươi</span>`;
+                        } else {
+                            colorDiagEl.innerHTML = `<span class="inline-flex items-center gap-1 text-emerald-600 dark:text-emerald-400"><i class="fa-solid fa-circle-check"></i> Màu sắc tự nhiên, cân bằng tốt</span>`;
+                        }
+                    }
                 },
                 switchHistogramMode: (photoId, mode) => {
                     if (!app.admin.histogramMode) app.admin.histogramMode = {};
@@ -566,6 +605,8 @@ Object.assign(window.app, {
                     if (diagEl) {
                         diagEl.innerHTML = `<span class="text-[11px] text-gray-400 italic">Không thể phân tích dữ liệu điểm ảnh</span>`;
                     }
+                    const colorDiagEl = document.getElementById(`adm-hist-color-diag-${photoId}`);
+                    if (colorDiagEl) colorDiagEl.innerHTML = '';
                 },
                 // ======================================================
 
@@ -667,6 +708,7 @@ Object.assign(window.app, {
                                                     </div>
                                                 </div>
                                                 <div id="adm-hist-diag-${p.id}" class="mt-2 text-center text-[11px] font-bold text-gray-600 dark:text-gray-300"></div>
+                                                <div id="adm-hist-color-diag-${p.id}" class="mt-1 text-center text-[11px] font-bold text-gray-600 dark:text-gray-300"></div>
                                             </div>
 
                                             ${p.mod_note ? `<div class="mt-2 p-2.5 bg-gray-100 dark:bg-zinc-900 border border-black dark:border-white rounded-md"><span class="block text-xs font-bold text-black dark:text-white mb-1"><i class="fa-solid fa-shield-halved mr-1"></i>Note dành cho kiểm duyệt (Không công khai):</span><div class="text-xs text-black dark:text-white font-mono leading-relaxed whitespace-pre-wrap">${app.utils.escapeHtml(p.mod_note)}</div></div>` : ''}
