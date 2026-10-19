@@ -182,9 +182,10 @@ input:focus, textarea:focus, select:focus {
 #preview-footer-bar {
     background: linear-gradient(to top, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0) 100%) !important;
     backdrop-filter: blur(4px) !important; -webkit-backdrop-filter: blur(4px) !important;
-    padding: 0 !important;
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
     margin: 0 !important;
-    border: none !important;
+    border-top: 1px solid rgba(255, 255, 255, 0.2) !important;
 }
 
 

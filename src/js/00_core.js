@@ -2345,10 +2345,10 @@ cleanupState: () => {
                                 ctx.font = `italic 700 ${fontSize * 0.8}px ${fontFace}`;
                                 ctx.fillText(".io.vn", (barHeight / 2) + vnbusWidth, textY);
                                 ctx.textAlign = 'right';
-                                ctx.textBaseline = 'middle'; 
+                                ctx.textBaseline = 'alphabetic'; 
                                 ctx.font = `700 ${fontSize}px ${fontFace}`;
                                 const rightText = `Bản quyền bởi ${username}`;
-                                ctx.fillText(rightText, width - (barHeight / 2), height - barHeight / 2);
+                                ctx.fillText(rightText, width - (barHeight / 2), textY);
                                 const currentMode = pos.mode || (app.wmState && app.wmState.mode) || (typeof localStorage !== 'undefined' && localStorage.getItem('vnbus_wm_mode')) || 'basic';
                                 if (currentMode !== 'standard') {
                                     ctx.save();

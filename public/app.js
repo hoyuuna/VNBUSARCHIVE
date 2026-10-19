@@ -2347,10 +2347,10 @@ cleanupState: () => {
                                 ctx.font = `italic 700 ${fontSize * 0.8}px ${fontFace}`;
                                 ctx.fillText(".io.vn", (barHeight / 2) + vnbusWidth, textY);
                                 ctx.textAlign = 'right';
-                                ctx.textBaseline = 'middle'; 
+                                ctx.textBaseline = 'alphabetic'; 
                                 ctx.font = `700 ${fontSize}px ${fontFace}`;
                                 const rightText = `Bản quyền bởi ${username}`;
-                                ctx.fillText(rightText, width - (barHeight / 2), height - barHeight / 2);
+                                ctx.fillText(rightText, width - (barHeight / 2), textY);
                                 const currentMode = pos.mode || (app.wmState && app.wmState.mode) || (typeof localStorage !== 'undefined' && localStorage.getItem('vnbus_wm_mode')) || 'basic';
                                 if (currentMode !== 'standard') {
                                     ctx.save();
@@ -14686,51 +14686,21 @@ Object.assign(window.app, {
                             container.style.height = finalH + 'px';
 
                             const barScale = (app.wmState && app.wmState.barScale !== undefined) ? app.wmState.barScale : 1.0;
-                            const barHeight = finalH * 0.0576 * barScale;
+                            const barHeight = Math.round(finalH * 0.0576 * barScale);
+                            const baseFontSize = Math.max(9, Math.round(barHeight * 0.42));
+                            const padX = Math.max(6, Math.round(barHeight * 0.5));
                             const footerBar = document.getElementById('preview-footer-bar');
                             if (footerBar) {
                                 footerBar.style.height = barHeight + 'px';
-                                let footerCanvas = document.getElementById('preview-footer-canvas');
-                                if (!footerCanvas) {
-                                    footerCanvas = document.createElement('canvas');
-                                    footerCanvas.id = 'preview-footer-canvas';
-                                    footerCanvas.className = 'w-full h-full block pointer-events-none';
-                                    footerBar.innerHTML = '';
-                                    footerBar.appendChild(footerCanvas);
-                                }
-                                const dpr = window.devicePixelRatio || 1;
-                                const ch = Math.max(1, Math.round(barHeight));
-                                footerCanvas.width = Math.round(finalW * dpr);
-                                footerCanvas.height = Math.round(ch * dpr);
-                                footerCanvas.style.width = finalW + 'px';
-                                footerCanvas.style.height = ch + 'px';
-
-                                const fCtx = footerCanvas.getContext('2d');
-                                fCtx.scale(dpr, dpr);
-                                fCtx.clearRect(0, 0, finalW, ch);
-
-                                fCtx.fillStyle = "rgba(255, 255, 255, 0.2)";
-                                fCtx.fillRect(0, 0, finalW, Math.max(1, 1.5 * barScale * (finalH / 1080)));
-
-                                const fontFace = '"Montserrat", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif';
-                                const fontSize = barHeight * 0.4;
-                                const textY = (barHeight / 2) + (fontSize * 0.35);
-                                const padX = barHeight / 2;
-
-                                fCtx.fillStyle = "white";
-                                fCtx.textBaseline = 'alphabetic';
-                                fCtx.textAlign = 'left';
-                                fCtx.font = `italic 900 ${fontSize}px ${fontFace}`;
-                                fCtx.fillText("VNBUSARCHIVE", padX, textY);
-                                const vnbusWidth = fCtx.measureText("VNBUSARCHIVE").width;
-                                fCtx.font = `italic 700 ${fontSize * 0.8}px ${fontFace}`;
-                                fCtx.fillText(".io.vn", padX + vnbusWidth, textY);
-
-                                fCtx.textBaseline = 'middle';
-                                fCtx.font = `700 ${fontSize}px ${fontFace}`;
-                                fCtx.textAlign = 'right';
-                                const name = app.username || "Guest";
-                                fCtx.fillText(`Bản quyền bởi ${name}`, finalW - padX, barHeight / 2);
+                                footerBar.style.paddingLeft = padX + 'px';
+                                footerBar.style.paddingRight = padX + 'px';
+                            }
+                            const leftText = document.querySelector('.footer-text-left');
+                            const rightText = document.getElementById('preview-footer-copy');
+                            if (leftText) leftText.style.fontSize = baseFontSize + 'px';
+                            if (rightText) {
+                                rightText.style.fontSize = baseFontSize + 'px';
+                                rightText.innerText = `Bản quyền bởi ${app.username || 'Guest'}`;
                             }
 
                             const wmDrag = document.getElementById('draggable-watermark');
