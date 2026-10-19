@@ -574,5 +574,20 @@ html.theme-dark #top-loading-bar {
     box-shadow: 0 0 10px rgba(255, 255, 255, 0.5) !important;
 }
 
+/* Watermark rotation stepper badge */
+#wm-rotate-val,
+body.theme-dark #wm-rotate-val,
+html.theme-dark #wm-rotate-val {
+    background-color: #000000 !important;
+    color: #ffffff !important;
+    border: 1px solid #ffffff !important;
+}
+#wm-rotate-val:hover,
+body.theme-dark #wm-rotate-val:hover,
+html.theme-dark #wm-rotate-val:hover {
+    background-color: #18181b !important;
+}
+
+
 
 

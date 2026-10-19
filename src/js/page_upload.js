@@ -1265,12 +1265,40 @@ Object.assign(window.app, {
                     }
                 },
                 updateWmRotate: (val) => {
-                    const deg = parseInt(val, 10) || 0;
+                    let deg = parseInt(val, 10);
+                    if (isNaN(deg)) deg = 0;
+                    if (deg < -180) deg = -180;
+                    if (deg > 180) deg = 180;
                     if (!app.wmState) app.wmState = {};
                     app.wmState.rotate = deg;
                     const valEl = document.getElementById('wm-rotate-val');
                     if (valEl) valEl.innerText = deg + '°';
+                    const rotSlider = document.getElementById('wm-rotate-slider');
+                    if (rotSlider) rotSlider.value = deg;
                     if (app.upload.clampWmPosition) app.upload.clampWmPosition();
+                },
+                stepWmRotate: (delta) => {
+                    const current = (app.wmState && app.wmState.rotate !== undefined) ? app.wmState.rotate : 0;
+                    app.upload.updateWmRotate(current + delta);
+                },
+                startRotateHold: (delta) => {
+                    app.upload.stopRotateHold();
+                    app.upload.stepWmRotate(delta);
+                    app.upload._rotateHoldTimer = setTimeout(() => {
+                        app.upload._rotateHoldInterval = setInterval(() => {
+                            app.upload.stepWmRotate(delta);
+                        }, 80);
+                    }, 300);
+                },
+                stopRotateHold: () => {
+                    if (app.upload._rotateHoldTimer) {
+                        clearTimeout(app.upload._rotateHoldTimer);
+                        app.upload._rotateHoldTimer = null;
+                    }
+                    if (app.upload._rotateHoldInterval) {
+                        clearInterval(app.upload._rotateHoldInterval);
+                        app.upload._rotateHoldInterval = null;
+                    }
                 },
                 updateWmScale: (val) => {
                     const scaleVal = parseInt(val, 10) || 100;
