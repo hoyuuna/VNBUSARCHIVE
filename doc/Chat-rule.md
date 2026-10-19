@@ -1,43 +1,42 @@
-# QUY TẮC CỘNG ĐỒNG VÀ TIÊU CHUẨN BÌNH LUẬN
+# Quy tắc cộng đồng và tiêu chuẩn bình luận
 
 ---
 
-## 1. TÔN TRỌNG ĐỘI NGŨ NHÂN VIÊN VẬN HÀNH
-Nhân viên vận tải (tài xế, tiếp viên, điều hành) là những người lao động trực tiếp trên tuyến. VNBUSARCHIVE tuyệt đối bảo vệ hình ảnh và danh dự của họ.
-- **Nghiêm cấm:** Nói xấu, xúc phạm danh dự, nhân phẩm hoặc sử dụng những từ ngữ miệt thị nhắm vào tài xế và tiếp viên xuất hiện trong ảnh.
-- **Nghiêm cấm:** Tiết lộ thông tin cá nhân (doxing) như tên thật, địa chỉ, số điện thoại hoặc các câu chuyện đời tư của nhân viên khi chưa được sự cho phép.
-- **Hành vi lái xe:** Nếu có ý kiến về kỹ năng lái xe hoặc thái độ phục vụ, vui lòng phản ánh qua đường dây nóng chính thức của đơn vị vận hành. Bình luận trên hệ thống không được sử dụng làm nơi để "đấu tố" cá nhân.
+## 1. Tôn trọng nhân viên vận tải
+Tài xế, tiếp viên và nhân viên điều hành là những người trực tiếp làm việc trên tuyến. Khi thảo luận, vui lòng giữ thái độ tôn trọng:
+- Không dùng từ ngữ xúc phạm, miệt thị hay công kích cá nhân nhắm vào nhân viên xuất hiện trong ảnh.
+- Không chia sẻ thông tin cá nhân (tên thật, số điện thoại, địa chỉ, chuyện đời tư) của nhân viên khi chưa có sự đồng ý.
+- Nếu có phản ánh về cách lái xe hoặc thái độ phục vụ, vui lòng liên hệ trực tiếp đường dây nóng của đơn vị vận hành. Bình luận trên hệ thống không dùng để giải quyết khiếu nại hay đấu tố cá nhân.
 
-## 2. TINH THẦN ĐÓNG GÓP VÀ PHÊ BÌNH NGHỆ THUẬT
-Mỗi bức ảnh được đăng tải là công sức và tâm huyết của người chụp. Một khi ảnh đã được Admin/Manager phê duyệt, có nghĩa là bức ảnh đó đã đạt tiêu chuẩn tối thiểu của hệ thống.
-- **Không chê bai tiêu cực:** Nghiêm cấm các bình luận mang tính hạ thấp chất lượng ảnh theo kiểu "ảnh rác", "chụp xấu quá", "điện thoại cùi"...
-- **Phê bình văn minh:** Chúng tôi khuyến khích những đóng góp mang tính xây dựng (Ví dụ: "Lần sau bạn thử lấy góc rộng hơn chút sẽ đẹp hơn", "Ảnh hơi tối, bạn có thể tăng độ sáng khi hậu kỳ").
-- **Tôn trọng tác giả:** Tuyệt đối không có hành vi mỉa mai, bắt nạt (cyberbullying) các nhiếp ảnh gia mới tham gia cộng đồng.
+## 2. Góp ý về ảnh chụp
+Mỗi bức ảnh tải lên là đóng góp của thành viên cho kho tư liệu chung. Khi ảnh đã được duyệt, tức là đã đáp ứng tiêu chuẩn của website.
+- Tránh bình luận chê bai cụt ngủn hoặc hạ thấp người chụp (như "ảnh rác", "chụp xấu", "máy cùi").
+- Khuyến khích góp ý mang tính xây dựng để người chụp cải thiện ở những lần sau (ví dụ: căn lại góc máy, ánh sáng, cắt cúp khung hình).
+- Không mỉa mai, công kích hay bắt nạt các thành viên mới.
 
-## 3. NGÔN NGỮ VÀ VĂN HÓA GIAO TIẾP
-- **Ngôn từ:** Chỉ sử dụng tiếng Việt có dấu hoặc tiếng Anh. Không sử dụng teencode, ngôn ngữ mạng gây khó hiểu hoặc thô tục.
-- **Chính trị & Tôn giáo:** Tuyệt đối không bàn luận về các vấn đề chính trị, tôn giáo, sắc tộc hoặc các chủ đề nhạy cảm không liên quan đến mục đích của website.
-- **Xung đột cá nhân:** Không sử dụng mục bình luận làm nơi giải quyết mâu thuẫn cá nhân. Mọi tranh cãi ngoài lề sẽ bị xóa bỏ mà không cần báo trước.
-- **Giao lưu ngoài nền tảng:** 
-  - VNBUSARCHIVE là nền tảng lưu trữ và thảo luận trực tuyến. Chúng tôi không khuyến khích và không chịu trách nhiệm quản lý việc người dùng tự ý tổ chức, kêu gọi, hoặc hẹn gặp mặt giao lưu trực tiếp bên ngoài phạm vi hệ thống.
-  - **Nghiêm cấm:** Việc lợi dụng mục bình luận để đăng tải các thông tin hẹn hò, lôi kéo tụ tập đông người tự phát tại các bến xe, bãi đỗ hoặc các khu vực công cộng nhằm mục đích cá nhân khi chưa có sự phê duyệt chính thức từ Ban Quản trị.
-  - **Bảo mật an toàn:** Để bảo vệ an toàn thông tin và quyền riêng tư cá nhân, người dùng tuyệt đối không chia sẻ công khai số điện thoại, link nhóm chat kín (Zalo, Messenger, Discord,...) hoặc địa chỉ nhà riêng trong phần bình luận nhằm mục đích lôi kéo thành viên rời khỏi nền tảng. Mọi rủi ro phát sinh từ các cuộc gặp gỡ ngoài đời thực sẽ do các cá nhân tự chịu trách nhiệm trước pháp luật.
+## 3. Ngôn ngữ và văn hóa giao tiếp
+- Dùng tiếng Việt có dấu hoặc tiếng Anh rõ ràng; không dùng teencode, ngôn ngữ thô tục hay gây khó hiểu.
+- Không bàn luận về chính trị, tôn giáo, sắc tộc hoặc các chủ đề không liên quan đến xe buýt và giao thông công cộng.
+- Không giải quyết mâu thuẫn cá nhân trong mục bình luận. Những tranh cãi ngoài lề sẽ bị xóa.
+- Về việc gặp mặt và chia sẻ thông tin cá nhân:
+  - VNBUSARCHIVE là nền tảng lưu trữ và thảo luận trực tuyến, không tổ chức hay quản lý các buổi gặp mặt tự phát ngoài đời thực.
+  - Không lợi dụng bình luận để rủ rê, tụ tập đông người tại bến xe, bãi đỗ hoặc các khu vực công cộng.
+  - Để bảo vệ an toàn và quyền riêng tư, vui lòng không đăng số điện thoại, địa chỉ nhà riêng hay link nhóm chat kín (Zalo, Messenger...) trong bình luận. Thành viên tự chịu trách nhiệm với các rủi ro phát sinh từ những cuộc gặp bên ngoài hệ thống.
 
-## 4. CẤM SPAM VÀ QUẢNG CÁO
-- **Spam:** Không gửi nhiều bình luận có nội dung giống nhau hoặc các ký tự vô nghĩa (như: "....", "123", "abc") để tăng tương tác.
-- **Quảng cáo:** Nghiêm cấm chèn link quảng cáo, rao bán hàng hóa, dịch vụ hoặc các nội dung không liên quan đến xe buýt/xe khách trong phần bình luận.
+## 4. Không spam và quảng cáo
+- Không đăng nhiều bình luận giống nhau hoặc các chuỗi ký tự vô nghĩa (như "....", "123", "abc") để tăng tương tác.
+- Không chèn link quảng cáo, bán hàng hay các dịch vụ không liên quan trong phần bình luận.
 
-## 5. TÍNH XÁC THỰC CỦA THÔNG TIN
-- Không bình luận các thông tin sai lệch, tin đồn chưa kiểm chứng về tình trạng xe (như xe đã thanh lý, xe tai nạn...) gây hoang mang dư luận hoặc ảnh hưởng đến uy tín của nhà xe.
-- Khi bổ sung dữ liệu lịch sử hoặc thông số xe qua bình luận, vui lòng đảm bảo độ chính xác cao nhất.
+## 5. Tính chính xác của thông tin
+- Không đăng tin đồn thất thiệt hoặc thông tin chưa kiểm chứng về tình trạng xe (như xe đã thanh lý, tai nạn...) gây hiểu lầm hoặc ảnh hưởng đến đơn vị vận tải.
+- Khi bổ sung thông số xe hoặc lịch sử hoạt động qua bình luận, hãy cố gắng cung cấp thông tin chính xác hoặc có nguồn kiểm chứng rõ ràng.
 
 ---
 
-## 6. HỆ THỐNG XỬ LÝ VI PHẠM
-Ban Quản trị có toàn quyền quyết định trong việc xử lý các bình luận vi phạm. Tùy theo mức độ, các hình thức kỷ luật bao gồm:
-
-1.  **Mức độ nhẹ (Nhắc nhở):** Xóa bình luận vi phạm và gửi cảnh báo qua hệ thống/email.
-2.  **Mức độ trung bình (Đình chỉ tạm thời):** Khóa quyền bình luận hoặc khóa tài khoản từ 3 đến 7 ngày nếu tái phạm nhiều lần.
-3.  **Mức độ nghiêm trọng (Đình chỉ vĩnh viễn):** Khóa tài khoản vĩnh viễn đối với các hành vi: xúc phạm nhân viên vận tải nghiêm trọng, bắt nạt hội đồng, spam phá hoại hệ thống hoặc truyền bá văn hóa phẩm đồi trụy.
+## 6. Xử lý vi phạm
+Tùy theo mức độ vi phạm, ban quản trị sẽ áp dụng các hình thức xử lý sau:
+1. **Nhắc nhở:** Xóa bình luận vi phạm và gửi thông báo nhắc nhở qua tài khoản.
+2. **Khóa tạm thời:** Tạm khóa quyền bình luận hoặc tài khoản từ 3 đến 7 ngày nếu tái phạm nhiều lần.
+3. **Khóa vĩnh viễn:** Áp dụng khi xúc phạm nghiêm trọng nhân viên vận tải, công kích hội đồng, cố tình spam phá hoại hoặc đăng tải nội dung đồi trụy.
 
 ---

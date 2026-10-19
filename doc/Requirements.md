@@ -1,119 +1,120 @@
-# QUY CHUẨN VÀ HƯỚNG DẪN ĐĂNG TẢI DỮ LIỆU HÌNH ẢNH
+# Quy chuẩn và hướng dẫn đăng tải hình ảnh
 
-Tài liệu này quy định các tiêu chuẩn kỹ thuật về hình ảnh và siêu dữ liệu nhằm xây dựng cơ sở dữ liệu phương tiện chất lượng cao. Yêu cầu toàn bộ thành viên đọc kỹ và tuân thủ nghiêm ngặt trước khi đóng góp.
+Tài liệu này quy định các tiêu chuẩn về hình ảnh và thông tin phương tiện khi đóng góp vào hệ thống. Vui lòng đọc kỹ trước khi đăng tải để ảnh được duyệt nhanh chóng.
 
-VNBUSARCHIVE là thư viện tư liệu, không phải nền tảng chia sẻ ảnh cá nhân. Tiêu chuẩn duyệt ảnh áp dụng bình đẳng với tất cả thành viên, bao gồm cả Ban quản trị.
+VNBUSARCHIVE là kho tư liệu chung cho cộng đồng, các tiêu chuẩn duyệt ảnh được áp dụng đồng bộ cho tất cả thành viên, bao gồm cả ban quản trị.
 
-## PHẦN A: QUY ĐỊNH CHUNG
-**A1.1. Phạm vi tiếp nhận:** Hệ thống hiện tại chấp nhận dữ liệu của cả **Xe buýt** và **Xe khách**.
-
-**A1.2. Xét duyệt ngoại lệ:** 
-* Hệ thống tự động kiểm duyệt và ưu tiên xuất bản các hình ảnh mang giá trị tư liệu/lịch sử cao (ảnh chụp thời điểm quá khứ hoặc xe hiện đã ngừng hoạt động). Thành viên chỉ cần tải lên hệ thống, BQT sẽ tự động đánh giá và xem xét mà không cần liên hệ trước.
-* **Các trường hợp áp dụng ưu tiên (Chỉ áp dụng đối với XE BUÝT, KHÔNG áp dụng cho XE KHÁCH):**
-  * Dòng xe đã không còn hoạt động/khai thác trên thị trường.
-  * Tuyến xe buýt đã ngừng hoạt động hoàn toàn.
-  * Tuyến/xe buýt đã chuyển giao đơn vị vận hành hoặc bán/thanh lý/chuyển nhượng (ảnh ghi lại thời điểm còn thuộc đơn vị vận hành cũ).
-  * Tuyến xe buýt đã thay đổi dòng xe/lô xe (ảnh ghi lại thời điểm tuyến còn sử dụng dòng xe/lô xe cũ).
-  * Tuyến/xe buýt đã thay đổi biển số/số hiệu xe (ảnh ghi lại thời điểm còn dùng biển số/số hiệu cũ).
-  * Tuyến/xe buýt đã thay đổi màu sơn/nhận diện thương hiệu (ảnh ghi lại thời điểm còn dùng màu sơn/logo cũ).
-  * Tuyến/xe buýt đã hết niên hạn sử dụng/bị loại biên.
-  * Tuyến/xe buýt vận hành theo hợp đồng/sự kiện tạm thời đã ngừng hoạt động (ảnh ghi lại thời điểm tăng cường).
-* **Phạm vi châm chước:** 
-  * **CHỈ CHẤP NHẬN** châm chước các hạn chế về **kỹ thuật bối cảnh/quang học** (độ nét, ánh sáng, thời tiết, v..v..).
-  * **TUYỆT ĐỐI KHÔNG** áp dụng ưu tiên đối với các lỗi nghiêm trọng xuất phát từ **thao tác chủ quan của người dùng** (vi phạm quy tắc làm mờ ở B4.2, B4.3, v..v..) hoặc hình ảnh vi phạm **tiêu chuẩn bối cảnh, chứa các chi tiết phản cảm** (quy định tại B1.3).
-* **Quyền hạn BQT:** BQT giữ quyền chủ động điều chỉnh và áp dụng linh hoạt chính sách ưu tiên xét duyệt đối với các trường hợp đặc biệt khác tùy thuộc vào giá trị tư liệu thực tế của bức ảnh.
 ---
 
-## PHẦN B: TIÊU CHUẨN HÌNH ẢNH (UPLOAD)
-*Hệ thống áp dụng bộ lọc kiểm duyệt khắt khe. Tệp tin hình ảnh tải lên bắt buộc đáp ứng các tiêu chí sau:*
+## Phần A: Quy định chung
 
-### B1. Đối tượng và Bối cảnh
-* **B1.1. Phạm vi địa lý:** Chỉ chấp nhận phương tiện hoạt động và đăng ký tại **Việt Nam**.
+**A1.1. Phạm vi tiếp nhận:** Hệ thống tiếp nhận dữ liệu của cả **Xe buýt** và **Xe khách**.
+
+**A1.2. Ưu tiên xét duyệt ảnh tư liệu:** 
+* Hệ thống ưu tiên duyệt các hình ảnh mang giá trị tư liệu hoặc lịch sử (ảnh chụp trong quá khứ, các tuyến hoặc xe đã ngừng hoạt động). Bạn chỉ cần tải lên bình thường, ban quản trị sẽ xem xét trực tiếp mà không cần liên hệ trước.
+* **Các trường hợp được ưu tiên (chỉ áp dụng cho xe buýt, không áp dụng cho xe khách):**
+  * Dòng xe đã ngừng khai thác trên thị trường.
+  * Tuyến xe buýt đã ngừng hoạt động hoàn toàn.
+  * Xe đã chuyển đơn vị vận hành hoặc thanh lý/chuyển nhượng (ảnh ghi lại thời điểm xe còn thuộc đơn vị cũ).
+  * Tuyến xe buýt đã thay đổi dòng xe/lô xe mới (ảnh ghi lại thời điểm tuyến còn dùng lô xe cũ).
+  * Xe đã đổi biển số hoặc số hiệu (ảnh ghi lại thời điểm còn dùng biển số/số hiệu cũ).
+  * Xe đã đổi màu sơn hoặc nhận diện thương hiệu mới (ảnh ghi lại màu sơn/logo cũ).
+  * Xe đã hết niên hạn sử dụng hoặc bị loại biên.
+  * Xe chạy hợp đồng hoặc tăng cường theo sự kiện tạm thời đã kết thúc.
+* **Phạm vi châm chước:** 
+  * Chấp nhận châm chước các hạn chế về điều kiện chụp khách quan (độ nét, ánh sáng, thời tiết, khoảng cách chụp thời xưa bằng thiết bị cũ).
+  * Không châm chước các lỗi do thao tác chủ quan (làm mờ ẩu, che lấp thân xe theo quy tắc B4) hoặc ảnh chứa chi tiết phản cảm, rác thải (quy định tại B1.3).
+* Ban quản trị giữ quyền áp dụng linh hoạt chính sách ưu tiên tùy thuộc vào giá trị tư liệu thực tế của từng bức ảnh.
+
+---
+
+## Phần B: Tiêu chuẩn hình ảnh
+
+Để ảnh được duyệt vào kho lưu trữ, tệp ảnh tải lên cần đáp ứng các tiêu chuẩn sau:
+
+### B1. Đối tượng và bối cảnh
+* **B1.1. Phạm vi địa lý:** Chỉ tiếp nhận phương tiện hoạt động và đăng ký tại **Việt Nam**.
 * **B1.2. Hạn chế chủ thể:** 
-  * Từ chối phương tiện thuộc cơ quan Nhà nước/Quân đội (Biển xanh/đỏ).
-  * Từ chối phương tiện đang gặp tai nạn, va chạm giao thông hoặc có dấu hiệu hư hỏng nặng do va chạm tại hiện trường.
-  * **Quy mô hãng:** Chỉ chấp nhận phương tiện thuộc các hãng, doanh nghiệp vận tải quy mô lớn hoặc có tuyến cố định. Từ chối phương tiện cá nhân, hộ gia đình, nhà xe nhỏ lẻ.
-* **B1.3. Bối cảnh chụp:** Khung hình sạch sẽ, không xuất hiện rác thải, vết bẩn lớn hoặc các chi tiết gây phản cảm. Không chấp nhận ảnh chụp vội, thiếu chủ đích.
+  * Không tiếp nhận xe thuộc cơ quan nhà nước hoặc quân sự (biển xanh, biển đỏ).
+  * Không tiếp nhận ảnh chụp hiện trường tai nạn, va chạm giao thông hoặc xe bị biến dạng nặng do va chạm.
+  * **Quy mô đối với xe khách:** Chỉ tiếp nhận phương tiện của các công ty, doanh nghiệp vận tải có thương hiệu rõ ràng hoặc chạy tuyến cố định. Không tiếp nhận xe cá nhân, hộ gia đình hay nhà xe nhỏ lẻ.
+* **B1.3. Bối cảnh chụp:** Khung hình sạch sẽ, không để rác thải, vết bẩn lớn hoặc chi tiết phản cảm lọt vào khung hình. Tránh chụp vội hoặc thiếu chủ đích.
+* **B1.4. Giá trị lưu trữ:**
+  * Dự án hướng tới chất lượng lưu trữ lâu dài nên ưu tiên ảnh có góc nhìn rõ ràng, ánh sáng tốt và thể hiện rõ đặc trưng của xe.
+  * Tránh chụp đối phó: Từ chối các bức ảnh chụp quá xa, góc máy bị che khuất, ánh sáng quá tối hoặc khung cảnh xung quanh quá lộn xộn chỉ nhằm mục đích lấy số lượng (spam).
+  * Ban quản trị có quyền từ chối những ảnh không đạt yêu cầu chất lượng thị giác chung của hệ thống.
 
-### B1.4. Giá trị Lưu trữ và Thẩm mỹ:
-
-* Hệ thống ưu tiên các bức ảnh có tính thẩm mỹ, góc nhìn đẹp, ánh sáng hài hòa và thể hiện rõ nét đặc trưng của phương tiện.
-
-* Cấm ảnh chụp đối phó/chất lượng thấp: Từ chối các bức ảnh tuy đạt chuẩn kỹ thuật cơ bản nhưng thiếu tính nghệ thuật nghiêm trọng, ví dụ: góc chụp "chết" (vô hồn), ánh sáng tù túng, khung cảnh xung quanh lộn xộn/mất thẩm mỹ, hoặc ảnh chụp vội vã chỉ nhằm mục đích lấy số lượng (spam).
-
-* Quyền quyết định cuối cùng: BQT có quyền từ chối xuất bản bất kỳ bức ảnh nào nếu đánh giá bức ảnh đó "Không có giá trị lưu trữ hoặc không đạt chất lượng thị giác chung của hệ thống" dù ảnh không vi phạm các lỗi kỹ thuật ở mục B2, B3.
-
-### B2. Định chuẩn Bố cục
-* **B2.1. Vị trí chủ thể:** Xe là đối tượng chính, phải nằm trọn vẹn ở trung tâm khung hình. Tuyệt đối không cắt xén các chi tiết viền (đầu, đuôi, nóc, bánh xe).
-* **B2.2. Khoảng lề:** Phải duy trì không gian cân đối giữa các viền ngoài cùng của xe với cạnh bức ảnh. Chủ thể không được nằm quá sát mép ảnh hoặc chiếm tỷ lệ quá nhỏ.
-* **B2.3. Định dạng và Độ cân bằng:** 
+### B2. Bố cục khung hình
+* **B2.1. Vị trí chủ thể:** Xe là đối tượng chính, cần nằm trọn vẹn trong khung hình; không cắt cụt đầu, đuôi, nóc hay bánh xe.
+* **B2.2. Khoảng lề:** Duy trì khoảng trống hợp lý giữa thân xe và mép ảnh; tránh chụp quá sát mép hoặc xe quá nhỏ trong khung hình.
+* **B2.3. Tỉ lệ và độ thẳng:** 
   * Tỉ lệ khung hình ngang chuẩn: `4:3`, `3:2` hoặc `16:9`. 
-  * Khung hình phải được xoay thẳng và cân bằng tuyệt đối. Từ chối xuất bản các bức ảnh bị nghiêng lệch góc máy. Tiêu chuẩn hệ quy chiếu để căn góc:
-    * **Ảnh chụp ngang tầm mắt:** Lấy các phương thẳng đứng ở hậu cảnh (cột điện, biển báo, mép tòa nhà...) làm hệ quy chiếu, bắt buộc phải căn song song với lề dọc của bức ảnh hoặc đường lưới (Grid).
-    * **Ảnh chụp từ trên cao (Góc chúi xuống):** Lấy thân xe làm hệ quy chiếu, hai cạnh ngoài cùng của xe bắt buộc phải căn song song với lề dọc của bức ảnh hoặc đường lưới (Grid).
-* **B2.4. Góc chụp:** Ưu tiên lấy được 2 phía (trước, sau, trái, phải) của xe tương đối rõ ràng. Chấp nhận góc chụp 1 phía với thân xe. Từ chối góc chụp 1 phía chỉ thấy đầu xe/đuôi xe (kể cả khi chụp từ góc nhìn từ trên xuống dưới hay từ dưới lên trên). (Quy định này sẽ không áp dụng cho ảnh chụp 1 phía đầu xe có chủ thể từ 2 xe trở lên).
-* **B2.5. Vật cản:** Chủ thể không bị che khuất bởi phương tiện khác, con người, hoặc cảnh quan (cây cối, cột điện...).
+  * Ảnh cần được căn thẳng, tránh bị nghiêng lệch góc máy:
+    * **Chụp ngang tầm mắt:** Lấy các đường thẳng đứng ở hậu cảnh (cột điện, biển báo, mép tòa nhà...) làm chuẩn, căn song song với lề dọc của ảnh hoặc đường lưới (grid).
+    * **Chụp từ trên cao (góc nhìn hướng xuống):** Lấy thân xe làm chuẩn, căn hai cạnh ngoài của xe song song với lề dọc của ảnh.
+* **B2.4. Góc chụp:** Khuyến khích góc chụp 3/4 (thấy rõ 2 phía của xe: đầu + hông hoặc đuôi + hông). Chấp nhận góc chụp toàn bộ một bên hông xe. Từ chối ảnh chỉ chụp thẳng một phía đầu hoặc đuôi xe (trừ trường hợp khung hình có từ 2 xe trở lên).
+* **B2.5. Vật cản:** Xe không bị che khuất bởi phương tiện khác, người đi đường hoặc cảnh quan (cây cối, cột điện).
 
-### B3. Thông số kỹ thuật & Siêu dữ liệu
-* **B3.1. Chất lượng ảnh & Thiết bị:** 
-  * Độ sắc nét, độ sáng và độ tương phản phải đạt tiêu chuẩn lưu trữ. Từ chối ảnh mờ nhòe, nhiễu hạt nghiêm trọng (noise/grain) do điều kiện thiếu sáng hoặc giới hạn phần cứng của thiết bị chụp.
-  * **Quyền từ chối của BQT:** BQT có quyền từ chối xuất bản nếu chất lượng hình ảnh đầu ra không đạt yêu cầu. Người đóng góp tuyệt đối không sử dụng lý do thiết bị chụp chất lượng kém/đời cũ để yêu cầu châm chước. Quy chuẩn được áp dụng đồng bộ, nghiêm túc và không có ngoại lệ.
+### B3. Thông số kỹ thuật và hậu kỳ
+* **B3.1. Độ nét và ánh sáng:** 
+  * Ảnh cần rõ nét, đủ sáng và không bị mờ nhòe do rung tay hoặc nhiễu hạt quá nặng (noise/grain) do thiếu sáng.
+  * Do tiêu chuẩn áp dụng chung, ban quản trị không thể châm chước cho ảnh quá mờ nhòe vì lý do thiết bị chụp đời cũ.
+* **B3.2. Chỉnh sửa và giữ tính chân thực:** 
+  * Không lạm dụng chỉnh sửa (tăng nét giả, saturation quá cao, HDR gắt) làm viền giả quanh xe hoặc làm sai lệch màu sơn thực tế của nhà xe.
+  * Không dùng công cụ xóa vật thể hoặc AI để vẽ lại biển số, logo hay chi tiết xe bị mất. Dữ liệu cần giữ nguyên tính chân thực lịch sử.
+  * Không dùng AI để làm nét nhân tạo hay vẽ thêm chi tiết giả vào phương tiện.
+* **B3.3. Dữ liệu EXIF:** Tệp ảnh gốc cần giữ thông tin máy ảnh và thời gian chụp từ thiết bị.
+* **B3.4. Dấu bản quyền:** Không tự chèn chữ ký cá nhân; hệ thống sẽ tự động đóng dấu khi xuất bản.
+* **B3.5. Tránh méo góc:** Hạn chế dùng camera góc siêu rộng ở cự ly gần gây méo mó, biến dạng tỷ lệ thân xe.
 
-* **B3.2. Tính nguyên bản & Hậu kỳ:** 
-  * **Cấm can thiệp AI/Hậu kỳ quá đà:** Từ chối ảnh lạm dụng các công cụ xử lý (Sharpness, Clarity, HDR giả lập, Saturation v..v..) gây ra hiện tượng viền giả xung quanh thân xe hoặc làm sai lệch màu sơn thực tế của doanh nghiệp vận tải.
-  * **Cấm thay đổi chi tiết/Xóa vật thể:** Cấm tuyệt đối việc sử dụng phần mềm đồ họa hoặc AI để xóa bỏ các chi tiết bối cảnh hoặc vẽ/phục hồi lại Biển kiểm soát, logo, chi tiết phương tiện bị mất. Tính chân thực của dữ liệu tư liệu phải được đảm bảo tuyệt đối.
-  * **Cấm nâng cấp giả tạo:** Cấm sử dụng AI/Phần mềm để làm nét, tăng độ phân giải hoặc cấy ghép chi tiết ảo vào phương tiện.
+### B4. Nhận diện và quyền riêng tư
+* **B4.1. Biển số xe:** Bắt buộc hiển thị rõ ràng, đọc được bằng mắt thường (chấp nhận cả biển dập kim loại lẫn decal).
+* **B4.2. Quyền riêng tư:** Bắt buộc làm mờ khuôn mặt hành khách hoặc tài xế nếu xuất hiện rõ trong ảnh cận cảnh.
+* **B4.3. Cách làm mờ:**
+  * Điều chỉnh vùng làm mờ vừa vặn với đối tượng cần che.
+  * Tránh kéo vùng mờ quá rộng làm hỏng bố cục ảnh hoặc che lấp các chi tiết trên thân xe.
+* **B4.4. Biển số phương tiện xung quanh:** 
+  * Nếu phương tiện khác xung quanh đang có hành vi vi phạm giao thông: bắt buộc làm mờ biển số.
+  * Phương tiện lưu thông bình thường: không yêu cầu làm mờ.
 
-* **B3.3. Dữ liệu (EXIF):** Tệp tin gốc bắt buộc chứa dữ liệu máy ảnh và thời gian chụp.
-* **B3.4. Đóng dấu (Watermark):** Cấm chèn chữ ký/logo cá nhân. Hệ thống sẽ tự động đóng dấu bản quyền khi xuất bản.
-* **B3.5. Sai lệch tiêu cự:** Từ chối ảnh sử dụng camera góc siêu rộng (tiêu cự quá nhỏ) gây tình trạng móp méo, biến dạng tỷ lệ thực tế của phương tiện.
+### B5. An toàn và đạo đức
+* **B5.1. Quyền sở hữu:** Chỉ tải lên ảnh do chính bạn chụp.
+* **B5.2. Không xâm nhập trái phép:** Từ chối ảnh chụp do xâm nhập bến bãi nội bộ, xưởng sửa chữa hoặc bãi đỗ xe tư nhân khi chưa được phép.
+* **B5.3. Khu vực cấm:** Không chụp ảnh tại các khu vực quân sự, an ninh quốc phòng hoặc nơi có biển cấm chụp ảnh.
+* **B5.4. An toàn giao thông:** Luôn chú ý an toàn khi chụp ảnh; không đứng giữa lòng đường gây nguy hiểm cho bản thân và cản trở phương tiện khác.
 
-### B4. Nhận diện & Quyền riêng tư
-* **B4.1. Biển kiểm soát (BKS):** Yêu cầu bắt buộc. Phải hiển thị rõ ràng, đọc được bằng mắt thường (chấp nhận cả biển kim loại và decal).
-* **B4.2. Quyền riêng tư:** Bắt buộc che/làm mờ rõ khuôn mặt hành khách hoặc tài xế (nếu ảnh cận cảnh).
-* **B4.3. Quy tắc làm mờ:** Yêu cầu tính chính xác và thẩm mỹ cao khi thao tác.
-  * **Kích thước và vị trí:** Vùng làm mờ phải được tinh chỉnh kích thước vừa vặn và đặt trúng đích lên đối tượng cần che.
-  * **Cấm lạm dụng thao tác:** Nghiêm cấm việc một vùng làm mờ có kích thước quá lớn để che phủ cả một khoảng rộng chỉ vì mục đích thao tác nhanh. 
-  * **Bảo toàn chi tiết xe:** Vùng làm mờ tuyệt đối không được chờm/đè lên các chi tiết của xe đang là chủ thể.
-* **B4.4. Xử lý Biển kiểm soát (BKS) phương tiện xung quanh:** 
-  * **Phương tiện vi phạm giao thông:** Bắt buộc che/làm mờ BKS nếu phương tiện khác xuất hiện trong ảnh đang có hành vi vi phạm trật tự an toàn giao thông.
-  * **Phương tiện lưu thông bình thường:** Không yêu cầu che BKS.
-
-### B5. An toàn, Đạo đức & Pháp luật
-* **B5.1. Quyền sở hữu:** Chỉ đăng tải ảnh do chính người dùng chụp.
-* **B5.2. Không xâm nhập trái phép:** Từ chối ảnh chụp do xâm nhập gia cư, bến bãi nội bộ, xưởng sửa chữa, bãi đỗ xe tư nhân khi chưa được phép.
-* **B5.3. Khu vực cấm:** Không chụp ảnh tại các khu vực có biển cấm (Khu vực quân sự, an ninh quốc gia...).
-* **B5.4. An toàn giao thông:** Từ chối ảnh nếu người chụp đứng giữa lòng đường, gây nguy hiểm cho bản thân và cản trở phương tiện khác.
+---
 
 ### B6. Bảng minh họa định chuẩn bố cục
 
-| Hình ảnh minh họa | Trạng thái | Phân tích kỹ thuật |
+| Hình ảnh minh họa | Trạng thái | Nhận xét |
 | :--- | :---: | :--- |
-| <img src="https://i.postimg.cc/Pf1Hd8n3/IMG_20260321_174305.jpg" width="300"> | ✅ **HỢP LỆ** | **Đạt:** Chủ thể trọn vẹn, áp dụng chuẩn tỉ lệ 1/3. |
-| <img src="https://i.postimg.cc/yNr1SqfC/IMG_20260321_145006.jpg" width="300"> | ✅ **HỢP LỆ** | **Đạt:** Chủ thể trọn vẹn, căn lề chính giữa chuẩn xác. |
-| <img src="https://i.postimg.cc/vBVsg4gm/IMG_20260321_150406.jpg" width="300"> | ❌ **TỪ CHỐI** | **Lỗi:** Bố cục lệch trên, viền ảnh cắt cụt hệ thống điều hòa trên nóc. |
-| <img src="https://i.postimg.cc/gkPYhHHN/IMG_20260321_144308.jpg" width="300"> | ❌ **TỪ CHỐI** | **Lỗi:** Bố cục lệch trái, viền ảnh cắt cụt gương chiếu hậu. |
-| <img src="https://i.postimg.cc/pVcSbWpS/photo-2026-03-20-17-13-18.jpg" width="300"> | ❌ **TỪ CHỐI** | **Lỗi:** Nhòe do chuyển động, lóa kính, mất khả năng nhận diện BKS. |
-| <img src="https://i.postimg.cc/tRFzD9FZ/IMG_7959.jpg" width="300"> | ❌ **TỪ CHỐI** | **Lỗi:** Chủ thể bị che khuất nghiêm trọng, mất khả năng nhận diện BKS. |
-| <img src="https://i.postimg.cc/SQcGVmcz/IMG_8022.jpg" width="300"> | ❌ **TỪ CHỐI** | **Lỗi:** Cự ly chụp sai quy chuẩn (quá xa). |
-| <img src="https://i.postimg.cc/7PSNXqSC/IMG_8131.jpg" width="300"> | ❌ **TỪ CHỐI** | **Lỗi:** Cháy sáng (Overexposed) nghiêm trọng. |
-| <img src="https://i.postimg.cc/rmm3qgbw/IMG-20260323-125800.jpg" width="300"> | ❌ **TỪ CHỐI** | **Lỗi:** Xuất hiện vật cản (người đi đường) lấp chủ thể. |
+| <img src="https://i.postimg.cc/Pf1Hd8n3/IMG_20260321_174305.jpg" width="300"> | ✅ **HỢP LỆ** | **Đạt:** Xe trọn vẹn trong khung hình, bố cục 1/3 hợp lý. |
+| <img src="https://i.postimg.cc/yNr1SqfC/IMG_20260321_145006.jpg" width="300"> | ✅ **HỢP LỆ** | **Đạt:** Xe trọn vẹn, căn lề chính giữa cân đối. |
+| <img src="https://i.postimg.cc/vBVsg4gm/IMG_20260321_150406.jpg" width="300"> | ❌ **TỪ CHỐI** | **Lỗi:** Bố cục lệch trên, mép ảnh cắt cụt hệ thống điều hòa trên nóc. |
+| <img src="https://i.postimg.cc/gkPYhHHN/IMG_20260321_144308.jpg" width="300"> | ❌ **TỪ CHỐI** | **Lỗi:** Bố cục lệch trái, mép ảnh cắt cụt gương chiếu hậu. |
+| <img src="https://i.postimg.cc/pVcSbWpS/photo-2026-03-20-17-13-18.jpg" width="300"> | ❌ **TỪ CHỐI** | **Lỗi:** Nhòe do chuyển động, lóa kính, không nhìn rõ biển số. |
+| <img src="https://i.postimg.cc/tRFzD9FZ/IMG_7959.jpg" width="300"> | ❌ **TỪ CHỐI** | **Lỗi:** Xe bị che khuất nhiều, không đọc được biển số. |
+| <img src="https://i.postimg.cc/SQcGVmcz/IMG_8022.jpg" width="300"> | ❌ **TỪ CHỐI** | **Lỗi:** Cự ly chụp quá xa so với kích thước khung hình. |
+| <img src="https://i.postimg.cc/7PSNXqSC/IMG_8131.jpg" width="300"> | ❌ **TỪ CHỐI** | **Lỗi:** Ảnh bị cháy sáng nghiêm trọng làm mất chi tiết xe. |
+| <img src="https://i.postimg.cc/rmm3qgbw/IMG-20260323-125800.jpg" width="300"> | ❌ **TỪ CHỐI** | **Lỗi:** Người đi đường đứng chắn ngay trước thân xe. |
 
 ---
 
-## PHẦN C: QUY CHUẨN NHẬP LIỆU
-⚠️ **LƯU Ý QUAN TRỌNG:** Toàn bộ trường thông tin phải phản ánh chính xác trạng thái phương tiện **tại đúng thời điểm bấm máy**.
+## Phần C: Quy chuẩn nhập liệu
 
-### C1. Thông tin Định danh
-* **C1.1. Biển kiểm soát (BKS):** Nhập chuỗi ký tự viết liền, không khoảng trắng/ký tự đặc biệt (VD: `29A12345`).
-  * Biển tạm: Thêm chữ T (VD: `T1234567`).
-  * Trùng BKS trên hệ thống: Gắn thêm hậu tố định danh (VD: `29A12345-1`, `29A12345-2`). Phương tiện cùng dòng, cùng BKS nhưng khác tuyến/đơn vị vẫn được tính là một.
-  * Ảnh có nhiều xe: Ưu tiên nhập BKS của xe chưa có dữ liệu trên hệ thống. Nếu đồng cấp, ưu tiên đọc từ trái sang phải.
-* **C1.2. Phân loại phương tiện:** Gán nhãn chính xác là **Xe buýt** hoặc **Xe khách**.
-* **C1.3. Dòng xe (Model):** Ưu tiên dùng danh sách gợi ý. Yêu cầu nhập chính xác mã định danh thương mại (VD: `Thaco Garden TB79CT`).
+Toàn bộ thông tin cần phản ánh chính xác trạng thái của phương tiện **tại thời điểm bấm máy**.
 
-### C2. Thông tin Vận hành
-* **C2.1. Đơn vị vận hành:** Dùng danh sách gợi ý của hệ thống. Nếu nhập thủ công, phải ghi tên đầy đủ pháp nhân và tuân thủ bảng viết tắt sau:
+### C1. Thông tin định danh
+* **C1.1. Biển số xe:** Nhập chuỗi ký tự viết liền, không khoảng trắng hay dấu gạch ngang (ví dụ: `29A12345`).
+  * Biển tạm: Thêm tiền tố T (ví dụ: `T1234567`).
+  * Trùng biển số trên hệ thống: Gắn thêm hậu tố định danh (ví dụ: `29A12345-1`, `29A12345-2`). Xe cùng dòng, cùng biển số nhưng đổi tuyến hoặc đơn vị vận hành vẫn tính là một.
+  * Ảnh có nhiều xe: Ưu tiên nhập biển số của xe chưa có dữ liệu trên hệ thống. Nếu đều chưa có, ưu tiên đọc từ trái sang phải.
+* **C1.2. Phân loại phương tiện:** Chọn đúng **Xe buýt** hoặc **Xe khách**.
+* **C1.3. Dòng xe (Model):** Ưu tiên chọn từ danh sách gợi ý. Nếu nhập thủ công, nhập đúng tên thương mại của xe (ví dụ: `Thaco Garden TB79CT`).
+
+### C2. Thông tin vận hành
+* **C2.1. Đơn vị vận hành:** Chọn từ danh sách gợi ý. Nếu nhập thủ công, ghi tên chuẩn hóa theo bảng viết tắt sau:
   | Thuật ngữ gốc | Ký hiệu chuẩn hóa | Ví dụ |
   | :--- | :--- | :--- |
   | Xí nghiệp | **XN** | *Xí nghiệp Bus...* ➔ `XN Xe buýt...` |
@@ -121,11 +122,11 @@ VNBUSARCHIVE là thư viện tư liệu, không phải nền tảng chia sẻ �
   | Hợp tác xã | **HTX** | *Hợp tác xã vận tải...* ➔ `HTX vận tải...` |
   | Bus | **Xe buýt** | *Xí nghiệp Bus...* ➔ `XN Xe buýt...` |
 * **C2.2. Tuyến hoạt động:**
-  * **Xe buýt:** Chỉ nhập mã số tuyến (VD: `01`). Lộ trình chi tiết ghi vào mục *Ghi chú*. Tuyến cuối tuần (CT) hoặc các hậu tố tạm thời có tính lặp lại liên tục: **Không** ghi hậu tố vào cuối mã tuyến.
-  * **Xe khách:** Nhập theo cú pháp `[Điểm đầu] - [Điểm cuối]` cấp tỉnh. Ưu tiên điểm đầu là nơi đăng ký xe (VD: `Hà Nội - Quảng Ninh`).
-  * **Trạng thái đặc biệt:** Khai báo bằng các nhãn chuẩn: `Dừng hoạt động`, `Chưa hoạt động`, `Ngoài giờ hoạt động`, `Hợp đồng`.
+  * **Xe buýt:** Chỉ nhập mã số tuyến (ví dụ: `01`). Lộ trình chi tiết ghi vào mục *Ghi chú*. Các tuyến cuối tuần hoặc hậu tố tạm thời: không ghi hậu tố vào mã tuyến chính.
+  * **Xe khách:** Nhập theo cú pháp `[Điểm đầu] - [Điểm cuối]` cấp tỉnh (ví dụ: `Hà Nội - Quảng Ninh`).
+  * **Trạng thái đặc biệt:** Chọn các nhãn có sẵn: `Dừng hoạt động`, `Chưa hoạt động`, `Ngoài giờ hoạt động`, `Hợp đồng`.
 
-### C3. Thông tin Bổ sung
-* **C3.1. Ngày chụp:** Hệ thống tự động đồng bộ từ metadata (EXIF). Bỏ qua nhập thủ công.
-* **C3.2. Vị trí chụp:** Khai báo địa chỉ/đoạn đường mà **phương tiện đang di chuyển qua** (không lấy vị trí đứng của người chụp). Dữ liệu văn bản được ưu tiên cao hơn tọa độ GPS từ bản đồ.
-* **C3.3. Ghi chú:** Khai báo siêu dữ liệu bổ sung. Nghiêm cấm chèn nội dung rác. Nếu thiếu thông tin khai báo ở các trường trên, sử dụng lệnh: `"Chưa rõ thông tin [tên trường]"`.
+### C3. Thông tin bổ sung
+* **C3.1. Ngày chụp:** Hệ thống tự động đọc từ metadata (EXIF).
+* **C3.2. Vị trí chụp:** Nhập địa chỉ hoặc tên đoạn đường mà phương tiện đang di chuyển qua tại thời điểm chụp (không lấy vị trí người đứng chụp).
+* **C3.3. Ghi chú:** Điền thêm thông tin hữu ích nếu có. Nếu thiếu thông tin ở các trường trên, ghi: `"Chưa rõ thông tin [tên trường]"`.

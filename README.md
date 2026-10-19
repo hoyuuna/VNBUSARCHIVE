@@ -5,40 +5,39 @@
   </h1>
 </div>
 
-**VNBUSARCHIVE** là dự án cộng đồng phi lợi nhuận, mã nguồn mở, được xây dựng bởi một nhóm học sinh – sinh viên có chung niềm đam mê với giao thông công cộng. Chúng mình mong muốn lưu giữ và bảo tồn hình ảnh, tư liệu lịch sử về các phương tiện xe buýt tại Việt Nam, để những giá trị đó không bị mai một theo thời gian.
+**VNBUSARCHIVE** là dự án cộng đồng phi lợi nhuận, mã nguồn mở, do một nhóm học sinh – sinh viên yêu thích giao thông công cộng tại Việt Nam xây dựng. Dự án hướng tới việc lưu trữ hình ảnh và tư liệu lịch sử về các phương tiện xe buýt, xe khách qua từng thời kỳ.
 
 **Website chính thức:** [https://www.vnbusarchive.io.vn/](https://www.vnbusarchive.io.vn/)
 
 ---
 
-## 📖 Chúng mình là ai?
+## Về dự án
 
-VNBUSARCHIVE ra đời từ một ý tưởng đơn giản: xây dựng một bách khoa toàn thư bằng hình ảnh dành cho cộng đồng yêu giao thông công cộng. Dự án hoạt động hoàn toàn phi lợi nhuận, dữ liệu được chia sẻ minh bạch và miễn phí, phục vụ nhu cầu tra cứu, nghiên cứu hoặc tích hợp vào các nền tảng khác thông qua API.
+VNBUSARCHIVE được xây dựng như một kho tư liệu hình ảnh mở cho cộng đồng. Dữ liệu trên hệ thống được chia sẻ miễn phí, phục vụ nhu cầu tra cứu, tìm hiểu hoặc tích hợp vào các dự án khác qua API.
 
 - **Thử nghiệm:** 04/01/2026
-- **Chính thức hoạt động:** 06/01/2026
+- **Hoạt động chính thức:** 06/01/2026
 
 ---
 
-## 🎯 Mục tiêu của dự án
+## Mục tiêu
 
-- **Lưu trữ:** Ghi lại hình ảnh, thông tin và lịch sử hoạt động của xe buýt Việt Nam qua từng giai đoạn.
-- **Bảo tồn:** Giữ gìn những tư liệu quý có thể bị thất lạc hoặc mai một.
-- **Chia sẻ:** Cung cấp dữ liệu mở, dễ tiếp cận cho cộng đồng và các nhà nghiên cứu.
-- **Kết nối:** Tạo không gian cho những người có cùng đam mê giao thông công cộng gặp gỡ, trao đổi và cùng đóng góp.
+- Lưu trữ hình ảnh, lộ trình và lịch sử hoạt động của các phương tiện xe buýt, xe khách tại Việt Nam.
+- Cung cấp dữ liệu mở và API miễn phí cho người dùng tra cứu, nghiên cứu.
+- Tạo không gian kết nối để những người yêu thích xe buýt có thể giao lưu và đóng góp tư liệu.
 
 ---
 
-## 🤝 Đóng góp & Liên hệ
+## Đóng góp và liên hệ
 
-Là dự án phi lợi nhuận, VNBUSARCHIVE luôn hoan nghênh mọi đóng góp về hình ảnh, dữ liệu lịch sử hoặc mã nguồn từ cộng đồng. Mỗi đóng góp, dù nhỏ, đều góp phần làm nên giá trị chung của dự án.
+Dự án luôn hoan nghênh các đóng góp về hình ảnh, thông tin phương tiện hoặc cải thiện mã nguồn từ cộng đồng.
 
-- **Tác giả / Quản trị viên:** Hoyuuna / nhanday
+- **Quản trị viên:** Hoyuuna / nhanday
 - **Liên hệ:** [https://www.vnbusarchive.io.vn/contact](https://www.vnbusarchive.io.vn/contact) hoặc [lienhe@vnbusarchive.io.vn](mailto:lienhe@vnbusarchive.io.vn)
 
-**Ủng hộ dự án một ly cà phê 👇❤️**
+### Ủng hộ dự án
 - **Ngân hàng:** TMCP Ngoại Thương Việt Nam (Vietcombank)
 - **Số tài khoản:** `1054750225`
-- **Tên tài khoản:** NGUYEN HOANG ANH TUAN
+- **Chủ tài khoản:** NGUYEN HOANG ANH TUAN
 
 <img src="https://img.vietqr.io/image/vietcombank-1054750225-compact2.png?addInfo=Donate%20VNBUSARCHIVE" width="300"/>
