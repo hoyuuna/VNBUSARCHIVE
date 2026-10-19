@@ -19126,7 +19126,7 @@ Object.assign(window.app, {
                                             <div class="admin-hist-box border border-black dark:border-white rounded-md p-3 bg-white dark:bg-black">
                                                 <div class="flex items-center justify-between mb-2">
                                                     <span class="text-xs font-bold text-black dark:text-white flex items-center gap-1.5">
-                                                        <i class="fa-solid fa-mountain-sun"></i> Bảng đo sáng (Histogram)
+                                                        <i class="fa-solid fa-mountain-sun"></i> Bảng đo sáng
                                                     </span>
                                                     <div class="flex items-center gap-1">
                                                         <button type="button" onclick="app.admin.switchHistogramMode('${p.id}', 'luma')" id="adm-hist-btn-luma-${p.id}" class="text-[10px] font-bold px-2 py-0.5 rounded border border-black dark:border-white bg-black text-white dark:bg-white dark:text-black transition">Độ sáng</button>
