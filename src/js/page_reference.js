@@ -982,6 +982,9 @@ if (!decodedProvince || decodedProvince.trim() === '') {
                 selectorCurrentSelected: '',
                 selectorTypeFilter: 'all',
                 selectorLockedType: null,
+                selectorContextProvince: '',
+                pendingSelectedRoute: null,
+                selectorDisplayLimit: 40,
                 isEditingExisting: false,
                 editingOriginalRouteName: '',
                 deletingRouteName: '',
@@ -1002,20 +1005,20 @@ if (!decodedProvince || decodedProvince.trim() === '') {
                         btnCoach.classList.add('hidden');
                         btnBus.classList.remove('hidden');
                         btnBus.className = activeCls + ' cursor-default';
-                        btnBus.innerHTML = '<i class="fa-solid fa-lock mr-1 text-[10px]"></i>Xe buýt (Đã khóa)';
+                        btnBus.innerHTML = '<i class="fa-solid fa-bus mr-1"></i>Xe buýt';
                     } else if (locked === 'coach') {
                         btnAll.classList.add('hidden');
                         btnBus.classList.add('hidden');
                         btnCoach.classList.remove('hidden');
                         btnCoach.className = activeCls + ' cursor-default';
-                        btnCoach.innerHTML = '<i class="fa-solid fa-lock mr-1 text-[10px]"></i>Xe khách (Đã khóa)';
+                        btnCoach.innerHTML = '<i class="fa-solid fa-van-shuttle mr-1"></i>Xe khách';
                     } else {
                         btnAll.classList.remove('hidden');
                         btnBus.classList.remove('hidden');
                         btnCoach.classList.remove('hidden');
                         btnAll.innerHTML = 'Tất cả';
-                        btnBus.innerHTML = 'Xe buýt';
-                        btnCoach.innerHTML = 'Xe khách';
+                        btnBus.innerHTML = '<i class="fa-solid fa-bus mr-1"></i>Xe buýt';
+                        btnCoach.innerHTML = '<i class="fa-solid fa-van-shuttle mr-1"></i>Xe khách';
                         btnAll.className = filter === 'all' ? activeCls : inactiveCls;
                         btnBus.className = filter === 'bus' ? activeCls : inactiveCls;
                         btnCoach.className = filter === 'coach' ? activeCls : inactiveCls;
@@ -1026,6 +1029,7 @@ if (!decodedProvince || decodedProvince.trim() === '') {
                     if (app.route.selectorLockedType && type !== app.route.selectorLockedType) {
                         return;
                     }
+                    app.route.selectorDisplayLimit = 40;
                     app.route.selectorTypeFilter = type;
                     app.route.updateSelectorTypeButtons();
                     app.route.filterSelector();
@@ -1069,6 +1073,7 @@ if (!decodedProvince || decodedProvince.trim() === '') {
                     if (label) label.innerText = provName || 'Tất cả tỉnh thành';
                     const menu = document.getElementById('route-selector-prov-menu');
                     if (menu) menu.classList.remove('active');
+                    app.route.selectorDisplayLimit = 40;
                     app.route.renderSelectorProvMenu();
                     app.route.filterSelector();
                 },
@@ -1151,7 +1156,7 @@ if (!decodedProvince || decodedProvince.trim() === '') {
                     if (app.route.cachedRoutes && !force) return app.route.cachedRoutes;
                     let routes = [];
                     try {
-                        const { data, error } = await window.sb.from('route_info').select('*').order('route_no', { ascending: true });
+                        const { data, error } = await window.sb.from('route_info').select('id, route_name, route_no, province, short_path, is_special, is_inactive, metadata').order('route_no', { ascending: true });
                         if (!error && data) {
                             routes = data.map(r => {
                                 const rName = r.route_name || '';
@@ -1211,6 +1216,14 @@ if (!decodedProvince || decodedProvince.trim() === '') {
                         }
                     }
                     app.route.selectorCurrentSelected = (curSelected || '').trim();
+                    app.route.pendingSelectedRoute = null;
+                    app.route.selectorDisplayLimit = 40;
+                    app.route.selectorContextProvince = options.province 
+                        || document.getElementById('up-province')?.value 
+                        || document.getElementById('info-province')?.value 
+                        || app.currentVehicle?.province 
+                        || app.currentPhoto?.province 
+                        || '';
 
                     // Xác định bộ lọc loại xe ban đầu và khóa chặt nếu là xe buýt hoặc xe khách
                     let vType = options.vehicleType;
@@ -1277,19 +1290,82 @@ if (!decodedProvince || decodedProvince.trim() === '') {
                     }, 200);
                 },
 
-                filterSelector: () => {
+                highlightSelectorRoute: (routeNo, routeName) => {
+                    const selName = routeName || routeNo;
+                    app.route.selectorCurrentSelected = selName;
+                    app.route.pendingSelectedRoute = {
+                        route_no: routeNo,
+                        route_name: selName
+                    };
+                    const container = document.getElementById('route-selector-items');
+                    const scrollPos = container ? container.scrollTop : 0;
+                    app.route.filterSelector(true);
+                    if (container) container.scrollTop = scrollPos;
+                },
+
+                confirmSelector: () => {
+                    if (!app.route.pendingSelectedRoute && !app.route.selectorCurrentSelected) {
+                        app.ui.showAlert("Vui lòng chọn một tuyến xe từ danh sách trước khi xác nhận lưu.");
+                        return;
+                    }
+                    const sel = app.route.pendingSelectedRoute || {
+                        route_no: (app.route.selectorCurrentSelected.includes(' - ')) ? app.route.selectorCurrentSelected.split(' - ')[0].trim() : app.route.selectorCurrentSelected,
+                        route_name: app.route.selectorCurrentSelected
+                    };
+                    app.route.selectRoute(sel.route_no, sel.route_name);
+                },
+
+                loadMoreSelectorItems: () => {
+                    app.route.selectorDisplayLimit = (app.route.selectorDisplayLimit || 40) + 40;
+                    const container = document.getElementById('route-selector-items');
+                    const scrollPos = container ? container.scrollTop : 0;
+                    app.route.filterSelector(true);
+                    if (container) container.scrollTop = scrollPos;
+                },
+
+                filterSelector: (preserveScroll = false) => {
                     const searchInput = document.getElementById('route-selector-search');
                     const provFilter = document.getElementById('route-selector-prov-filter');
                     const container = document.getElementById('route-selector-items');
                     if (!container) return;
 
+                    const scrollPos = (preserveScroll && container) ? container.scrollTop : 0;
+
                     const q = (searchInput ? searchInput.value : '').trim().toLowerCase();
                     const prov = (provFilter ? provFilter.value : '').trim();
                     const typeFilter = app.route.selectorTypeFilter || 'all';
-                    const curSelected = (app.route.selectorCurrentSelected || '').trim().toLowerCase();
+                    let curSelected = (app.route.selectorCurrentSelected || '').trim().toLowerCase();
 
                     const routes = app.route.cachedRoutes || [];
                     const exclude = app.route.selectorExcludeRoute || '';
+
+                    // Tự động đối chiếu chuẩn hóa nếu curSelected chỉ là số hiệu tuyến (ví dụ "59")
+                    if (curSelected) {
+                        let matchedRoute = routes.find(r => (r.route_name || '').toLowerCase() === curSelected);
+                        if (!matchedRoute) {
+                            const targetProv = (app.route.selectorContextProvince || '').trim().toLowerCase();
+                            const candidates = routes.filter(r => (r.route_no || '').toLowerCase() === curSelected);
+                            if (candidates.length === 1) {
+                                matchedRoute = candidates[0];
+                            } else if (candidates.length > 1) {
+                                if (targetProv) {
+                                    matchedRoute = candidates.find(r => (r.province || '').toLowerCase() === targetProv) || candidates[0];
+                                } else {
+                                    matchedRoute = candidates[0];
+                                }
+                            }
+                        }
+                        if (matchedRoute) {
+                            app.route.selectorCurrentSelected = matchedRoute.route_name;
+                            curSelected = matchedRoute.route_name.toLowerCase();
+                            if (!app.route.pendingSelectedRoute) {
+                                app.route.pendingSelectedRoute = {
+                                    route_no: matchedRoute.route_no,
+                                    route_name: matchedRoute.route_name
+                                };
+                            }
+                        }
+                    }
 
                     // 1. Tuyến trạng thái đặc biệt
                     let specialList = routes.filter(r => r.is_special || app.route.specialRoutes.includes(r.route_no));
@@ -1336,19 +1412,7 @@ if (!decodedProvince || decodedProvince.trim() === '') {
                     const isNormalSelected = (r) => {
                         if (!curSelected) return false;
                         const rName = (r.route_name || '').toLowerCase();
-                        if (rName === curSelected) return true;
-                        
-                        // Nếu curSelected chỉ là route_no đơn thuần (dữ liệu cũ chưa có tên tuyến đầy đủ)
-                        const rNo = (r.route_no || '').toLowerCase();
-                        if (rNo === curSelected) {
-                            if (prov && r.province && r.province.toLowerCase() === prov.toLowerCase()) {
-                                return true;
-                            }
-                            if (!r.province || rName === rNo) {
-                                return true;
-                            }
-                        }
-                        return false;
+                        return rName === curSelected;
                     };
                     const selectedNormal = normalList.filter(r => isNormalSelected(r));
                     const unselectedNormal = normalList.filter(r => !isNormalSelected(r));
@@ -1371,7 +1435,8 @@ if (!decodedProvince || decodedProvince.trim() === '') {
                                             const isSel = curSelected && ((r.route_no || '').toLowerCase() === curSelected || (r.route_name || '').toLowerCase() === curSelected);
                                             const cardCls = isSel ? 'selected-route-card' : 'bg-white hover:bg-gray-100';
                                             return `
-                                                <div onclick="app.route.selectRoute('${app.utils.escapeAttr(r.route_no)}', '${app.utils.escapeAttr(r.route_name)}')"
+                                                <div onclick="app.route.highlightSelectorRoute('${app.utils.escapeAttr(r.route_no)}', '${app.utils.escapeAttr(r.route_name)}')"
+                                                     ondblclick="app.route.selectRoute('${app.utils.escapeAttr(r.route_no)}', '${app.utils.escapeAttr(r.route_name)}')"
                                                      class="cursor-pointer border border-black rounded-md p-2.5 flex items-center gap-2 transition active:scale-98 select-none ${cardCls}">
                                                     <i class="fa-solid fa-tag text-xs ${isSel ? '' : 'text-black'}"></i>
                                                     <span class="text-xs font-bold truncate ${isSel ? '' : 'text-black'}">${app.utils.escapeHtml(r.route_no)}</span>
@@ -1384,7 +1449,10 @@ if (!decodedProvince || decodedProvince.trim() === '') {
                         }
                     }
 
-                    // Khối 2: Danh sách các tuyến thông thường
+                    // Khối 2: Danh sách các tuyến thông thường (Hỗ trợ lazyload phân trang 40 tuyến/trang)
+                    const displayLimit = app.route.selectorDisplayLimit || 40;
+                    const displayedItems = normalList.slice(0, displayLimit);
+
                     html += `<div class="mb-2"><p class="text-[10px] font-bold uppercase tracking-wider text-gray-500 mb-1.5 px-1">Danh sách tuyến xe (${normalList.length})</p>`;
 
                     if (normalList.length === 0) {
@@ -1396,20 +1464,21 @@ if (!decodedProvince || decodedProvince.trim() === '') {
                         `;
                     } else {
                         html += '<div class="space-y-1.5">';
-                        normalList.forEach(r => {
+                        displayedItems.forEach(r => {
                             const isSel = isNormalSelected(r);
                             const cardCls = isSel ? 'selected-route-card' : 'bg-white hover:bg-gray-50';
                             const badge = r.is_inactive 
-                                ? `<span class="text-[9px] px-1.5 py-0.5 rounded font-bold shrink-0 ${isSel ? 'bg-white text-black' : 'bg-black text-white'}">Dừng HĐ</span>` 
+                                ? `<span class="route-status-badge text-[9px] px-1.5 py-0.5 rounded font-bold shrink-0 ${isSel ? '' : 'bg-black text-white dark:bg-white dark:text-black'}">Dừng HĐ</span>` 
                                 : '';
                             const vTypeBadge = (r.metadata?.vehicle_type === 'coach')
-                                ? `<span class="text-[9px] px-1.5 py-0.5 rounded font-bold shrink-0 border ${isSel ? 'border-white text-white' : 'border-black text-black'}"><i class="fa-solid fa-van-shuttle mr-1"></i>Xe khách</span>`
+                                ? `<span class="text-[9px] px-1.5 py-0.5 rounded font-bold shrink-0 border ${isSel ? 'border-white text-white' : 'border-black text-black dark:border-white dark:text-white'}"><i class="fa-solid fa-van-shuttle mr-1"></i>Xe khách</span>`
                                 : '';
                             const provLabel = r.province ? `<span class="text-[11px] ${isSel ? 'text-gray-200' : 'text-gray-500'} font-medium">(${app.utils.escapeHtml(r.province)})</span>` : '';
                             const pathLabel = r.short_path ? `<p class="route-path-label text-[11px] ${isSel ? 'text-gray-300' : 'text-gray-500'} truncate mt-0.5">${app.utils.escapeHtml(r.short_path)}</p>` : '';
 
                             html += `
-                                <div onclick="app.route.selectRoute('${app.utils.escapeAttr(r.route_no)}', '${app.utils.escapeAttr(r.route_name)}')"
+                                <div onclick="app.route.highlightSelectorRoute('${app.utils.escapeAttr(r.route_no)}', '${app.utils.escapeAttr(r.route_name)}')"
+                                     ondblclick="app.route.selectRoute('${app.utils.escapeAttr(r.route_no)}', '${app.utils.escapeAttr(r.route_name)}')"
                                      class="cursor-pointer border border-black rounded-md p-2.5 flex items-center justify-between gap-3 transition active:scale-[0.99] select-none group ${cardCls}">
                                     <div class="min-w-0 flex-1">
                                         <div class="flex items-center gap-2 flex-wrap">
@@ -1436,10 +1505,23 @@ if (!decodedProvince || decodedProvince.trim() === '') {
                             `;
                         });
                         html += '</div>';
+
+                        if (normalList.length > displayLimit) {
+                            html += `
+                                <div class="pt-2 text-center">
+                                    <button type="button" onclick="app.route.loadMoreSelectorItems()" class="w-full py-2.5 border border-black dark:border-white rounded-md text-xs font-bold bg-white dark:bg-[#18181b] text-black dark:text-white hover:bg-gray-100 dark:hover:bg-[#27272a] transition active:scale-[0.99]">
+                                        <i class="fa-solid fa-angles-down mr-1"></i> Xem thêm (${normalList.length - displayLimit} tuyến khác)
+                                    </button>
+                                </div>
+                            `;
+                        }
                     }
                     html += '</div>';
 
                     container.innerHTML = html;
+                    if (preserveScroll) {
+                        container.scrollTop = scrollPos;
+                    }
                 },
 
                 selectRoute: (routeNo, routeName) => {

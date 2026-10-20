@@ -7103,7 +7103,7 @@ html.theme-dark .ct-icon {
                 <div class="flex flex-col sm:flex-row gap-2">
                     <div class="relative flex-1">
                         <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs"></i>
-                        <input type="text" id="route-selector-search" autocomplete="off" placeholder="Tìm số tuyến, lộ trình..." class="w-full bg-white border border-black rounded-md pl-8 pr-3 py-2 text-xs font-medium text-black focus:ring-1 focus:ring-black outline-none transition" oninput="app.route.filterSelector()">
+                        <input type="text" id="route-selector-search" autocomplete="off" placeholder="Tìm số tuyến, lộ trình..." class="w-full bg-white border border-black rounded-md pl-8 pr-3 py-2 text-xs font-medium text-black focus:ring-1 focus:ring-black outline-none transition" oninput="app.route.selectorDisplayLimit = 40; app.route.filterSelector()">
                     </div>
                     <!-- Custom Dropdown Lọc Tỉnh Thành -->
                     <div class="relative shrink-0 z-30">
@@ -7130,6 +7130,11 @@ html.theme-dark .ct-icon {
             </div>
             <div id="route-selector-items" class="flex-1 overflow-y-auto custom-scrollbar p-4 md:p-5 space-y-2" style="overflow-y: auto !important; flex: 1 1 0% !important; min-height: 0 !important; flex-shrink: 1 !important;">
                 <div class="text-center py-8 text-gray-400 text-xs"><i class="fa-solid fa-spinner fa-spin mr-1"></i> Đang tải danh sách tuyến...</div>
+            </div>
+            <!-- Action buttons: Hủy và Lưu (chọn tuyến) -->
+            <div id="route-selector-actions" class="px-4 md:px-5 py-3 flex gap-2 shrink-0 bg-white dark:bg-[#18181b]" style="flex-shrink: 0 !important;">
+                <button type="button" onclick="app.route.closeSelector()" class="flex-1 py-2.5 rounded-md border border-black dark:border-white text-xs font-bold bg-white dark:bg-[#18181b] text-black dark:text-white hover:bg-gray-100 dark:hover:bg-[#27272a] transition">Hủy bỏ</button>
+                <button type="button" id="btn-route-selector-confirm" onclick="app.route.confirmSelector()" class="flex-1 py-2.5 rounded-md border border-black dark:border-white text-xs font-bold bg-black dark:bg-white text-white dark:text-black hover:bg-gray-800 dark:hover:bg-gray-200 transition">Lưu / Chọn tuyến</button>
             </div>
         </div>
     </div>

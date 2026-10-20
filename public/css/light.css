@@ -652,12 +652,17 @@ input:disabled, select:disabled, textarea:disabled {
     color: #ffffff !important;
     border-color: #000000 !important;
 }
-.selected-route-card span,
+.selected-route-card span:not(.route-status-badge),
 .selected-route-card i {
     color: #ffffff !important;
 }
 .selected-route-card .route-path-label {
     color: #a1a1aa !important;
+}
+.selected-route-card .route-status-badge {
+    background-color: #ffffff !important;
+    color: #000000 !important;
+    border-color: #ffffff !important;
 }
 .selected-route-card button,
 .selected-route-card a {

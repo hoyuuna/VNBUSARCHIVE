@@ -680,11 +680,11 @@ html.theme-dark .selected-route-card {
     color: #000000 !important;
     border-color: #ffffff !important;
 }
-.selected-route-card span,
+.selected-route-card span:not(.route-status-badge),
 .selected-route-card i,
-body.theme-dark .selected-route-card span,
+body.theme-dark .selected-route-card span:not(.route-status-badge),
 body.theme-dark .selected-route-card i,
-html.theme-dark .selected-route-card span,
+html.theme-dark .selected-route-card span:not(.route-status-badge),
 html.theme-dark .selected-route-card i {
     color: #000000 !important;
 }
@@ -692,6 +692,13 @@ html.theme-dark .selected-route-card i {
 body.theme-dark .selected-route-card .route-path-label,
 html.theme-dark .selected-route-card .route-path-label {
     color: #52525b !important;
+}
+.selected-route-card .route-status-badge,
+body.theme-dark .selected-route-card .route-status-badge,
+html.theme-dark .selected-route-card .route-status-badge {
+    background-color: #000000 !important;
+    color: #ffffff !important;
+    border-color: #000000 !important;
 }
 .selected-route-card button,
 .selected-route-card a,
