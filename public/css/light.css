@@ -676,6 +676,23 @@ input:disabled, select:disabled, textarea:disabled {
     color: #000000 !important;
 }
 
+/* Route Selector Inputs Caret & Cursor */
+.caret-transparent,
+#up-route,
+#info-route,
+#hist-new-route,
+#vehicle-edit-route,
+#del-route-dest-display,
+[id^="adm-p-route-"],
+[id^="req-route-"],
+[id^="req-h-route-"] {
+    caret-color: transparent !important;
+    cursor: pointer !important;
+    user-select: none !important;
+    -webkit-user-select: none !important;
+}
+
+
 
 
 

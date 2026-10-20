@@ -691,7 +691,7 @@ Object.assign(window.app, {
                                                 <div>
                                                     <span class="admin-label">Tuyến${isNewRoute ? tagNew : ''}</span>
                                                     <div class="relative">
-                                                        <input type="text" id="adm-p-route-${p.id}" value="${route}" class="admin-input cursor-pointer bg-white" readonly onclick="app.route.openSelector({ targetInputId: 'adm-p-route-${p.id}', vehicleType: document.getElementById('adm-p-type-${p.id}') ? document.getElementById('adm-p-type-${p.id}').value : '${type}', selectedRoute: this.value })">
+                                                        <input type="text" id="adm-p-route-${p.id}" value="${route}" class="admin-input cursor-pointer bg-white select-none caret-transparent" readonly onfocus="this.blur()" onclick="this.blur(); app.route.openSelector({ targetInputId: 'adm-p-route-${p.id}', vehicleType: document.getElementById('adm-p-type-${p.id}') ? document.getElementById('adm-p-type-${p.id}').value : '${type}', selectedRoute: this.value })">
                                                     </div>
                                                 </div>
                                             </div>
@@ -1737,7 +1737,7 @@ if (app.admin._activeLoadToken !== currentLoadToken || app.adminTab !== tab) ret
                                                 <div>
                                                     <span class="admin-label">Tuyến ${d.route !== curP.route_no ? tagNew : ''}</span>
                                                     <div class="relative">
-                                                        <input type="text" id="req-route-${r.id}" value="${app.utils.escapeAttr(d.route || '')}" class="admin-input cursor-pointer bg-white" readonly onclick="app.route.openSelector({ targetInputId: 'req-route-${r.id}', vehicleType: document.getElementById('req-type-${r.id}') ? document.getElementById('req-type-${r.id}').value : '${d.type || curP.type || ''}', selectedRoute: this.value })">
+                                                        <input type="text" id="req-route-${r.id}" value="${app.utils.escapeAttr(d.route || '')}" class="admin-input cursor-pointer bg-white select-none caret-transparent" readonly onfocus="this.blur()" onclick="this.blur(); app.route.openSelector({ targetInputId: 'req-route-${r.id}', vehicleType: document.getElementById('req-type-${r.id}') ? document.getElementById('req-type-${r.id}').value : '${d.type || curP.type || ''}', selectedRoute: this.value })">
                                                     </div>
                                                 </div>
                                             </div>
@@ -1768,7 +1768,7 @@ if (app.admin._activeLoadToken !== currentLoadToken || app.adminTab !== tab) ret
                                             <p class="font-bold text-sm mb-2 text-black"><i class="fa-solid fa-route mr-1 text-gray-400"></i> ${app.utils.escapeAttr(d.route_name)}</p>
                                             <p class="mb-2 text-xs font-bold text-gray-500">Thông tin gốc (Hiện tại):</p>
                                             <div class="space-y-1 mb-4 text-xs opacity-75 border p-2 rounded bg-gray-50">
-                                                
+                                                <div><span class="font-bold">Loại xe:</span> ${curRoute.metadata?.vehicle_type === 'coach' ? 'Xe khách' : 'Xe buýt'}</div>
                                                 <div><span class="font-bold">Trạng thái:</span> ${curRoute.is_inactive ? '<span class="text-red-500 font-bold">Dừng hoạt động</span>' : 'Đang hoạt động'}</div>
                                                 <div><span class="font-bold">Lộ trình (Rút gọn):</span> ${app.utils.escapeAttr(curRoute.short_path || '-')}</div>
                                                 <div><span class="font-bold">Mô tả:</span> ${app.utils.escapeAttr(curRoute.description || '-')}</div>
@@ -1779,6 +1779,13 @@ if (app.admin._activeLoadToken !== currentLoadToken || app.adminTab !== tab) ret
                                             </div>
                                             <p class="mb-2 font-bold text-red-500">[MỚI] Yêu cầu cập nhật thành:</p>
                                             
+                                            <div class="mb-2">
+                                                <span class="admin-label">Loại xe ${d.metadata?.vehicle_type && d.metadata?.vehicle_type !== curRoute.metadata?.vehicle_type ? '<span class="text-red-500 font-bold ml-1 text-[9px]">[MỚI]</span>' : ''}</span>
+                                                <select id="req-route-type-${r.id}" class="admin-input">
+                                                    <option value="bus" ${(d.metadata?.vehicle_type || curRoute.metadata?.vehicle_type || 'bus') === 'bus' ? 'selected' : ''}>Xe buýt</option>
+                                                    <option value="coach" ${(d.metadata?.vehicle_type || curRoute.metadata?.vehicle_type) === 'coach' ? 'selected' : ''}>Xe khách</option>
+                                                </select>
+                                            </div>
                                             <div class="mb-2 flex items-center justify-between bg-white border border-gray-300 rounded p-2">
                                                 <span class="text-xs font-bold text-gray-700">Dừng hoạt động ${d.is_inactive !== curRoute.is_inactive ? '<span class="text-red-500 font-bold ml-1 text-[9px]">[MỚI]</span>' : ''}</span>
                                                 <input type="checkbox" id="req-route-inactive-${r.id}" ${d.is_inactive ? 'checked' : ''} class="w-4 h-4 cursor-pointer">
@@ -1822,19 +1829,65 @@ if (app.admin._activeLoadToken !== currentLoadToken || app.adminTab !== tab) ret
                                         </div>
                                     </div>`;
                                 } else if (type === 'create_route_info') {
+                                    const cIcon = d.metadata?.icon_type || 'default';
+                                    const cType = d.metadata?.vehicle_type || 'bus';
                                     return `
                                     <div class="admin-card overflow-visible">
                                         <div class="admin-card-header bg-teal-50"><span class="font-bold text-xs uppercase text-teal-600">TẠO TUYẾN MỚI</span><span class="text-xs text-gray-500">${username}</span></div>
                                         <div class="admin-card-body text-xs">
                                             <p class="font-bold text-sm mb-2 text-black"><i class="fa-solid fa-route mr-1 text-gray-400"></i> ${app.utils.escapeAttr(d.route_name)}</p>
-                                            <div class="space-y-1 mb-4 text-xs border p-2 rounded bg-gray-50">
-                                                <div><span class="font-bold">Số hiệu tuyến:</span> ${app.utils.escapeAttr(d.route_no || '-')}</div>
-                                                <div><span class="font-bold">Tỉnh / Thành phố:</span> ${app.utils.escapeAttr(d.province || '-')}</div>
-                                                <div><span class="font-bold">Lộ trình ngắn:</span> ${app.utils.escapeAttr(d.short_path || '-')}</div>
-                                                <div><span class="font-bold">Mô tả:</span> ${app.utils.escapeAttr(d.description || '-')}</div>
-                                                <div><span class="font-bold">Giá vé lượt:</span> ${app.utils.escapeAttr(d.metadata?.ticket_price || '-')}</div>
-                                                <div><span class="font-bold">Giãn cách:</span> ${app.utils.escapeAttr(d.metadata?.headway || '-')}</div>
-                                                <div><span class="font-bold">Hỗ trợ xe lăn:</span> ${d.metadata?.wheelchair_support ? 'Có' : 'Không'}</div>
+                                            <div class="grid grid-cols-2 gap-2 mb-2">
+                                                <div>
+                                                    <span class="admin-label">Số hiệu tuyến</span>
+                                                    <input type="text" id="req-c-route-no-${r.id}" class="admin-input font-bold" value="${app.utils.escapeAttr(d.route_no || '')}">
+                                                </div>
+                                                <div>
+                                                    <span class="admin-label">Tỉnh / Thành phố</span>
+                                                    <input type="text" id="req-c-route-prov-${r.id}" class="admin-input" value="${app.utils.escapeAttr(d.province || '')}">
+                                                </div>
+                                            </div>
+                                            <div class="mb-2">
+                                                <span class="admin-label">Loại phương tiện</span>
+                                                <select id="req-c-route-type-${r.id}" class="admin-input">
+                                                    <option value="bus" ${cType === 'bus' ? 'selected' : ''}>Xe buýt</option>
+                                                    <option value="coach" ${cType === 'coach' ? 'selected' : ''}>Xe khách</option>
+                                                </select>
+                                            </div>
+                                            <div class="mb-2 flex items-center justify-between bg-white border border-gray-300 rounded p-2">
+                                                <span class="text-xs font-bold text-gray-700">Dừng hoạt động</span>
+                                                <input type="checkbox" id="req-c-route-inactive-${r.id}" ${d.is_inactive ? 'checked' : ''} class="w-4 h-4 cursor-pointer">
+                                            </div>
+                                            <div class="mb-2">
+                                                <span class="admin-label">Lộ trình ngắn</span>
+                                                <input type="text" id="req-c-route-short-${r.id}" class="admin-input" value="${app.utils.escapeAttr(d.short_path || '')}">
+                                            </div>
+                                            <div class="mb-2">
+                                                <span class="admin-label">Mô tả</span>
+                                                <textarea id="req-c-route-desc-${r.id}" class="admin-input" rows="3">${app.utils.escapeAttr(d.description || '')}</textarea>
+                                            </div>
+                                            <div class="mb-2">
+                                                <span class="admin-label">Giá vé lượt</span>
+                                                <input type="text" id="req-c-route-ticket-${r.id}" class="admin-input" value="${app.utils.escapeAttr(d.metadata?.ticket_price || '')}">
+                                            </div>
+                                            <div class="mb-2">
+                                                <span class="admin-label">Giãn cách, TG hoạt động</span>
+                                                <input type="text" id="req-c-route-headway-${r.id}" class="admin-input" value="${app.utils.escapeAttr(d.metadata?.headway || '')}">
+                                            </div>
+                                            <div class="mb-2 flex items-center justify-between bg-white border border-gray-300 rounded p-2">
+                                                <span class="text-xs font-bold text-gray-700">Hỗ trợ xe lăn</span>
+                                                <input type="checkbox" id="req-c-route-wheelchair-${r.id}" ${d.metadata?.wheelchair_support ? 'checked' : ''} class="w-4 h-4 cursor-pointer">
+                                            </div>
+                                            <div class="mb-2">
+                                                <span class="admin-label">Kiểu Icon hiển thị</span>
+                                                <select id="req-c-route-icon-${r.id}" class="admin-input">
+                                                    <option value="default" ${cIcon === 'default' ? 'selected' : ''}>Mặc định</option>
+                                                    <option value="circle" ${cIcon === 'circle' ? 'selected' : ''}>Hình tròn (Max 5 kí tự)</option>
+                                                    <option value="trapezoid" ${cIcon === 'trapezoid' ? 'selected' : ''}>Hình thang cân (Max 5 kí tự)</option>
+                                                </select>
+                                            </div>
+                                            <div class="mb-2">
+                                                <span class="admin-label">ID ảnh / Biển số vá tuyến</span>
+                                                <input type="text" id="req-c-route-borrowed-${r.id}" class="admin-input" value="${app.utils.escapeAttr(d.borrowed_photos_str || '')}">
                                             </div>
                                             <div class="flex gap-2 mt-3">
                                                 <button onclick="app.admin.approveReq('${r.id}', this, 'create_route_info')" class="flex-1 bg-green-600 text-white py-1.5 font-bold rounded hover:bg-green-700">DUYỆT TẠO</button>
@@ -1875,8 +1928,8 @@ if (app.admin._activeLoadToken !== currentLoadToken || app.adminTab !== tab) ret
                                         </div>
                                         <div class="mb-4">${details}</div>
                                         <div class="flex gap-2">
-                                            <button onclick="app.admin.approveRequest('${r.id}', 'unmerge_vehicle')" class="flex-1 bg-black text-white px-3 py-2 text-xs font-bold rounded-md hover:bg-gray-800 transition">DUYỆT</button>
-                                            <button onclick="app.admin.denyRequest('${r.id}')" class="bg-white border border-gray-300 text-gray-700 px-3 py-2 text-xs font-bold rounded-md hover:bg-gray-50 transition">TỪ CHỐI</button>
+                                            <button onclick="app.admin.approveReq('${r.id}', this, 'unmerge_vehicle')" class="flex-1 bg-green-600 text-white px-3 py-2 text-xs font-bold rounded-md hover:bg-green-700 transition">DUYỆT</button>
+                                            <button onclick="app.admin.denyReq('${r.id}', this)" class="bg-white border border-gray-300 text-gray-700 px-3 py-2 text-xs font-bold rounded-md hover:bg-gray-50 transition">TỪ CHỐI</button>
                                         </div>
                                     </div>`;
                                 } else if (type === 'update_history') {
@@ -1928,7 +1981,7 @@ if (app.admin._activeLoadToken !== currentLoadToken || app.adminTab !== tab) ret
                                                 <div>
                                                     <span class="admin-label">Tuyến ${routeTag}</span>
                                                     <div class="relative">
-                                                        <input type="text" id="req-h-route-${r.id}-${i}" value="${app.utils.escapeAttr(h.route || '')}" class="admin-input cursor-pointer bg-white" readonly onclick="app.route.openSelector({ targetInputId: 'req-h-route-${r.id}-${i}', vehicleType: '${curV.type || ''}', selectedRoute: this.value })">
+                                                        <input type="text" id="req-h-route-${r.id}-${i}" value="${app.utils.escapeAttr(h.route || '')}" class="admin-input cursor-pointer bg-white select-none caret-transparent" readonly onfocus="this.blur()" onclick="this.blur(); app.route.openSelector({ targetInputId: 'req-h-route-${r.id}-${i}', vehicleType: '${curV.type || ''}', selectedRoute: this.value })">
                                                     </div>
                                                 </div>
                                             </div>
@@ -2055,6 +2108,21 @@ if (app.admin._activeLoadToken !== currentLoadToken || app.adminTab !== tab) ret
                                             </div>
                                             <div class="flex gap-2 mt-3">
                                                 <button onclick="app.admin.approveReq('${r.id}', this, 'model_info')" class="flex-1 bg-green-600 text-white py-1.5 font-bold rounded hover:bg-green-700">DUYỆT</button>
+                                                <button onclick="app.admin.denyReq('${r.id}', this)" class="flex-1 bg-red-600 text-white py-1.5 font-bold rounded hover:bg-red-700">TỪ CHỐI</button>
+                                            </div>
+                                        </div>
+                                    </div>`;
+                                } else {
+                                    return `
+                                    <div class="admin-card overflow-visible">
+                                        <div class="admin-card-header bg-gray-100"><span class="font-bold text-xs uppercase text-gray-700">YÊU CẦU: ${app.utils.escapeAttr(type || 'KHÁC')}</span><span class="text-xs text-gray-500">${username}</span></div>
+                                        <div class="admin-card-body text-xs">
+                                            <p class="font-bold text-sm mb-2 text-black"><i class="fa-solid fa-file-lines mr-1 text-gray-400"></i> ${app.utils.escapeAttr(r.license_plate || r.id)}</p>
+                                            <div class="space-y-1 mb-4 text-xs border p-2 rounded bg-gray-50 font-mono overflow-auto max-h-40">
+                                                <pre class="text-[11px] whitespace-pre-wrap">${app.utils.escapeAttr(JSON.stringify(d, null, 2))}</pre>
+                                            </div>
+                                            <div class="flex gap-2 mt-3">
+                                                <button onclick="app.admin.approveReq('${r.id}', this, '${type}')" class="flex-1 bg-green-600 text-white py-1.5 font-bold rounded hover:bg-green-700">DUYỆT</button>
                                                 <button onclick="app.admin.denyReq('${r.id}', this)" class="flex-1 bg-red-600 text-white py-1.5 font-bold rounded hover:bg-red-700">TỪ CHỐI</button>
                                             </div>
                                         </div>
@@ -4211,8 +4279,11 @@ if (cbQuality) newSubroles.push('quality_aud');
                             const wheelchairSupport = document.getElementById(`req-route-wheelchair-${id}`).checked;
                             const iconType = document.getElementById(`req-route-icon-${id}`).value;
                             const borrowedPhotosStr = document.getElementById(`req-route-borrowed-${id}`)?.value.trim();
+                            const vehicleTypeEl = document.getElementById(`req-route-type-${id}`);
+                            const vehicleType = vehicleTypeEl ? vehicleTypeEl.value : (req.new_data.metadata?.vehicle_type || 'bus');
                             
                             let metadata = {};
+                            if (vehicleType) metadata.vehicle_type = vehicleType;
                             if (ticketPrice) metadata.ticket_price = ticketPrice;
                             if (headway) metadata.headway = headway;
                             if (wheelchairSupport) metadata.wheelchair_support = wheelchairSupport;
@@ -4328,21 +4399,75 @@ if (cbQuality) newSubroles.push('quality_aud');
                         }
                         else if (reqType === 'create_route_info' || req.new_data?.request_type === 'create_route_info') {
                             const d = req.new_data;
-                            const routeName = d.route_name;
-                            const routeNo = d.route_no || (routeName.includes(' - ') ? routeName.split(' - ')[0].trim() : routeName);
-                            const province = d.province || (routeName.includes(' - ') ? routeName.split(' - ')[1].trim() : null);
+                            const routeNoEl = document.getElementById(`req-c-route-no-${id}`);
+                            const provEl = document.getElementById(`req-c-route-prov-${id}`);
+                            const typeEl = document.getElementById(`req-c-route-type-${id}`);
+                            const inactEl = document.getElementById(`req-c-route-inactive-${id}`);
+                            const shortEl = document.getElementById(`req-c-route-short-${id}`);
+                            const descEl = document.getElementById(`req-c-route-desc-${id}`);
+                            const ticketEl = document.getElementById(`req-c-route-ticket-${id}`);
+                            const headwayEl = document.getElementById(`req-c-route-headway-${id}`);
+                            const wheelchairEl = document.getElementById(`req-c-route-wheelchair-${id}`);
+                            const iconEl = document.getElementById(`req-c-route-icon-${id}`);
+                            const borrowedEl = document.getElementById(`req-c-route-borrowed-${id}`);
+
+                            const routeNo = routeNoEl ? routeNoEl.value.trim() : (d.route_no || (d.route_name.includes(' - ') ? d.route_name.split(' - ')[0].trim() : d.route_name));
+                            const province = provEl ? provEl.value.trim() : (d.province || (d.route_name.includes(' - ') ? d.route_name.split(' - ')[1].trim() : null));
+                            const vehicleType = typeEl ? typeEl.value : (d.metadata?.vehicle_type || 'bus');
+                            const isInactive = inactEl ? inactEl.checked : !!d.is_inactive;
+                            const shortPath = shortEl ? shortEl.value.trim() : (d.short_path || '');
+                            const desc = descEl ? descEl.value.trim() : (d.description || '');
+                            const ticketPrice = ticketEl ? ticketEl.value.trim() : (d.metadata?.ticket_price || '');
+                            const headway = headwayEl ? headwayEl.value.trim() : (d.metadata?.headway || '');
+                            const wheelchairSupport = wheelchairEl ? wheelchairEl.checked : !!d.metadata?.wheelchair_support;
+                            const iconType = iconEl ? iconEl.value : (d.metadata?.icon_type || 'default');
+                            const borrowedPhotosStr = borrowedEl ? borrowedEl.value.trim() : (d.borrowed_photos_str || '');
+
+                            const routeName = province ? `${routeNo} - ${province}` : routeNo;
+
+                            let metadata = {};
+                            if (vehicleType) metadata.vehicle_type = vehicleType;
+                            if (ticketPrice) metadata.ticket_price = ticketPrice;
+                            if (headway) metadata.headway = headway;
+                            if (wheelchairSupport) metadata.wheelchair_support = wheelchairSupport;
+                            if (iconType !== 'default') {
+                                if (routeNo.length <= 5) metadata.icon_type = iconType;
+                            }
+
+                            let metadataObj = Object.keys(metadata).length > 0 ? metadata : null;
+                            const rawInputList = borrowedPhotosStr ? borrowedPhotosStr.split(',').map(s => s.trim()).filter(Boolean) : [];
+                            const enteredPlates = rawInputList.filter(s => !/^\d+$/.test(s));
+                            const enteredIdsStr = rawInputList.filter(s => /^\d+$/.test(s));
+                            if (enteredPlates.length > 0) {
+                                metadataObj = metadataObj || {};
+                                metadataObj.borrowed_plates = enteredPlates;
+                            }
 
                             const { error: upsertErr } = await window.sb.from('route_info').upsert({
                                 route_name: routeName,
                                 route_no: routeNo,
-                                province: province,
-                                short_path: d.short_path || null,
-                                description: d.description || null,
-                                is_inactive: !!d.is_inactive,
+                                province: province || null,
+                                short_path: shortPath || null,
+                                description: desc || null,
+                                is_inactive: isInactive,
                                 is_special: false,
-                                metadata: d.metadata || null
+                                metadata: metadataObj
                             }, { onConflict: 'route_name' });
                             if (upsertErr) throw upsertErr;
+
+                            const newBorrowedIds = enteredIdsStr.map(Number);
+                            const addedIds = [...newBorrowedIds];
+                            if (enteredPlates.length > 0) {
+                                const { data: retroPhotos } = await window.sb.from('photos').select('id, route_no').in('license_plate', enteredPlates).eq('route_no', routeNo);
+                                if (retroPhotos && retroPhotos.length > 0) {
+                                    retroPhotos.forEach(p => {
+                                        if (!addedIds.includes(p.id)) addedIds.push(p.id);
+                                    });
+                                }
+                            }
+                            if (addedIds.length > 0) {
+                                await window.sb.from('photos').update({ borrowed_route: routeName }).in('id', addedIds);
+                            }
 
                             if (app.route) app.route.cachedRoutes = null;
                         }
@@ -4391,7 +4516,24 @@ if (cbQuality) newSubroles.push('quality_aud');
                                     .ilike('model_name', `${brandName}%`);
                             }
                         }
-                        else {
+                        else if (reqType === 'unmerge_vehicle' || req.new_data?.request_type === 'unmerge_vehicle') {
+                            const d = req.new_data;
+                            const currentPlate = req.license_plate;
+                            const targetPlate = d.target_plate;
+                            if (targetPlate && currentPlate) {
+                                await window.sb.from('vehicle_history')
+                                    .update({ license_plate: targetPlate })
+                                    .eq('license_plate', currentPlate)
+                                    .eq('plate', targetPlate);
+
+                                const { data: targetVeh } = await window.sb.from('vehicles').select('note').eq('license_plate', targetPlate).maybeSingle();
+                                if (targetVeh && targetVeh.note) {
+                                    const newNote = targetVeh.note.replace(`[MERGED_INTO:${currentPlate}]`, '').trim();
+                                    await window.sb.from('vehicles').update({ note: newNote }).eq('license_plate', targetPlate);
+                                }
+                            }
+                        }
+                        else if (reqType === 'history' || reqType === 'update_history' || req.new_data?.request_type === 'update_history') {
                             let newItems = [];
                             let hasError = false;
                             if (reqType === 'history') {
@@ -4464,6 +4606,9 @@ if (cbQuality) newSubroles.push('quality_aud');
                                 const { error: insErr } = await window.sb.from('vehicle_history').insert(newItems);
                                 if (insErr) throw insErr;
                             }
+                        }
+                        else {
+                            // Yêu cầu khác: Tự động hoàn thành phê duyệt
                         }
                         await window.sb.from('edit_requests').update({ status: 'approved' }).eq('id', id);
                         app.admin.logAction('approve_edit_req', id, { req_type: reqType, plate: req.license_plate });
@@ -4567,8 +4712,8 @@ if (cbQuality) newSubroles.push('quality_aud');
                         btn.innerText = "Đang xử lý..."; btn.disabled = true; btn.classList.add('btn-loading');
                         try {
                             const { data: req } = await window.sb.from('edit_requests').select('requester_id, license_plate, new_data').eq('id', reqId).single();
-                            await window.sb.from('edit_requests').update({ status: 'denied' }).eq('id', reqId);
-                            let actionName = req.new_data.request_type === 'delete_photo' ? 'xóa ảnh' : 'chỉnh sửa';
+                            await window.sb.from('edit_requests').update({ status: 'denied', admin_note: reason || null }).eq('id', reqId);
+                            let actionName = req?.new_data?.request_type === 'delete_photo' ? 'xóa ảnh' : 'chỉnh sửa';
                             let reasonMsg = reason ? ` Lý do: ${reason}` : '';
                             if (document.activeElement) document.activeElement.blur();
                             if (req.new_data.request_type === 'delete_photo') app.admin.loadTab('delete', false, true);

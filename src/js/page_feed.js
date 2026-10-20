@@ -1141,7 +1141,11 @@ Object.assign(window.app, {
                         'update_vehicle_details': 'sửa chi tiết xe',
                         'update_vehicle_info': 'sửa thông tin xe',
                         'update_operator_info': 'sửa thông tin nhà xe',
-                        'update_model_info': 'sửa thông tin dòng xe'
+                        'update_model_info': 'sửa thông tin dòng xe',
+                        'create_route_info': 'tạo tuyến mới',
+                        'update_route_info': 'sửa thông tin tuyến',
+                        'delete_route': 'xóa tuyến',
+                        'unmerge_vehicle': 'tách xe'
                     };
                     grid.innerHTML = requests.map(req => {
                         let cardStyleClasses = "cursor-pointer transition-all duration-300 relative flex flex-row items-center p-3 text-left bg-white rounded-xl border border-gray-200 shadow-md hover:-translate-y-1 hover:shadow-xl";
@@ -1149,12 +1153,14 @@ Object.assign(window.app, {
                         let contextText = '';
                         if (req.new_data?.request_type === 'delete_photo' && req.new_data?.photo_id) {
                             contextText = `Ảnh ${req.new_data.photo_id} ${req.license_plate ? '- ' + req.license_plate : ''}`;
+                        } else if (req.new_data?.request_type === 'unmerge_vehicle' && req.new_data?.target_plate) {
+                            contextText = `Tách [${req.new_data.target_plate}] khỏi [${req.license_plate}]`;
+                        } else if (req.new_data?.route_name) {
+                            contextText = req.new_data.route_name;
                         } else if (req.new_data?.model_name) {
                             contextText = req.new_data.model_name;
                         } else if (req.new_data?.operator_name) {
                             contextText = req.new_data.operator_name;
-                        } else if (req.new_data?.route_name) {
-                            contextText = req.new_data.route_name;
                         } else if (req.license_plate && !['MODEL_INFO', 'OP_INFO', 'ROUTE_INFO'].includes(req.license_plate)) {
                             contextText = req.license_plate;
                         } else if (req.license_plate) {
@@ -1201,7 +1207,11 @@ Object.assign(window.app, {
                         'update_vehicle_details': 'Sửa thông tin chi tiết xe',
                         'update_vehicle_info': 'Sửa thông tin xe',
                         'update_operator_info': 'Sửa thông tin nhà xe',
-                        'update_model_info': 'Sửa thông tin dòng xe'
+                        'update_model_info': 'Sửa thông tin dòng xe',
+                        'create_route_info': 'Tạo tuyến mới',
+                        'update_route_info': 'Sửa thông tin tuyến',
+                        'delete_route': 'Xóa tuyến',
+                        'unmerge_vehicle': 'Tách xe'
                     };
                     let statusHtml = '';
                     if (req.status === 'approved') statusHtml = '<span class="text-green-600 font-bold bg-green-50 border border-green-200 px-2 py-0.5 rounded text-xs">Đã duyệt</span>';
@@ -1210,12 +1220,14 @@ Object.assign(window.app, {
                     let contextText = '';
                     if (req.new_data?.request_type === 'delete_photo' && req.new_data?.photo_id) {
                         contextText = `Ảnh ${req.new_data.photo_id} ${req.license_plate ? '- ' + req.license_plate : ''}`;
+                    } else if (req.new_data?.request_type === 'unmerge_vehicle' && req.new_data?.target_plate) {
+                        contextText = `Tách [${req.new_data.target_plate}] khỏi [${req.license_plate}]`;
+                    } else if (req.new_data?.route_name) {
+                        contextText = req.new_data.route_name;
                     } else if (req.new_data?.model_name) {
                         contextText = req.new_data.model_name;
                     } else if (req.new_data?.operator_name) {
                         contextText = req.new_data.operator_name;
-                    } else if (req.new_data?.route_name) {
-                        contextText = req.new_data.route_name;
                     } else if (req.license_plate && !['MODEL_INFO', 'OP_INFO', 'ROUTE_INFO'].includes(req.license_plate)) {
                         contextText = req.license_plate;
                     } else if (req.license_plate) {
@@ -2326,7 +2338,7 @@ let currentRouteProvName = null;
                                                 <td class="label bg-gray-50 border-r border-b border-gray-200">${isCoach ? 'Lộ trình' : 'Mã số tuyến'} hiện tại</td>
                                                 <td class="value-cell border-b border-gray-200">
                                                     <div class="relative w-full h-full flex flex-col justify-center">
-                                                        <textarea rows="1" id="vehicle-edit-route" autocomplete="off" class="info-input text-gray-700 w-full ${currentRouteClientSide ? 'clickable-search' : 'cursor-not-allowed'}" readonly ${currentRouteClientSide ? `onclick="if(this.readOnly && this.value && this.value!=='---') { const special = ['Dừng hoạt động', 'Ngoài giờ hoạt động', 'Chưa hoạt động']; if (${isCoach} || special.includes(this.value.trim())) { app.searchRedirect(this.value, 'route'); } else { app.utils.navigate('${vehProvName}' ? '/route/' + encodeURIComponent('${vehProvName}') + '/' + encodeURIComponent(this.value) : '/route/' + encodeURIComponent(this.value)); } } else if(!this.readOnly) { app.route.openSelector({ targetInputId: 'vehicle-edit-route', vehicleType: '${isCoach ? 'coach' : 'bus'}', selectedRoute: this.dataset.routeName || this.value }); }"` : ''}>${currentRouteClientSide}</textarea>
+                                                        <textarea rows="1" id="vehicle-edit-route" autocomplete="off" class="info-input text-gray-700 w-full select-none caret-transparent ${currentRouteClientSide ? 'clickable-search' : 'cursor-not-allowed'}" readonly onfocus="this.blur()" ${currentRouteClientSide ? `onclick="this.blur(); if(this.readOnly && this.value && this.value!=='---') { const special = ['Dừng hoạt động', 'Ngoài giờ hoạt động', 'Chưa hoạt động']; if (${isCoach} || special.includes(this.value.trim())) { app.searchRedirect(this.value, 'route'); } else { app.utils.navigate('${vehProvName}' ? '/route/' + encodeURIComponent('${vehProvName}') + '/' + encodeURIComponent(this.value) : '/route/' + encodeURIComponent(this.value)); } } else if(!this.readOnly) { app.route.openSelector({ targetInputId: 'vehicle-edit-route', vehicleType: '${isCoach ? 'coach' : 'bus'}', selectedRoute: this.dataset.routeName || this.value }); }"` : ''}>${currentRouteClientSide}</textarea>
                                                     </div>
                                                 </td>
                                             </tr>

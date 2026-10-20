@@ -270,6 +270,7 @@ Object.assign(window.app, {
                     if(!el) return;
                     el.addEventListener('click', function () {
                         if (id === 'info-route' && app.edit && app.edit.isEditing) {
+                            this.blur();
                             const curType = document.getElementById('info-type')?.value || app.currentPhoto?.type || app.currentVehicle?.type;
                             app.route.openSelector({
                                 targetInputId: 'info-route',

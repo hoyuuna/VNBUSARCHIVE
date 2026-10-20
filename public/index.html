@@ -2188,7 +2188,7 @@ html.theme-dark .ct-icon {
             if (stored === 'system') {
                 theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
             }
-            document.write('<link rel="stylesheet" href="/css/' + theme + '.css?v=1792500729458" id="theme-css">');
+            document.write('<link rel="stylesheet" href="/css/' + theme + '.css?v=1792502671086" id="theme-css">');
             document.documentElement.classList.add('theme-' + theme);
             document.documentElement.style.backgroundColor = theme === 'dark' ? '#18181b' : '#fdfcf8';
         })();
@@ -3939,7 +3939,7 @@ html.theme-dark .ct-icon {
                                             <td class="label bg-gray-50 border-r border-b border-gray-200" id="lbl-detail-route">Tuyến</td>
                                             <td class="value-cell border-b border-gray-200" x-data>
                                                 <div class="relative w-full h-full flex flex-col justify-center">
-                                                    <textarea rows="1" id="info-route" autocomplete="off" class="info-input clickable-search text-gray-700" readonly></textarea>
+                                                    <textarea rows="1" id="info-route" autocomplete="off" class="info-input clickable-search text-gray-700 select-none caret-transparent" readonly onfocus="if(app.edit && app.edit.isEditing) this.blur();"></textarea>
                                                 </div>
                                             </td>
                                         </tr>
@@ -4044,7 +4044,7 @@ html.theme-dark .ct-icon {
                                     </div>
                                     <div class="flex flex-col sm:flex-1 min-w-0">
                                         <span class="sm:hidden font-bold text-gray-500 mb-1">Tuyến</span>
-                                        <input type="text" id="hist-new-route" readonly placeholder="Chọn tuyến..." class="hist-input cursor-pointer bg-white" onclick="app.route.openSelector({ targetInputId: 'hist-new-route', onSelect: (r) => { document.getElementById('hist-new-route').value = r.route_no; app.utils.checkRouteStatus(r.route_no, 'hist-new-op', 'hist-new-op-wrapper'); } })">
+                                        <input type="text" id="hist-new-route" readonly placeholder="Chọn tuyến..." onfocus="this.blur()" class="hist-input cursor-pointer bg-white select-none caret-transparent" onclick="this.blur(); app.route.openSelector({ targetInputId: 'hist-new-route', onSelect: (r) => { document.getElementById('hist-new-route').value = r.route_no; app.utils.checkRouteStatus(r.route_no, 'hist-new-op', 'hist-new-op-wrapper'); } })">
                                     </div>
                                 </div>
                                 <div class="flex flex-col sm:flex-row gap-2 items-start mt-1">
@@ -5113,8 +5113,9 @@ html.theme-dark .ct-icon {
                                     <div class="relative w-full">
                                         <input type="text" id="up-route" readonly tabindex="3"
                                             placeholder="Nhấp để chọn tuyến xe..."
-                                            onclick="app.route.openSelector({ targetInputId: 'up-route', vehicleType: (app.upload && app.upload.selectedType) ? app.upload.selectedType : 'bus', selectedRoute: this.dataset.routeName || this.value, onSelect: (r) => { const rDisplay = (r.route_name && r.route_name !== r.route_no) ? r.route_name : r.route_no; document.getElementById('up-route').value = r.route_no; document.getElementById('up-route').dataset.routeName = rDisplay; document.getElementById('up-route').dataset.routeNo = r.route_no; app.utils.checkRouteStatus(r.route_no, 'up-operator', 'up-operator-wrapper'); if(app.upload && app.upload.autoFillOperatorByRoute) app.upload.autoFillOperatorByRoute(); } })"
-                                            class="w-full border border-gray-300 p-2.5 text-sm rounded-md focus:ring-2 focus:ring-black focus:border-transparent outline-none transition cursor-pointer bg-white">
+                                            onfocus="this.blur()"
+                                            onclick="this.blur(); app.route.openSelector({ targetInputId: 'up-route', vehicleType: (app.upload && app.upload.selectedType) ? app.upload.selectedType : 'bus', selectedRoute: this.dataset.routeName || this.value, onSelect: (r) => { const rDisplay = (r.route_name && r.route_name !== r.route_no) ? r.route_name : r.route_no; document.getElementById('up-route').value = r.route_no; document.getElementById('up-route').dataset.routeName = rDisplay; document.getElementById('up-route').dataset.routeNo = r.route_no; app.utils.checkRouteStatus(r.route_no, 'up-operator', 'up-operator-wrapper'); if(app.upload && app.upload.autoFillOperatorByRoute) app.upload.autoFillOperatorByRoute(); } })"
+                                            class="w-full border border-gray-300 p-2.5 text-sm rounded-md focus:ring-0 focus:outline-none outline-none transition cursor-pointer bg-white select-none caret-transparent">
                                     </div>
                                     <div id="up-route-quick" class="mt-2 flex flex-wrap gap-1.5">
                                         <button type="button" onclick="app.upload.applySpecialRoute('Dừng hoạt động')" class="bg-white border border-black dark:border-white hover:bg-gray-100 dark:bg-[#18181b] dark:hover:bg-[#27272a] text-black dark:text-white text-[11px] font-bold px-2.5 py-1.5 rounded-md transition-all duration-200 ease-out active:scale-95 select-none">Dừng hoạt động</button>
@@ -7157,7 +7158,7 @@ html.theme-dark .ct-icon {
                 <div>
                     <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Tuyến nhận dữ liệu chuyển đổi</label>
                     <div class="flex gap-2">
-                        <input type="text" id="del-route-dest-display" readonly value="Ngoài giờ hoạt động" class="w-full bg-gray-50 border border-black rounded-md p-3 text-sm font-bold text-black cursor-not-allowed">
+                        <input type="text" id="del-route-dest-display" readonly value="Ngoài giờ hoạt động" onfocus="this.blur()" class="w-full bg-gray-50 border border-black rounded-md p-3 text-sm font-bold text-black cursor-not-allowed select-none caret-transparent">
                         <button type="button" onclick="app.route.chooseDeleteDestination()" class="px-3 py-2 bg-white border border-black rounded-md text-xs font-bold hover:bg-gray-100 transition whitespace-nowrap">Đổi tuyến</button>
                     </div>
                     <input type="hidden" id="del-route-dest-val" value="Ngoài giờ hoạt động">
@@ -7514,7 +7515,7 @@ html.theme-dark .ct-icon {
 
     <!-- KHAY CHỨA TOAST Z-INDEX CAO NHẤT -->
     <div id="toast-container" class="fixed left-0 w-full flex flex-col items-center gap-2 pointer-events-none z-[99999]" style="z-index: 99999 !important;"></div>
-<script src="/app.d740a493db4e.js" onerror="if(!window.__app_fallback_loaded){window.__app_fallback_loaded=true;var s=document.createElement('script');s.src='/app.js?v=' + Date.now();document.head.appendChild(s);}"></script>
+<script src="/app.173f98ebdc94.js" onerror="if(!window.__app_fallback_loaded){window.__app_fallback_loaded=true;var s=document.createElement('script');s.src='/app.js?v=' + Date.now();document.head.appendChild(s);}"></script>
 </body>
 </html>
 

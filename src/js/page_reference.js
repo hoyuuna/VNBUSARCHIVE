@@ -2016,6 +2016,7 @@ if (!decodedProvince || decodedProvince.trim() === '') {
                             }
                         } else {
                             // Người dùng thường gửi yêu cầu qua edit_requests
+                            const wasFromSelector = app.route._wasFromSelector;
                             app.route._wasFromSelector = false;
                             const reqType = app.route.isEditingExisting ? 'update_route_info' : 'create_route_info';
                             let checkQuery = window.sb.from('edit_requests').select('*', { count: 'exact', head: true }).eq('status', 'pending');
@@ -2042,8 +2043,11 @@ if (!decodedProvince || decodedProvince.trim() === '') {
                             };
                             const { error } = await window.sb.from('edit_requests').insert(reqData);
                             if (error) throw error;
-                            app.ui.showAlert(app.route.isEditingExisting ? "Đã gửi yêu cầu cập nhật thông tin Tuyến và đang chờ Admin duyệt." : "Đã gửi yêu cầu tạo Tuyến mới và đang chờ Admin duyệt.");
+                            app.ui.showAlert(app.route.isEditingExisting ? "Đã gửi yêu cầu cập nhật thông tin Tuyến và đang chờ Admin duyệt." : "Đã gửi yêu cầu tạo Tuyến mới và đang chờ Admin duyệt. Tuyến này đã được tạm áp dụng vào biểu mẫu của bạn.");
                             app.route.closeEditPrompt();
+                            if (wasFromSelector && (app.route.selectorTargetInputId || typeof app.route.selectorCallback === 'function')) {
+                                app.route.selectRoute(routeNo, routeName);
+                            }
                         }
                     } catch (err) {
                         app.ui.showAlert("Lỗi: " + err.message);

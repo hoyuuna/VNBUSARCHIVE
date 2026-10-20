@@ -730,6 +730,32 @@ html.theme-dark .filter-menu .sticky {
     border-color: #ffffff !important;
 }
 
+/* Route Selector Inputs Caret & Cursor */
+.caret-transparent,
+#up-route,
+#info-route,
+#hist-new-route,
+#vehicle-edit-route,
+#del-route-dest-display,
+[id^="adm-p-route-"],
+[id^="req-route-"],
+[id^="req-h-route-"],
+body.theme-dark .caret-transparent,
+body.theme-dark #up-route,
+body.theme-dark #info-route,
+body.theme-dark #hist-new-route,
+body.theme-dark #vehicle-edit-route,
+body.theme-dark #del-route-dest-display,
+body.theme-dark [id^="adm-p-route-"],
+body.theme-dark [id^="req-route-"],
+body.theme-dark [id^="req-h-route-"] {
+    caret-color: transparent !important;
+    cursor: pointer !important;
+    user-select: none !important;
+    -webkit-user-select: none !important;
+}
+
+
 
 
 

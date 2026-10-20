@@ -2498,6 +2498,7 @@ Object.assign(window.app, {
                     }
                     const valPlate = document.getElementById('up-plate').value.trim();
                     const valOp = document.getElementById('up-operator').value.trim();
+                    const valType = document.getElementById('up-type')?.value || '';
                     const routeEl = document.getElementById('up-route');
                     let valRoute = (routeEl?.dataset?.routeName || routeEl?.value || '').trim();
                     if (valRoute && !valRoute.includes(' - ') && (!app.route?.specialRoutes || !app.route.specialRoutes.includes(valRoute))) {
