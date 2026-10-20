@@ -1175,7 +1175,7 @@ if (!decodedProvince || decodedProvince.trim() === '') {
                                         ${pathLabel}
                                     </div>
                                     <div class="flex items-center gap-1.5 shrink-0" onclick="event.stopPropagation()">
-                                        <button type="button" title="Chỉnh sửa thông tin tuyến" onclick="app.route.openEditPrompt('${app.utils.escapeAttr(r.route_name)}', '${app.utils.escapeAttr(r.province || '')}')"
+                                        <button type="button" title="Chỉnh sửa thông tin tuyến" onclick="app.route.openEditPrompt('${app.utils.escapeAttr(r.route_name)}', '${app.utils.escapeAttr(r.province || '')}', true)"
                                                 class="w-7 h-7 flex items-center justify-center rounded-md border border-black text-black hover:bg-black hover:text-white transition text-xs">
                                             <i class="fa-solid fa-pen"></i>
                                         </button>
@@ -1293,11 +1293,12 @@ if (!decodedProvince || decodedProvince.trim() === '') {
                     }, 10);
                 },
 
-                openEditPrompt: async (targetRouteName, targetProvince) => {
+                openEditPrompt: async (targetRouteName, targetProvince, fromSelector = false) => {
                     if (!app.user) return app.auth.check();
                     const selectorModal = document.getElementById('route-selector-modal');
-                    app.route._wasFromSelector = !!(selectorModal && !selectorModal.classList.contains('hidden'));
-                    if (app.route._wasFromSelector) {
+                    const isFromSelector = !!fromSelector || !!(selectorModal && !selectorModal.classList.contains('hidden'));
+                    app.route._wasFromSelector = isFromSelector;
+                    if (selectorModal && !selectorModal.classList.contains('hidden')) {
                         selectorModal.classList.add('hidden');
                         const sc = document.getElementById('route-selector-content');
                         if (sc) {
@@ -1332,8 +1333,12 @@ if (!decodedProvince || decodedProvince.trim() === '') {
                     if (provContainer) provContainer.classList.remove('hidden');
 
                     if (provSelect) {
-                        provSelect.disabled = true;
-                        provSelect.classList.add('bg-gray-100', 'cursor-not-allowed', 'opacity-70');
+                        provSelect.disabled = isFromSelector;
+                        if (isFromSelector) {
+                            provSelect.classList.add('bg-gray-100', 'cursor-not-allowed', 'opacity-70');
+                        } else {
+                            provSelect.classList.remove('bg-gray-100', 'cursor-not-allowed', 'opacity-70');
+                        }
                         if (app.utils.provinceData) {
                             provSelect.innerHTML = '<option value="">-- Chọn Tỉnh / Thành phố (Bắt buộc) --</option>';
                             app.utils.provinceData.forEach(p => {
@@ -1349,8 +1354,13 @@ if (!decodedProvince || decodedProvince.trim() === '') {
                     const nameInput = document.getElementById('route-edit-name');
                     if (nameInput) {
                         nameInput.value = rNo;
-                        nameInput.disabled = true;
-                        nameInput.classList.add('bg-gray-100', 'cursor-not-allowed', 'opacity-70');
+                        nameInput.disabled = isFromSelector;
+                        if (isFromSelector) {
+                            nameInput.classList.add('bg-gray-100', 'cursor-not-allowed', 'opacity-70');
+                        } else {
+                            nameInput.readOnly = false;
+                            nameInput.classList.remove('bg-gray-100', 'cursor-not-allowed', 'opacity-70');
+                        }
                     }
                     document.getElementById('route-edit-inactive').checked = false;
                     document.getElementById('route-edit-short-path').value = '';
@@ -1463,11 +1473,11 @@ if (!decodedProvince || decodedProvince.trim() === '') {
 
                     const routeName = `${routeNo} - ${province}`;
 
-                    // Nếu tạo mới, kiểm tra trùng lặp
-                    if (!app.route.isEditingExisting) {
+                    // Nếu tạo mới HOẶC đổi số hiệu / tỉnh thành từ trang chi tiết, kiểm tra trùng lặp
+                    if (!app.route.isEditingExisting || (app.route.editingOriginalRouteName && routeName !== app.route.editingOriginalRouteName)) {
                         const { data: exist } = await window.sb.from('route_info').select('route_name').eq('route_name', routeName).maybeSingle();
                         if (exist) {
-                            return app.ui.showAlert(`Tuyến "${routeName}" đã tồn tại trên hệ thống. Vui lòng chọn từ danh sách hoặc đổi tên khác.`);
+                            return app.ui.showAlert(`Tuyến "${routeName}" (Số hiệu ${routeNo} - Tỉnh ${province}) đã tồn tại trên hệ thống. Vui lòng chọn số hiệu hoặc tỉnh thành khác!`);
                         }
                     }
 
@@ -1515,6 +1525,12 @@ if (!decodedProvince || decodedProvince.trim() === '') {
                             }, { onConflict: 'route_name' });
                             if (upsertErr) throw upsertErr;
 
+                            // Nếu đổi tên tuyến từ trang chi tiết, dọn dẹp bản ghi cũ và di chuyển liên kết
+                            if (app.route.isEditingExisting && app.route.editingOriginalRouteName && app.route.editingOriginalRouteName !== routeName) {
+                                await window.sb.from('route_info').delete().eq('route_name', app.route.editingOriginalRouteName);
+                                await window.sb.from('photos').update({ borrowed_route: routeName }).eq('borrowed_route', app.route.editingOriginalRouteName);
+                            }
+
                             // Xử lý cập nhật ID ảnh và biển số xe vá tuyến
                             const { data: curBorrowed } = await window.sb.from('photos').select('id, license_plate').eq('borrowed_route', routeName);
                             const curIds = curBorrowed ? curBorrowed.map(p => p.id) : [];
@@ -1559,7 +1575,11 @@ if (!decodedProvince || decodedProvince.trim() === '') {
                             app.route._wasFromSelector = false;
                             app.route.closeEditPrompt();
 
-                            if (app.route.currentRoute === routeNo && app.route.currentProvince === province) {
+                            if (app.route.isEditingExisting && app.route.editingOriginalRouteName && app.route.editingOriginalRouteName !== routeName) {
+                                app.route.currentRoute = routeNo;
+                                app.route.currentProvince = province;
+                                app.utils.navigate('/route/' + (province ? encodeURIComponent(province) + '/' : '') + encodeURIComponent(routeNo));
+                            } else if (app.route.currentRoute === routeNo && app.route.currentProvince === province) {
                                 app.route.loadRoutePage(province, routeNo, true);
                             }
                             await app.route.fetchRoutes(true);
@@ -1582,6 +1602,7 @@ if (!decodedProvince || decodedProvince.trim() === '') {
                                 license_plate: 'ROUTE_INFO',
                                 new_data: {
                                     request_type: reqType,
+                                    old_route_name: app.route.isEditingExisting ? app.route.editingOriginalRouteName : null,
                                     route_name: routeName,
                                     route_no: routeNo,
                                     province: province,

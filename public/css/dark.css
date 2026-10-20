@@ -654,6 +654,25 @@ body.theme-dark input:disabled, body.theme-dark select:disabled, body.theme-dark
     cursor: not-allowed !important;
 }
 
+/* Fix các modal có bố cục Flex Header / Body / Footer cố định */
+#route-edit-modal > #route-edit-content,
+#route-selector-modal > #route-selector-content,
+#route-delete-modal > #route-delete-content {
+    overflow: hidden !important;
+    display: flex !important;
+    flex-direction: column !important;
+    max-height: 85vh !important;
+}
+
+#route-edit-modal > #route-edit-content > .overflow-y-auto,
+#route-selector-modal > #route-selector-content > #route-selector-items {
+    flex: 1 1 0% !important;
+    flex-shrink: 1 !important;
+    min-height: 0 !important;
+    overflow-y: auto !important;
+}
+
+
 
 
 

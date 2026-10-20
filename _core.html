@@ -175,6 +175,24 @@ div[id$="-modal"] > div > * {
     flex-shrink: 0 !important;
 }
 
+#route-edit-modal > #route-edit-content,
+#route-selector-modal > #route-selector-content,
+#route-delete-modal > #route-delete-content {
+    overflow: hidden !important;
+    display: flex !important;
+    flex-direction: column !important;
+    max-height: 85vh !important;
+}
+
+#route-edit-modal > #route-edit-content > .overflow-y-auto,
+#route-selector-modal > #route-selector-content > #route-selector-items {
+    flex: 1 1 0% !important;
+    flex-shrink: 1 !important;
+    min-height: 0 !important;
+    overflow-y: auto !important;
+}
+
+
 /* ==========================================
    TOAST NOTIFICATION (POP-UP TỪ DƯỚI HEADER)
 ========================================== */
@@ -7070,13 +7088,13 @@ html.theme-dark .ct-icon {
     </div>
 
     <!-- MODAL CHỌN TUYẾN XE (ROUTE SELECTOR) -->
-    <div id="route-selector-modal" class="hidden fixed inset-0 z-[3050] flex items-center justify-center p-4 backdrop-blur-md">
-        <div id="route-selector-content" class="rounded-2xl w-full overflow-hidden transform transition-all opacity-0 scale-95 flex flex-col bg-white border border-black" style="max-width: 520px; max-height: 85vh;">
-            <div class="p-4 md:p-5 flex justify-between items-center shrink-0">
+    <div id="route-selector-modal" class="hidden fixed inset-0 z-[3050] flex items-center justify-center p-4 backdrop-blur-md overflow-hidden" style="overflow: hidden !important;">
+        <div id="route-selector-content" class="rounded-2xl w-full overflow-hidden transform transition-all opacity-0 scale-95 flex flex-col bg-white border border-black" style="max-width: 520px; max-height: 85vh; overflow: hidden !important; display: flex !important; flex-direction: column !important;">
+            <div class="p-4 md:p-5 flex justify-between items-center shrink-0" style="flex-shrink: 0 !important;">
                 <h3 class="text-lg font-bold text-black tracking-tight"><i class="fa-solid fa-route mr-2 text-gray-500"></i>Chọn Tuyến Xe</h3>
                 <button onclick="app.route.closeSelector()" class="text-gray-400 hover:text-red-500 transition text-xl px-2"><i class="fa-solid fa-xmark"></i></button>
             </div>
-            <div class="px-4 md:px-5 pb-3 shrink-0 flex flex-col gap-3">
+            <div class="px-4 md:px-5 pb-3 shrink-0 flex flex-col gap-3" style="flex-shrink: 0 !important;">
                 <div class="flex items-center justify-between gap-2">
                     <p class="text-xs text-gray-500 font-medium">Chọn một tuyến có sẵn hoặc tạo hồ sơ tuyến mới.</p>
                     <button type="button" onclick="app.route.openCreatePrompt()" class="bg-black text-white hover:bg-gray-800 text-xs font-bold px-3 py-2 rounded-md transition flex items-center gap-1.5 shrink-0">
@@ -7093,16 +7111,16 @@ html.theme-dark .ct-icon {
                     </select>
                 </div>
             </div>
-            <div id="route-selector-items" class="flex-1 overflow-y-auto custom-scrollbar p-4 md:p-5 space-y-2">
+            <div id="route-selector-items" class="flex-1 overflow-y-auto custom-scrollbar p-4 md:p-5 space-y-2" style="overflow-y: auto !important; flex: 1 1 0% !important; min-height: 0 !important; flex-shrink: 1 !important;">
                 <div class="text-center py-8 text-gray-400 text-xs"><i class="fa-solid fa-spinner fa-spin mr-1"></i> Đang tải danh sách tuyến...</div>
             </div>
         </div>
     </div>
 
     <!-- MODAL XÓA TUYẾN & CHUYỂN DỮ LIỆU -->
-    <div id="route-delete-modal" class="hidden fixed inset-0 z-[3300] flex items-center justify-center p-4 backdrop-blur-md overflow-hidden">
-        <div id="route-delete-content" class="rounded-2xl w-full overflow-hidden transform transition-all opacity-0 scale-95 flex flex-col bg-white border border-black" style="max-width: 480px">
-            <div class="p-5 flex justify-between items-center shrink-0">
+    <div id="route-delete-modal" class="hidden fixed inset-0 z-[3300] flex items-center justify-center p-4 backdrop-blur-md overflow-hidden" style="overflow: hidden !important;">
+        <div id="route-delete-content" class="rounded-2xl w-full overflow-hidden transform transition-all opacity-0 scale-95 flex flex-col bg-white border border-black" style="max-width: 480px; overflow: hidden !important; display: flex !important; flex-direction: column !important;">
+            <div class="p-5 flex justify-between items-center shrink-0" style="flex-shrink: 0 !important;">
                 <h3 class="text-lg font-bold text-black tracking-tight"><i class="fa-solid fa-triangle-exclamation mr-2 text-red-500"></i>Xóa Tuyến Xe</h3>
                 <button onclick="app.route.closeDeletePrompt()" class="text-gray-400 hover:text-red-500 transition text-xl px-2"><i class="fa-solid fa-xmark"></i></button>
             </div>
@@ -7123,7 +7141,7 @@ html.theme-dark .ct-icon {
                     <input type="hidden" id="del-route-dest-val" value="Ngoài giờ hoạt động">
                 </div>
             </div>
-            <div class="px-5 py-4 flex gap-3 shrink-0">
+            <div class="px-5 py-4 flex gap-3 shrink-0" style="flex-shrink: 0 !important;">
                 <button type="button" onclick="app.route.closeDeletePrompt()" class="flex-1 rounded-md px-4 py-2.5 bg-white border border-black text-sm font-bold text-gray-700 hover:bg-gray-50 transition-all">Hủy bỏ</button>
                 <button type="button" id="btn-confirm-delete-route" onclick="app.route.confirmDeleteRoute()" class="flex-1 rounded-md px-4 py-2.5 bg-red-600 border border-red-600 text-sm font-bold text-white hover:bg-red-700 transition-all">Xác nhận xóa</button>
             </div>
@@ -7131,13 +7149,13 @@ html.theme-dark .ct-icon {
     </div>
 
     <!-- MODAL CẬP NHẬT TUYẾN (ROUTE) -->
-    <div id="route-edit-modal" class="hidden fixed inset-0 z-[3200] flex items-center justify-center p-4 backdrop-blur-md overflow-hidden">
-        <div id="route-edit-content" class="rounded-2xl w-full overflow-hidden transform transition-all opacity-0 scale-95 flex flex-col bg-white border border-black" style="max-width: 480px; max-height: 85vh;">
-            <div class="p-5 flex justify-between items-center shrink-0">
+    <div id="route-edit-modal" class="hidden fixed inset-0 z-[3200] flex items-center justify-center p-4 backdrop-blur-md overflow-hidden" style="overflow: hidden !important;">
+        <div id="route-edit-content" class="rounded-2xl w-full overflow-hidden transform transition-all opacity-0 scale-95 flex flex-col bg-white border border-black" style="max-width: 480px; max-height: 85vh; overflow: hidden !important; display: flex !important; flex-direction: column !important;">
+            <div class="p-5 flex justify-between items-center shrink-0" style="flex-shrink: 0 !important;">
                 <h3 class="text-lg font-bold text-black tracking-tight" id="route-edit-modal-title"><i class="fa-solid fa-route mr-2 text-gray-500"></i>Cập nhật Thông tin Tuyến</h3>
                 <button onclick="app.route.closeEditPrompt()" class="text-gray-400 hover:text-red-500 transition text-xl px-2"><i class="fa-solid fa-xmark"></i></button>
             </div>
-            <div class="p-5 bg-transparent space-y-4 overflow-y-auto custom-scrollbar flex-1 min-h-0">
+            <div class="p-5 bg-transparent space-y-4 overflow-y-auto custom-scrollbar flex-1 min-h-0" style="overflow-y: auto !important; flex: 1 1 0% !important; min-height: 0 !important; flex-shrink: 1 !important;">
                 <p id="route-edit-warning-text" class="text-xs text-gray-600 font-medium leading-relaxed">Thông tin này sẽ được kiểm duyệt bởi Admin.</p>
                 
                 <div>
@@ -7223,7 +7241,7 @@ html.theme-dark .ct-icon {
                     <p class="text-[10px] text-gray-500 mt-1 font-medium">Nhập ID ảnh (VD: 123) hoặc Biển số xe (VD: 12A34567, 12A34567-1). Ngăn cách bằng dấu phẩy. Ảnh/Xe sẽ tự động được gán về tuyến này.</p>
                 </div>
             </div>
-            <div class="px-5 py-4 flex gap-3 shrink-0">
+            <div class="px-5 py-4 flex gap-3 shrink-0" style="flex-shrink: 0 !important;">
                 <button type="button" id="btn-delete-route" onclick="app.route.openDeletePrompt()" class="hidden px-4 py-2.5 rounded-md border border-red-500 text-red-600 hover:bg-red-50 text-sm font-bold transition-all"><i class="fa-solid fa-trash mr-1"></i> Xóa tuyến</button>
                 <button type="button" onclick="app.route.closeEditPrompt()" class="flex-1 rounded-md px-4 py-2.5 bg-white border border-black text-sm font-bold text-gray-700 hover:bg-gray-50 transition-all">Hủy bỏ</button>
                 <button type="button" id="btn-save-route" onclick="app.route.submitEdit()" class="flex-1 rounded-md px-4 py-2.5 bg-black border border-black text-sm font-bold text-white hover:bg-gray-800 transition-all">Lưu thông tin</button>
