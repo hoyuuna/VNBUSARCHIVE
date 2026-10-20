@@ -245,8 +245,8 @@ export async function onRequest(context) {
                     exif_params: metadata.exif_params,
                     taken_at: metadata.taken_at,
                     operator: metadata.operator,
-                    route_no: (metadata.route && metadata.route.includes(' - ')) ? metadata.route.split(' - ')[0].trim() : metadata.route,
-                    borrowed_route: (metadata.route && metadata.route.includes(' - ')) ? metadata.route : null,
+                    route_no: (metadata.type !== 'coach' && metadata.route && metadata.route.includes(' - ')) ? metadata.route.split(' - ')[0].trim() : metadata.route,
+                    borrowed_route: (metadata.type !== 'coach' && metadata.route && metadata.route.includes(' - ')) ? metadata.route : null,
                     type: metadata.type,
                     suspected_exif_fraud: metadata.suspected_exif_fraud
                 }).select('id').single();

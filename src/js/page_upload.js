@@ -1111,6 +1111,7 @@ Object.assign(window.app, {
                     app.upload.performSelectType(type);
                 },
                 performSelectType: (type) => {
+                    app.upload.selectedType = type;
                     document.getElementById('up-type').value = type;
                     document.getElementById('type-msg').classList.add('hidden');
                     const btnBus = document.getElementById('btn-type-bus');
@@ -2508,7 +2509,7 @@ Object.assign(window.app, {
                     const valType = document.getElementById('up-type')?.value || '';
                     const routeEl = document.getElementById('up-route');
                     let valRoute = (routeEl?.dataset?.routeName || routeEl?.value || '').trim();
-                    if (valRoute && !valRoute.includes(' - ') && (!app.route?.specialRoutes || !app.route.specialRoutes.includes(valRoute))) {
+                    if (valType !== 'coach' && valRoute && !valRoute.includes(' - ') && (!app.route?.specialRoutes || !app.route.specialRoutes.includes(valRoute))) {
                         const upProv = document.getElementById('up-province')?.value || (valPlate ? app.utils.getProvinceFromPlate(valPlate) : '');
                         if (upProv && upProv !== 'Không xác định' && upProv !== 'Biển tạm') {
                             valRoute = `${valRoute} - ${upProv}`;

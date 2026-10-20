@@ -5114,7 +5114,7 @@ html.theme-dark .ct-icon {
                                         <input type="text" id="up-route" readonly tabindex="3"
                                             placeholder="Nhấp để chọn tuyến xe..."
                                             onfocus="this.blur()"
-                                            onclick="this.blur(); app.route.openSelector({ targetInputId: 'up-route', vehicleType: (app.upload && app.upload.selectedType) ? app.upload.selectedType : 'bus', selectedRoute: this.dataset.routeName || this.value, onSelect: (r) => { const rDisplay = (r.route_name && r.route_name !== r.route_no) ? r.route_name : r.route_no; document.getElementById('up-route').value = r.route_no; document.getElementById('up-route').dataset.routeName = rDisplay; document.getElementById('up-route').dataset.routeNo = r.route_no; app.utils.checkRouteStatus(r.route_no, 'up-operator', 'up-operator-wrapper'); if(app.upload && app.upload.autoFillOperatorByRoute) app.upload.autoFillOperatorByRoute(); } })"
+                                            onclick="this.blur(); app.route.openSelector({ targetInputId: 'up-route', vehicleType: (document.getElementById('up-type')?.value || (app.upload && app.upload.selectedType) || 'bus'), selectedRoute: this.dataset.routeName || this.value, onSelect: (r) => { const rDisplay = (r.route_name && r.route_name !== r.route_no) ? r.route_name : r.route_no; document.getElementById('up-route').value = r.route_no; document.getElementById('up-route').dataset.routeName = rDisplay; document.getElementById('up-route').dataset.routeNo = r.route_no; app.utils.checkRouteStatus(r.route_no, 'up-operator', 'up-operator-wrapper'); if(app.upload && app.upload.autoFillOperatorByRoute) app.upload.autoFillOperatorByRoute(); } })"
                                             class="w-full border border-gray-300 p-2.5 text-sm rounded-md focus:ring-0 focus:outline-none outline-none transition cursor-pointer bg-white select-none caret-transparent">
                                     </div>
                                     <div id="up-route-quick" class="mt-2 flex flex-wrap gap-1.5">
@@ -7107,7 +7107,7 @@ html.theme-dark .ct-icon {
                         <input type="text" id="route-selector-search" autocomplete="off" placeholder="Tìm số tuyến, lộ trình..." class="w-full bg-white border border-black rounded-md pl-8 pr-3 py-2 text-xs font-medium text-black focus:ring-1 focus:ring-black outline-none transition" oninput="app.route.selectorDisplayLimit = 40; app.route.filterSelector()">
                     </div>
                     <!-- Custom Dropdown Lọc Tỉnh Thành -->
-                    <div class="relative shrink-0 z-30">
+                    <div id="route-selector-prov-container" class="relative shrink-0 z-30">
                         <input type="hidden" id="route-selector-prov-filter" value="">
                         <button type="button" id="btn-route-selector-prov" onclick="app.route.toggleSelectorProvMenu(event)" class="w-full sm:w-auto bg-white border border-black rounded-md px-3 py-2 text-xs font-medium text-black flex items-center justify-between gap-2 hover:bg-gray-50 transition whitespace-nowrap">
                             <span id="route-selector-prov-label" class="truncate max-w-[140px]">Tất cả tỉnh thành</span>

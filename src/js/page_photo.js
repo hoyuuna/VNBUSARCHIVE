@@ -655,7 +655,8 @@ Object.assign(window.app, {
                     btn.innerText = "Đang xử lý..."; btn.disabled = true;
                     const routeEl = document.getElementById('info-route');
                     let fullRouteName = (routeEl?.dataset?.routeName || routeEl?.value || '').trim();
-                    if (fullRouteName && !fullRouteName.includes(' - ') && (!app.route?.specialRoutes || !app.route.specialRoutes.includes(fullRouteName))) {
+                    const infoType = document.getElementById('info-type')?.value;
+                    if (infoType !== 'coach' && fullRouteName && !fullRouteName.includes(' - ') && (!app.route?.specialRoutes || !app.route.specialRoutes.includes(fullRouteName))) {
                         const provFromPlate = document.getElementById('info-plate')?.value ? app.utils.getProvinceFromPlate(document.getElementById('info-plate').value) : '';
                         if (provFromPlate && provFromPlate !== 'Không xác định' && provFromPlate !== 'Biển tạm') {
                             fullRouteName = `${fullRouteName} - ${provFromPlate}`;
@@ -732,8 +733,9 @@ Object.assign(window.app, {
                             }
                         }
                         const routeVal = (payload.route || '').trim();
-                        const routeNoVal = (routeVal && routeVal.includes(' - ')) ? routeVal.split(' - ')[0].trim() : routeVal;
-                        const borrowedVal = (routeVal && routeVal.includes(' - ')) ? routeVal : null;
+                        const isCoach = payload.type === 'coach';
+                        const routeNoVal = (!isCoach && routeVal && routeVal.includes(' - ')) ? routeVal.split(' - ')[0].trim() : routeVal;
+                        const borrowedVal = (!isCoach && routeVal && routeVal.includes(' - ')) ? routeVal : null;
                         if (app.role === 'admin' || app.role === 'manager') {
                             const { error: vError } = await window.sb.from('vehicles').upsert({
                                 license_plate: payload.license_plate,

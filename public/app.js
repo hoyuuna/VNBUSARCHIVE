@@ -12797,6 +12797,14 @@ if (!decodedProvince || decodedProvince.trim() === '') {
                     const btnAll = document.getElementById('btn-sel-type-all');
                     const btnBus = document.getElementById('btn-sel-type-bus');
                     const btnCoach = document.getElementById('btn-sel-type-coach');
+                    const provContainer = document.getElementById('route-selector-prov-container');
+                    if (provContainer) {
+                        if (filter === 'coach' || locked === 'coach') {
+                            provContainer.classList.add('hidden');
+                        } else {
+                            provContainer.classList.remove('hidden');
+                        }
+                    }
                     if (!btnAll || !btnBus || !btnCoach) return;
                     
                     const activeCls = 'px-2.5 py-1 rounded-md text-[11px] font-bold border border-black bg-black text-white transition';
@@ -12953,15 +12961,18 @@ if (!decodedProvince || decodedProvince.trim() === '') {
                     if (btnCoach) btnCoach.className = val === 'coach' ? activeCls : inactiveCls;
 
                     const busFields = document.getElementById('route-edit-bus-profile-fields');
+                    const provContainer = document.getElementById('route-edit-province-container');
                     const nameLabel = document.getElementById('route-edit-name-label');
                     const nameInput = document.getElementById('route-edit-name');
 
                     if (val === 'coach') {
                         if (busFields) busFields.classList.add('hidden');
+                        if (provContainer) provContainer.classList.add('hidden');
                         if (nameLabel) nameLabel.innerHTML = 'Tên tuyến / Lộ trình <span class="text-red-500">*</span>';
                         if (nameInput) nameInput.placeholder = 'VD: Hà Nội - Hải Phòng, Sài Gòn - Vũng Tàu...';
                     } else {
                         if (busFields) busFields.classList.remove('hidden');
+                        if (provContainer) provContainer.classList.remove('hidden');
                         if (nameLabel) nameLabel.innerHTML = 'Số hiệu tuyến <span class="text-red-500">*</span>';
                         if (nameInput) nameInput.placeholder = 'VD: 01, 20B, BRT01...';
                     }
@@ -12983,20 +12994,26 @@ if (!decodedProvince || decodedProvince.trim() === '') {
                                     try { meta = JSON.parse(meta); } catch (e) { meta = {}; }
                                 }
                                 meta = meta || {};
+                                const isCoach = meta.vehicle_type === 'coach';
                                 let rNo = meta.route_no;
                                 let prov = meta.province;
-                                if (!rNo) {
-                                    rNo = rName.includes(' - ') ? rName.split(' - ')[0].trim() : rName;
-                                }
-                                if (!prov && rName.includes(' - ')) {
-                                    prov = rName.split(' - ').slice(1).join(' - ').trim();
+                                if (isCoach) {
+                                    rNo = rName;
+                                    prov = null;
+                                } else {
+                                    if (!rNo) {
+                                        rNo = rName.includes(' - ') ? rName.split(' - ')[0].trim() : rName;
+                                    }
+                                    if (!prov && rName.includes(' - ')) {
+                                        prov = rName.split(' - ').slice(1).join(' - ').trim();
+                                    }
                                 }
                                 const isSpecial = app.route.specialRoutes.includes(rNo) || app.route.specialRoutes.includes(rName);
                                 return {
                                     ...r,
                                     metadata: meta,
                                     route_no: rNo,
-                                    province: isSpecial ? null : (prov || null),
+                                    province: (isSpecial || isCoach) ? null : (prov || null),
                                     is_special: isSpecial
                                 };
                             });
@@ -13029,28 +13046,11 @@ if (!decodedProvince || decodedProvince.trim() === '') {
                                 if (seenCoachRoutes.has(key)) return;
                                 seenCoachRoutes.add(key);
 
-                                let prov = null;
-                                let rNo = raw;
-                                if (raw.includes(' - ')) {
-                                    const possibleProv = raw.split(' - ').slice(1).join(' - ').trim();
-                                    const matchedProv = app.utils.matchProvinceName ? app.utils.matchProvinceName(possibleProv) : null;
-                                    if (matchedProv) {
-                                        prov = matchedProv;
-                                        rNo = raw.split(' - ')[0].trim();
-                                    }
-                                }
-                                if (!prov && p.license_plate && app.utils.getProvinceFromPlate) {
-                                    const autoProv = app.utils.getProvinceFromPlate(p.license_plate);
-                                    if (autoProv && autoProv !== 'Không xác định' && autoProv !== 'Biển tạm') {
-                                        prov = autoProv;
-                                    }
-                                }
-
                                 routes.push({
                                     route_name: raw,
-                                    route_no: rNo,
-                                    province: prov || null,
-                                    short_path: raw.includes(' - ') ? raw : null,
+                                    route_no: raw,
+                                    province: null,
+                                    short_path: null,
                                     is_special: false,
                                     is_inactive: false,
                                     metadata: {
@@ -13127,8 +13127,10 @@ if (!decodedProvince || decodedProvince.trim() === '') {
                     // Xác định bộ lọc loại xe ban đầu và khóa chặt nếu là xe buýt hoặc xe khách
                     let vType = options.vehicleType;
                     if (!vType) {
-                        if (options.targetInputId === 'up-route' && app.upload && app.upload.selectedType) {
-                            vType = app.upload.selectedType;
+                        if (options.targetInputId === 'up-route') {
+                            vType = document.getElementById('up-type')?.value || (app.upload && app.upload.selectedType) || '';
+                        } else if (options.targetInputId === 'info-route') {
+                            vType = document.getElementById('info-type')?.value || '';
                         } else if (app.currentVehicle && app.currentVehicle.type) {
                             vType = app.currentVehicle.type;
                         } else if (app.currentPhoto && app.currentPhoto.type) {
@@ -13341,7 +13343,7 @@ if (!decodedProvince || decodedProvince.trim() === '') {
                         normalList = normalList.filter(r => r.route_name !== exclude && r.route_no !== exclude);
                     }
 
-                    if (prov) {
+                    if (prov && typeFilter !== 'coach') {
                         normalList = normalList.filter(r => r.province && r.province.toLowerCase() === prov.toLowerCase());
                     }
 
@@ -13608,8 +13610,10 @@ if (!decodedProvince || decodedProvince.trim() === '') {
                     }
 
                     const rName = targetRouteName || (app.route.currentProvince ? `${app.route.currentRoute} - ${app.route.currentProvince}` : app.route.currentRoute);
-                    let rNo = rName.split(' - ')[0].trim();
-                    let prov = targetProvince || (rName.includes(' - ') ? rName.split(' - ')[1].trim() : app.route.currentProvince);
+                    const cachedRouteMatch = (app.route.cachedRoutes || []).find(r => r.route_name === rName || r.route_no === rName);
+                    const isTargetCoach = cachedRouteMatch?.metadata?.vehicle_type === 'coach';
+                    let rNo = (!isTargetCoach && rName.includes(' - ')) ? rName.split(' - ')[0].trim() : rName;
+                    let prov = isTargetCoach ? '' : (targetProvince || (rName.includes(' - ') ? rName.split(' - ')[1].trim() : app.route.currentProvince));
 
                     if (app.route.specialRoutes.includes(rNo) || app.route.specialRoutes.includes(rName)) {
                         app.toast.show('error', 'Tuyến không có hồ sơ', `Tuyến "${rNo}" là tuyến trạng thái đặc biệt mặc định của hệ thống, không có hồ sơ riêng và không thể chỉnh sửa.`);
@@ -13648,8 +13652,6 @@ if (!decodedProvince || decodedProvince.trim() === '') {
                     if (btnTypeBus) { btnTypeBus.disabled = false; btnTypeBus.classList.remove('opacity-40', 'cursor-not-allowed'); }
                     if (btnTypeCoach) { btnTypeCoach.disabled = false; btnTypeCoach.classList.remove('opacity-40', 'cursor-not-allowed'); }
 
-                    const cachedRouteMatch = (app.route.cachedRoutes || []).find(r => r.route_name === rName || (r.route_no === rNo && (!r.province || r.province === prov)));
-                    const isTargetCoach = cachedRouteMatch?.metadata?.vehicle_type === 'coach';
                     app.route.setEditVehicleType(isTargetCoach ? 'coach' : 'bus');
 
                     app.route.selectEditProvince(prov || '');
@@ -13768,10 +13770,13 @@ if (!decodedProvince || decodedProvince.trim() === '') {
                     const wheelchairSupport = document.getElementById('route-edit-wheelchair')?.checked || false;
                     const borrowedPhotosStr = (document.getElementById('route-edit-borrowed')?.value || '').trim();
 
+                    const vehicleType = document.getElementById('route-edit-vehicle-type')?.value || 'bus';
+                    const isCoach = vehicleType === 'coach';
+
                     if (!routeNo) {
-                        return app.ui.showAlert("Vui lòng nhập Số hiệu tuyến xe.");
+                        return app.ui.showAlert(isCoach ? "Vui lòng nhập Tên tuyến / Lộ trình xe khách." : "Vui lòng nhập Số hiệu tuyến xe.");
                     }
-                    if (!province) {
+                    if (!isCoach && !province) {
                         return app.ui.showAlert("Vui lòng chọn Tỉnh / Thành phố cho tuyến xe.");
                     }
 
@@ -13780,18 +13785,18 @@ if (!decodedProvince || decodedProvince.trim() === '') {
                         return app.ui.showAlert(`Tên tuyến "${routeNo}" trùng với tuyến trạng thái đặc biệt mặc định của hệ thống và không được phép tạo mới.`);
                     }
 
-                    const routeName = `${routeNo} - ${province}`;
+                    const finalProvince = isCoach ? null : (province || null);
+                    const routeName = (isCoach || !finalProvince) ? routeNo : `${routeNo} - ${finalProvince}`;
 
                     // Nếu tạo mới HOẶC đổi số hiệu / tỉnh thành từ trang chi tiết, kiểm tra trùng lặp
                     if (!app.route.isEditingExisting || (app.route.editingOriginalRouteName && routeName !== app.route.editingOriginalRouteName)) {
                         const { data: exist } = await window.sb.from('route_info').select('route_name').eq('route_name', routeName).maybeSingle();
                         if (exist) {
-                            return app.ui.showAlert(`Tuyến "${routeName}" (Số hiệu ${routeNo} - Tỉnh ${province}) đã tồn tại trên hệ thống. Vui lòng chọn số hiệu hoặc tỉnh thành khác!`);
+                            return app.ui.showAlert(`Tuyến "${routeName}" đã tồn tại trên hệ thống. Vui lòng chọn lộ trình khác!`);
                         }
                     }
 
                     let metadata = {};
-                    const vehicleType = document.getElementById('route-edit-vehicle-type')?.value || 'bus';
                     metadata.vehicle_type = vehicleType;
 
                     let metadataObj = null;
@@ -13837,9 +13842,9 @@ if (!decodedProvince || decodedProvince.trim() === '') {
                             const { error: upsertErr } = await window.sb.from('route_info').upsert({
                                 route_name: routeName,
                                 route_no: routeNo,
-                                province: province,
-                                short_path: shortPath || null,
-                                description: desc || null,
+                                province: finalProvince,
+                                short_path: isCoach ? null : (shortPath || null),
+                                description: isCoach ? null : (desc || null),
                                 is_inactive: isInactive,
                                 is_special: false,
                                 metadata: metadataObj
@@ -13927,12 +13932,12 @@ if (!decodedProvince || decodedProvince.trim() === '') {
                                     old_route_name: app.route.isEditingExisting ? app.route.editingOriginalRouteName : null,
                                     route_name: routeName,
                                     route_no: routeNo,
-                                    province: province,
-                                    short_path: shortPath || null,
-                                    description: desc || null,
+                                    province: finalProvince,
+                                    short_path: isCoach ? null : (shortPath || null),
+                                    description: isCoach ? null : (desc || null),
                                     is_inactive: isInactive,
                                     metadata: metadataObj,
-                                    borrowed_photos_str: borrowedPhotosStr
+                                    borrowed_photos_str: isCoach ? '' : borrowedPhotosStr
                                 },
                                 status: 'pending'
                             };
@@ -14012,8 +14017,10 @@ if (!decodedProvince || decodedProvince.trim() === '') {
                     if (!app.user) return;
                     const deletingName = app.route.deletingRouteName;
                     if (!deletingName) return;
-                    const deletingNo = deletingName.split(' - ')[0].trim();
-                    const deletingProv = deletingName.includes(' - ') ? deletingName.split(' - ').slice(1).join(' - ').trim() : '';
+                    const cachedRoute = (app.route.cachedRoutes || []).find(r => r.route_name === deletingName);
+                    const isDelCoach = cachedRoute?.metadata?.vehicle_type === 'coach';
+                    const deletingNo = (!isDelCoach && deletingName.includes(' - ')) ? deletingName.split(' - ')[0].trim() : deletingName;
+                    const deletingProv = isDelCoach ? '' : (deletingName.includes(' - ') ? deletingName.split(' - ').slice(1).join(' - ').trim() : '');
 
                     const destRouteNo = (document.getElementById('del-route-dest-val')?.value || 'Ngoài giờ hoạt động').trim();
                     const destRouteName = (document.getElementById('del-route-dest-val')?.dataset.routeName || destRouteNo).trim();
@@ -15275,6 +15282,7 @@ Object.assign(window.app, {
                     app.upload.performSelectType(type);
                 },
                 performSelectType: (type) => {
+                    app.upload.selectedType = type;
                     document.getElementById('up-type').value = type;
                     document.getElementById('type-msg').classList.add('hidden');
                     const btnBus = document.getElementById('btn-type-bus');
@@ -16672,7 +16680,7 @@ Object.assign(window.app, {
                     const valType = document.getElementById('up-type')?.value || '';
                     const routeEl = document.getElementById('up-route');
                     let valRoute = (routeEl?.dataset?.routeName || routeEl?.value || '').trim();
-                    if (valRoute && !valRoute.includes(' - ') && (!app.route?.specialRoutes || !app.route.specialRoutes.includes(valRoute))) {
+                    if (valType !== 'coach' && valRoute && !valRoute.includes(' - ') && (!app.route?.specialRoutes || !app.route.specialRoutes.includes(valRoute))) {
                         const upProv = document.getElementById('up-province')?.value || (valPlate ? app.utils.getProvinceFromPlate(valPlate) : '');
                         if (upProv && upProv !== 'Không xác định' && upProv !== 'Biển tạm') {
                             valRoute = `${valRoute} - ${upProv}`;
@@ -19115,7 +19123,8 @@ Object.assign(window.app, {
                     btn.innerText = "Đang xử lý..."; btn.disabled = true;
                     const routeEl = document.getElementById('info-route');
                     let fullRouteName = (routeEl?.dataset?.routeName || routeEl?.value || '').trim();
-                    if (fullRouteName && !fullRouteName.includes(' - ') && (!app.route?.specialRoutes || !app.route.specialRoutes.includes(fullRouteName))) {
+                    const infoType = document.getElementById('info-type')?.value;
+                    if (infoType !== 'coach' && fullRouteName && !fullRouteName.includes(' - ') && (!app.route?.specialRoutes || !app.route.specialRoutes.includes(fullRouteName))) {
                         const provFromPlate = document.getElementById('info-plate')?.value ? app.utils.getProvinceFromPlate(document.getElementById('info-plate').value) : '';
                         if (provFromPlate && provFromPlate !== 'Không xác định' && provFromPlate !== 'Biển tạm') {
                             fullRouteName = `${fullRouteName} - ${provFromPlate}`;
@@ -19192,8 +19201,9 @@ Object.assign(window.app, {
                             }
                         }
                         const routeVal = (payload.route || '').trim();
-                        const routeNoVal = (routeVal && routeVal.includes(' - ')) ? routeVal.split(' - ')[0].trim() : routeVal;
-                        const borrowedVal = (routeVal && routeVal.includes(' - ')) ? routeVal : null;
+                        const isCoach = payload.type === 'coach';
+                        const routeNoVal = (!isCoach && routeVal && routeVal.includes(' - ')) ? routeVal.split(' - ')[0].trim() : routeVal;
+                        const borrowedVal = (!isCoach && routeVal && routeVal.includes(' - ')) ? routeVal : null;
                         if (app.role === 'admin' || app.role === 'manager') {
                             const { error: vError } = await window.sb.from('vehicles').upsert({
                                 license_plate: payload.license_plate,
@@ -24280,8 +24290,9 @@ if (cbQuality) newSubroles.push('quality_aud');
                             if (vError) throw vError;
                             if (req.new_data.photo_id) {
                                 const { data: oldP } = await window.sb.from('photos').select('license_plate, operator, route_no, taken_at').eq('id', req.new_data.photo_id).single();
-                                const finalRouteNo = (route && route.includes(' - ')) ? route.split(' - ')[0].trim() : route;
-                                const finalBorrowed = (route && route.includes(' - ')) ? route : (req.new_data?.borrowed_route || null);
+                                const isCoach = type === 'coach';
+                                const finalRouteNo = (!isCoach && route && route.includes(' - ')) ? route.split(' - ')[0].trim() : route;
+                                const finalBorrowed = (!isCoach && route && route.includes(' - ')) ? route : (!isCoach ? (req.new_data?.borrowed_route || null) : null);
                                 let updateObj = {
                                     license_plate: plate,
                                     note: note,
@@ -24366,8 +24377,11 @@ if (cbQuality) newSubroles.push('quality_aud');
                             if (headway) metadata.headway = headway;
                             if (wheelchairSupport) metadata.wheelchair_support = wheelchairSupport;
                             
-                            if (iconType !== 'default') {
-                                const expectedRouteNo = req.new_data.route_name.split(' - ')[0];
+                            const reqVehicleType = req.new_data?.metadata?.vehicle_type || req.new_data?.vehicle_type || 'bus';
+                            const isReqCoach = reqVehicleType === 'coach';
+
+                            if (iconType !== 'default' && !isReqCoach) {
+                                const expectedRouteNo = req.new_data.route_no || (!isReqCoach && req.new_data.route_name.includes(' - ') ? req.new_data.route_name.split(' - ')[0] : req.new_data.route_name);
                                 if (expectedRouteNo.length <= 5) {
                                     metadata.icon_type = iconType;
                                 } else {
@@ -24397,8 +24411,8 @@ if (cbQuality) newSubroles.push('quality_aud');
                                 if (Object.keys(metadataObj).length === 0) metadataObj = null;
                             }
                             
-                            const expectedRouteNo = req.new_data.route_no || (req.new_data.route_name.includes(' - ') ? req.new_data.route_name.split(' - ')[0].trim() : req.new_data.route_name);
-                            const targetProvince = req.new_data.province || (req.new_data.route_name.includes(' - ') ? req.new_data.route_name.split(' - ')[1].trim() : null);
+                            const expectedRouteNo = req.new_data.route_no || (!isReqCoach && req.new_data.route_name.includes(' - ') ? req.new_data.route_name.split(' - ')[0].trim() : req.new_data.route_name);
+                            const targetProvince = isReqCoach ? null : (req.new_data.province || (req.new_data.route_name.includes(' - ') ? req.new_data.route_name.split(' - ')[1].trim() : null));
 
                             if (!desc && !shortPath && !isInactive && !metadataObj) {
                                 const { error: delErr } = await window.sb.from('route_info').delete().eq('route_name', req.new_data.route_name);
@@ -24489,19 +24503,20 @@ if (cbQuality) newSubroles.push('quality_aud');
                             const iconEl = document.getElementById(`req-c-route-icon-${id}`);
                             const borrowedEl = document.getElementById(`req-c-route-borrowed-${id}`);
 
-                            const routeNo = routeNoEl ? routeNoEl.value.trim() : (d.route_no || (d.route_name.includes(' - ') ? d.route_name.split(' - ')[0].trim() : d.route_name));
-                            const province = provEl ? provEl.value.trim() : (d.province || (d.route_name.includes(' - ') ? d.route_name.split(' - ')[1].trim() : null));
                             const vehicleType = typeEl ? typeEl.value : (d.metadata?.vehicle_type || 'bus');
+                            const isCoach = vehicleType === 'coach';
+                            const routeNo = routeNoEl ? routeNoEl.value.trim() : (d.route_no || (!isCoach && d.route_name.includes(' - ') ? d.route_name.split(' - ')[0].trim() : d.route_name));
+                            const province = isCoach ? null : (provEl ? provEl.value.trim() : (d.province || (d.route_name.includes(' - ') ? d.route_name.split(' - ')[1].trim() : null)));
                             const isInactive = inactEl ? inactEl.checked : !!d.is_inactive;
-                            const shortPath = shortEl ? shortEl.value.trim() : (d.short_path || '');
-                            const desc = descEl ? descEl.value.trim() : (d.description || '');
-                            const ticketPrice = ticketEl ? ticketEl.value.trim() : (d.metadata?.ticket_price || '');
-                            const headway = headwayEl ? headwayEl.value.trim() : (d.metadata?.headway || '');
-                            const wheelchairSupport = wheelchairEl ? wheelchairEl.checked : !!d.metadata?.wheelchair_support;
-                            const iconType = iconEl ? iconEl.value : (d.metadata?.icon_type || 'default');
-                            const borrowedPhotosStr = borrowedEl ? borrowedEl.value.trim() : (d.borrowed_photos_str || '');
+                            const shortPath = isCoach ? null : (shortEl ? shortEl.value.trim() : (d.short_path || ''));
+                            const desc = isCoach ? null : (descEl ? descEl.value.trim() : (d.description || ''));
+                            const ticketPrice = isCoach ? '' : (ticketEl ? ticketEl.value.trim() : (d.metadata?.ticket_price || ''));
+                            const headway = isCoach ? '' : (headwayEl ? headwayEl.value.trim() : (d.metadata?.headway || ''));
+                            const wheelchairSupport = isCoach ? false : (wheelchairEl ? wheelchairEl.checked : !!d.metadata?.wheelchair_support);
+                            const iconType = isCoach ? 'default' : (iconEl ? iconEl.value : (d.metadata?.icon_type || 'default'));
+                            const borrowedPhotosStr = isCoach ? '' : (borrowedEl ? borrowedEl.value.trim() : (d.borrowed_photos_str || ''));
 
-                            const routeName = province ? `${routeNo} - ${province}` : routeNo;
+                            const routeName = (isCoach || !province) ? routeNo : `${routeNo} - ${province}`;
 
                             let metadata = {};
                             if (vehicleType) metadata.vehicle_type = vehicleType;
@@ -24552,8 +24567,9 @@ if (cbQuality) newSubroles.push('quality_aud');
                         else if (reqType === 'delete_route' || req.new_data?.request_type === 'delete_route') {
                             const d = req.new_data;
                             const deletingName = d.route_name;
-                            const deletingNo = d.route_no || deletingName.split(' - ')[0].trim();
-                            const deletingProv = d.province || (deletingName.includes(' - ') ? deletingName.split(' - ').slice(1).join(' - ').trim() : '');
+                            const isDelCoach = d.metadata?.vehicle_type === 'coach';
+                            const deletingNo = d.route_no || (!isDelCoach && deletingName.includes(' - ') ? deletingName.split(' - ')[0].trim() : deletingName);
+                            const deletingProv = isDelCoach ? '' : (d.province || (deletingName.includes(' - ') ? deletingName.split(' - ').slice(1).join(' - ').trim() : ''));
                             const destRouteNo = (d.dest_route_no || 'Ngoài giờ hoạt động').trim();
                             const destRouteName = (d.dest_route_name || destRouteNo).trim();
                             const newBorrowed = destRouteName !== destRouteNo ? destRouteName : null;

@@ -4202,8 +4202,9 @@ if (cbQuality) newSubroles.push('quality_aud');
                             if (vError) throw vError;
                             if (req.new_data.photo_id) {
                                 const { data: oldP } = await window.sb.from('photos').select('license_plate, operator, route_no, taken_at').eq('id', req.new_data.photo_id).single();
-                                const finalRouteNo = (route && route.includes(' - ')) ? route.split(' - ')[0].trim() : route;
-                                const finalBorrowed = (route && route.includes(' - ')) ? route : (req.new_data?.borrowed_route || null);
+                                const isCoach = type === 'coach';
+                                const finalRouteNo = (!isCoach && route && route.includes(' - ')) ? route.split(' - ')[0].trim() : route;
+                                const finalBorrowed = (!isCoach && route && route.includes(' - ')) ? route : (!isCoach ? (req.new_data?.borrowed_route || null) : null);
                                 let updateObj = {
                                     license_plate: plate,
                                     note: note,
@@ -4288,8 +4289,11 @@ if (cbQuality) newSubroles.push('quality_aud');
                             if (headway) metadata.headway = headway;
                             if (wheelchairSupport) metadata.wheelchair_support = wheelchairSupport;
                             
-                            if (iconType !== 'default') {
-                                const expectedRouteNo = req.new_data.route_name.split(' - ')[0];
+                            const reqVehicleType = req.new_data?.metadata?.vehicle_type || req.new_data?.vehicle_type || 'bus';
+                            const isReqCoach = reqVehicleType === 'coach';
+
+                            if (iconType !== 'default' && !isReqCoach) {
+                                const expectedRouteNo = req.new_data.route_no || (!isReqCoach && req.new_data.route_name.includes(' - ') ? req.new_data.route_name.split(' - ')[0] : req.new_data.route_name);
                                 if (expectedRouteNo.length <= 5) {
                                     metadata.icon_type = iconType;
                                 } else {
@@ -4319,8 +4323,8 @@ if (cbQuality) newSubroles.push('quality_aud');
                                 if (Object.keys(metadataObj).length === 0) metadataObj = null;
                             }
                             
-                            const expectedRouteNo = req.new_data.route_no || (req.new_data.route_name.includes(' - ') ? req.new_data.route_name.split(' - ')[0].trim() : req.new_data.route_name);
-                            const targetProvince = req.new_data.province || (req.new_data.route_name.includes(' - ') ? req.new_data.route_name.split(' - ')[1].trim() : null);
+                            const expectedRouteNo = req.new_data.route_no || (!isReqCoach && req.new_data.route_name.includes(' - ') ? req.new_data.route_name.split(' - ')[0].trim() : req.new_data.route_name);
+                            const targetProvince = isReqCoach ? null : (req.new_data.province || (req.new_data.route_name.includes(' - ') ? req.new_data.route_name.split(' - ')[1].trim() : null));
 
                             if (!desc && !shortPath && !isInactive && !metadataObj) {
                                 const { error: delErr } = await window.sb.from('route_info').delete().eq('route_name', req.new_data.route_name);
@@ -4411,19 +4415,20 @@ if (cbQuality) newSubroles.push('quality_aud');
                             const iconEl = document.getElementById(`req-c-route-icon-${id}`);
                             const borrowedEl = document.getElementById(`req-c-route-borrowed-${id}`);
 
-                            const routeNo = routeNoEl ? routeNoEl.value.trim() : (d.route_no || (d.route_name.includes(' - ') ? d.route_name.split(' - ')[0].trim() : d.route_name));
-                            const province = provEl ? provEl.value.trim() : (d.province || (d.route_name.includes(' - ') ? d.route_name.split(' - ')[1].trim() : null));
                             const vehicleType = typeEl ? typeEl.value : (d.metadata?.vehicle_type || 'bus');
+                            const isCoach = vehicleType === 'coach';
+                            const routeNo = routeNoEl ? routeNoEl.value.trim() : (d.route_no || (!isCoach && d.route_name.includes(' - ') ? d.route_name.split(' - ')[0].trim() : d.route_name));
+                            const province = isCoach ? null : (provEl ? provEl.value.trim() : (d.province || (d.route_name.includes(' - ') ? d.route_name.split(' - ')[1].trim() : null)));
                             const isInactive = inactEl ? inactEl.checked : !!d.is_inactive;
-                            const shortPath = shortEl ? shortEl.value.trim() : (d.short_path || '');
-                            const desc = descEl ? descEl.value.trim() : (d.description || '');
-                            const ticketPrice = ticketEl ? ticketEl.value.trim() : (d.metadata?.ticket_price || '');
-                            const headway = headwayEl ? headwayEl.value.trim() : (d.metadata?.headway || '');
-                            const wheelchairSupport = wheelchairEl ? wheelchairEl.checked : !!d.metadata?.wheelchair_support;
-                            const iconType = iconEl ? iconEl.value : (d.metadata?.icon_type || 'default');
-                            const borrowedPhotosStr = borrowedEl ? borrowedEl.value.trim() : (d.borrowed_photos_str || '');
+                            const shortPath = isCoach ? null : (shortEl ? shortEl.value.trim() : (d.short_path || ''));
+                            const desc = isCoach ? null : (descEl ? descEl.value.trim() : (d.description || ''));
+                            const ticketPrice = isCoach ? '' : (ticketEl ? ticketEl.value.trim() : (d.metadata?.ticket_price || ''));
+                            const headway = isCoach ? '' : (headwayEl ? headwayEl.value.trim() : (d.metadata?.headway || ''));
+                            const wheelchairSupport = isCoach ? false : (wheelchairEl ? wheelchairEl.checked : !!d.metadata?.wheelchair_support);
+                            const iconType = isCoach ? 'default' : (iconEl ? iconEl.value : (d.metadata?.icon_type || 'default'));
+                            const borrowedPhotosStr = isCoach ? '' : (borrowedEl ? borrowedEl.value.trim() : (d.borrowed_photos_str || ''));
 
-                            const routeName = province ? `${routeNo} - ${province}` : routeNo;
+                            const routeName = (isCoach || !province) ? routeNo : `${routeNo} - ${province}`;
 
                             let metadata = {};
                             if (vehicleType) metadata.vehicle_type = vehicleType;
@@ -4474,8 +4479,9 @@ if (cbQuality) newSubroles.push('quality_aud');
                         else if (reqType === 'delete_route' || req.new_data?.request_type === 'delete_route') {
                             const d = req.new_data;
                             const deletingName = d.route_name;
-                            const deletingNo = d.route_no || deletingName.split(' - ')[0].trim();
-                            const deletingProv = d.province || (deletingName.includes(' - ') ? deletingName.split(' - ').slice(1).join(' - ').trim() : '');
+                            const isDelCoach = d.metadata?.vehicle_type === 'coach';
+                            const deletingNo = d.route_no || (!isDelCoach && deletingName.includes(' - ') ? deletingName.split(' - ')[0].trim() : deletingName);
+                            const deletingProv = isDelCoach ? '' : (d.province || (deletingName.includes(' - ') ? deletingName.split(' - ').slice(1).join(' - ').trim() : ''));
                             const destRouteNo = (d.dest_route_no || 'Ngoài giờ hoạt động').trim();
                             const destRouteName = (d.dest_route_name || destRouteNo).trim();
                             const newBorrowed = destRouteName !== destRouteNo ? destRouteName : null;
