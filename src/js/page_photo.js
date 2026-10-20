@@ -568,7 +568,10 @@ Object.assign(window.app, {
                     app.edit.isEditing = !app.edit.isEditing;
                     if (app.edit.isEditing) {
                         formInputs.forEach(input => {
-                            if (input.tagName === 'SELECT') { input.disabled = false; } 
+                            if (input.tagName === 'SELECT') {
+                                input.classList.remove('pointer-events-none', 'appearance-none', 'bg-transparent', 'cursor-default');
+                                input.classList.add('cursor-pointer', 'bg-white');
+                            } 
                             else {
                                 if (input.id !== 'info-plate' && input.id !== 'info-date' && input.id !== 'info-route') input.readOnly = false;
                                 if (input.id === 'info-route') {
@@ -610,7 +613,10 @@ Object.assign(window.app, {
                 cancel: () => {
                     const formInputs = document.querySelectorAll('#inline-edit-form .info-input');
                     formInputs.forEach(input => {
-                        if (input.tagName === 'SELECT') input.disabled = true;
+                        if (input.tagName === 'SELECT') {
+                            input.classList.add('pointer-events-none', 'appearance-none', 'bg-transparent', 'cursor-default');
+                            input.classList.remove('cursor-pointer', 'bg-white');
+                        }
                         else {
                             input.readOnly = true;
                             if (input.id === 'info-route') {

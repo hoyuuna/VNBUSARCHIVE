@@ -268,6 +268,10 @@ polygon[fill="white"] { fill: #000000 !important; }
     display: none !important;
 }
 
+body.theme-dark input[type="date"]::-webkit-calendar-picker-indicator {
+    filter: invert(1);
+}
+
 /* Admin photo cards gray background fix */
 .bg-gray-50, .bg-gray-200 { background-color: #000000 !important; }
 

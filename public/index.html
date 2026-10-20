@@ -2188,7 +2188,7 @@ html.theme-dark .ct-icon {
             if (stored === 'system') {
                 theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
             }
-            document.write('<link rel="stylesheet" href="/css/' + theme + '.css?v=1792496583465" id="theme-css">');
+            document.write('<link rel="stylesheet" href="/css/' + theme + '.css?v=1792497390610" id="theme-css">');
             document.documentElement.classList.add('theme-' + theme);
             document.documentElement.style.backgroundColor = theme === 'dark' ? '#18181b' : '#fdfcf8';
         })();
@@ -3915,7 +3915,7 @@ html.theme-dark .ct-icon {
                                         </tr>
                                         <tr id="tr-info-date">
                                             <td class="label bg-gray-50 border-r border-b border-gray-200">Ngày chụp</td>
-                                            <td class="value-cell border-b border-gray-200"><input type="date" id="info-date" class="info-input text-gray-500 bg-gray-100 cursor-not-allowed" readonly disabled title="Ngày chụp đã bị khóa cố định, không thể chỉnh sửa"></td>
+                                            <td class="value-cell border-b border-gray-200"><input type="date" id="info-date" class="info-input text-gray-700 bg-transparent cursor-default pointer-events-none" readonly title="Ngày chụp"></td>
                                         </tr>
                                         <tr id="info-operator-row">
                                             <td class="label bg-gray-50 border-r border-b border-gray-200">Đơn vị vận hành</td>
@@ -3929,7 +3929,7 @@ html.theme-dark .ct-icon {
                                         <tr>
                                             <td class="label bg-gray-50 border-r border-b border-gray-200">Loại xe</td>
                                             <td class="value-cell border-b border-gray-200">
-                                                <select id="info-type" class="info-input text-gray-700" disabled>
+                                                <select id="info-type" class="info-input text-gray-700 bg-transparent cursor-default pointer-events-none appearance-none">
                                                     <option value="bus">Xe buýt</option>
                                                     <option value="coach">Xe khách</option>
                                                 </select>
@@ -5113,7 +5113,7 @@ html.theme-dark .ct-icon {
                                     <div class="relative w-full">
                                         <input type="text" id="up-route" readonly tabindex="3"
                                             placeholder="Nhấp để chọn tuyến xe..."
-                                            onclick="app.route.openSelector({ targetInputId: 'up-route', vehicleType: (app.upload && app.upload.selectedType) ? app.upload.selectedType : 'bus', selectedRoute: this.dataset.routeName || this.value, onSelect: (r) => { const rDisplay = (r.route_name && r.route_name !== r.route_no) ? r.route_name : r.route_no; document.getElementById('up-route').value = rDisplay; document.getElementById('up-route').dataset.routeName = rDisplay; document.getElementById('up-route').dataset.routeNo = r.route_no; app.utils.checkRouteStatus(r.route_no, 'up-operator', 'up-operator-wrapper'); if(app.upload && app.upload.autoFillOperatorByRoute) app.upload.autoFillOperatorByRoute(); } })"
+                                            onclick="app.route.openSelector({ targetInputId: 'up-route', vehicleType: (app.upload && app.upload.selectedType) ? app.upload.selectedType : 'bus', selectedRoute: this.dataset.routeName || this.value, onSelect: (r) => { const rDisplay = (r.route_name && r.route_name !== r.route_no) ? r.route_name : r.route_no; document.getElementById('up-route').value = r.route_no; document.getElementById('up-route').dataset.routeName = rDisplay; document.getElementById('up-route').dataset.routeNo = r.route_no; app.utils.checkRouteStatus(r.route_no, 'up-operator', 'up-operator-wrapper'); if(app.upload && app.upload.autoFillOperatorByRoute) app.upload.autoFillOperatorByRoute(); } })"
                                             class="w-full border border-gray-300 p-2.5 text-sm rounded-md focus:ring-2 focus:ring-black focus:border-transparent outline-none transition cursor-pointer bg-white">
                                     </div>
                                     <div id="up-route-quick" class="mt-2 flex flex-wrap gap-1.5">
@@ -7514,7 +7514,7 @@ html.theme-dark .ct-icon {
 
     <!-- KHAY CHỨA TOAST Z-INDEX CAO NHẤT -->
     <div id="toast-container" class="fixed left-0 w-full flex flex-col items-center gap-2 pointer-events-none z-[99999]" style="z-index: 99999 !important;"></div>
-<script src="/app.b530c399399a.js" onerror="if(!window.__app_fallback_loaded){window.__app_fallback_loaded=true;var s=document.createElement('script');s.src='/app.js?v=' + Date.now();document.head.appendChild(s);}"></script>
+<script src="/app.8d333bb6b526.js" onerror="if(!window.__app_fallback_loaded){window.__app_fallback_loaded=true;var s=document.createElement('script');s.src='/app.js?v=' + Date.now();document.head.appendChild(s);}"></script>
 </body>
 </html>
 

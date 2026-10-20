@@ -1156,21 +1156,30 @@ if (!decodedProvince || decodedProvince.trim() === '') {
                     if (app.route.cachedRoutes && !force) return app.route.cachedRoutes;
                     let routes = [];
                     try {
-                        const { data, error } = await window.sb.from('route_info').select('id, route_name, route_no, province, short_path, is_special, is_inactive, metadata').order('route_no', { ascending: true });
+                        const { data, error } = await window.sb
+                            .from('route_info')
+                            .select('route_name, short_path, is_inactive, metadata')
+                            .order('route_name', { ascending: true });
                         if (!error && data) {
                             routes = data.map(r => {
                                 const rName = r.route_name || '';
-                                let rNo = r.route_no;
-                                let prov = r.province;
+                                let meta = r.metadata;
+                                if (typeof meta === 'string') {
+                                    try { meta = JSON.parse(meta); } catch (e) { meta = {}; }
+                                }
+                                meta = meta || {};
+                                let rNo = meta.route_no;
+                                let prov = meta.province;
                                 if (!rNo) {
                                     rNo = rName.includes(' - ') ? rName.split(' - ')[0].trim() : rName;
                                 }
                                 if (!prov && rName.includes(' - ')) {
-                                    prov = rName.split(' - ')[1].trim();
+                                    prov = rName.split(' - ').slice(1).join(' - ').trim();
                                 }
-                                const isSpecial = r.is_special || app.route.specialRoutes.includes(rNo) || app.route.specialRoutes.includes(rName);
+                                const isSpecial = app.route.specialRoutes.includes(rNo) || app.route.specialRoutes.includes(rName);
                                 return {
                                     ...r,
+                                    metadata: meta,
                                     route_no: rNo,
                                     province: isSpecial ? null : (prov || null),
                                     is_special: isSpecial
@@ -1194,8 +1203,12 @@ if (!decodedProvince || decodedProvince.trim() === '') {
                         }
                     });
 
-                    // Lọc bỏ các tuyến thông thường không có tỉnh (tuyến rác/mồ côi)
-                    routes = routes.filter(r => r.is_special || (r.province && r.province.trim() !== ''));
+                    // Khử các tuyến rác trùng số hiệu không có tỉnh nếu đã có tuyến cùng số hiệu có tỉnh
+                    const hasProvWithSameNo = (r) => {
+                        if (r.province || r.is_special) return false;
+                        return routes.some(other => other !== r && other.route_no === r.route_no && other.province);
+                    };
+                    routes = routes.filter(r => !hasProvWithSameNo(r));
 
                     app.route.cachedRoutes = routes;
                     return routes;
@@ -1412,7 +1425,13 @@ if (!decodedProvince || decodedProvince.trim() === '') {
                     const isNormalSelected = (r) => {
                         if (!curSelected) return false;
                         const rName = (r.route_name || '').toLowerCase();
-                        return rName === curSelected;
+                        const rNo = (r.route_no || '').toLowerCase();
+                        if (rName === curSelected) return true;
+                        if (rNo === curSelected) {
+                            if (!app.route.selectorContextProvince) return true;
+                            if (r.province && r.province.toLowerCase() === app.route.selectorContextProvince.toLowerCase()) return true;
+                        }
+                        return false;
                     };
                     const selectedNormal = normalList.filter(r => isNormalSelected(r));
                     const unselectedNormal = normalList.filter(r => !isNormalSelected(r));
@@ -1530,7 +1549,7 @@ if (!decodedProvince || decodedProvince.trim() === '') {
                     if (targetId) {
                         const targetEl = document.getElementById(targetId);
                         if (targetEl) {
-                            targetEl.value = selectedDisplayName;
+                            targetEl.value = routeNo;
                             targetEl.dataset.routeName = selectedDisplayName;
                             targetEl.dataset.routeNo = routeNo;
                             targetEl.dispatchEvent(new Event('change', { bubbles: true }));

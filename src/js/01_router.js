@@ -277,7 +277,7 @@ Object.assign(window.app, {
                                 selectedRoute: this.dataset.routeName || this.value,
                                 onSelect: (r) => {
                                     const rDisplay = (r.route_name && r.route_name !== r.route_no) ? r.route_name : r.route_no;
-                                    document.getElementById('info-route').value = rDisplay;
+                                    document.getElementById('info-route').value = r.route_no;
                                     document.getElementById('info-route').dataset.routeName = rDisplay;
                                     document.getElementById('info-route').dataset.routeNo = r.route_no;
                                     app.utils.checkRouteStatus(r.route_no, 'info-operator', 'info-operator-row');
