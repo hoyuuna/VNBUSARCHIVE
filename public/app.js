@@ -1920,21 +1920,38 @@ closeCustomRolePrompt: () => {
                         ctx.restore();
                     };
                     
+                    const isDark = document.documentElement.classList.contains('theme-dark') || 
+                                   document.body.classList.contains('theme-dark');
+                    
                     if (mode === 'luma') {
                         const smoothed = smoothBins(data.lumaBins);
-                        const grad = ctx.createLinearGradient(0, 0, 0, h);
-                        grad.addColorStop(0, 'rgba(255, 255, 255, 0.7)');
-                        grad.addColorStop(0.6, 'rgba(210, 210, 210, 0.35)');
-                        grad.addColorStop(1, 'rgba(160, 160, 160, 0.08)');
-                        drawCurve(smoothed, grad, '#ffffff');
+                        if (isDark) {
+                            const grad = ctx.createLinearGradient(0, 0, 0, h);
+                            grad.addColorStop(0, 'rgba(255, 255, 255, 0.7)');
+                            grad.addColorStop(0.6, 'rgba(210, 210, 210, 0.35)');
+                            grad.addColorStop(1, 'rgba(160, 160, 160, 0.08)');
+                            drawCurve(smoothed, grad, '#ffffff');
+                        } else {
+                            const grad = ctx.createLinearGradient(0, 0, 0, h);
+                            grad.addColorStop(0, 'rgba(24, 24, 27, 0.75)');
+                            grad.addColorStop(0.6, 'rgba(63, 63, 70, 0.35)');
+                            grad.addColorStop(1, 'rgba(161, 161, 170, 0.08)');
+                            drawCurve(smoothed, grad, '#18181b');
+                        }
                     } else {
                         const rSmooth = smoothBins(data.rBins);
                         const gSmooth = smoothBins(data.gBins);
                         const bSmooth = smoothBins(data.bBins);
                         
-                        drawCurve(rSmooth, 'rgba(239, 68, 68, 0.4)', '#ef4444', 'screen');
-                        drawCurve(gSmooth, 'rgba(34, 197, 94, 0.4)', '#22c55e', 'screen');
-                        drawCurve(bSmooth, 'rgba(59, 130, 246, 0.4)', '#3b82f6', 'screen');
+                        if (isDark) {
+                            drawCurve(rSmooth, 'rgba(239, 68, 68, 0.4)', '#ef4444', 'screen');
+                            drawCurve(gSmooth, 'rgba(34, 197, 94, 0.4)', '#22c55e', 'screen');
+                            drawCurve(bSmooth, 'rgba(59, 130, 246, 0.4)', '#3b82f6', 'screen');
+                        } else {
+                            drawCurve(rSmooth, 'rgba(220, 38, 38, 0.35)', '#dc2626', 'multiply');
+                            drawCurve(gSmooth, 'rgba(22, 163, 74, 0.35)', '#16a34a', 'multiply');
+                            drawCurve(bSmooth, 'rgba(37, 99, 235, 0.35)', '#2563eb', 'multiply');
+                        }
                     }
                 },
                 handleImgLoad: (img) => {
@@ -14334,7 +14351,16 @@ Object.assign(window.app, {
                     app.wmState.scale = scaleVal / 100;
                     const valEl = document.getElementById('wm-scale-val');
                     if (valEl) valEl.innerText = scaleVal + '%';
+                    const slider = document.getElementById('wm-scale-slider');
+                    if (slider && parseInt(slider.value, 10) !== scaleVal) slider.value = scaleVal;
                     if (app.upload.clampWmPosition) app.upload.clampWmPosition();
+                },
+                stepWmScale: (delta) => {
+                    const slider = document.getElementById('wm-scale-slider');
+                    let current = slider ? (parseInt(slider.value, 10) || 100) : ((app.wmState && app.wmState.scale !== undefined) ? Math.round(app.wmState.scale * 100) : 100);
+                    let nextVal = Math.min(100, Math.max(50, current + delta));
+                    if (slider) slider.value = nextVal;
+                    app.upload.updateWmScale(nextVal);
                 },
                 updateWmBarScale: (val) => {
                     const barScaleVal = parseInt(val, 10) || 100;
@@ -14342,6 +14368,8 @@ Object.assign(window.app, {
                     app.wmState.barScale = barScaleVal / 100;
                     const valEl = document.getElementById('wm-bar-scale-val');
                     if (valEl) valEl.innerText = barScaleVal + '%';
+                    const slider = document.getElementById('wm-bar-scale-slider');
+                    if (slider && parseInt(slider.value, 10) !== barScaleVal) slider.value = barScaleVal;
                     try { localStorage.setItem('vnbus_wm_bar_scale', barScaleVal.toString()); } catch(e){}
                     if (!app.upload.debouncedSaveWmPrefs) {
                         app.upload.debouncedSaveWmPrefs = app.utils.debounce(() => {
@@ -14351,6 +14379,13 @@ Object.assign(window.app, {
                     app.upload.debouncedSaveWmPrefs();
                     if (app.previewUpdateSize) app.previewUpdateSize();
                     if (app.upload.clampWmPosition) app.upload.clampWmPosition();
+                },
+                stepWmBarScale: (delta) => {
+                    const slider = document.getElementById('wm-bar-scale-slider');
+                    let current = slider ? (parseInt(slider.value, 10) || 100) : ((app.wmState && app.wmState.barScale !== undefined) ? Math.round(app.wmState.barScale * 100) : 100);
+                    let nextVal = Math.min(150, Math.max(50, current + delta));
+                    if (slider) slider.value = nextVal;
+                    app.upload.updateWmBarScale(nextVal);
                 },
                 clampWmPosition: () => {
                     const el = document.getElementById('draggable-watermark');
@@ -19224,48 +19259,48 @@ Object.assign(window.app, {
 
                         // 1. Cháy sáng thân xe vs Cháy sáng bầu trời
                         if (centerHighlightPct > 4.5 || (centerLuma > 165 && data.highlightPercent > 5.0)) {
-                            lightIssues.push("Cháy sáng thân xe (mất chi tiết tem / BKS)");
+                            lightIssues.push("Cháy sáng thân xe");
                             if (centerHighlightPct > 8.0 || centerLuma > 185) isSevere = true;
                         } else if (data.highlightPercent > 3.5) {
-                            lightIssues.push("Cháy sáng vùng trời / hậu cảnh (chủ thể xe vẫn rõ)");
+                            lightIssues.push("Cháy sáng vùng trời / hậu cảnh");
                         }
 
                         // 2. Cháy tối thân xe vs Vùng tối tự nhiên của lốp xe/mặt đường
                         if (centerShadowPct > 18.0 || data.shadowPercent > 22.0) {
-                            lightIssues.push("Cháy tối thân xe (mất chi tiết vùng tối)");
+                            lightIssues.push("Cháy tối thân xe");
                             if (centerShadowPct > 30.0 || data.shadowPercent > 32.0) isSevere = true;
                         }
 
                         // 3. Ảnh ngược sáng (Backlit)
                         const isBacklit = (centerLuma < 85 || p50 < 82) && (topLuma > 165 || highlightZonePct > 7) && (shadowZonePct > 1.3 * midZonePct);
                         if (isBacklit) {
-                            lightIssues.push("Ảnh bị ngược sáng (thân xe tối, hậu cảnh sáng)");
+                            lightIssues.push("Ảnh bị ngược sáng");
                             if (centerLuma < 65 || p50 < 68) isSevere = true;
                         } else if (centerLuma < 75 && shadowZonePct > 50 && highlightZonePct <= 7) {
                             // 4. Thiếu sáng tổng thể
-                            lightIssues.push("Ảnh thiếu sáng (thân xe bị chìm vào bóng tối)");
+                            lightIssues.push("Ảnh thiếu sáng");
                             if (centerLuma < 58 || p50 < 60) isSevere = true;
                         } else if (avgPct < 28 && data.shadowPercent <= 16.0) {
-                            lightIssues.push("Tổng thể ảnh hơi tối");
+                            lightIssues.push("Ảnh tối");
                         }
 
-                        // 5. Quá sáng / bạc màu
+                        // 5. Quá sáng
                         if (centerLuma > 158 && highlightZonePct > 35 && data.highlightPercent <= 3.5) {
-                            lightIssues.push("Tổng thể ảnh bị dư sáng / bạc màu");
+                            lightIssues.push("Ảnh quá sáng");
                         }
 
                         // 6. Chênh sáng gắt / bóng đổ sâu (Chụp trưa nắng gắt)
                         if (highlightZonePct > 20 && shadowZonePct > 32 && midZonePct < 30) {
-                            lightIssues.push("Chênh sáng gắt / bóng đổ sâu (nắng gắt)");
+                            lightIssues.push("Độ tương phản gắt");
                         }
 
                         // 7. Đục mờ / thiếu tương phản (Thời tiết mù / mưa)
                         if (shadowZonePct < 8 && highlightZonePct < 8 && dynamicSpan < 85) {
-                            lightIssues.push("Ảnh đục mờ / thiếu tương phản (thời tiết mù)");
+                            lightIssues.push("Thiếu tương phản");
                         }
 
                         if (lightIssues.length === 0) {
-                            diagEl.innerHTML = `<span class="inline-flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400"><i class="fa-solid fa-circle-check"></i> Ánh sáng: Đo sáng tốt, rõ chi tiết xe</span>`;
+                            diagEl.innerHTML = `<span class="inline-flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400"><i class="fa-solid fa-circle-check"></i> Ánh sáng: Đo sáng tốt</span>`;
                         } else if (isSevere) {
                             diagEl.innerHTML = `<span class="inline-flex items-center gap-1.5 text-red-600 dark:text-red-400"><i class="fa-solid fa-circle-exclamation"></i> Ánh sáng: ${app.utils.escapeHtml(lightIssues.join(' • '))}</span>`;
                         } else {
@@ -19293,36 +19328,36 @@ Object.assign(window.app, {
                         // Giúp không bị đánh lừa bởi màu sơn đặc trưng của xe (VinBus xanh lá, Phương Trang cam, Hanoibus đỏ-vàng...)
                         if (neutralPixels > 300) {
                             if (neutralDiffRB > 22 && neutralDiffGB > 10) {
-                                colorIssues.push("Ảnh bị ám vàng / nóng màu");
+                                colorIssues.push("Ám vàng / nóng màu");
                             } else if (neutralDiffBR > 20) {
-                                colorIssues.push("Ảnh bị ám xanh / lạnh màu");
+                                colorIssues.push("Ám xanh / lạnh màu");
                             } else if (neutralDiffRG > 18 && neutralDiffBR > 12) {
-                                colorIssues.push("Ảnh bị ám tím / hồng");
+                                colorIssues.push("Ám tím / hồng");
                             } else if (neutralDiffGR > 18 && neutralDiffGB > 12) {
-                                colorIssues.push("Ảnh bị ám xanh lá");
+                                colorIssues.push("Ám xanh lá");
                             }
                         } else {
                             // Dự phòng khi ảnh không đủ điểm ảnh trung tính (dùng ngưỡng lệch lớn để không báo nhầm màu sơn xe)
                             if ((avgR - avgB) > 36 && (avgG - avgB) > 18) {
-                                colorIssues.push("Ảnh bị ám vàng / nóng màu");
+                                colorIssues.push("Ám vàng / nóng màu");
                             } else if ((avgB - avgR) > 32) {
-                                colorIssues.push("Ảnh bị ám xanh / lạnh màu");
+                                colorIssues.push("Ám xanh / lạnh màu");
                             } else if ((avgG - avgR) > 32 && (avgG - avgB) > 22) {
-                                colorIssues.push("Ảnh bị ám xanh lá");
+                                colorIssues.push("Ám xanh lá");
                             }
                         }
 
                         // 2. Phân tích Bệt màu & Độ tươi (Saturation & Channel Clipping)
                         if (channelClipR > 4.0 || channelClipG > 4.0 || channelClipB > 4.0) {
-                            colorIssues.push("Màu sắc bị bệt / mất khối chi tiết sơn xe");
+                            colorIssues.push("Bệt màu");
                         } else if (avgSat > 52) {
-                            colorIssues.push("Màu sắc quá rực, dễ bệt màu sơn xe");
+                            colorIssues.push("Quá rực màu");
                         } else if (avgSat < 10) {
-                            colorIssues.push("Màu sắc nhợt nhạt, thiếu độ tươi");
+                            colorIssues.push("Nhợt nhạt");
                         }
 
                         if (colorIssues.length === 0) {
-                            colorDiagEl.innerHTML = `<span class="inline-flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400"><i class="fa-solid fa-circle-check"></i> Màu sắc: Cân bằng trắng chuẩn, màu sắc tự nhiên</span>`;
+                            colorDiagEl.innerHTML = `<span class="inline-flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400"><i class="fa-solid fa-circle-check"></i> Màu sắc: Cân bằng tốt</span>`;
                         } else {
                             colorDiagEl.innerHTML = `<span class="inline-flex items-center gap-1.5 text-amber-600 dark:text-amber-400"><i class="fa-solid fa-triangle-exclamation"></i> Màu sắc: ${app.utils.escapeHtml(colorIssues.join(' • '))}</span>`;
                         }
@@ -19474,13 +19509,13 @@ Object.assign(window.app, {
                                                         <button type="button" onclick="app.admin.switchHistogramMode('${p.id}', 'rgb')" id="adm-hist-btn-rgb-${p.id}" class="text-[10px] font-bold px-2 py-0.5 rounded border border-black dark:border-white bg-white text-black dark:bg-black dark:text-white hover:bg-gray-100 dark:hover:bg-gray-800 transition">RGB</button>
                                                     </div>
                                                 </div>
-                                                <div class="relative w-full h-24 bg-[#111113] rounded border border-black dark:border-zinc-700 overflow-hidden flex items-center justify-center">
+                                                <div class="hist-canvas-box relative w-full h-24 bg-white dark:bg-[#111113] rounded border border-black dark:border-zinc-700 overflow-hidden flex items-center justify-center">
                                                     <canvas id="adm-hist-canvas-${p.id}" width="512" height="180" class="w-full h-full block"></canvas>
                                                     <div class="absolute inset-0 pointer-events-none flex justify-between px-[25%] opacity-20">
-                                                        <div class="w-px h-full bg-white border-r border-dashed border-white"></div>
-                                                        <div class="w-px h-full bg-white border-r border-dashed border-white"></div>
+                                                        <div class="hist-grid-line w-px h-full bg-black dark:bg-white border-r border-dashed border-black dark:border-white"></div>
+                                                        <div class="hist-grid-line w-px h-full bg-black dark:bg-white border-r border-dashed border-black dark:border-white"></div>
                                                     </div>
-                                                    <div id="adm-hist-loading-${p.id}" class="absolute inset-0 bg-[#111113]/80 flex items-center justify-center text-xs text-gray-400">
+                                                    <div id="adm-hist-loading-${p.id}" class="hist-loading-overlay absolute inset-0 bg-white/80 dark:bg-[#111113]/80 flex items-center justify-center text-xs text-gray-500 dark:text-gray-400">
                                                         <i class="fa-solid fa-spinner fa-spin mr-1.5"></i> Đang phân tích sáng...
                                                     </div>
                                                 </div>

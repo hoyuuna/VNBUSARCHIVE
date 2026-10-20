@@ -584,6 +584,24 @@ html.theme-dark #histogram-panel {
     border: 1px solid #ffffff !important;
     background-color: #000000 !important;
 }
+.hist-canvas-box,
+body.theme-dark .hist-canvas-box,
+html.theme-dark .hist-canvas-box {
+    border: 1px solid #3f3f46 !important;
+    background-color: #111113 !important;
+}
+.hist-grid-line,
+body.theme-dark .hist-grid-line,
+html.theme-dark .hist-grid-line {
+    background-color: #ffffff !important;
+    border-color: #ffffff !important;
+}
+.hist-loading-overlay,
+body.theme-dark .hist-loading-overlay,
+html.theme-dark .hist-loading-overlay {
+    background-color: rgba(17, 17, 19, 0.8) !important;
+    color: #9ca3af !important;
+}
 .admin-hist-stat-item,
 body.theme-dark .admin-hist-stat-item,
 html.theme-dark .admin-hist-stat-item {

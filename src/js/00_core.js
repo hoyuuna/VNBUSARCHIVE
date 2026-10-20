@@ -1918,21 +1918,38 @@ closeCustomRolePrompt: () => {
                         ctx.restore();
                     };
                     
+                    const isDark = document.documentElement.classList.contains('theme-dark') || 
+                                   document.body.classList.contains('theme-dark');
+                    
                     if (mode === 'luma') {
                         const smoothed = smoothBins(data.lumaBins);
-                        const grad = ctx.createLinearGradient(0, 0, 0, h);
-                        grad.addColorStop(0, 'rgba(255, 255, 255, 0.7)');
-                        grad.addColorStop(0.6, 'rgba(210, 210, 210, 0.35)');
-                        grad.addColorStop(1, 'rgba(160, 160, 160, 0.08)');
-                        drawCurve(smoothed, grad, '#ffffff');
+                        if (isDark) {
+                            const grad = ctx.createLinearGradient(0, 0, 0, h);
+                            grad.addColorStop(0, 'rgba(255, 255, 255, 0.7)');
+                            grad.addColorStop(0.6, 'rgba(210, 210, 210, 0.35)');
+                            grad.addColorStop(1, 'rgba(160, 160, 160, 0.08)');
+                            drawCurve(smoothed, grad, '#ffffff');
+                        } else {
+                            const grad = ctx.createLinearGradient(0, 0, 0, h);
+                            grad.addColorStop(0, 'rgba(24, 24, 27, 0.75)');
+                            grad.addColorStop(0.6, 'rgba(63, 63, 70, 0.35)');
+                            grad.addColorStop(1, 'rgba(161, 161, 170, 0.08)');
+                            drawCurve(smoothed, grad, '#18181b');
+                        }
                     } else {
                         const rSmooth = smoothBins(data.rBins);
                         const gSmooth = smoothBins(data.gBins);
                         const bSmooth = smoothBins(data.bBins);
                         
-                        drawCurve(rSmooth, 'rgba(239, 68, 68, 0.4)', '#ef4444', 'screen');
-                        drawCurve(gSmooth, 'rgba(34, 197, 94, 0.4)', '#22c55e', 'screen');
-                        drawCurve(bSmooth, 'rgba(59, 130, 246, 0.4)', '#3b82f6', 'screen');
+                        if (isDark) {
+                            drawCurve(rSmooth, 'rgba(239, 68, 68, 0.4)', '#ef4444', 'screen');
+                            drawCurve(gSmooth, 'rgba(34, 197, 94, 0.4)', '#22c55e', 'screen');
+                            drawCurve(bSmooth, 'rgba(59, 130, 246, 0.4)', '#3b82f6', 'screen');
+                        } else {
+                            drawCurve(rSmooth, 'rgba(220, 38, 38, 0.35)', '#dc2626', 'multiply');
+                            drawCurve(gSmooth, 'rgba(22, 163, 74, 0.35)', '#16a34a', 'multiply');
+                            drawCurve(bSmooth, 'rgba(37, 99, 235, 0.35)', '#2563eb', 'multiply');
+                        }
                     }
                 },
                 handleImgLoad: (img) => {

@@ -2169,7 +2169,7 @@ html.theme-dark .ct-icon {
             if (stored === 'system') {
                 theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
             }
-            document.write('<link rel="stylesheet" href="/css/' + theme + '.css?v=1792423911173" id="theme-css">');
+            document.write('<link rel="stylesheet" href="/css/' + theme + '.css?v=1792474244033" id="theme-css">');
             document.documentElement.classList.add('theme-' + theme);
             document.documentElement.style.backgroundColor = theme === 'dark' ? '#18181b' : '#fdfcf8';
         })();
@@ -2519,23 +2519,26 @@ html.theme-dark .ct-icon {
                         </div>
                         <div id="crop-rotate-controls" class="hidden flex-nowrap gap-2 sm:gap-4 w-full items-center">
                             <div class="flex items-center gap-1 sm:gap-2 flex-1">
-                                <button type="button" onclick="app.crop.stepRotate(-0.5)" class="w-7 h-7 sm:w-8 sm:h-8 shrink-0 flex items-center justify-center text-xs bg-white text-gray-700 border border-gray-300 rounded-md hover:bg-gray-100 font-bold transition" title="Nhích trái 0.5 độ">
+                                <button type="button" onclick="app.crop.stepRotate(-0.5)" class="w-7 h-7 sm:w-8 sm:h-8 shrink-0 flex items-center justify-center text-xs bg-white text-gray-700 border border-gray-300 rounded-md hover:bg-gray-100 font-bold transition shadow-sm active:scale-95" title="Nhích trái 0.5 độ">
                                     <i class="fa-solid fa-minus"></i>
                                 </button>
                                 <div class="flex flex-col items-center justify-center px-1 flex-1">
-                                    <div class="flex justify-between w-full text-[10px] font-bold text-gray-500 mb-1">
-                                        <span>-45°</span>
+                                    <div class="flex justify-between items-center w-full text-[10px] font-bold text-gray-500 mb-1">
                                         <span id="crop-rotate-val" data-slider="crop-rotate-slider" data-unit="°" class="cursor-pointer hover:border-black dark:hover:border-white transition-colors select-none text-[10px] font-mono font-bold text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded border border-gray-200" title="Nhấp để nhập góc xoay">0°</span>
-                                        <span>+45°</span>
+                                        <div class="flex items-center gap-1.5 font-mono">
+                                            <span>-45°</span>
+                                            <span>/</span>
+                                            <span>+45°</span>
+                                        </div>
                                     </div>
                                     <input type="range" id="crop-rotate-slider" min="-45" max="45" step="0.5" value="0" class="vnbus-slider w-full" oninput="app.crop.slideRotate(this.value)" onchange="app.crop.pushHistory()">
                                 </div>
-                                <button type="button" onclick="app.crop.stepRotate(0.5)" class="w-7 h-7 sm:w-8 sm:h-8 shrink-0 flex items-center justify-center text-xs bg-white text-gray-700 border border-gray-300 rounded-md hover:bg-gray-100 font-bold transition" title="Nhích phải 0.5 độ">
+                                <button type="button" onclick="app.crop.stepRotate(0.5)" class="w-7 h-7 sm:w-8 sm:h-8 shrink-0 flex items-center justify-center text-xs bg-white text-gray-700 border border-gray-300 rounded-md hover:bg-gray-100 font-bold transition shadow-sm active:scale-95" title="Nhích phải 0.5 độ">
                                     <i class="fa-solid fa-plus"></i>
                                 </button>
                             </div>
 
-                            <button type="button" onclick="app.crop.rotateBy(90)" class="w-7 h-7 sm:w-8 sm:h-8 shrink-0 flex items-center justify-center text-xs bg-white text-gray-700 border border-gray-300 rounded-md hover:bg-gray-100 font-bold transition" title="Xoay 90 độ">
+                            <button type="button" onclick="app.crop.rotateBy(90)" class="w-7 h-7 sm:w-8 sm:h-8 shrink-0 flex items-center justify-center text-xs bg-white text-gray-700 border border-gray-300 rounded-md hover:bg-gray-100 font-bold transition shadow-sm active:scale-95" title="Xoay 90 độ">
                                 <i class="fa-solid fa-rotate-right"></i>
                             </button>
                         </div>
@@ -4922,13 +4925,13 @@ html.theme-dark .ct-icon {
                                         </div>
                                     </div>
 
-                                    <div class="relative w-full h-32 bg-[#111113] rounded border border-black dark:border-zinc-700 overflow-hidden flex items-center justify-center">
+                                    <div class="hist-canvas-box relative w-full h-32 bg-white dark:bg-[#111113] rounded border border-black dark:border-zinc-700 overflow-hidden flex items-center justify-center">
                                         <canvas id="up-hist-canvas" width="512" height="180" class="w-full h-full block"></canvas>
                                         <div class="absolute inset-0 pointer-events-none flex justify-between px-[25%] opacity-20">
-                                            <div class="w-px h-full bg-white border-r border-dashed border-white"></div>
-                                            <div class="w-px h-full bg-white border-r border-dashed border-white"></div>
+                                            <div class="hist-grid-line w-px h-full bg-black dark:bg-white border-r border-dashed border-black dark:border-white"></div>
+                                            <div class="hist-grid-line w-px h-full bg-black dark:bg-white border-r border-dashed border-black dark:border-white"></div>
                                         </div>
-                                        <div id="up-hist-loading" class="absolute inset-0 bg-[#111113]/80 flex items-center justify-center text-xs text-gray-400">
+                                        <div id="up-hist-loading" class="hist-loading-overlay absolute inset-0 bg-white/80 dark:bg-[#111113]/80 flex items-center justify-center text-xs text-gray-500 dark:text-gray-400">
                                             <i class="fa-solid fa-spinner fa-spin mr-1.5"></i> Đang phân tích sáng...
                                         </div>
                                     </div>
@@ -5012,8 +5015,15 @@ html.theme-dark .ct-icon {
                                                     <label class="text-[11px] font-bold text-gray-700 uppercase tracking-wider">Kích thước dấu chìm tên</label>
                                                     <span id="wm-scale-val" data-slider="wm-scale-slider" data-unit="%" class="cursor-pointer hover:border-black dark:hover:border-white transition-colors select-none text-[10px] font-mono font-bold text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded border border-gray-200" title="Nhấp để nhập kích thước">100%</span>
                                                 </div>
-                                                <input type="range" id="wm-scale-slider" min="50" max="100" value="100" class="vnbus-slider" oninput="app.upload.updateWmScale(this.value)" onmousedown="event.stopPropagation()" ontouchstart="event.stopPropagation()">
-                                                <div class="flex justify-between text-[10px] text-gray-400 font-bold px-1 mt-1"><span>50%</span><span>75%</span><span>100%</span></div>
+                                                <div class="flex items-center gap-2">
+                                                    <button type="button" onclick="app.upload.stepWmScale(-5)" class="w-7 h-7 sm:w-8 sm:h-8 shrink-0 flex items-center justify-center text-xs bg-white text-gray-700 border border-gray-300 rounded-md hover:bg-gray-100 font-bold transition shadow-sm active:scale-95" title="Giảm kích thước 5%">
+                                                        <i class="fa-solid fa-minus"></i>
+                                                    </button>
+                                                    <input type="range" id="wm-scale-slider" min="50" max="100" value="100" class="vnbus-slider flex-1 min-w-0" oninput="app.upload.updateWmScale(this.value)" onmousedown="event.stopPropagation()" ontouchstart="event.stopPropagation()">
+                                                    <button type="button" onclick="app.upload.stepWmScale(5)" class="w-7 h-7 sm:w-8 sm:h-8 shrink-0 flex items-center justify-center text-xs bg-white text-gray-700 border border-gray-300 rounded-md hover:bg-gray-100 font-bold transition shadow-sm active:scale-95" title="Tăng kích thước 5%">
+                                                        <i class="fa-solid fa-plus"></i>
+                                                    </button>
+                                                </div>
                                             </div>
                                         </div>
 
@@ -5023,8 +5033,15 @@ html.theme-dark .ct-icon {
                                                 <label class="text-[11px] font-bold text-gray-700 uppercase tracking-wider">Kích thước dấu chìm dưới</label>
                                                 <span id="wm-bar-scale-val" data-slider="wm-bar-scale-slider" data-unit="%" class="cursor-pointer hover:border-black dark:hover:border-white transition-colors select-none text-[10px] font-mono font-bold text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded border border-gray-200" title="Nhấp để nhập kích thước">100%</span>
                                             </div>
-                                            <input type="range" id="wm-bar-scale-slider" min="50" max="150" step="50" value="100" class="vnbus-slider" oninput="app.upload.updateWmBarScale(this.value)" onmousedown="event.stopPropagation()" ontouchstart="event.stopPropagation()">
-                                            <div class="flex justify-between text-[10px] text-gray-400 font-bold px-1 mt-1"><span>50%</span><span>100%</span><span>150%</span></div>
+                                            <div class="flex items-center gap-2">
+                                                <button type="button" onclick="app.upload.stepWmBarScale(-10)" class="w-7 h-7 sm:w-8 sm:h-8 shrink-0 flex items-center justify-center text-xs bg-white text-gray-700 border border-gray-300 rounded-md hover:bg-gray-100 font-bold transition shadow-sm active:scale-95" title="Giảm kích thước 10%">
+                                                    <i class="fa-solid fa-minus"></i>
+                                                </button>
+                                                <input type="range" id="wm-bar-scale-slider" min="50" max="150" step="5" value="100" class="vnbus-slider flex-1 min-w-0" oninput="app.upload.updateWmBarScale(this.value)" onmousedown="event.stopPropagation()" ontouchstart="event.stopPropagation()">
+                                                <button type="button" onclick="app.upload.stepWmBarScale(10)" class="w-7 h-7 sm:w-8 sm:h-8 shrink-0 flex items-center justify-center text-xs bg-white text-gray-700 border border-gray-300 rounded-md hover:bg-gray-100 font-bold transition shadow-sm active:scale-95" title="Tăng kích thước 10%">
+                                                    <i class="fa-solid fa-plus"></i>
+                                                </button>
+                                            </div>
                                         </div>
                                     </div>
                                     <div class="text-right mt-4">
@@ -7367,7 +7384,7 @@ html.theme-dark .ct-icon {
 
     <!-- KHAY CHỨA TOAST Z-INDEX CAO NHẤT -->
     <div id="toast-container" class="fixed left-0 w-full flex flex-col items-center gap-2 pointer-events-none z-[99999]" style="z-index: 99999 !important;"></div>
-<script src="/app.34f9c3e8582a.js" onerror="if(!window.__app_fallback_loaded){window.__app_fallback_loaded=true;var s=document.createElement('script');s.src='/app.js?v=' + Date.now();document.head.appendChild(s);}"></script>
+<script src="/app.c94fd39297b6.js" onerror="if(!window.__app_fallback_loaded){window.__app_fallback_loaded=true;var s=document.createElement('script');s.src='/app.js?v=' + Date.now();document.head.appendChild(s);}"></script>
 </body>
 </html>
 

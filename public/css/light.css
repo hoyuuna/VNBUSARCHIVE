@@ -598,6 +598,18 @@ label:hover .custom-cb-box {
     border: 1px solid #18181b !important;
     background-color: #ffffff !important;
 }
+.hist-canvas-box {
+    border: 1px solid #18181b !important;
+    background-color: #ffffff !important;
+}
+.hist-grid-line {
+    background-color: #18181b !important;
+    border-color: #18181b !important;
+}
+.hist-loading-overlay {
+    background-color: rgba(255, 255, 255, 0.85) !important;
+    color: #52525b !important;
+}
 .admin-hist-stat-item {
     border: 1px solid #18181b !important;
     background-color: #f9fafb !important;

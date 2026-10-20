@@ -1288,7 +1288,16 @@ Object.assign(window.app, {
                     app.wmState.scale = scaleVal / 100;
                     const valEl = document.getElementById('wm-scale-val');
                     if (valEl) valEl.innerText = scaleVal + '%';
+                    const slider = document.getElementById('wm-scale-slider');
+                    if (slider && parseInt(slider.value, 10) !== scaleVal) slider.value = scaleVal;
                     if (app.upload.clampWmPosition) app.upload.clampWmPosition();
+                },
+                stepWmScale: (delta) => {
+                    const slider = document.getElementById('wm-scale-slider');
+                    let current = slider ? (parseInt(slider.value, 10) || 100) : ((app.wmState && app.wmState.scale !== undefined) ? Math.round(app.wmState.scale * 100) : 100);
+                    let nextVal = Math.min(100, Math.max(50, current + delta));
+                    if (slider) slider.value = nextVal;
+                    app.upload.updateWmScale(nextVal);
                 },
                 updateWmBarScale: (val) => {
                     const barScaleVal = parseInt(val, 10) || 100;
@@ -1296,6 +1305,8 @@ Object.assign(window.app, {
                     app.wmState.barScale = barScaleVal / 100;
                     const valEl = document.getElementById('wm-bar-scale-val');
                     if (valEl) valEl.innerText = barScaleVal + '%';
+                    const slider = document.getElementById('wm-bar-scale-slider');
+                    if (slider && parseInt(slider.value, 10) !== barScaleVal) slider.value = barScaleVal;
                     try { localStorage.setItem('vnbus_wm_bar_scale', barScaleVal.toString()); } catch(e){}
                     if (!app.upload.debouncedSaveWmPrefs) {
                         app.upload.debouncedSaveWmPrefs = app.utils.debounce(() => {
@@ -1305,6 +1316,13 @@ Object.assign(window.app, {
                     app.upload.debouncedSaveWmPrefs();
                     if (app.previewUpdateSize) app.previewUpdateSize();
                     if (app.upload.clampWmPosition) app.upload.clampWmPosition();
+                },
+                stepWmBarScale: (delta) => {
+                    const slider = document.getElementById('wm-bar-scale-slider');
+                    let current = slider ? (parseInt(slider.value, 10) || 100) : ((app.wmState && app.wmState.barScale !== undefined) ? Math.round(app.wmState.barScale * 100) : 100);
+                    let nextVal = Math.min(150, Math.max(50, current + delta));
+                    if (slider) slider.value = nextVal;
+                    app.upload.updateWmBarScale(nextVal);
                 },
                 clampWmPosition: () => {
                     const el = document.getElementById('draggable-watermark');
