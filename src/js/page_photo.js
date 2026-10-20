@@ -570,7 +570,11 @@ Object.assign(window.app, {
                         formInputs.forEach(input => {
                             if (input.tagName === 'SELECT') { input.disabled = false; } 
                             else {
-                                if (input.id !== 'info-plate' && input.id !== 'info-date') input.readOnly = false;
+                                if (input.id !== 'info-plate' && input.id !== 'info-date' && input.id !== 'info-route') input.readOnly = false;
+                                if (input.id === 'info-route') {
+                                    input.readOnly = true;
+                                    input.classList.add('cursor-pointer', 'bg-gray-50');
+                                }
                                 if (input.id === 'info-note') {
                                     const displayDiv = document.getElementById('info-note-display');
                                     if (displayDiv) displayDiv.classList.add('hidden');
@@ -609,6 +613,9 @@ Object.assign(window.app, {
                         if (input.tagName === 'SELECT') input.disabled = true;
                         else {
                             input.readOnly = true;
+                            if (input.id === 'info-route') {
+                                input.classList.remove('cursor-pointer', 'bg-gray-50');
+                            }
                             if (input.id === 'info-note') {
                                 const displayDiv = document.getElementById('info-note-display');
                                 if (displayDiv) displayDiv.classList.remove('hidden');

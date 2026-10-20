@@ -118,7 +118,7 @@ a:hover, button:hover, [role="button"]:hover { text-decoration: none !important;
 #upload-info-content, #custom-prompt-content, #custom-role-content, #deny-prompt-content, #ban-prompt-content,
 #up-progress-content, #captcha-content, #webrtc-qr-content, #qr-login-host-content, #qr-login-confirm-content,
 #advanced-filter-content, #achievement-content, #operator-edit-content, #model-edit-content,
-#route-edit-content, #fav-photo-content, #manager-edit-content, #email-verify-content, #bio-edit-content {
+#route-edit-content, #route-selector-content, #route-delete-content, #fav-photo-content, #manager-edit-content, #email-verify-content, #bio-edit-content {
     background-color: #000000 !important; border-color: #ffffff !important; box-shadow: none !important; color: #ffffff !important;
 }
 
@@ -608,6 +608,36 @@ html.theme-dark .admin-hist-stat-item {
     border: 1px solid #27272a !important;
     background-color: #09090b !important;
 }
+
+/* ===== ROUTE SELECTOR & DELETE MODAL (Dark Mode) ===== */
+.route-selector-item,
+body.theme-dark .route-selector-item,
+html.theme-dark .route-selector-item {
+    background-color: #000000 !important;
+    border-color: #3f3f46 !important;
+    color: #ffffff !important;
+}
+.route-selector-item:hover,
+body.theme-dark .route-selector-item:hover,
+html.theme-dark .route-selector-item:hover {
+    background-color: #18181b !important;
+    border-color: #ffffff !important;
+}
+.route-selector-item .text-gray-800,
+body.theme-dark .route-selector-item .text-gray-800,
+html.theme-dark .route-selector-item .text-gray-800 {
+    color: #ffffff !important;
+}
+.route-selector-item .text-gray-500,
+body.theme-dark .route-selector-item .text-gray-500,
+html.theme-dark .route-selector-item .text-gray-500 {
+    color: #a1a1aa !important;
+}
+#route-selector-list-special,
+#route-selector-list-regular {
+    scrollbar-color: #3f3f46 #000000;
+}
+
 
 
 

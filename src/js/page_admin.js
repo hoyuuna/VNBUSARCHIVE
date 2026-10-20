@@ -691,8 +691,7 @@ Object.assign(window.app, {
                                                 <div>
                                                     <span class="admin-label">Tuyến${isNewRoute ? tagNew : ''}</span>
                                                     <div class="relative">
-                                                        <input type="text" id="adm-p-route-${p.id}" value="${route}" class="admin-input" autocomplete="off" onfocus="app.utils.triggerRouteSuggestion('adm-p-route-${p.id}', 'adm-sug-route-${p.id}', '')" oninput="app.utils.triggerRouteSuggestion('adm-p-route-${p.id}', 'adm-sug-route-${p.id}', this.value)">
-                                                        <div id="adm-sug-route-${p.id}" class="suggestion-box"></div>
+                                                        <input type="text" id="adm-p-route-${p.id}" value="${route}" class="admin-input cursor-pointer bg-white" readonly onclick="app.route.openSelector({ targetInputId: 'adm-p-route-${p.id}' })">
                                                     </div>
                                                 </div>
                                             </div>
@@ -1738,8 +1737,7 @@ if (app.admin._activeLoadToken !== currentLoadToken || app.adminTab !== tab) ret
                                                 <div>
                                                     <span class="admin-label">Tuyến ${d.route !== curP.route_no ? tagNew : ''}</span>
                                                     <div class="relative">
-                                                        <input type="text" id="req-route-${r.id}" value="${app.utils.escapeAttr(d.route || '')}" class="admin-input" autocomplete="off" onfocus="app.utils.triggerRouteSuggestion('req-route-${r.id}', 'req-sug-route-${r.id}', '')" oninput="app.utils.triggerRouteSuggestion('req-route-${r.id}', 'req-sug-route-${r.id}', this.value)">
-                                                        <div id="req-sug-route-${r.id}" class="suggestion-box"></div>
+                                                        <input type="text" id="req-route-${r.id}" value="${app.utils.escapeAttr(d.route || '')}" class="admin-input cursor-pointer bg-white" readonly onclick="app.route.openSelector({ targetInputId: 'req-route-${r.id}' })">
                                                     </div>
                                                 </div>
                                             </div>
@@ -1823,6 +1821,42 @@ if (app.admin._activeLoadToken !== currentLoadToken || app.adminTab !== tab) ret
                                             </div>
                                         </div>
                                     </div>`;
+                                } else if (type === 'create_route_info') {
+                                    return `
+                                    <div class="admin-card overflow-visible">
+                                        <div class="admin-card-header bg-teal-50"><span class="font-bold text-xs uppercase text-teal-600">TẠO TUYẾN MỚI</span><span class="text-xs text-gray-500">${username}</span></div>
+                                        <div class="admin-card-body text-xs">
+                                            <p class="font-bold text-sm mb-2 text-black"><i class="fa-solid fa-route mr-1 text-gray-400"></i> ${app.utils.escapeAttr(d.route_name)}</p>
+                                            <div class="space-y-1 mb-4 text-xs border p-2 rounded bg-gray-50">
+                                                <div><span class="font-bold">Số hiệu tuyến:</span> ${app.utils.escapeAttr(d.route_no || '-')}</div>
+                                                <div><span class="font-bold">Tỉnh / Thành phố:</span> ${app.utils.escapeAttr(d.province || '-')}</div>
+                                                <div><span class="font-bold">Lộ trình ngắn:</span> ${app.utils.escapeAttr(d.short_path || '-')}</div>
+                                                <div><span class="font-bold">Mô tả:</span> ${app.utils.escapeAttr(d.description || '-')}</div>
+                                                <div><span class="font-bold">Giá vé lượt:</span> ${app.utils.escapeAttr(d.metadata?.ticket_price || '-')}</div>
+                                                <div><span class="font-bold">Giãn cách:</span> ${app.utils.escapeAttr(d.metadata?.headway || '-')}</div>
+                                                <div><span class="font-bold">Hỗ trợ xe lăn:</span> ${d.metadata?.wheelchair_support ? 'Có' : 'Không'}</div>
+                                            </div>
+                                            <div class="flex gap-2 mt-3">
+                                                <button onclick="app.admin.approveReq('${r.id}', this, 'create_route_info')" class="flex-1 bg-green-600 text-white py-1.5 font-bold rounded hover:bg-green-700">DUYỆT TẠO</button>
+                                                <button onclick="app.admin.denyReq('${r.id}', this)" class="flex-1 bg-red-600 text-white py-1.5 font-bold rounded hover:bg-red-700">TỪ CHỐI</button>
+                                            </div>
+                                        </div>
+                                    </div>`;
+                                } else if (type === 'delete_route') {
+                                    return `
+                                    <div class="admin-card overflow-visible">
+                                        <div class="admin-card-header bg-red-50"><span class="font-bold text-xs uppercase text-red-600">YÊU CẦU XÓA TUYẾN</span><span class="text-xs text-gray-500">${username}</span></div>
+                                        <div class="admin-card-body text-xs">
+                                            <p class="font-bold text-sm mb-2 text-black"><i class="fa-solid fa-triangle-exclamation mr-1 text-red-500"></i> Xóa tuyến: ${app.utils.escapeAttr(d.route_name)}</p>
+                                            <div class="p-2.5 bg-gray-50 border border-gray-200 rounded text-xs leading-relaxed mb-3">
+                                                Chuyển toàn bộ ảnh và lịch sử xe sang tuyến: <strong class="text-black">${app.utils.escapeAttr(d.dest_route_name || d.dest_route_no || 'Ngoài giờ hoạt động')}</strong>.
+                                            </div>
+                                            <div class="flex gap-2 mt-3">
+                                                <button onclick="app.admin.approveReq('${r.id}', this, 'delete_route')" class="flex-1 bg-red-600 text-white py-1.5 font-bold rounded hover:bg-red-700">DUYỆT XÓA</button>
+                                                <button onclick="app.admin.denyReq('${r.id}', this)" class="flex-1 bg-gray-600 text-white py-1.5 font-bold rounded hover:bg-gray-700">TỪ CHỐI</button>
+                                            </div>
+                                        </div>
+                                    </div>`;
                                 } else if (type === 'unmerge_vehicle') {
                                     let details = `<div class="p-3 bg-red-50 border border-red-200 rounded text-red-800 text-sm">
                                         <p class="font-bold mb-1"><i class="fa-solid fa-scissors mr-1"></i> Yêu cầu tách xe</p>
@@ -1894,8 +1928,7 @@ if (app.admin._activeLoadToken !== currentLoadToken || app.adminTab !== tab) ret
                                                 <div>
                                                     <span class="admin-label">Tuyến ${routeTag}</span>
                                                     <div class="relative">
-                                                        <input type="text" id="req-h-route-${r.id}-${i}" value="${app.utils.escapeAttr(h.route || '')}" class="admin-input" autocomplete="off" onfocus="app.utils.triggerRouteSuggestion('req-h-route-${r.id}-${i}', 'req-h-sug-route-${r.id}-${i}', '')" oninput="app.utils.triggerRouteSuggestion('req-h-route-${r.id}-${i}', 'req-h-sug-route-${r.id}-${i}', this.value)">
-                                                        <div id="req-h-sug-route-${r.id}-${i}" class="suggestion-box"></div>
+                                                        <input type="text" id="req-h-route-${r.id}-${i}" value="${app.utils.escapeAttr(h.route || '')}" class="admin-input cursor-pointer bg-white" readonly onclick="app.route.openSelector({ targetInputId: 'req-h-route-${r.id}-${i}' })">
                                                     </div>
                                                 </div>
                                             </div>
@@ -4215,19 +4248,26 @@ if (cbQuality) newSubroles.push('quality_aud');
                                 if (Object.keys(metadataObj).length === 0) metadataObj = null;
                             }
                             
+                            const expectedRouteNo = req.new_data.route_no || (req.new_data.route_name.includes(' - ') ? req.new_data.route_name.split(' - ')[0].trim() : req.new_data.route_name);
+                            const targetProvince = req.new_data.province || (req.new_data.route_name.includes(' - ') ? req.new_data.route_name.split(' - ')[1].trim() : null);
+
                             if (!desc && !shortPath && !isInactive && !metadataObj) {
                                 const { error: delErr } = await window.sb.from('route_info').delete().eq('route_name', req.new_data.route_name);
                                 if (delErr) throw delErr;
                             } else {
                                 const { error: upsertErr } = await window.sb.from('route_info').upsert({
                                     route_name: req.new_data.route_name,
+                                    route_no: expectedRouteNo,
+                                    province: targetProvince,
                                     short_path: shortPath || null,
                                     description: desc || null,
                                     is_inactive: isInactive,
+                                    is_special: false,
                                     metadata: metadataObj
-                                });
+                                }, { onConflict: 'route_name' });
                                 if (upsertErr) throw upsertErr;
                             }
+                            if (app.route) app.route.cachedRoutes = null;
                             
                             // Xử lý cập nhật ID ảnh và biển số xe vá tuyến
                             const rawInputList = borrowedPhotosStr ? borrowedPhotosStr.split(',').map(s => s.trim()).filter(Boolean) : [];
@@ -4240,9 +4280,6 @@ if (cbQuality) newSubroles.push('quality_aud');
                             
                             const addedIdsRaw = newBorrowedIds.filter(id => !curIds.includes(id));
                             const removedIds = curIds.filter(id => !newBorrowedIds.includes(id));
-                            
-                            const expectedRouteNo = req.new_data.route_name.split(' - ')[0];
-                            const targetProvince = req.new_data.route_name.split(' - ')[1] || '';
                             
                             if (enteredPlates.length > 0) {
                                 const { data: retroPhotos } = await window.sb.from('photos').select('id, route_no').in('license_plate', enteredPlates).eq('route_no', expectedRouteNo);
@@ -4288,6 +4325,50 @@ if (cbQuality) newSubroles.push('quality_aud');
                                     await window.sb.from('photos').update({ borrowed_route: null }).eq('id', p.id);
                                 }
                             }
+                        }
+                        else if (reqType === 'create_route_info' || req.new_data?.request_type === 'create_route_info') {
+                            const d = req.new_data;
+                            const routeName = d.route_name;
+                            const routeNo = d.route_no || (routeName.includes(' - ') ? routeName.split(' - ')[0].trim() : routeName);
+                            const province = d.province || (routeName.includes(' - ') ? routeName.split(' - ')[1].trim() : null);
+
+                            const { error: upsertErr } = await window.sb.from('route_info').upsert({
+                                route_name: routeName,
+                                route_no: routeNo,
+                                province: province,
+                                short_path: d.short_path || null,
+                                description: d.description || null,
+                                is_inactive: !!d.is_inactive,
+                                is_special: false,
+                                metadata: d.metadata || null
+                            }, { onConflict: 'route_name' });
+                            if (upsertErr) throw upsertErr;
+
+                            if (app.route) app.route.cachedRoutes = null;
+                        }
+                        else if (reqType === 'delete_route' || req.new_data?.request_type === 'delete_route') {
+                            const d = req.new_data;
+                            const deletingName = d.route_name;
+                            const deletingNo = d.route_no || deletingName.split(' - ')[0].trim();
+                            const destRouteNo = (d.dest_route_no || 'Ngoài giờ hoạt động').trim();
+                            const destRouteName = (d.dest_route_name || destRouteNo).trim();
+                            const newBorrowed = destRouteName !== destRouteNo ? destRouteName : null;
+
+                            // 1. Chuyển tất cả ảnh thuộc tuyến bị xóa sang tuyến đích
+                            await window.sb.from('photos')
+                                .update({ route_no: destRouteNo, borrowed_route: newBorrowed })
+                                .or(`route_no.eq."${deletingNo}",borrowed_route.eq."${deletingName}"`);
+
+                            // 2. Chuyển tất cả lịch sử phương tiện (vehicle_history) sang tuyến đích
+                            await window.sb.from('vehicle_history')
+                                .update({ route: destRouteNo })
+                                .or(`route.eq."${deletingNo}",route.eq."${deletingName}"`);
+
+                            // 3. Xóa hồ sơ tuyến khỏi bảng route_info
+                            const { error: delErr } = await window.sb.from('route_info').delete().eq('route_name', deletingName);
+                            if (delErr) throw delErr;
+
+                            if (app.route) app.route.cachedRoutes = null;
                         }
                         else if (reqType === 'model_info' || req.new_data.request_type === 'update_model_info') {
                             const logo = document.getElementById(`req-mdl-logo-${id}`).value.trim();

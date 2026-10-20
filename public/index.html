@@ -2169,7 +2169,7 @@ html.theme-dark .ct-icon {
             if (stored === 'system') {
                 theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
             }
-            document.write('<link rel="stylesheet" href="/css/' + theme + '.css?v=1792477280714" id="theme-css">');
+            document.write('<link rel="stylesheet" href="/css/' + theme + '.css?v=1792489090081" id="theme-css">');
             document.documentElement.classList.add('theme-' + theme);
             document.documentElement.style.backgroundColor = theme === 'dark' ? '#18181b' : '#fdfcf8';
         })();
@@ -4026,7 +4026,7 @@ html.theme-dark .ct-icon {
                                     </div>
                                     <div class="flex flex-col sm:flex-1 min-w-0">
                                         <span class="sm:hidden font-bold text-gray-500 mb-1">Tuyến</span>
-                                        <input type="text" id="hist-new-route" placeholder="Tuyến" class="hist-input" oninput="app.utils.checkRouteStatus(this.value, 'hist-new-op', 'hist-new-op-wrapper')">
+                                        <input type="text" id="hist-new-route" readonly placeholder="Chọn tuyến..." class="hist-input cursor-pointer bg-white" onclick="app.route.openSelector({ targetInputId: 'hist-new-route', onSelect: (r) => { document.getElementById('hist-new-route').value = r.route_no; app.utils.checkRouteStatus(r.route_no, 'hist-new-op', 'hist-new-op-wrapper'); } })">
                                     </div>
                                 </div>
                                 <div class="flex flex-col sm:flex-row gap-2 items-start mt-1">
@@ -5093,16 +5093,16 @@ html.theme-dark .ct-icon {
                                     <label class="text-xs text-gray-500 font-bold block mb-1.5 uppercase"
                                         id="lbl-route">Mã số tuyến<span class="text-red-500">*</span></label>
                                     <div class="relative w-full">
-                                        <input type="text" id="up-route" autocomplete="off" tabindex="3"
-                                            onfocus="app.utils.triggerRouteSuggestion('up-route', 'up-route-suggestions', '')"
-                                            oninput="app.utils.triggerRouteSuggestion('up-route', 'up-route-suggestions', this.value); app.utils.checkRouteStatus(this.value, 'up-operator', 'up-operator-wrapper'); clearTimeout(app.upload.routeOpTimeout); app.upload.routeOpTimeout = setTimeout(app.upload.autoFillOperatorByRoute, 500);"
-                                            class="w-full border border-gray-300 p-2.5 text-sm rounded-md focus:ring-2 focus:ring-black focus:border-transparent outline-none transition">
-                                        <div id="up-route-suggestions" class="suggestion-box"></div>
+                                        <input type="text" id="up-route" readonly tabindex="3"
+                                            placeholder="Nhấp để chọn tuyến xe..."
+                                            onclick="app.route.openSelector({ targetInputId: 'up-route', onSelect: (r) => { document.getElementById('up-route').value = r.route_no; app.utils.checkRouteStatus(r.route_no, 'up-operator', 'up-operator-wrapper'); if(app.upload && app.upload.autoFillOperatorByRoute) app.upload.autoFillOperatorByRoute(); } })"
+                                            class="w-full border border-gray-300 p-2.5 text-sm rounded-md focus:ring-2 focus:ring-black focus:border-transparent outline-none transition cursor-pointer bg-white">
                                     </div>
                                     <div id="up-route-quick" class="mt-2 flex flex-wrap gap-1.5">
                                         <button type="button" onclick="app.upload.applySpecialRoute('Dừng hoạt động')" class="bg-white border border-black dark:border-white hover:bg-gray-100 dark:bg-[#18181b] dark:hover:bg-[#27272a] text-black dark:text-white text-[11px] font-bold px-2.5 py-1.5 rounded-md transition-all duration-200 ease-out active:scale-95 select-none">Dừng hoạt động</button>
                                         <button type="button" onclick="app.upload.applySpecialRoute('Ngoài giờ hoạt động')" class="bg-white border border-black dark:border-white hover:bg-gray-100 dark:bg-[#18181b] dark:hover:bg-[#27272a] text-black dark:text-white text-[11px] font-bold px-2.5 py-1.5 rounded-md transition-all duration-200 ease-out active:scale-95 select-none">Ngoài giờ hoạt động</button>
                                         <button type="button" onclick="app.upload.applySpecialRoute('Chưa hoạt động')" class="bg-white border border-black dark:border-white hover:bg-gray-100 dark:bg-[#18181b] dark:hover:bg-[#27272a] text-black dark:text-white text-[11px] font-bold px-2.5 py-1.5 rounded-md transition-all duration-200 ease-out active:scale-95 select-none">Chưa hoạt động</button>
+                                        <button type="button" onclick="app.upload.applySpecialRoute('Hợp đồng')" class="bg-white border border-black dark:border-white hover:bg-gray-100 dark:bg-[#18181b] dark:hover:bg-[#27272a] text-black dark:text-white text-[11px] font-bold px-2.5 py-1.5 rounded-md transition-all duration-200 ease-out active:scale-95 select-none">Hợp đồng</button>
                                     </div>
                                     <p id="err-up-route" class="upload-req-err hidden text-[11px] mt-1 text-red-600 font-bold"><i class="fa-solid fa-triangle-exclamation"></i> Vui lòng nhập Mã số tuyến / Lộ trình</p>
                                 </div>
@@ -7068,18 +7068,91 @@ html.theme-dark .ct-icon {
         </div>
     </div>
 
+    <!-- MODAL CHỌN TUYẾN XE (ROUTE SELECTOR) -->
+    <div id="route-selector-modal" class="hidden fixed inset-0 z-[3050] flex items-center justify-center p-4 backdrop-blur-md">
+        <div id="route-selector-content" class="rounded-2xl w-full overflow-hidden transform transition-all opacity-0 scale-95 flex flex-col bg-white border border-black" style="max-width: 520px; max-height: 85vh;">
+            <div class="p-4 md:p-5 flex justify-between items-center shrink-0">
+                <h3 class="text-lg font-bold text-black tracking-tight"><i class="fa-solid fa-route mr-2 text-gray-500"></i>Chọn Tuyến Xe</h3>
+                <button onclick="app.route.closeSelector()" class="text-gray-400 hover:text-red-500 transition text-xl px-2"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="px-4 md:px-5 pb-3 shrink-0 flex flex-col gap-3">
+                <div class="flex items-center justify-between gap-2">
+                    <p class="text-xs text-gray-500 font-medium">Chọn một tuyến có sẵn hoặc tạo hồ sơ tuyến mới.</p>
+                    <button type="button" onclick="app.route.openCreatePrompt()" class="bg-black text-white hover:bg-gray-800 text-xs font-bold px-3 py-2 rounded-md transition flex items-center gap-1.5 shrink-0">
+                        <i class="fa-solid fa-plus text-[10px]"></i> Tạo tuyến mới
+                    </button>
+                </div>
+                <div class="flex flex-col sm:flex-row gap-2">
+                    <div class="relative flex-1">
+                        <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs"></i>
+                        <input type="text" id="route-selector-search" autocomplete="off" placeholder="Tìm số tuyến, lộ trình..." class="w-full bg-white border border-black rounded-md pl-8 pr-3 py-2 text-xs font-medium text-black focus:ring-1 focus:ring-black outline-none transition" oninput="app.route.filterSelector()">
+                    </div>
+                    <select id="route-selector-prov-filter" class="bg-white border border-black rounded-md px-2.5 py-2 text-xs font-medium text-black focus:ring-1 focus:ring-black outline-none transition" onchange="app.route.filterSelector()">
+                        <option value="">Tất cả tỉnh thành</option>
+                    </select>
+                </div>
+            </div>
+            <div id="route-selector-items" class="flex-1 overflow-y-auto custom-scrollbar p-4 md:p-5 space-y-2">
+                <div class="text-center py-8 text-gray-400 text-xs"><i class="fa-solid fa-spinner fa-spin mr-1"></i> Đang tải danh sách tuyến...</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL XÓA TUYẾN & CHUYỂN DỮ LIỆU -->
+    <div id="route-delete-modal" class="hidden fixed inset-0 z-[3100] flex items-center justify-center p-4 backdrop-blur-md">
+        <div id="route-delete-content" class="rounded-2xl w-full overflow-hidden transform transition-all opacity-0 scale-95 flex flex-col bg-white border border-black" style="max-width: 480px">
+            <div class="p-5 flex justify-between items-center shrink-0">
+                <h3 class="text-lg font-bold text-black tracking-tight"><i class="fa-solid fa-triangle-exclamation mr-2 text-red-500"></i>Xóa Tuyến Xe</h3>
+                <button onclick="app.route.closeDeletePrompt()" class="text-gray-400 hover:text-red-500 transition text-xl px-2"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="p-5 bg-transparent space-y-4 text-xs text-gray-700 font-medium">
+                <p class="leading-relaxed">
+                    Bạn đang thực hiện xóa tuyến <span id="del-route-target-name" class="font-bold text-black">...</span>.
+                </p>
+                <div class="bg-gray-50 p-3 rounded-md border border-black leading-relaxed text-gray-600">
+                    <i class="fa-solid fa-circle-info mr-1 text-black"></i>
+                    Bắt buộc phải chuyển toàn bộ ảnh và lịch sử xe thuộc tuyến này sang một tuyến khác trước khi xóa. Nếu bạn không chọn, hệ thống sẽ tự động chuyển tất cả dữ liệu sang tuyến <strong>Ngoài giờ hoạt động</strong>.
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Tuyến nhận dữ liệu chuyển đổi</label>
+                    <div class="flex gap-2">
+                        <input type="text" id="del-route-dest-display" readonly value="Ngoài giờ hoạt động" class="w-full bg-gray-50 border border-black rounded-md p-3 text-sm font-bold text-black cursor-not-allowed">
+                        <button type="button" onclick="app.route.chooseDeleteDestination()" class="px-3 py-2 bg-white border border-black rounded-md text-xs font-bold hover:bg-gray-100 transition whitespace-nowrap">Đổi tuyến</button>
+                    </div>
+                    <input type="hidden" id="del-route-dest-val" value="Ngoài giờ hoạt động">
+                </div>
+            </div>
+            <div class="px-5 py-4 flex gap-3">
+                <button type="button" onclick="app.route.closeDeletePrompt()" class="flex-1 rounded-md px-4 py-2.5 bg-white border border-black text-sm font-bold text-gray-700 hover:bg-gray-50 transition-all">Hủy bỏ</button>
+                <button type="button" id="btn-confirm-delete-route" onclick="app.route.confirmDeleteRoute()" class="flex-1 rounded-md px-4 py-2.5 bg-red-600 border border-red-600 text-sm font-bold text-white hover:bg-red-700 transition-all">Xác nhận xóa</button>
+            </div>
+        </div>
+    </div>
+
     <!-- MODAL CẬP NHẬT TUYẾN (ROUTE) -->
     <div id="route-edit-modal" class="hidden fixed inset-0 z-[3000] flex items-center justify-center p-4 backdrop-blur-md" >
-        <div id="route-edit-content" class="rounded-2xl w-full overflow-hidden transform transition-all opacity-0 scale-95 flex flex-col" style="max-width: 450px">
+        <div id="route-edit-content" class="rounded-2xl w-full overflow-hidden transform transition-all opacity-0 scale-95 flex flex-col bg-white border border-black" style="max-width: 480px; max-height: 90vh;">
             <div class="p-5 flex justify-between items-center shrink-0">
-                <h3 class="text-lg font-bold text-black tracking-tight"><i class="fa-solid fa-route mr-2 text-gray-500"></i>Cập nhật Thông tin Tuyến</h3>
+                <h3 class="text-lg font-bold text-black tracking-tight" id="route-edit-modal-title"><i class="fa-solid fa-route mr-2 text-gray-500"></i>Cập nhật Thông tin Tuyến</h3>
                 <button onclick="app.route.closeEditPrompt()" class="text-gray-400 hover:text-red-500 transition text-xl px-2"><i class="fa-solid fa-xmark"></i></button>
             </div>
-            <div class="p-5 bg-transparent space-y-4">
-                <p class="text-xs text-gray-600 font-medium leading-relaxed">Thông tin này sẽ được kiểm duyệt bởi Admin.</p>
+            <div class="p-5 bg-transparent space-y-4 overflow-y-auto custom-scrollbar flex-1">
+                <p id="route-edit-warning-text" class="text-xs text-gray-600 font-medium leading-relaxed">Thông tin này sẽ được kiểm duyệt bởi Admin.</p>
                 
                 <div>
-                    <div class="flex items-center justify-between bg-white/60 border border-gray-300/80 rounded-xl p-3 shadow-inner hover:bg-gray-50 transition-all">
+                    <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Số hiệu tuyến <span class="text-red-500">*</span></label>
+                    <input type="text" id="route-edit-name" required class="w-full bg-white border border-black rounded-md p-3 text-sm font-medium focus:ring-1 focus:ring-black outline-none transition-all text-black" placeholder="VD: 01, 20B, BRT01...">
+                </div>
+
+                <div id="route-edit-province-container">
+                    <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Tỉnh / Thành phố <span class="text-red-500">*</span></label>
+                    <select id="route-edit-province" required class="w-full bg-white border border-black rounded-md p-3 text-sm font-medium focus:ring-1 focus:ring-black outline-none transition-all text-black">
+                        <option value="">-- Chọn Tỉnh / Thành phố --</option>
+                    </select>
+                </div>
+
+                <div>
+                    <div class="flex items-center justify-between bg-white border border-black rounded-md p-3 hover:bg-gray-50 transition-all">
                         <span class="text-sm font-bold text-gray-700">Đánh dấu tuyến này đã dừng hoạt động</span>
                         <label class="relative inline-flex items-center cursor-pointer shrink-0 ml-4 self-center">
                             <input type="checkbox" id="route-edit-inactive" class="sr-only peer">
@@ -7090,29 +7163,29 @@ html.theme-dark .ct-icon {
 
                 <div>
                     <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Lộ trình ngắn gọn</label>
-                    <input type="text" id="route-edit-short-path" class="w-full bg-white/60 border border-gray-300/80 rounded-xl p-3 text-sm font-medium focus:ring-2 focus:ring-black outline-none transition-all shadow-inner text-black" placeholder="VD: Long Biên - Giáp Bát">
+                    <input type="text" id="route-edit-short-path" class="w-full bg-white border border-black rounded-md p-3 text-sm font-medium focus:ring-1 focus:ring-black outline-none transition-all text-black" placeholder="VD: Long Biên - Giáp Bát">
                     <p class="text-[10px] text-gray-500 mt-1 font-medium">Ghi theo định dạng: [Điểm đầu] - [Điểm cuối] (có thể thêm điểm giữa nếu cần). Tuyệt đối không viết tắt.</p>
                 </div>
                 
                 <div>
                     <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Mô tả chi tiết</label>
-                    <textarea id="route-edit-desc" rows="3" class="w-full bg-white/60 border border-gray-300/80 rounded-xl p-3 text-sm font-medium focus:ring-2 focus:ring-black outline-none transition-all shadow-inner resize-none custom-scrollbar text-black" placeholder="Cung cấp thông tin về Lộ trình..."></textarea>
+                    <textarea id="route-edit-desc" rows="3" class="w-full bg-white border border-black rounded-md p-3 text-sm font-medium focus:ring-1 focus:ring-black outline-none transition-all resize-none custom-scrollbar text-black" placeholder="Cung cấp thông tin về Lộ trình..."></textarea>
                 </div>
                 
                 <div>
                     <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Giá vé lượt</label>
-                    <input type="text" id="route-edit-ticket-price" class="w-full bg-white/60 border border-gray-300/80 rounded-xl p-3 text-sm font-medium focus:ring-2 focus:ring-black outline-none transition-all shadow-inner text-black" placeholder="VD: 9.000đ">
+                    <input type="text" id="route-edit-ticket-price" class="w-full bg-white border border-black rounded-md p-3 text-sm font-medium focus:ring-1 focus:ring-black outline-none transition-all text-black" placeholder="VD: 9.000đ">
                     <p class="text-[10px] text-gray-500 mt-1 font-medium">Định dạng: x.xxxđ hoặc "Miễn phí" hoặc khoảng giá (VD: 5.000đ - 7.000đ). HN mới: "3.000đ mở cửa + 450đ x km".</p>
                 </div>
                 
                 <div>
                     <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Giãn cách, TG hoạt động</label>
-                    <input type="text" id="route-edit-headway" class="w-full bg-white/60 border border-gray-300/80 rounded-xl p-3 text-sm font-medium focus:ring-2 focus:ring-black outline-none transition-all shadow-inner text-black" placeholder="VD: 10 - 15 phút (07:00 - 19:00)">
+                    <input type="text" id="route-edit-headway" class="w-full bg-white border border-black rounded-md p-3 text-sm font-medium focus:ring-1 focus:ring-black outline-none transition-all text-black" placeholder="VD: 10 - 15 phút (07:00 - 19:00)">
                     <p class="text-[10px] text-gray-500 mt-1 font-medium">Định dạng chuẩn: xx - xx phút (Giờ mở bến - Giờ đóng bến). Dùng chuẩn giờ 24h.</p>
                 </div>
                 
                 <div>
-                    <div class="flex items-center justify-between bg-white/60 border border-gray-300/80 rounded-xl p-3 shadow-inner hover:bg-gray-50 transition-all">
+                    <div class="flex items-center justify-between bg-white border border-black rounded-md p-3 hover:bg-gray-50 transition-all">
                         <span class="text-sm font-bold text-gray-700">Có hỗ trợ xe lăn</span>
                         <label class="relative inline-flex items-center cursor-pointer shrink-0 ml-4 self-center">
                             <input type="checkbox" id="route-edit-wheelchair" class="sr-only peer">
@@ -7125,7 +7198,7 @@ html.theme-dark .ct-icon {
                     <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Kiểu Icon hiển thị</label>
                     <input type="hidden" id="route-edit-icon" value="default">
                     <div class="relative w-full z-40">
-                        <button type="button" onclick="document.getElementById('route-icon-menu').classList.toggle('active')" id="btn-route-icon" class="w-full bg-white/60 border border-gray-300/80 rounded-xl p-3 text-sm font-medium focus:ring-2 focus:ring-black outline-none transition-all shadow-inner text-black flex justify-between items-center text-left">
+                        <button type="button" onclick="document.getElementById('route-icon-menu').classList.toggle('active')" id="btn-route-icon" class="w-full bg-white border border-black rounded-md p-3 text-sm font-medium focus:ring-1 focus:ring-black outline-none transition-all text-black flex justify-between items-center text-left">
                             <span id="route-icon-label">Mặc định</span>
                             <i class="fa-solid fa-chevron-down text-gray-500 text-xs"></i>
                         </button>
@@ -7145,13 +7218,14 @@ html.theme-dark .ct-icon {
 
                 <div>
                     <label class="block text-xs font-bold text-gray-700 uppercase mb-1">ID ảnh / Xe vá tuyến</label>
-                    <input type="text" id="route-edit-borrowed" class="w-full bg-white/60 border border-gray-300/80 rounded-xl p-3 text-sm font-medium focus:ring-2 focus:ring-black outline-none transition-all shadow-inner text-black" placeholder="VD: 12345, 12A34567" oninput="this.value = this.value.toUpperCase()">
+                    <input type="text" id="route-edit-borrowed" class="w-full bg-white border border-black rounded-md p-3 text-sm font-medium focus:ring-1 focus:ring-black outline-none transition-all text-black" placeholder="VD: 12345, 12A34567" oninput="this.value = this.value.toUpperCase()">
                     <p class="text-[10px] text-gray-500 mt-1 font-medium">Nhập ID ảnh (VD: 123) hoặc Biển số xe (VD: 12A34567, 12A34567-1). Ngăn cách bằng dấu phẩy. Ảnh/Xe sẽ tự động được gán về tuyến này.</p>
                 </div>
             </div>
-            <div class="bg-gray-50/30 px-5 py-4 flex gap-3">
-                <button type="button" onclick="app.route.closeEditPrompt()" class="flex-1 rounded-xl shadow-sm px-4 py-2.5 bg-white border border-gray-300 text-sm font-bold text-gray-700 hover:bg-gray-50 transition-all">Hủy bỏ</button>
-                <button type="button" id="btn-save-route" onclick="app.route.submitEdit()" class="flex-1 rounded-xl shadow-sm px-4 py-2.5 bg-black border border-black text-sm font-bold text-white hover:bg-gray-800 transition-all">Lưu thông tin</button>
+            <div class="px-5 py-4 flex gap-3">
+                <button type="button" id="btn-delete-route" onclick="app.route.openDeletePrompt()" class="hidden px-4 py-2.5 rounded-md border border-red-500 text-red-600 hover:bg-red-50 text-sm font-bold transition-all"><i class="fa-solid fa-trash mr-1"></i> Xóa tuyến</button>
+                <button type="button" onclick="app.route.closeEditPrompt()" class="flex-1 rounded-md px-4 py-2.5 bg-white border border-black text-sm font-bold text-gray-700 hover:bg-gray-50 transition-all">Hủy bỏ</button>
+                <button type="button" id="btn-save-route" onclick="app.route.submitEdit()" class="flex-1 rounded-md px-4 py-2.5 bg-black border border-black text-sm font-bold text-white hover:bg-gray-800 transition-all">Lưu thông tin</button>
             </div>
         </div>
     </div>
@@ -7377,7 +7451,7 @@ html.theme-dark .ct-icon {
 
     <!-- KHAY CHỨA TOAST Z-INDEX CAO NHẤT -->
     <div id="toast-container" class="fixed left-0 w-full flex flex-col items-center gap-2 pointer-events-none z-[99999]" style="z-index: 99999 !important;"></div>
-<script src="/app.696bd312ea18.js" onerror="if(!window.__app_fallback_loaded){window.__app_fallback_loaded=true;var s=document.createElement('script');s.src='/app.js?v=' + Date.now();document.head.appendChild(s);}"></script>
+<script src="/app.eb77b0678522.js" onerror="if(!window.__app_fallback_loaded){window.__app_fallback_loaded=true;var s=document.createElement('script');s.src='/app.js?v=' + Date.now();document.head.appendChild(s);}"></script>
 </body>
 </html>
 

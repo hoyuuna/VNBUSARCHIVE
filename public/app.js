@@ -4864,6 +4864,16 @@ Object.assign(window.app, {
                     const el = document.getElementById(id);
                     if(!el) return;
                     el.addEventListener('click', function () {
+                        if (id === 'info-route' && app.edit && app.edit.isEditing) {
+                            app.route.openSelector({
+                                targetInputId: 'info-route',
+                                onSelect: (r) => {
+                                    document.getElementById('info-route').value = r.route_no;
+                                    app.utils.checkRouteStatus(r.route_no, 'info-operator', 'info-operator-row');
+                                }
+                            });
+                            return;
+                        }
                         if (this.readOnly && this.value && this.value !== '---' && this.value !== 'N/A') {
                             if (id === 'info-plate') {
                                 app.utils.navigate(`/vehicle/${encodeURIComponent(this.value)}`);
@@ -4873,7 +4883,7 @@ Object.assign(window.app, {
                             }
                             else if (id === 'info-route') {
                                 const typeVal = document.getElementById('info-type')?.value;
-                                const specialRoutes = ['Dừng hoạt động', 'Ngoài giờ hoạt động', 'Chưa hoạt động'];
+                                const specialRoutes = ['Dừng hoạt động', 'Ngoài giờ hoạt động', 'Chưa hoạt động', 'Hợp đồng'];
                                 // Gộp chung điều kiện Xe khách (coach) và Các tuyến đặc biệt
                                 if (typeVal === 'coach' || specialRoutes.includes(this.value.trim())) {
                                     app.searchRedirect(this.value, fieldMap[id]);
@@ -12763,6 +12773,1410 @@ if (!decodedProvince || decodedProvince.trim() === '') {
                      }
                      app.loadingBar.finish();
                  },
+                specialRoutes: ['Dừng hoạt động', 'Ngoài giờ hoạt động', 'Chưa hoạt động', 'Hợp đồng'],
+                cachedRoutes: null,
+                selectorCallback: null,
+                selectorTargetInputId: null,
+                selectorExcludeRoute: null,
+                isEditingExisting: false,
+                editingOriginalRouteName: '',
+                deletingRouteName: '',
+
+                fetchRoutes: async (force = false) => {
+                    if (app.route.cachedRoutes && !force) return app.route.cachedRoutes;
+                    let routes = [];
+                    try {
+                        const { data, error } = await window.sb.from('route_info').select('*').order('route_no', { ascending: true });
+                        if (!error && data) {
+                            routes = data.map(r => {
+                                const rName = r.route_name || '';
+                                let rNo = r.route_no;
+                                let prov = r.province;
+                                if (!rNo) {
+                                    rNo = rName.includes(' - ') ? rName.split(' - ')[0].trim() : rName;
+                                }
+                                if (!prov && rName.includes(' - ')) {
+                                    prov = rName.split(' - ')[1].trim();
+                                }
+                                const isSpecial = r.is_special || app.route.specialRoutes.includes(rNo) || app.route.specialRoutes.includes(rName);
+                                return {
+                                    ...r,
+                                    route_no: rNo,
+                                    province: isSpecial ? null : (prov || null),
+                                    is_special: isSpecial
+                                };
+                            });
+                        }
+                    } catch (e) {
+                        console.warn("Lỗi tải danh sách tuyến:", e);
+                    }
+                    
+                    // Đảm bảo 4 trường hợp đặc biệt luôn tồn tại trong danh sách
+                    app.route.specialRoutes.forEach(spec => {
+                        if (!routes.some(r => r.route_no === spec || r.route_name === spec)) {
+                            routes.unshift({
+                                route_name: spec,
+                                route_no: spec,
+                                province: null,
+                                is_special: true,
+                                is_inactive: false
+                            });
+                        }
+                    });
+
+                    app.route.cachedRoutes = routes;
+                    return routes;
+                },
+
+                openSelector: async (options = {}) => {
+                    app.route.selectorCallback = options.onSelect || null;
+                    app.route.selectorTargetInputId = options.targetInputId || null;
+                    app.route.selectorExcludeRoute = options.excludeRoute || null;
+
+                    const modal = document.getElementById('route-selector-modal');
+                    const content = document.getElementById('route-selector-content');
+                    if (!modal || !content) return;
+
+                    // Khởi tạo danh sách tỉnh thành cho bộ lọc
+                    const provFilter = document.getElementById('route-selector-prov-filter');
+                    if (provFilter && provFilter.options.length <= 1 && app.utils.provinceData) {
+                        provFilter.innerHTML = '<option value="">Tất cả tỉnh thành</option>';
+                        app.utils.provinceData.forEach(p => {
+                            const opt = document.createElement('option');
+                            opt.value = p.ten;
+                            opt.textContent = p.ten;
+                            provFilter.appendChild(opt);
+                        });
+                    }
+
+                    const searchInput = document.getElementById('route-selector-search');
+                    if (searchInput) searchInput.value = '';
+                    if (provFilter) provFilter.value = '';
+
+                    modal.classList.remove('hidden');
+                    app.ui.lockScroll();
+                    setTimeout(() => {
+                        content.classList.remove('opacity-0', 'scale-95');
+                        content.classList.add('opacity-100', 'scale-100');
+                    }, 10);
+
+                    await app.route.fetchRoutes();
+                    app.route.filterSelector();
+                },
+
+                closeSelector: () => {
+                    const modal = document.getElementById('route-selector-modal');
+                    const content = document.getElementById('route-selector-content');
+                    if (!modal || !content) return;
+                    content.classList.remove('opacity-100', 'scale-100');
+                    content.classList.add('opacity-0', 'scale-95');
+                    setTimeout(() => {
+                        modal.classList.add('hidden');
+                        app.ui.unlockScroll();
+                    }, 200);
+                },
+
+                filterSelector: () => {
+                    const searchInput = document.getElementById('route-selector-search');
+                    const provFilter = document.getElementById('route-selector-prov-filter');
+                    const container = document.getElementById('route-selector-items');
+                    if (!container) return;
+
+                    const q = (searchInput ? searchInput.value : '').trim().toLowerCase();
+                    const prov = (provFilter ? provFilter.value : '').trim();
+
+                    const routes = app.route.cachedRoutes || [];
+                    const exclude = app.route.selectorExcludeRoute || '';
+
+                    // Lọc tuyến đặc biệt
+                    const specialList = routes.filter(r => r.is_special || app.route.specialRoutes.includes(r.route_no));
+                    // Lọc tuyến thông thường
+                    let normalList = routes.filter(r => !r.is_special && !app.route.specialRoutes.includes(r.route_no));
+
+                    if (exclude) {
+                        normalList = normalList.filter(r => r.route_name !== exclude && r.route_no !== exclude);
+                    }
+
+                    if (prov) {
+                        normalList = normalList.filter(r => r.province && r.province.toLowerCase() === prov.toLowerCase());
+                    }
+
+                    if (q) {
+                        normalList = normalList.filter(r => {
+                            const noMatch = (r.route_no || '').toLowerCase().includes(q);
+                            const nameMatch = (r.route_name || '').toLowerCase().includes(q);
+                            const pathMatch = (r.short_path || '').toLowerCase().includes(q);
+                            const provMatch = (r.province || '').toLowerCase().includes(q);
+                            return noMatch || nameMatch || pathMatch || provMatch;
+                        });
+                    }
+
+                    let html = '';
+
+                    // 1. Khối 4 trường hợp đặc biệt
+                    if (!prov) {
+                        const matchedSpecials = q
+                            ? specialList.filter(r => (r.route_no || '').toLowerCase().includes(q))
+                            : specialList;
+
+                        if (matchedSpecials.length > 0) {
+                            html += `
+                                <div class="mb-3">
+                                    <p class="text-[10px] font-bold uppercase tracking-wider text-gray-500 mb-1.5 px-1">Tuyến trạng thái đặc biệt</p>
+                                    <div class="grid grid-cols-2 gap-1.5">
+                                        ${matchedSpecials.map(r => `
+                                            <div onclick="app.route.selectRoute('${app.utils.escapeAttr(r.route_no)}', '${app.utils.escapeAttr(r.route_name)}')"
+                                                 class="cursor-pointer bg-white hover:bg-gray-100 border border-black rounded-md p-2.5 flex items-center gap-2 transition active:scale-98 select-none">
+                                                <i class="fa-solid fa-tag text-xs text-black"></i>
+                                                <span class="text-xs font-bold text-black truncate">${app.utils.escapeHtml(r.route_no)}</span>
+                                            </div>
+                                        `).join('')}
+                                    </div>
+                                </div>
+                            `;
+                        }
+                    }
+
+                    // 2. Khối danh sách các tuyến thông thường
+                    html += `<div class="mb-2"><p class="text-[10px] font-bold uppercase tracking-wider text-gray-500 mb-1.5 px-1">Danh sách tuyến xe (${normalList.length})</p>`;
+
+                    if (normalList.length === 0) {
+                        html += `
+                            <div class="text-center py-8 text-gray-500 text-xs">
+                                <i class="fa-solid fa-route text-gray-300 text-2xl block mb-2"></i>
+                                Không tìm thấy tuyến phù hợp. Bạn có thể nhấn <strong>"+ Tạo tuyến mới"</strong> ở trên để thêm tuyến này.
+                            </div>
+                        `;
+                    } else {
+                        html += '<div class="space-y-1.5">';
+                        normalList.forEach(r => {
+                            const badge = r.is_inactive 
+                                ? '<span class="text-[9px] px-1.5 py-0.5 rounded bg-black text-white font-bold shrink-0">Dừng HĐ</span>' 
+                                : '';
+                            const provLabel = r.province ? `<span class="text-[11px] text-gray-500 font-medium">(${app.utils.escapeHtml(r.province)})</span>` : '';
+                            const pathLabel = r.short_path ? `<p class="text-[11px] text-gray-500 truncate mt-0.5">${app.utils.escapeHtml(r.short_path)}</p>` : '';
+
+                            html += `
+                                <div onclick="app.route.selectRoute('${app.utils.escapeAttr(r.route_no)}', '${app.utils.escapeAttr(r.route_name)}')"
+                                     class="cursor-pointer bg-white hover:bg-gray-50 border border-black rounded-md p-2.5 flex items-center justify-between gap-3 transition active:scale-[0.99] select-none group">
+                                    <div class="min-w-0 flex-1">
+                                        <div class="flex items-center gap-2 flex-wrap">
+                                            <span class="font-extrabold text-xs text-black tracking-wide">${app.utils.escapeHtml(r.route_no)}</span>
+                                            ${provLabel}
+                                            ${badge}
+                                        </div>
+                                        ${pathLabel}
+                                    </div>
+                                    <div class="flex items-center gap-1.5 shrink-0" onclick="event.stopPropagation()">
+                                        <button type="button" title="Chỉnh sửa thông tin tuyến" onclick="app.route.openEditPrompt('${app.utils.escapeAttr(r.route_name)}', '${app.utils.escapeAttr(r.province || '')}')"
+                                                class="w-7 h-7 flex items-center justify-center rounded-md border border-black text-black hover:bg-black hover:text-white transition text-xs">
+                                            <i class="fa-solid fa-pen"></i>
+                                        </button>
+                                        <a href="/route/${r.province ? encodeURIComponent(r.province) + '/' : ''}${encodeURIComponent(r.route_no)}"
+                                           onclick="app.route.closeSelector()"
+                                           title="Xem hồ sơ tuyến"
+                                           class="w-7 h-7 flex items-center justify-center rounded-md border border-black text-black hover:bg-black hover:text-white transition text-xs">
+                                            <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                                        </a>
+                                    </div>
+                                </div>
+                            `;
+                        });
+                        html += '</div>';
+                    }
+                    html += '</div>';
+
+                    container.innerHTML = html;
+                },
+
+                selectRoute: (routeNo, routeName) => {
+                    const targetId = app.route.selectorTargetInputId;
+                    if (targetId) {
+                        const targetEl = document.getElementById(targetId);
+                        if (targetEl) {
+                            targetEl.value = routeNo;
+                            targetEl.dispatchEvent(new Event('change', { bubbles: true }));
+                            targetEl.dispatchEvent(new Event('input', { bubbles: true }));
+                        }
+                    }
+
+                    if (typeof app.route.selectorCallback === 'function') {
+                        app.route.selectorCallback({
+                            route_no: routeNo,
+                            route_name: routeName || routeNo
+                        });
+                    }
+
+                    app.route.closeSelector();
+                },
+
+                openCreatePrompt: () => {
+                    if (!app.user) return app.auth.check();
+                    app.route.isEditingExisting = false;
+                    app.route.editingOriginalRouteName = '';
+
+                    const modal = document.getElementById('route-edit-modal');
+                    const content = document.getElementById('route-edit-content');
+                    const titleEl = document.getElementById('route-edit-modal-title');
+                    const btnSave = document.getElementById('btn-save-route');
+                    const btnDelete = document.getElementById('btn-delete-route');
+                    const warningText = document.getElementById('route-edit-warning-text');
+                    const provContainer = document.getElementById('route-edit-province-container');
+                    const provSelect = document.getElementById('route-edit-province');
+
+                    if (titleEl) titleEl.innerHTML = '<i class="fa-solid fa-plus mr-2 text-gray-500"></i>Tạo Tuyến Mới';
+                    if (btnDelete) btnDelete.classList.add('hidden');
+                    if (provContainer) provContainer.classList.remove('hidden');
+
+                    if (provSelect && app.utils.provinceData) {
+                        provSelect.innerHTML = '<option value="">-- Chọn Tỉnh / Thành phố (Bắt buộc) --</option>';
+                        app.utils.provinceData.forEach(p => {
+                            const opt = document.createElement('option');
+                            opt.value = p.ten;
+                            opt.textContent = p.ten;
+                            provSelect.appendChild(opt);
+                        });
+                    }
+
+                    const nameInput = document.getElementById('route-edit-name');
+                    if (nameInput) {
+                        nameInput.value = '';
+                        nameInput.readOnly = false;
+                    }
+                    document.getElementById('route-edit-inactive').checked = false;
+                    document.getElementById('route-edit-short-path').value = '';
+                    document.getElementById('route-edit-desc').value = '';
+                    document.getElementById('route-edit-ticket-price').value = '';
+                    document.getElementById('route-edit-headway').value = '';
+                    document.getElementById('route-edit-wheelchair').checked = false;
+                    document.getElementById('route-edit-borrowed').value = '';
+                    document.getElementById('route-edit-icon').value = 'default';
+                    document.getElementById('route-icon-label').innerText = 'Mặc định';
+
+                    if (app.role === 'admin' || app.role === 'manager') {
+                        btnSave.innerText = "Tạo tuyến mới";
+                        if (warningText) warningText.innerText = "Tuyến mới sẽ được cập nhật trực tiếp vào hệ thống.";
+                    } else {
+                        btnSave.innerText = "Gửi yêu cầu tạo tuyến";
+                        if (warningText) warningText.innerText = "Thông tin tuyến mới sẽ được gửi đến hàng đợi và kiểm duyệt bởi Admin.";
+                    }
+
+                    modal.classList.remove('hidden');
+                    app.ui.lockScroll();
+                    setTimeout(() => {
+                        content.classList.remove('opacity-0', 'scale-95');
+                        content.classList.add('opacity-100', 'scale-100');
+                    }, 10);
+                },
+
+                openEditPrompt: async (targetRouteName, targetProvince) => {
+                    if (!app.user) return app.auth.check();
+
+                    const rName = targetRouteName || (app.route.currentProvince ? `${app.route.currentRoute} - ${app.route.currentProvince}` : app.route.currentRoute);
+                    let rNo = rName.split(' - ')[0].trim();
+                    let prov = targetProvince || (rName.includes(' - ') ? rName.split(' - ')[1].trim() : app.route.currentProvince);
+
+                    if (app.route.specialRoutes.includes(rNo) || app.route.specialRoutes.includes(rName)) {
+                        app.toast.show('error', 'Tuyến không có hồ sơ', `Tuyến "${rNo}" là tuyến trạng thái đặc biệt mặc định của hệ thống, không có hồ sơ riêng và không thể chỉnh sửa.`);
+                        return;
+                    }
+
+                    app.route.isEditingExisting = true;
+                    app.route.editingOriginalRouteName = rName;
+
+                    const modal = document.getElementById('route-edit-modal');
+                    const content = document.getElementById('route-edit-content');
+                    const titleEl = document.getElementById('route-edit-modal-title');
+                    const btnSave = document.getElementById('btn-save-route');
+                    const btnDelete = document.getElementById('btn-delete-route');
+                    const warningText = document.getElementById('route-edit-warning-text');
+                    const provContainer = document.getElementById('route-edit-province-container');
+                    const provSelect = document.getElementById('route-edit-province');
+
+                    if (titleEl) titleEl.innerHTML = '<i class="fa-solid fa-route mr-2 text-gray-500"></i>Cập nhật Thông tin Tuyến';
+                    if (btnDelete) btnDelete.classList.remove('hidden');
+                    if (provContainer) provContainer.classList.remove('hidden');
+
+                    if (provSelect && app.utils.provinceData) {
+                        provSelect.innerHTML = '<option value="">-- Chọn Tỉnh / Thành phố (Bắt buộc) --</option>';
+                        app.utils.provinceData.forEach(p => {
+                            const opt = document.createElement('option');
+                            opt.value = p.ten;
+                            opt.textContent = p.ten;
+                            if (prov && p.ten.toLowerCase() === prov.toLowerCase()) opt.selected = true;
+                            provSelect.appendChild(opt);
+                        });
+                    }
+
+                    const nameInput = document.getElementById('route-edit-name');
+                    if (nameInput) {
+                        nameInput.value = rNo;
+                    }
+                    document.getElementById('route-edit-inactive').checked = false;
+                    document.getElementById('route-edit-short-path').value = '';
+                    document.getElementById('route-edit-desc').value = '';
+                    document.getElementById('route-edit-ticket-price').value = '';
+                    document.getElementById('route-edit-headway').value = '';
+                    document.getElementById('route-edit-wheelchair').checked = false;
+                    document.getElementById('route-edit-borrowed').value = '';
+                    document.getElementById('route-edit-icon').value = 'default';
+                    document.getElementById('route-icon-label').innerText = 'Mặc định';
+
+                    if (app.role === 'admin' || app.role === 'manager') {
+                        btnSave.innerText = "Lưu thông tin";
+                        if (warningText) warningText.innerText = "";
+                    } else {
+                        btnSave.innerText = "Gửi yêu cầu chỉnh sửa";
+                        if (warningText) warningText.innerText = "Thông tin này sẽ được gửi đến hàng đợi và kiểm duyệt bởi Admin.";
+                    }
+
+                    try {
+                        const { data: exactInfo } = await window.sb.from('route_info').select('description, short_path, is_inactive, metadata').eq('route_name', rName).maybeSingle();
+                        if (exactInfo) {
+                            document.getElementById('route-edit-inactive').checked = exactInfo.is_inactive || false;
+                            document.getElementById('route-edit-short-path').value = exactInfo.short_path || '';
+                            document.getElementById('route-edit-desc').value = exactInfo.description || '';
+                            if (exactInfo.metadata) {
+                                document.getElementById('route-edit-ticket-price').value = exactInfo.metadata.ticket_price || '';
+                                document.getElementById('route-edit-headway').value = exactInfo.metadata.headway || '';
+                                document.getElementById('route-edit-wheelchair').checked = exactInfo.metadata.wheelchair_support || false;
+                                let iconTypeMeta = exactInfo.metadata.icon_type || 'default';
+                                let iconLabelMeta = 'Mặc định';
+                                if (iconTypeMeta === 'circle') iconLabelMeta = 'Hình tròn (Max 5 kí tự)';
+                                else if (iconTypeMeta === 'trapezoid') iconLabelMeta = 'Hình thang cân (Max 5 kí tự)';
+                                document.getElementById('route-edit-icon').value = iconTypeMeta;
+                                document.getElementById('route-icon-label').innerText = iconLabelMeta;
+                            }
+                        }
+
+                        // Fetch borrowed photos
+                        const { data: bPhotos } = await window.sb.from('photos').select('id, license_plate').eq('borrowed_route', rName);
+                        let bList = [];
+                        let plates = [];
+                        if (exactInfo && exactInfo.metadata && exactInfo.metadata.borrowed_plates) {
+                            plates = exactInfo.metadata.borrowed_plates;
+                        }
+                        if (bPhotos && bPhotos.length > 0) {
+                            bPhotos.forEach(p => {
+                                if (!plates.some(pl => pl.toLowerCase() === p.license_plate.toLowerCase())) {
+                                    bList.push(p.id);
+                                }
+                            });
+                        }
+                        bList.push(...plates);
+                        document.getElementById('route-edit-borrowed').value = bList.join(', ');
+                    } catch(e) {
+                        console.error("Lỗi khi load dữ liệu sửa tuyến:", e);
+                    }
+
+                    modal.classList.remove('hidden');
+                    app.ui.lockScroll();
+                    setTimeout(() => {
+                        content.classList.remove('opacity-0', 'scale-95');
+                        content.classList.add('opacity-100', 'scale-100');
+                    }, 10);
+                },
+
+                closeEditPrompt: () => {
+                    const modal = document.getElementById('route-edit-modal');
+                    const content = document.getElementById('route-edit-content');
+                    if (!modal || !content) return;
+                    content.classList.remove('opacity-100', 'scale-100');
+                    content.classList.add('opacity-0', 'scale-95');
+                    setTimeout(() => {
+                        modal.classList.add('hidden');
+                        app.ui.unlockScroll();
+                    }, 200);
+                },
+
+                submitEdit: async () => {
+                    if (!app.user) return;
+                    const routeNo = (document.getElementById('route-edit-name')?.value || '').trim();
+                    const province = (document.getElementById('route-edit-province')?.value || '').trim();
+                    const desc = (document.getElementById('route-edit-desc')?.value || '').trim();
+                    const shortPath = (document.getElementById('route-edit-short-path')?.value || '').trim();
+                    const isInactive = document.getElementById('route-edit-inactive')?.checked || false;
+                    const ticketPrice = (document.getElementById('route-edit-ticket-price')?.value || '').trim();
+                    const headway = (document.getElementById('route-edit-headway')?.value || '').trim();
+                    const wheelchairSupport = document.getElementById('route-edit-wheelchair')?.checked || false;
+                    const borrowedPhotosStr = (document.getElementById('route-edit-borrowed')?.value || '').trim();
+
+                    if (!routeNo) {
+                        return app.ui.showAlert("Vui lòng nhập Số hiệu tuyến xe.");
+                    }
+                    if (!province) {
+                        return app.ui.showAlert("Vui lòng chọn Tỉnh / Thành phố cho tuyến xe.");
+                    }
+
+                    // Kiểm tra không được tạo trùng tên với 4 trường hợp đặc biệt
+                    if (app.route.specialRoutes.some(s => s.toLowerCase() === routeNo.toLowerCase())) {
+                        return app.ui.showAlert(`Tên tuyến "${routeNo}" trùng với tuyến trạng thái đặc biệt mặc định của hệ thống và không được phép tạo mới.`);
+                    }
+
+                    const routeName = `${routeNo} - ${province}`;
+
+                    // Nếu tạo mới, kiểm tra trùng lặp
+                    if (!app.route.isEditingExisting) {
+                        const { data: exist } = await window.sb.from('route_info').select('route_name').eq('route_name', routeName).maybeSingle();
+                        if (exist) {
+                            return app.ui.showAlert(`Tuyến "${routeName}" đã tồn tại trên hệ thống. Vui lòng chọn từ danh sách hoặc đổi tên khác.`);
+                        }
+                    }
+
+                    let metadata = {};
+                    if (ticketPrice) metadata.ticket_price = ticketPrice;
+                    if (headway) metadata.headway = headway;
+                    if (wheelchairSupport) metadata.wheelchair_support = wheelchairSupport;
+
+                    const iconType = document.getElementById('route-edit-icon')?.value || 'default';
+                    if (iconType !== 'default') {
+                        if (routeNo.length <= 5) {
+                            metadata.icon_type = iconType;
+                        } else {
+                            app.toast.show('warning', 'Lưu ý', 'Tên tuyến dài hơn 5 kí tự không thể sử dụng icon tùy chỉnh. Đã tự động chuyển về mặc định.');
+                        }
+                    }
+
+                    let metadataObj = Object.keys(metadata).length > 0 ? metadata : null;
+                    const rawInputList = borrowedPhotosStr ? borrowedPhotosStr.split(',').map(s => s.trim()).filter(Boolean) : [];
+                    const enteredIdsStr = rawInputList.filter(s => /^\d+$/.test(s));
+                    const enteredPlates = rawInputList.filter(s => !/^\d+$/.test(s));
+                    const newBorrowedIds = enteredIdsStr.map(Number);
+
+                    if (enteredPlates.length > 0) {
+                        metadataObj = metadataObj || {};
+                        metadataObj.borrowed_plates = enteredPlates;
+                    }
+
+                    const btn = document.getElementById('btn-save-route');
+                    const origText = btn.innerHTML;
+                    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1"></i> Đang xử lý...';
+                    btn.disabled = true;
+
+                    try {
+                        if (app.role === 'admin' || app.role === 'manager') {
+                            const { error: upsertErr } = await window.sb.from('route_info').upsert({
+                                route_name: routeName,
+                                route_no: routeNo,
+                                province: province,
+                                short_path: shortPath || null,
+                                description: desc || null,
+                                is_inactive: isInactive,
+                                is_special: false,
+                                metadata: metadataObj
+                            }, { onConflict: 'route_name' });
+                            if (upsertErr) throw upsertErr;
+
+                            // Xử lý cập nhật ID ảnh và biển số xe vá tuyến
+                            const { data: curBorrowed } = await window.sb.from('photos').select('id, license_plate').eq('borrowed_route', routeName);
+                            const curIds = curBorrowed ? curBorrowed.map(p => p.id) : [];
+                            const addedIdsRaw = newBorrowedIds.filter(id => !curIds.includes(id));
+                            const removedIds = curIds.filter(id => !newBorrowedIds.includes(id));
+
+                            if (enteredPlates.length > 0) {
+                                const { data: retroPhotos } = await window.sb.from('photos').select('id, route_no').in('license_plate', enteredPlates).eq('route_no', routeNo);
+                                if (retroPhotos && retroPhotos.length > 0) {
+                                    retroPhotos.forEach(p => {
+                                        if (!curIds.includes(p.id) && !addedIdsRaw.includes(p.id)) {
+                                            addedIdsRaw.push(p.id);
+                                        }
+                                    });
+                                }
+                            }
+
+                            if (addedIdsRaw.length > 0) {
+                                const { data: validPhotos } = await window.sb.from('photos').select('id, route_no').in('id', addedIdsRaw);
+                                const trulyAddedIds = (validPhotos || []).filter(p => p.route_no === routeNo).map(p => p.id);
+                                if (trulyAddedIds.length > 0) {
+                                    await window.sb.from('photos').update({ borrowed_route: routeName }).in('id', trulyAddedIds);
+                                }
+                            }
+
+                            let finalRemovedIds = removedIds;
+                            if (enteredPlates.length > 0 && curBorrowed) {
+                                finalRemovedIds = removedIds.filter(id => {
+                                    const photo = curBorrowed.find(p => p.id === id);
+                                    return !(photo && enteredPlates.some(plate => plate.toLowerCase() === photo.license_plate.toLowerCase()));
+                                });
+                            }
+                            if (finalRemovedIds.length > 0) {
+                                for (const id of finalRemovedIds) {
+                                    await window.sb.from('photos').update({ borrowed_route: null }).eq('id', id);
+                                }
+                            }
+
+                            app.route.cachedRoutes = null;
+                            app.toast.show('success', 'Thành công', app.route.isEditingExisting ? 'Đã lưu thông tin Tuyến!' : 'Đã tạo tuyến mới thành công!');
+                            app.route.closeEditPrompt();
+
+                            if (app.route.currentRoute === routeNo && app.route.currentProvince === province) {
+                                app.route.loadRoutePage(province, routeNo, true);
+                            }
+                            await app.route.fetchRoutes(true);
+                            app.route.filterSelector();
+                        } else {
+                            // Người dùng thường gửi yêu cầu qua edit_requests
+                            const reqType = app.route.isEditingExisting ? 'update_route_info' : 'create_route_info';
+                            let checkQuery = window.sb.from('edit_requests').select('*', { count: 'exact', head: true }).eq('status', 'pending');
+                            const { count, error: checkErr } = await checkQuery.contains('new_data', { request_type: reqType, route_name: routeName });
+                            if (checkErr) throw checkErr;
+                            if (count > 0) throw new Error("Đã có một yêu cầu cho tuyến này đang chờ duyệt.");
+
+                            const reqData = {
+                                requester_id: app.user.id,
+                                license_plate: 'ROUTE_INFO',
+                                new_data: {
+                                    request_type: reqType,
+                                    route_name: routeName,
+                                    route_no: routeNo,
+                                    province: province,
+                                    short_path: shortPath || null,
+                                    description: desc || null,
+                                    is_inactive: isInactive,
+                                    metadata: metadataObj,
+                                    borrowed_photos_str: borrowedPhotosStr
+                                },
+                                status: 'pending'
+                            };
+                            const { error } = await window.sb.from('edit_requests').insert(reqData);
+                            if (error) throw error;
+                            app.ui.showAlert(app.route.isEditingExisting ? "Đã gửi yêu cầu cập nhật thông tin Tuyến và đang chờ Admin duyệt." : "Đã gửi yêu cầu tạo Tuyến mới và đang chờ Admin duyệt.");
+                            app.route.closeEditPrompt();
+                        }
+                    } catch (err) {
+                        app.ui.showAlert("Lỗi: " + err.message);
+                    } finally {
+                        btn.innerHTML = origText;
+                        btn.disabled = false;
+                    }
+                },
+
+                openDeletePrompt: (targetRouteName) => {
+                    if (!app.user) return app.auth.check();
+                    const target = targetRouteName || app.route.editingOriginalRouteName || (app.route.currentProvince ? `${app.route.currentRoute} - ${app.route.currentProvince}` : app.route.currentRoute);
+                    if (!target) return;
+
+                    const targetNo = target.split(' - ')[0].trim();
+                    if (app.route.specialRoutes.includes(targetNo) || app.route.specialRoutes.includes(target)) {
+                        return app.ui.showAlert("Các tuyến trạng thái đặc biệt mặc định của hệ thống không thể bị xóa.");
+                    }
+
+                    app.route.deletingRouteName = target;
+                    document.getElementById('del-route-target-name').innerText = target;
+                    document.getElementById('del-route-dest-display').value = 'Ngoài giờ hoạt động';
+                    document.getElementById('del-route-dest-val').value = 'Ngoài giờ hoạt động';
+                    document.getElementById('del-route-dest-val').dataset.routeName = 'Ngoài giờ hoạt động';
+
+                    const modal = document.getElementById('route-delete-modal');
+                    const content = document.getElementById('route-delete-content');
+                    modal.classList.remove('hidden');
+                    app.ui.lockScroll();
+                    setTimeout(() => {
+                        content.classList.remove('opacity-0', 'scale-95');
+                        content.classList.add('opacity-100', 'scale-100');
+                    }, 10);
+                },
+
+                closeDeletePrompt: () => {
+                    const modal = document.getElementById('route-delete-modal');
+                    const content = document.getElementById('route-delete-content');
+                    if (!modal || !content) return;
+                    content.classList.remove('opacity-100', 'scale-100');
+                    content.classList.add('opacity-0', 'scale-95');
+                    setTimeout(() => {
+                        modal.classList.add('hidden');
+                        app.ui.unlockScroll();
+                    }, 200);
+                },
+
+                chooseDeleteDestination: () => {
+                    app.route.openSelector({
+                        excludeRoute: app.route.deletingRouteName,
+                        onSelect: (r) => {
+                            const disp = r.route_name || r.route_no;
+                            document.getElementById('del-route-dest-display').value = disp;
+                            document.getElementById('del-route-dest-val').value = r.route_no;
+                            document.getElementById('del-route-dest-val').dataset.routeName = disp;
+                        }
+                    });
+                },
+
+                confirmDeleteRoute: async () => {
+                    if (!app.user) return;
+                    const deletingName = app.route.deletingRouteName;
+                    if (!deletingName) return;
+                    const deletingNo = deletingName.split(' - ')[0].trim();
+
+                    const destRouteNo = (document.getElementById('del-route-dest-val')?.value || 'Ngoài giờ hoạt động').trim();
+                    const destRouteName = (document.getElementById('del-route-dest-val')?.dataset.routeName || destRouteNo).trim();
+
+                    const btn = document.getElementById('btn-confirm-delete-route');
+                    const origText = btn.innerHTML;
+                    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1"></i> Đang xóa...';
+                    btn.disabled = true;
+
+                    try {
+                        if (app.role === 'admin' || app.role === 'manager') {
+                            // 1. Chuyển tất cả ảnh thuộc tuyến bị xóa sang tuyến đích
+                            const newBorrowed = destRouteName !== destRouteNo ? destRouteName : null;
+                            await window.sb.from('photos')
+                                .update({ route_no: destRouteNo, borrowed_route: newBorrowed })
+                                .or(`route_no.eq."${deletingNo}",borrowed_route.eq."${deletingName}"`);
+
+                            // 2. Chuyển tất cả lịch sử phương tiện (vehicle_history) sang tuyến đích
+                            await window.sb.from('vehicle_history')
+                                .update({ route: destRouteNo })
+                                .or(`route.eq."${deletingNo}",route.eq."${deletingName}"`);
+
+                            // 3. Xóa hồ sơ tuyến khỏi bảng route_info
+                            const { error: delErr } = await window.sb.from('route_info').delete().eq('route_name', deletingName);
+                            if (delErr) throw delErr;
+
+                            app.route.cachedRoutes = null;
+                            app.toast.show('success', 'Đã xóa tuyến', `Đã chuyển toàn bộ ảnh và lịch sử xe sang tuyến "${destRouteName}" và xóa hồ sơ.`);
+                            app.route.closeDeletePrompt();
+                            app.route.closeEditPrompt();
+
+                            if (app.route.currentRoute === deletingNo) {
+                                app.utils.navigate('/');
+                            }
+                            await app.route.fetchRoutes(true);
+                            app.route.filterSelector();
+                        } else {
+                            // Thành viên thường gửi yêu cầu duyệt xóa
+                            const reqData = {
+                                requester_id: app.user.id,
+                                license_plate: 'ROUTE_INFO',
+                                new_data: {
+                                    request_type: 'delete_route',
+                                    route_name: deletingName,
+                                    route_no: deletingNo,
+                                    dest_route_no: destRouteNo,
+                                    dest_route_name: destRouteName
+                                },
+                                status: 'pending'
+                            };
+                            const { error } = await window.sb.from('edit_requests').insert(reqData);
+                            if (error) throw error;
+                            app.ui.showAlert(`Đã gửi yêu cầu xóa tuyến và chuyển dữ liệu sang tuyến "${destRouteName}". Admin sẽ kiểm duyệt yêu cầu của bạn.`);
+                            app.route.closeDeletePrompt();
+                            app.route.closeEditPrompt();
+                        }
+                    } catch (err) {
+                        app.ui.showAlert("Lỗi khi xóa tuyến: " + err.message);
+                    } finally {
+                        btn.innerHTML = origText;
+                        btn.disabled = false;
+                    }
+                }
+            },
+
+    model: {
+                currentModel: '',
+                modelLoadedCount: 0,
+                modelPhotos: [],
+                MODEL_PAGE_SIZE: 12,
+                loadModelPage: async (modelName, forceRefresh = false) => {
+                    const decodedPath = decodeURIComponent(window.location.pathname);
+                    if (decodedPath !== `/model/${modelName}`) {
+                        app.utils.navigate(`/model/${encodeURIComponent(modelName)}`);
+                        return;
+                    }
+                    app.views.switch('model-view', false);
+                    if (app.model.currentModel === modelName && app.model.modelPhotos && app.model.modelPhotos.length > 0 && !forceRefresh) {
+                        app.loadingBar.finish();
+                        return;
+                    }
+                    document.title = `${modelName} | VNBUSARCHIVE`;
+                    app.model.currentModel = modelName;
+                    app.model.modelLoadedCount = 0;
+                    app.model.totalPages = 0;
+                    document.getElementById('crumb-model-profile').innerText = modelName;
+                    document.getElementById('model-profile-title').innerText = modelName;
+                    document.getElementById('model-logo').classList.add('hidden');
+                    document.getElementById('model-logo-fallback').classList.remove('hidden');
+                    document.getElementById('model-desc').classList.add('hidden');
+                    document.getElementById('mdl-stat-photos').innerText = '...';
+                    document.getElementById('mdl-stat-vehicles').innerText = '...';
+                    document.getElementById('mdl-stat-ops').innerText = '...';
+                    document.getElementById('mdl-stat-ops').innerText = '...';
+                    document.getElementById('mdl-stat-views').innerText = '...';
+                    document.getElementById('mdl-stats-grid').classList.remove('hidden');
+                    const grid = document.getElementById('model-photo-grid');
+                    grid.innerHTML = '<div class="col-span-full text-center py-10 text-gray-500"><i class="fa-solid fa-circle-notch fa-spin"></i> Đang tổng hợp dữ liệu...</div>';
+                    document.getElementById('model-load-more-container').innerHTML = '';
+                    document.getElementById('model-load-more-container').classList.add('hidden');
+                    try {
+                        const brandName = modelName.split(' ')[0];
+                        const { data: exactInfo } = await window.sb.from('model_info').select('model_name, logo_url, description').eq('model_name', modelName).maybeSingle();
+                        const { data: brandLogoData } = await window.sb.from('model_info')
+                            .select('logo_url')
+                            .ilike('model_name', `${brandName}%`)
+                            .not('logo_url', 'is', null)
+                            .limit(1)
+                            .maybeSingle();
+                        const logoEl = document.getElementById('model-logo');
+                        const fallbackEl = document.getElementById('model-logo-fallback');
+                        const descEl = document.getElementById('model-desc');
+                        if (brandLogoData && brandLogoData.logo_url) {
+                            logoEl.src = brandLogoData.logo_url.includes('wsrv.nl') ? brandLogoData.logo_url : 'https://wsrv.nl/?url=' + encodeURIComponent(brandLogoData.logo_url);
+                            logoEl.classList.remove('hidden');
+                            fallbackEl.classList.add('hidden');
+                        } else {
+                            logoEl.classList.add('hidden');
+                            fallbackEl.classList.remove('hidden');
+                        }
+                        if (exactInfo && exactInfo.description) {
+                            descEl.innerHTML = app.utils.cleanText(exactInfo.description).replace(/\n/g, '<br>');
+                            descEl.classList.remove('hidden');
+                        } else {
+                            descEl.classList.add('hidden');
+                        }
+                        const stats = await app.utils.getCachedStats('mdl_stats_' + modelName, 10 * 60 * 1000, async () => {
+                            const rpc = await app.utils.getModelStats(modelName);
+                            if (rpc) return rpc;
+                            const { data, error: statsErr } = await window.sb.from('photos')
+                                .select('views, license_plate, operator, vehicles!inner(model)')
+                                .eq('status', 'approved')
+                                .eq('vehicles.model', modelName)
+                                .limit(500);
+                            if (statsErr) throw statsErr;
+                            let totalViews = 0; const pSet = new Set(); const oSet = new Set();
+                            (data || []).forEach(p => {
+                                totalViews += (p.views || 0);
+                                if (p.license_plate) pSet.add(p.license_plate.toUpperCase());
+                                if (p.operator && p.operator !== '---') oSet.add(p.operator.toLowerCase());
+                            });
+                            return { total_photos: data ? data.length : 0, total_views: totalViews, total_vehicles: pSet.size, total_ops: oSet.size };
+                        });
+                        const statsData = stats; 
+                        const totalViews = stats.total_views || 0;
+                        const uniquePlates = new Set();
+                        if (stats.total_vehicles != null) {
+                        }
+                        const mdlPhotoCount = stats.total_photos || 0;
+                        const mdlVehicleCount = stats.total_vehicles != null ? stats.total_vehicles : 0;
+                        const mdlOpCount = stats.total_ops != null ? stats.total_ops : 0;
+                        if (!mdlPhotoCount || mdlPhotoCount === 0) {
+                            grid.innerHTML = '<div class="col-span-full text-center py-10 text-gray-500">Chưa có ảnh xe nào thuộc dòng này được duyệt trên hệ thống.</div>';
+                            document.getElementById('mdl-stat-photos').innerText = '0';
+                            document.getElementById('mdl-stat-vehicles').innerText = '0';
+                            document.getElementById('mdl-stat-ops').innerText = '0';
+                            document.getElementById('mdl-stat-views').innerText = '0';
+                            document.getElementById('mdl-stats-grid').classList.add('hidden');
+                            app.loadingBar.finish();
+                            return;
+                        }
+                        document.getElementById('mdl-stat-photos').innerText = app.utils.formatCompact(mdlPhotoCount);
+                        document.getElementById('mdl-stat-vehicles').innerText = app.utils.formatCompact(mdlVehicleCount);
+                        document.getElementById('mdl-stat-ops').innerText = app.utils.formatCompact(mdlOpCount);
+                        document.getElementById('mdl-stat-views').innerText = app.utils.formatCompact(totalViews);
+                        app.views.modelCurrentPage = 1;
+                        const mdlSize = app.views.MODEL_PAGE_SIZE || 12;
+                        let pQuery = window.sb.from('photos').select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, borrowed_route, camera_model, location, status, denial_reason, is_documentary, views, profiles(id, username, role, subroles, ban_status), vehicles!inner(model)`, { count: 'exact' })
+                            .eq('status', 'approved')
+                            .eq('vehicles.model', modelName)
+                            .order('taken_at', { ascending: false, nullsFirst: false })
+                            .order('created_at', { ascending: false });
+                        pQuery = app.preference.applyFilter(pQuery);
+                        const { data: photos, error, count } = await pQuery.range(0, mdlSize - 1);
+                        if (error) throw error;
+                        app.model.modelPhotos = photos || [];
+                        app.model.totalCount = count || (photos ? photos.length : 0);
+                        app.model.totalPages = Math.ceil(app.model.totalCount / mdlSize);
+                        if (photos && photos.length > 0) {
+                            grid.innerHTML = photos.map(p => app.views.renderPhotoCard(p)).join('');
+                        } else {
+                            grid.innerHTML = '<div class="col-span-full text-center py-10 text-gray-500">Không tìm thấy ảnh nào.</div>';
+                        }
+                        app.views.renderModelPagination();
+                    } catch (err) {
+                        grid.innerHTML = `<div class="col-span-full text-center py-10 text-red-500">Lỗi lấy dữ liệu: ${err.message}</div>`;
+                    }
+                    app.loadingBar.finish();
+                },
+                openEditPrompt: async () => {
+                    if (!app.user) return app.auth.check();
+                    const modal = document.getElementById('model-edit-modal');
+                    const content = document.getElementById('model-edit-content');
+                    const btnSave = document.getElementById('btn-save-model');
+                    const warningText = content.querySelector('p.text-xs');
+                    document.getElementById('mdl-edit-logo').value = '';
+                    document.getElementById('mdl-edit-desc').value = '';
+                    if (app.role === 'admin' || app.role === 'manager') {
+                        btnSave.innerText = "Lưu thông tin";
+                        warningText.innerHTML = "";
+                    } else {
+                        btnSave.innerText = "Lưu thông tin";
+                        warningText.innerText = "Thông tin này sẽ được kiểm duyệt bởi Admin. Việc để trống cả 2 ô sẽ gửi yêu cầu xóa thông tin hiện tại.";
+                    }
+                    try {
+                        const brandName = app.model.currentModel.split(' ')[0];
+                        const { data: exactInfo } = await window.sb.from('model_info').select('description, logo_url').eq('model_name', app.model.currentModel).maybeSingle();
+                        if (exactInfo) {
+                            if (exactInfo.description) document.getElementById('mdl-edit-desc').value = exactInfo.description;
+                            if (exactInfo.logo_url) document.getElementById('mdl-edit-logo').value = exactInfo.logo_url;
+                        }
+                        if (!document.getElementById('mdl-edit-logo').value) {
+                            const { data: brandLogoData } = await window.sb.from('model_info').select('logo_url').ilike('model_name', `${brandName}%`).not('logo_url', 'is', null).limit(1).maybeSingle();
+                            if (brandLogoData && brandLogoData.logo_url) document.getElementById('mdl-edit-logo').value = brandLogoData.logo_url;
+                        }
+                    } catch(e) {}
+                    modal.classList.remove('hidden');
+                    app.ui.lockScroll();
+                    setTimeout(() => {
+                        content.classList.remove('opacity-0', 'scale-95');
+                        content.classList.add('opacity-100', 'scale-100');
+                    }, 10);
+                },
+                closeEditPrompt: () => {
+                    const modal = document.getElementById('model-edit-modal');
+                    const content = document.getElementById('model-edit-content');
+                    content.classList.remove('opacity-100', 'scale-100');
+                    content.classList.add('opacity-0', 'scale-95');
+                    setTimeout(() => {
+                        modal.classList.add('hidden');
+                        app.ui.unlockScroll();
+                    }, 200);
+                },
+                submitEdit: async () => {
+                    if (!app.user) return;
+                    const logo = document.getElementById('mdl-edit-logo').value.trim();
+                    const desc = document.getElementById('mdl-edit-desc').value.trim();
+                    const btn = document.getElementById('btn-save-model');
+                    const executeSave = async () => {
+                        if (logo) {
+                            if (!/^https?:\/\//i.test(logo)) {
+                                return app.ui.showAlert("Logo URL phải bắt đầu bằng http:// hoặc https://");
+                            }
+                            const origTextTemp = btn.innerHTML;
+                            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang kiểm tra ảnh...';
+                            btn.disabled = true;
+                            const isValidImg = await new Promise(resolve => {
+                                const img = new Image();
+                                img.onload = () => resolve(true);
+                                img.onerror = () => resolve(false);
+                                img.src = logo.includes('wsrv.nl') ? logo : 'https://wsrv.nl/?url=' + encodeURIComponent(logo);
+                            });
+                            if (!isValidImg) {
+                                btn.innerHTML = origTextTemp;
+                                btn.disabled = false;
+                                return app.ui.showAlert("Không thể tải được ảnh từ đường dẫn Logo bạn đã nhập (Hoặc máy chủ ảnh từ chối truy cập).");
+                            }
+                            btn.innerHTML = origTextTemp;
+                            btn.disabled = false;
+                        }
+                        if (app.role !== 'admin' && app.role !== 'manager') {
+                            try { await app.captcha.request(); } catch (err) { if (err.message !== "CAPTCHA_CANCELLED") app.ui.showAlert("Lỗi xác thực Captcha."); return; }
+                        }
+                        const origText = btn.innerHTML;
+                        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang xử lý...';
+                        btn.disabled = true;
+                        try {
+                            const brandName = app.model.currentModel.split(' ')[0];
+                            if (app.role === 'admin' || app.role === 'manager') {
+                                if (!logo && !desc) {
+                                    const { error: delErr } = await window.sb.from('model_info').delete().eq('model_name', app.model.currentModel);
+                                    if (delErr) throw delErr;
+                                } else {
+                                    const upsertData = {
+                                        model_name: app.model.currentModel,
+                                        description: desc || null,
+                                        logo_url: logo || null
+                                    };
+                                    const { error: upsertErr } = await window.sb.from('model_info').upsert(upsertData, { onConflict: 'model_name' });
+                                    if (upsertErr) throw upsertErr;
+                                }
+                                if (logo) {
+                                    await window.sb.from('model_info')
+                                        .update({ logo_url: logo })
+                                        .ilike('model_name', `${brandName}%`);
+                                }
+                                app.toast.show('success', 'Thành công', 'Đã lưu và đồng bộ thông tin Dòng xe!');
+                                app.model.closeEditPrompt();
+                                const descEl = document.getElementById('model-desc');
+                                if (descEl) {
+                                    if (desc) {
+                                        descEl.innerHTML = app.utils.cleanText(desc).replace(/\n/g, '<br>');
+                                        descEl.classList.remove('hidden');
+                                    } else {
+                                        descEl.classList.add('hidden');
+                                    }
+                                }
+                                const logoEl = document.getElementById('model-logo');
+                                const fallbackEl = document.getElementById('model-logo-fallback');
+                                if (logoEl && fallbackEl) {
+                                    if (logo) {
+                                        logoEl.src = logo.includes('wsrv.nl') ? logo : 'https://wsrv.nl/?url=' + encodeURIComponent(logo);
+                                        logoEl.classList.remove('hidden');
+                                        fallbackEl.classList.add('hidden');
+                                    } else {
+                                        logoEl.classList.add('hidden');
+                                        fallbackEl.classList.remove('hidden');
+                                    }
+                                }
+                                app.model.loadModelPage(app.model.currentModel, true);
+                                if (app.admin && app.admin.logAction) {
+                                    app.admin.logAction('update_model_direct', app.model.currentModel, { logo_url: logo || null, description: desc, brand_sync: brandName });
+                                }
+                            } else {
+                                const { count, error: checkErr } = await window.sb.from('edit_requests')
+                                    .select('*', { count: 'exact', head: true })
+                                    .eq('status', 'pending')
+                                    .contains('new_data', { request_type: 'update_model_info', model_name: app.model.currentModel });
+                                if (checkErr) throw checkErr;
+                                if (count > 0) throw new Error("Đã có một yêu cầu cập nhật thông tin cho dòng xe này đang chờ duyệt. Vui lòng đợi!");
+                                const reqData = {
+                                    requester_id: app.user.id,
+                                    license_plate: 'MODEL_INFO',
+                                    new_data: {
+                                        request_type: 'update_model_info',
+                                        model_name: app.model.currentModel,
+                                        description: desc || null,
+                                        logo_url: logo || null
+                                    },
+                                    status: 'pending'
+                                };
+                                const { error } = await window.sb.from('edit_requests').insert(reqData);
+                                if (error) throw error;
+                                app.ui.showAlert("Đã gửi yêu cầu cập nhật thông tin Dòng xe và đang chờ Admin duyệt. Bạn có thể kiểm tra trạng thái trong trang Hồ sơ của tôi.");
+                                app.model.closeEditPrompt();
+                            }
+                        } catch (err) {
+                            app.ui.showAlert("Lỗi: " + err.message);
+                        } finally {
+                            btn.innerHTML = origText;
+                            btn.disabled = false;
+                        }
+                    };
+                    executeSave();
+                }
+            },
+
+    route: {
+                currentProvince: '',
+                currentRoute: '',
+                routeLoadedCount: 0,
+                routePhotos: [],
+                ROUTE_PAGE_SIZE: 12,
+                loadRoutePage: async (provinceName, routeNo, forceRefresh = false) => {
+                    const decodedProvince = decodeURIComponent(provinceName || '');
+                    const decodedRoute = decodeURIComponent(routeNo);
+                    
+if (!decodedProvince || decodedProvince.trim() === '') {
+                        app.toast.show('error', 'Lỗi truy cập', 'Tuyến này không tồn tại thông tin tỉnh thành. Nó có thể là xe khách hoặc dữ liệu không hợp lệ nên không được hỗ trợ hồ sơ.');
+                        app.utils.navigate('/');
+                        return;
+                    }
+
+                    // Check for special routes that don't have profiles
+                    const specialRoutes = ['Dừng hoạt động', 'Ngoài giờ hoạt động', 'Chưa hoạt động'];
+                    if (specialRoutes.includes(decodedRoute)) {
+                        app.toast.show('error', 'Tuyến không có hồ sơ', `Tuyến "${decodedRoute}" không có thông tin hồ sơ. Chuyển hướng đến tìm kiếm...`);
+                        app.searchRedirect(decodedRoute, 'all');
+                        return;
+                    }
+
+                    const expectedPath = decodedProvince
+                        ? `/route/${encodeURIComponent(decodedProvince)}/${encodeURIComponent(decodedRoute)}`
+                        : `/route/${encodeURIComponent(decodedRoute)}`;
+                    
+                    if (window.location.pathname !== expectedPath) {
+                        app.utils.navigate(expectedPath);
+                        return;
+                    }
+                    app.views.switch('route-view', false);
+                    
+                    if (app.route.currentProvince === decodedProvince && app.route.currentRoute === decodedRoute && app.route.routePhotos && app.route.routePhotos.length > 0 && !forceRefresh) {
+                        app.loadingBar.finish();
+                        return;
+                    }
+                    
+                    const titleText = decodedProvince ? `Tuyến ${decodedRoute} - ${decodedProvince}` : `Tuyến ${decodedRoute}`;
+                    document.title = `${titleText} | VNBUSARCHIVE`;
+                    app.route.currentProvince = decodedProvince;
+                    app.route.currentRoute = decodedRoute;
+                    app.route.routeLoadedCount = 0;
+                    app.route.totalPages = 0;
+                    
+                    document.getElementById('crumb-route-profile').innerText = titleText;
+                    document.getElementById('route-profile-title').innerText = decodedRoute;
+                    document.getElementById('route-province-label').innerText = decodedProvince ? `Tuyến buýt ${decodedProvince}` : 'Tuyến buýt';
+                    
+                    
+                    
+                    
+                    document.getElementById('rte-stat-photos').innerText = '...';
+                    document.getElementById('rte-stat-vehicles').innerText = '...';
+                    
+                    document.getElementById('rte-stat-views').innerText = '...';
+                    document.getElementById('rte-stats-grid').classList.remove('hidden');
+                    
+                    const grid = document.getElementById('route-photo-grid');
+                    grid.innerHTML = '<div class="col-span-full text-center py-10 text-gray-500"><i class="fa-solid fa-circle-notch fa-spin"></i> Đang tổng hợp dữ liệu...</div>';
+                    document.getElementById('route-load-more-container').innerHTML = '';
+                    document.getElementById('route-load-more-container').classList.add('hidden');
+                    
+                    let exactInfo = null;
+                    try {
+                        const routeName = decodedProvince ? `${decodedRoute} - ${decodedProvince}` : decodedRoute;
+                        const { data } = await window.sb.from('route_info').select('description, short_path, is_inactive, metadata').eq('route_name', routeName).maybeSingle();
+                        exactInfo = data;
+                        let titleText = decodedRoute;
+                        let inactiveBadge = '';
+                        let iconHtml = '<i class="fa-solid fa-route"></i>';
+                        let iconClass = "w-16 h-16 md:w-20 md:h-20 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center font-bold text-3xl shrink-0";
+
+                        if (exactInfo) {
+                            if (exactInfo.is_inactive) {
+                                inactiveBadge = '<span class="bg-black text-white text-[10px] px-2 py-0.5 rounded font-bold border border-black shrink-0 uppercase tracking-widest">Dừng hoạt động</span>';
+                            }
+                            if (exactInfo.short_path) {
+                                titleText = `${decodedRoute} (${exactInfo.short_path})`;
+                            }
+                            const descEl = document.getElementById('route-desc');
+                            if (exactInfo.description) {
+                                descEl.innerHTML = app.utils.cleanText(exactInfo.description).replace(/\n/g, '<br>');
+                                descEl.classList.remove('hidden');
+                            } else {
+                                descEl.classList.add('hidden');
+                            }
+                            
+                            
+                            const builtIcon = await app.utils.buildRouteIcon(decodedRoute, exactInfo.metadata && exactInfo.metadata.icon_type, 'w-16 h-16 md:w-20 md:h-20');
+                            if (builtIcon) { iconClass = builtIcon.iconClass; iconHtml = builtIcon.iconHtml; }
+                            
+                            const extraInfoContainer = document.getElementById('route-extra-info');
+                            if (extraInfoContainer) {
+                                extraInfoContainer.innerHTML = '';
+                                let hasExtraInfo = false;
+                                if (exactInfo.metadata) {
+                                    if (exactInfo.metadata.ticket_price) {
+                                        extraInfoContainer.innerHTML += `
+                                            <div class="flex items-center gap-3 bg-white rounded-lg p-2.5 shadow-sm border border-gray-100">
+                                                <div class="w-7 h-7 rounded-full bg-green-100 text-green-600 flex items-center justify-center shrink-0">
+                                                    <i class="fa-solid fa-ticket text-xs"></i>
+                                                </div>
+                                                <span class="text-xs font-bold text-gray-700">Giá vé lượt: ${app.utils.escapeHtml(exactInfo.metadata.ticket_price)}</span>
+                                            </div>
+                                        `;
+                                        hasExtraInfo = true;
+                                    }
+                                    if (exactInfo.metadata.headway) {
+                                        extraInfoContainer.innerHTML += `
+                                            <div class="flex items-center gap-3 bg-white rounded-lg p-2.5 shadow-sm border border-gray-100">
+                                                <div class="w-7 h-7 rounded-full bg-yellow-100 text-yellow-600 flex items-center justify-center shrink-0">
+                                                    <i class="fa-solid fa-clock text-xs"></i>
+                                                </div>
+                                                <span class="text-xs font-bold text-gray-700">Giãn cách, TG hoạt động: ${app.utils.escapeHtml(exactInfo.metadata.headway)}</span>
+                                            </div>
+                                        `;
+                                        hasExtraInfo = true;
+                                    }
+                                    if (exactInfo.metadata.wheelchair_support) {
+                                        extraInfoContainer.innerHTML += `
+                                            <div class="flex items-center gap-3 bg-white rounded-lg p-2.5 shadow-sm border border-gray-100">
+                                                <div class="w-7 h-7 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center shrink-0">
+                                                    <i class="fa-solid fa-wheelchair text-xs"></i>
+                                                </div>
+                                                <span class="text-xs font-bold text-gray-700">Có hỗ trợ xe lăn</span>
+                                            </div>
+                                        `;
+                                        hasExtraInfo = true;
+                                    }
+                                }
+                                if (hasExtraInfo) extraInfoContainer.classList.remove('hidden');
+                                else extraInfoContainer.classList.add('hidden');
+                            }
+                        } else {
+                            const descEl = document.getElementById('route-desc');
+                            if (descEl) descEl.classList.add('hidden');
+                            const extraInfoContainer = document.getElementById('route-extra-info');
+                            if (extraInfoContainer) {
+                                extraInfoContainer.innerHTML = '';
+                                extraInfoContainer.classList.add('hidden');
+                            }
+                        }
+                        
+                        const logoFallbackEl = document.getElementById('route-logo-fallback');
+                        if (logoFallbackEl) {
+                            logoFallbackEl.className = iconClass;
+                            logoFallbackEl.innerHTML = iconHtml;
+                        }
+                        
+                        document.getElementById('route-profile-title').innerText = app.utils.escapeHtml(titleText);
+                            document.getElementById('route-badge').innerHTML = inactiveBadge;
+                    } catch (e) {
+                        console.warn("Lỗi tải thông tin Tuyến:", e);
+                    }
+                    
+                    try {
+                        let pQuery = window.sb.from('photos').select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, borrowed_route, camera_model, location, status, denial_reason, is_documentary, views, profiles(id, username, role, subroles, ban_status), vehicles(model)`)
+                            .eq('status', 'approved')
+                            .eq('route_no', decodedRoute);
+                            
+                        if (decodedProvince) {
+                            let prefix = '';
+                            if (app.utils.provinceData) {
+                                const prov = app.utils.provinceData.find(p => p.ten === decodedProvince);
+                                if (prov) {
+                                    if (Array.isArray(prov.ky_hieu)) prefix = prov.ky_hieu[0];
+                                    else prefix = String(prov.ky_hieu).split(',')[0].trim();
+                                }
+                            }
+                            if (prefix) {
+                                const relatedPrefixes = app.utils.getRelatedPrefixes(prefix);
+                                const plateFilter = relatedPrefixes.length > 1 ? `or(${relatedPrefixes.map(p => `license_plate.ilike.${p}%`).join(',')})` : `license_plate.ilike.${relatedPrefixes[0]}%`;
+                                pQuery = pQuery.or(`borrowed_route.eq."${decodedRoute} - ${decodedProvince}",and(borrowed_route.is.null,${plateFilter})`);
+                            } else {
+                                pQuery = pQuery.eq('borrowed_route', `${decodedRoute} - ${decodedProvince}`);
+                            }
+                        }
+                        
+                        pQuery = app.preference.applyFilter(pQuery);
+                        const { data: photos, error } = await pQuery.order('taken_at', { ascending: false, nullsFirst: false }).order('created_at', { ascending: false });
+                        
+                        if (error) throw error;
+                        
+                        app.route.routePhotos = photos || [];
+                        
+                        if (app.route.routePhotos.length > 0) {
+                            const hasNonCoach = app.route.routePhotos.some(p => p.type !== 'coach');
+                            const hasCoach = app.route.routePhotos.some(p => p.type === 'coach');
+                            if (hasCoach && !hasNonCoach) {
+                                app.views.loadHome();
+                                app.ui.showAlert("Trang không tồn tại hoặc tuyến này là tuyến hợp đồng (xe khách) nên không có hồ sơ xe riêng.");
+                                return;
+                            } else if (hasCoach) {
+                                app.route.routePhotos = app.route.routePhotos.filter(p => p.type !== 'coach');
+                            }
+                        }
+                        
+                        const opEl = document.getElementById('route-info-operator');
+                        const mdlEl = document.getElementById('route-info-model');
+                        
+                        const renderInfoValue = (el, items, clickHandler) => {
+                            if (!el) return;
+                            el.innerHTML = '';
+                            el.className = 'info-input text-gray-700 dark:text-gray-200 w-full flex items-center flex-wrap h-full min-h-[36px] py-1';
+                            el.onclick = null;
+                            if (!items || items.length === 0) {
+                                el.innerText = '---';
+                                el.classList.add('cursor-not-allowed');
+                                return;
+                            }
+                            items.forEach((item, index) => {
+                                if (index > 0) {
+                                    const sep = document.createElement('span');
+                                    sep.textContent = ',';
+                                    sep.className = 'text-gray-600 dark:text-gray-400 mr-1.5 select-none';
+                                    el.appendChild(sep);
+                                }
+                                const span = document.createElement('span');
+                                span.textContent = item;
+                                span.className = 'cursor-pointer text-black dark:text-white font-medium hover:underline transition';
+                                span.onclick = (e) => {
+                                    e.stopPropagation();
+                                    clickHandler(item);
+                                };
+                                el.appendChild(span);
+                            });
+                        };
+                        
+                        app.route.totalCount = app.route.routePhotos.length;
+                        app.route.totalPages = Math.ceil(app.route.totalCount / app.route.ROUTE_PAGE_SIZE);
+                        
+                        document.getElementById('rte-stat-photos').innerText = app.utils.formatCompact(app.route.totalCount);
+                        
+                        let totalViews = 0;
+                        const uniqueVehicles = new Set();
+                        const vehicleModelMap = {};
+                        
+                        app.route.routePhotos.forEach(p => {
+                            totalViews += (p.views || 0);
+                            const lp = p.license_plate?.trim().toUpperCase();
+                            if (lp) {
+                                uniqueVehicles.add(lp);
+                                if (p.vehicles?.model && !vehicleModelMap[lp]) {
+                                    vehicleModelMap[lp] = p.vehicles.model.trim();
+                                }
+                            }
+                        });
+                        
+                        document.getElementById('rte-stat-views').innerText = app.utils.formatCompact(totalViews);
+                        
+                        const platesArr = Array.from(uniqueVehicles);
+                        let activeVehiclesCount = 0;
+                        const activeOpCounts = {};
+                        const activeModelCounts = {};
+                        
+                        if (platesArr.length > 0) {
+                            try {
+                                const chunkSize = 150;
+                                let allVehPhotos = [];
+                                let allVehHist = [];
+                                for (let i = 0; i < platesArr.length; i += chunkSize) {
+                                    const chunk = platesArr.slice(i, i + chunkSize);
+                                    const [pRes, hRes] = await Promise.all([
+                                        window.sb.from('photos').select('license_plate, route_no, operator, borrowed_route, taken_at, created_at, vehicles(model)').eq('status', 'approved').in('license_plate', chunk),
+                                        window.sb.from('vehicle_history').select('id, license_plate, plate, operator, route, note, effective_date, display_order').or(`license_plate.in.(${chunk.join(',')}),plate.in.(${chunk.join(',')})`)
+                                    ]);
+                                    if (pRes.data) allVehPhotos = allVehPhotos.concat(pRes.data);
+                                    if (hRes.data) allVehHist = allVehHist.concat(hRes.data);
+                                }
+                                
+                                allVehPhotos.forEach(p => {
+                                    const lp = p.license_plate?.trim().toUpperCase();
+                                    if (lp && p.vehicles?.model && !vehicleModelMap[lp]) {
+                                        vehicleModelMap[lp] = p.vehicles.model.trim();
+                                    }
+                                });
+                                
+                                const specialRoutes = ['Dừng hoạt động', 'Ngoài giờ hoạt động', 'Chưa hoạt động'];
+                                
+                                platesArr.forEach(plate => {
+                                    const vPhotos = allVehPhotos
+                                        .filter(p => p.license_plate && p.license_plate.trim().toUpperCase() === plate)
+                                        .sort((a, b) => {
+                                            const timeA = new Date(a.taken_at || a.created_at || '1970-01-01').getTime();
+                                            const timeB = new Date(b.taken_at || b.created_at || '1970-01-01').getTime();
+                                            return timeB - timeA;
+                                        });
+                                    
+                                    const vHist = allVehHist
+                                        .filter(h => (h.license_plate && h.license_plate.trim().toUpperCase() === plate) || (h.plate && h.plate.trim().toUpperCase() === plate))
+                                        .map(h => {
+                                            let effDate = h.effective_date;
+                                            if (!effDate && h.note) {
+                                                const dateMatch = h.note.match(/Từ ngày:\s*(\d{1,2}\/\d{1,2}\/\d{4})/i);
+                                                if (dateMatch) {
+                                                    const parts = dateMatch[1].split('/');
+                                                    effDate = `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
+                                                }
+                                            }
+                                            return {
+                                                ...h,
+                                                parsed_effective_date: effDate
+                                            };
+                                        })
+                                        .sort((a, b) => {
+                                            const timeA = new Date(a.parsed_effective_date || '1970-01-01').getTime();
+                                            const timeB = new Date(b.parsed_effective_date || '1970-01-01').getTime();
+                                            if (timeA !== timeB) return timeA - timeB;
+                                            return (a.display_order || 0) - (b.display_order || 0);
+                                        });
+                                    
+                                    let currentRouteClientSide = '';
+                                    let currentOpClientSide = '';
+                                    let currentRouteProvName = null;
+                                    let photoTime = 0;
+                                    
+                                    if (vPhotos.length > 0) {
+                                        const latestPhoto = vPhotos[0];
+                                        photoTime = new Date(latestPhoto.taken_at || latestPhoto.created_at || '1970-01-01').getTime();
+                                        currentOpClientSide = (latestPhoto.operator || '').trim();
+                                        const r = (latestPhoto.route_no || '').trim();
+                                        if (r && !specialRoutes.includes(r)) {
+                                            currentRouteClientSide = r;
+                                            if (latestPhoto.borrowed_route) {
+                                                const parts = latestPhoto.borrowed_route.split(' - ');
+                                                if (parts.length > 1) currentRouteProvName = parts[1].trim();
+                                            }
+                                        } else if (r === 'Ngoài giờ hoạt động') {
+                                            const validPhotos = vPhotos.filter(p => p.route_no && !specialRoutes.includes(p.route_no.trim()));
+                                            if (validPhotos.length > 0) {
+                                                const latestValid = validPhotos[0];
+                                                currentRouteClientSide = (latestValid.route_no || '').trim();
+                                                if (latestValid.operator) currentOpClientSide = latestValid.operator.trim();
+                                                if (latestValid.borrowed_route) {
+                                                    const parts = latestValid.borrowed_route.split(' - ');
+                                                    if (parts.length > 1) currentRouteProvName = parts[1].trim();
+                                                }
+                                            }
+                                        } else if (r === 'Dừng hoạt động' || r === 'Chưa hoạt động') {
+                                            currentRouteClientSide = r;
+                                        }
+                                    }
+                                    
+                                    if (vHist.length > 0) {
+                                        const latestHist = vHist[vHist.length - 1];
+                                        const histTime = latestHist.parsed_effective_date ? new Date(latestHist.parsed_effective_date).getTime() : 0;
+                                        
+                                        if (!histTime || !photoTime || histTime >= photoTime) {
+                                            const histRoute = (latestHist.route || '').trim();
+                                            if (histRoute && histRoute !== '-' && histRoute !== '---') {
+                                                currentRouteClientSide = histRoute;
+                                            }
+                                            const histOp = (latestHist.operator || '').trim();
+                                            if (histOp && histOp !== '-' && histOp !== '---') {
+                                                currentOpClientSide = histOp;
+                                            }
+                                        }
+                                    }
+                                    
+                                    const isRouteMatch = currentRouteClientSide.toLowerCase() === decodedRoute.toLowerCase();
+                                    const isNotSpecial = !specialRoutes.includes(currentRouteClientSide);
+                                    let isProvMatch = true;
+                                    if (decodedProvince && currentRouteProvName) {
+                                        isProvMatch = currentRouteProvName.toLowerCase() === decodedProvince.toLowerCase();
+                                    }
+                                    
+                                    if (isRouteMatch && isNotSpecial && isProvMatch) {
+                                        activeVehiclesCount++;
+                                        if (currentOpClientSide && currentOpClientSide !== '---' && currentOpClientSide !== 'N/A') {
+                                            activeOpCounts[currentOpClientSide] = (activeOpCounts[currentOpClientSide] || 0) + 1;
+                                        }
+                                        const vModel = vehicleModelMap[plate];
+                                        if (vModel && vModel !== '---') {
+                                            activeModelCounts[vModel] = (activeModelCounts[vModel] || 0) + 1;
+                                        }
+                                    }
+                                });
+                            } catch (e) {
+                                console.warn("Lỗi kiểm tra trạng thái xe hoạt động:", e);
+                                activeVehiclesCount = platesArr.length;
+                            }
+                        }
+                        
+                        document.getElementById('rte-stat-vehicles').innerText = app.utils.formatCompact(activeVehiclesCount);
+                        
+                        // Xác định danh sách đơn vị vận hành và dòng xe hiển thị
+                        let dominantOps = Object.keys(activeOpCounts).sort((a, b) => activeOpCounts[b] - activeOpCounts[a]);
+                        let dominantModels = Object.keys(activeModelCounts).sort((a, b) => activeModelCounts[b] - activeModelCounts[a]);
+                        
+                        // Nếu không có xe nào đang hoạt động (ví dụ tuyến đã ngừng hoặc thiếu lịch sử), lấy theo dữ liệu ảnh của tuyến làm dự phòng
+                        if (dominantOps.length === 0 && app.route.routePhotos.length > 0) {
+                            const fallbackOpCounts = {};
+                            app.route.routePhotos.forEach(p => {
+                                const op = p.operator?.trim();
+                                if (op && op !== '---' && op !== 'N/A') {
+                                    fallbackOpCounts[op] = (fallbackOpCounts[op] || 0) + 1;
+                                }
+                            });
+                            dominantOps = Object.keys(fallbackOpCounts).sort((a, b) => fallbackOpCounts[b] - fallbackOpCounts[a]);
+                        }
+                        
+                        if (dominantModels.length === 0 && app.route.routePhotos.length > 0) {
+                            const fallbackModelCounts = {};
+                            app.route.routePhotos.forEach(p => {
+                                const mdl = p.vehicles?.model?.trim();
+                                if (mdl && mdl !== '---') {
+                                    fallbackModelCounts[mdl] = (fallbackModelCounts[mdl] || 0) + 1;
+                                }
+                            });
+                            dominantModels = Object.keys(fallbackModelCounts).sort((a, b) => fallbackModelCounts[b] - fallbackModelCounts[a]);
+                        }
+                        
+                        renderInfoValue(opEl, dominantOps, op => app.utils.navigate('/operator/' + encodeURIComponent(op)));
+                        renderInfoValue(mdlEl, dominantModels, mdl => app.utils.navigate('/model/' + encodeURIComponent(mdl)));
+                        
+                        app.views.fetchRoutePhotosPage(1);
+                     } catch (err) {
+                         console.error("Lỗi khi tải dữ liệu tuyến:", err);
+                         grid.innerHTML = '<div class="col-span-full text-center py-10 text-red-500">Đã xảy ra lỗi khi tải dữ liệu. Vui lòng thử lại sau.</div>';
+                     }
+                     app.loadingBar.finish();
+                 },
                  openEditPrompt: async () => {
                      // Check for special routes that don't have profiles
                      const specialRoutes = ['Dừng hoạt động', 'Ngoài giờ hoạt động', 'Chưa hoạt động'];
@@ -17915,7 +19329,11 @@ Object.assign(window.app, {
                         formInputs.forEach(input => {
                             if (input.tagName === 'SELECT') { input.disabled = false; } 
                             else {
-                                if (input.id !== 'info-plate' && input.id !== 'info-date') input.readOnly = false;
+                                if (input.id !== 'info-plate' && input.id !== 'info-date' && input.id !== 'info-route') input.readOnly = false;
+                                if (input.id === 'info-route') {
+                                    input.readOnly = true;
+                                    input.classList.add('cursor-pointer', 'bg-gray-50');
+                                }
                                 if (input.id === 'info-note') {
                                     const displayDiv = document.getElementById('info-note-display');
                                     if (displayDiv) displayDiv.classList.add('hidden');
@@ -17954,6 +19372,9 @@ Object.assign(window.app, {
                         if (input.tagName === 'SELECT') input.disabled = true;
                         else {
                             input.readOnly = true;
+                            if (input.id === 'info-route') {
+                                input.classList.remove('cursor-pointer', 'bg-gray-50');
+                            }
                             if (input.id === 'info-note') {
                                 const displayDiv = document.getElementById('info-note-display');
                                 if (displayDiv) displayDiv.classList.remove('hidden');
@@ -19565,8 +20986,7 @@ Object.assign(window.app, {
                                                 <div>
                                                     <span class="admin-label">Tuyến${isNewRoute ? tagNew : ''}</span>
                                                     <div class="relative">
-                                                        <input type="text" id="adm-p-route-${p.id}" value="${route}" class="admin-input" autocomplete="off" onfocus="app.utils.triggerRouteSuggestion('adm-p-route-${p.id}', 'adm-sug-route-${p.id}', '')" oninput="app.utils.triggerRouteSuggestion('adm-p-route-${p.id}', 'adm-sug-route-${p.id}', this.value)">
-                                                        <div id="adm-sug-route-${p.id}" class="suggestion-box"></div>
+                                                        <input type="text" id="adm-p-route-${p.id}" value="${route}" class="admin-input cursor-pointer bg-white" readonly onclick="app.route.openSelector({ targetInputId: 'adm-p-route-${p.id}' })">
                                                     </div>
                                                 </div>
                                             </div>
@@ -20612,8 +22032,7 @@ if (app.admin._activeLoadToken !== currentLoadToken || app.adminTab !== tab) ret
                                                 <div>
                                                     <span class="admin-label">Tuyến ${d.route !== curP.route_no ? tagNew : ''}</span>
                                                     <div class="relative">
-                                                        <input type="text" id="req-route-${r.id}" value="${app.utils.escapeAttr(d.route || '')}" class="admin-input" autocomplete="off" onfocus="app.utils.triggerRouteSuggestion('req-route-${r.id}', 'req-sug-route-${r.id}', '')" oninput="app.utils.triggerRouteSuggestion('req-route-${r.id}', 'req-sug-route-${r.id}', this.value)">
-                                                        <div id="req-sug-route-${r.id}" class="suggestion-box"></div>
+                                                        <input type="text" id="req-route-${r.id}" value="${app.utils.escapeAttr(d.route || '')}" class="admin-input cursor-pointer bg-white" readonly onclick="app.route.openSelector({ targetInputId: 'req-route-${r.id}' })">
                                                     </div>
                                                 </div>
                                             </div>
@@ -20697,6 +22116,42 @@ if (app.admin._activeLoadToken !== currentLoadToken || app.adminTab !== tab) ret
                                             </div>
                                         </div>
                                     </div>`;
+                                } else if (type === 'create_route_info') {
+                                    return `
+                                    <div class="admin-card overflow-visible">
+                                        <div class="admin-card-header bg-teal-50"><span class="font-bold text-xs uppercase text-teal-600">TẠO TUYẾN MỚI</span><span class="text-xs text-gray-500">${username}</span></div>
+                                        <div class="admin-card-body text-xs">
+                                            <p class="font-bold text-sm mb-2 text-black"><i class="fa-solid fa-route mr-1 text-gray-400"></i> ${app.utils.escapeAttr(d.route_name)}</p>
+                                            <div class="space-y-1 mb-4 text-xs border p-2 rounded bg-gray-50">
+                                                <div><span class="font-bold">Số hiệu tuyến:</span> ${app.utils.escapeAttr(d.route_no || '-')}</div>
+                                                <div><span class="font-bold">Tỉnh / Thành phố:</span> ${app.utils.escapeAttr(d.province || '-')}</div>
+                                                <div><span class="font-bold">Lộ trình ngắn:</span> ${app.utils.escapeAttr(d.short_path || '-')}</div>
+                                                <div><span class="font-bold">Mô tả:</span> ${app.utils.escapeAttr(d.description || '-')}</div>
+                                                <div><span class="font-bold">Giá vé lượt:</span> ${app.utils.escapeAttr(d.metadata?.ticket_price || '-')}</div>
+                                                <div><span class="font-bold">Giãn cách:</span> ${app.utils.escapeAttr(d.metadata?.headway || '-')}</div>
+                                                <div><span class="font-bold">Hỗ trợ xe lăn:</span> ${d.metadata?.wheelchair_support ? 'Có' : 'Không'}</div>
+                                            </div>
+                                            <div class="flex gap-2 mt-3">
+                                                <button onclick="app.admin.approveReq('${r.id}', this, 'create_route_info')" class="flex-1 bg-green-600 text-white py-1.5 font-bold rounded hover:bg-green-700">DUYỆT TẠO</button>
+                                                <button onclick="app.admin.denyReq('${r.id}', this)" class="flex-1 bg-red-600 text-white py-1.5 font-bold rounded hover:bg-red-700">TỪ CHỐI</button>
+                                            </div>
+                                        </div>
+                                    </div>`;
+                                } else if (type === 'delete_route') {
+                                    return `
+                                    <div class="admin-card overflow-visible">
+                                        <div class="admin-card-header bg-red-50"><span class="font-bold text-xs uppercase text-red-600">YÊU CẦU XÓA TUYẾN</span><span class="text-xs text-gray-500">${username}</span></div>
+                                        <div class="admin-card-body text-xs">
+                                            <p class="font-bold text-sm mb-2 text-black"><i class="fa-solid fa-triangle-exclamation mr-1 text-red-500"></i> Xóa tuyến: ${app.utils.escapeAttr(d.route_name)}</p>
+                                            <div class="p-2.5 bg-gray-50 border border-gray-200 rounded text-xs leading-relaxed mb-3">
+                                                Chuyển toàn bộ ảnh và lịch sử xe sang tuyến: <strong class="text-black">${app.utils.escapeAttr(d.dest_route_name || d.dest_route_no || 'Ngoài giờ hoạt động')}</strong>.
+                                            </div>
+                                            <div class="flex gap-2 mt-3">
+                                                <button onclick="app.admin.approveReq('${r.id}', this, 'delete_route')" class="flex-1 bg-red-600 text-white py-1.5 font-bold rounded hover:bg-red-700">DUYỆT XÓA</button>
+                                                <button onclick="app.admin.denyReq('${r.id}', this)" class="flex-1 bg-gray-600 text-white py-1.5 font-bold rounded hover:bg-gray-700">TỪ CHỐI</button>
+                                            </div>
+                                        </div>
+                                    </div>`;
                                 } else if (type === 'unmerge_vehicle') {
                                     let details = `<div class="p-3 bg-red-50 border border-red-200 rounded text-red-800 text-sm">
                                         <p class="font-bold mb-1"><i class="fa-solid fa-scissors mr-1"></i> Yêu cầu tách xe</p>
@@ -20768,8 +22223,7 @@ if (app.admin._activeLoadToken !== currentLoadToken || app.adminTab !== tab) ret
                                                 <div>
                                                     <span class="admin-label">Tuyến ${routeTag}</span>
                                                     <div class="relative">
-                                                        <input type="text" id="req-h-route-${r.id}-${i}" value="${app.utils.escapeAttr(h.route || '')}" class="admin-input" autocomplete="off" onfocus="app.utils.triggerRouteSuggestion('req-h-route-${r.id}-${i}', 'req-h-sug-route-${r.id}-${i}', '')" oninput="app.utils.triggerRouteSuggestion('req-h-route-${r.id}-${i}', 'req-h-sug-route-${r.id}-${i}', this.value)">
-                                                        <div id="req-h-sug-route-${r.id}-${i}" class="suggestion-box"></div>
+                                                        <input type="text" id="req-h-route-${r.id}-${i}" value="${app.utils.escapeAttr(h.route || '')}" class="admin-input cursor-pointer bg-white" readonly onclick="app.route.openSelector({ targetInputId: 'req-h-route-${r.id}-${i}' })">
                                                     </div>
                                                 </div>
                                             </div>
@@ -23089,19 +24543,26 @@ if (cbQuality) newSubroles.push('quality_aud');
                                 if (Object.keys(metadataObj).length === 0) metadataObj = null;
                             }
                             
+                            const expectedRouteNo = req.new_data.route_no || (req.new_data.route_name.includes(' - ') ? req.new_data.route_name.split(' - ')[0].trim() : req.new_data.route_name);
+                            const targetProvince = req.new_data.province || (req.new_data.route_name.includes(' - ') ? req.new_data.route_name.split(' - ')[1].trim() : null);
+
                             if (!desc && !shortPath && !isInactive && !metadataObj) {
                                 const { error: delErr } = await window.sb.from('route_info').delete().eq('route_name', req.new_data.route_name);
                                 if (delErr) throw delErr;
                             } else {
                                 const { error: upsertErr } = await window.sb.from('route_info').upsert({
                                     route_name: req.new_data.route_name,
+                                    route_no: expectedRouteNo,
+                                    province: targetProvince,
                                     short_path: shortPath || null,
                                     description: desc || null,
                                     is_inactive: isInactive,
+                                    is_special: false,
                                     metadata: metadataObj
-                                });
+                                }, { onConflict: 'route_name' });
                                 if (upsertErr) throw upsertErr;
                             }
+                            if (app.route) app.route.cachedRoutes = null;
                             
                             // Xử lý cập nhật ID ảnh và biển số xe vá tuyến
                             const rawInputList = borrowedPhotosStr ? borrowedPhotosStr.split(',').map(s => s.trim()).filter(Boolean) : [];
@@ -23114,9 +24575,6 @@ if (cbQuality) newSubroles.push('quality_aud');
                             
                             const addedIdsRaw = newBorrowedIds.filter(id => !curIds.includes(id));
                             const removedIds = curIds.filter(id => !newBorrowedIds.includes(id));
-                            
-                            const expectedRouteNo = req.new_data.route_name.split(' - ')[0];
-                            const targetProvince = req.new_data.route_name.split(' - ')[1] || '';
                             
                             if (enteredPlates.length > 0) {
                                 const { data: retroPhotos } = await window.sb.from('photos').select('id, route_no').in('license_plate', enteredPlates).eq('route_no', expectedRouteNo);
@@ -23162,6 +24620,50 @@ if (cbQuality) newSubroles.push('quality_aud');
                                     await window.sb.from('photos').update({ borrowed_route: null }).eq('id', p.id);
                                 }
                             }
+                        }
+                        else if (reqType === 'create_route_info' || req.new_data?.request_type === 'create_route_info') {
+                            const d = req.new_data;
+                            const routeName = d.route_name;
+                            const routeNo = d.route_no || (routeName.includes(' - ') ? routeName.split(' - ')[0].trim() : routeName);
+                            const province = d.province || (routeName.includes(' - ') ? routeName.split(' - ')[1].trim() : null);
+
+                            const { error: upsertErr } = await window.sb.from('route_info').upsert({
+                                route_name: routeName,
+                                route_no: routeNo,
+                                province: province,
+                                short_path: d.short_path || null,
+                                description: d.description || null,
+                                is_inactive: !!d.is_inactive,
+                                is_special: false,
+                                metadata: d.metadata || null
+                            }, { onConflict: 'route_name' });
+                            if (upsertErr) throw upsertErr;
+
+                            if (app.route) app.route.cachedRoutes = null;
+                        }
+                        else if (reqType === 'delete_route' || req.new_data?.request_type === 'delete_route') {
+                            const d = req.new_data;
+                            const deletingName = d.route_name;
+                            const deletingNo = d.route_no || deletingName.split(' - ')[0].trim();
+                            const destRouteNo = (d.dest_route_no || 'Ngoài giờ hoạt động').trim();
+                            const destRouteName = (d.dest_route_name || destRouteNo).trim();
+                            const newBorrowed = destRouteName !== destRouteNo ? destRouteName : null;
+
+                            // 1. Chuyển tất cả ảnh thuộc tuyến bị xóa sang tuyến đích
+                            await window.sb.from('photos')
+                                .update({ route_no: destRouteNo, borrowed_route: newBorrowed })
+                                .or(`route_no.eq."${deletingNo}",borrowed_route.eq."${deletingName}"`);
+
+                            // 2. Chuyển tất cả lịch sử phương tiện (vehicle_history) sang tuyến đích
+                            await window.sb.from('vehicle_history')
+                                .update({ route: destRouteNo })
+                                .or(`route.eq."${deletingNo}",route.eq."${deletingName}"`);
+
+                            // 3. Xóa hồ sơ tuyến khỏi bảng route_info
+                            const { error: delErr } = await window.sb.from('route_info').delete().eq('route_name', deletingName);
+                            if (delErr) throw delErr;
+
+                            if (app.route) app.route.cachedRoutes = null;
                         }
                         else if (reqType === 'model_info' || req.new_data.request_type === 'update_model_info') {
                             const logo = document.getElementById(`req-mdl-logo-${id}`).value.trim();

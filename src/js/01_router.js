@@ -269,6 +269,16 @@ Object.assign(window.app, {
                     const el = document.getElementById(id);
                     if(!el) return;
                     el.addEventListener('click', function () {
+                        if (id === 'info-route' && app.edit && app.edit.isEditing) {
+                            app.route.openSelector({
+                                targetInputId: 'info-route',
+                                onSelect: (r) => {
+                                    document.getElementById('info-route').value = r.route_no;
+                                    app.utils.checkRouteStatus(r.route_no, 'info-operator', 'info-operator-row');
+                                }
+                            });
+                            return;
+                        }
                         if (this.readOnly && this.value && this.value !== '---' && this.value !== 'N/A') {
                             if (id === 'info-plate') {
                                 app.utils.navigate(`/vehicle/${encodeURIComponent(this.value)}`);
@@ -278,7 +288,7 @@ Object.assign(window.app, {
                             }
                             else if (id === 'info-route') {
                                 const typeVal = document.getElementById('info-type')?.value;
-                                const specialRoutes = ['Dừng hoạt động', 'Ngoài giờ hoạt động', 'Chưa hoạt động'];
+                                const specialRoutes = ['Dừng hoạt động', 'Ngoài giờ hoạt động', 'Chưa hoạt động', 'Hợp đồng'];
                                 // Gộp chung điều kiện Xe khách (coach) và Các tuyến đặc biệt
                                 if (typeVal === 'coach' || specialRoutes.includes(this.value.trim())) {
                                     app.searchRedirect(this.value, fieldMap[id]);
