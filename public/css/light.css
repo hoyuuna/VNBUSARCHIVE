@@ -615,6 +615,20 @@ label:hover .custom-cb-box {
     background-color: #f9fafb !important;
 }
 
+/* No-scroll & disabled styles */
+html.no-scroll,
+body.no-scroll {
+    overflow: hidden !important;
+}
+
+input:disabled, select:disabled, textarea:disabled {
+    background-color: #f4f4f5 !important;
+    color: #71717a !important;
+    border-color: #d4d4d8 !important;
+    cursor: not-allowed !important;
+}
+
+
 
 
 

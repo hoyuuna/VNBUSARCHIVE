@@ -1351,8 +1351,14 @@ closeCustomRolePrompt: () => {
                     modal.classList.add('hidden');
                     app.ui.unlockScroll();
                 },
-                lockScroll: () => document.body.classList.add('no-scroll'),
-                unlockScroll: () => document.body.classList.remove('no-scroll'),
+                lockScroll: () => {
+                    document.documentElement.classList.add('no-scroll');
+                    document.body.classList.add('no-scroll');
+                },
+                unlockScroll: () => {
+                    document.documentElement.classList.remove('no-scroll');
+                    document.body.classList.remove('no-scroll');
+                },
                 toggleUserMenu: (forceOpen = null) => {
                     const menu = document.getElementById('user-dropdown');
                     if (!menu) return;

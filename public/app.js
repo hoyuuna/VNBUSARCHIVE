@@ -1353,8 +1353,14 @@ closeCustomRolePrompt: () => {
                     modal.classList.add('hidden');
                     app.ui.unlockScroll();
                 },
-                lockScroll: () => document.body.classList.add('no-scroll'),
-                unlockScroll: () => document.body.classList.remove('no-scroll'),
+                lockScroll: () => {
+                    document.documentElement.classList.add('no-scroll');
+                    document.body.classList.add('no-scroll');
+                },
+                unlockScroll: () => {
+                    document.documentElement.classList.remove('no-scroll');
+                    document.body.classList.remove('no-scroll');
+                },
                 toggleUserMenu: (forceOpen = null) => {
                     const menu = document.getElementById('user-dropdown');
                     if (!menu) return;
@@ -13021,7 +13027,12 @@ if (!decodedProvince || decodedProvince.trim() === '') {
                     const selectorModal = document.getElementById('route-selector-modal');
                     app.route._wasFromSelector = !!(selectorModal && !selectorModal.classList.contains('hidden'));
                     if (app.route._wasFromSelector) {
-                        app.route.closeSelector();
+                        selectorModal.classList.add('hidden');
+                        const sc = document.getElementById('route-selector-content');
+                        if (sc) {
+                            sc.classList.remove('opacity-100', 'scale-100');
+                            sc.classList.add('opacity-0', 'scale-95');
+                        }
                     }
 
                     app.route.isEditingExisting = false;
@@ -13040,20 +13051,26 @@ if (!decodedProvince || decodedProvince.trim() === '') {
                     if (btnDelete) btnDelete.classList.add('hidden');
                     if (provContainer) provContainer.classList.remove('hidden');
 
-                    if (provSelect && app.utils.provinceData) {
-                        provSelect.innerHTML = '<option value="">-- Chọn Tỉnh / Thành phố (Bắt buộc) --</option>';
-                        app.utils.provinceData.forEach(p => {
-                            const opt = document.createElement('option');
-                            opt.value = p.ten;
-                            opt.textContent = p.ten;
-                            provSelect.appendChild(opt);
-                        });
+                    if (provSelect) {
+                        provSelect.disabled = false;
+                        provSelect.classList.remove('bg-gray-100', 'cursor-not-allowed', 'opacity-70');
+                        if (app.utils.provinceData) {
+                            provSelect.innerHTML = '<option value="">-- Chọn Tỉnh / Thành phố (Bắt buộc) --</option>';
+                            app.utils.provinceData.forEach(p => {
+                                const opt = document.createElement('option');
+                                opt.value = p.ten;
+                                opt.textContent = p.ten;
+                                provSelect.appendChild(opt);
+                            });
+                        }
                     }
 
                     const nameInput = document.getElementById('route-edit-name');
                     if (nameInput) {
                         nameInput.value = '';
+                        nameInput.disabled = false;
                         nameInput.readOnly = false;
+                        nameInput.classList.remove('bg-gray-100', 'cursor-not-allowed', 'opacity-70');
                     }
                     document.getElementById('route-edit-inactive').checked = false;
                     document.getElementById('route-edit-short-path').value = '';
@@ -13083,6 +13100,16 @@ if (!decodedProvince || decodedProvince.trim() === '') {
 
                 openEditPrompt: async (targetRouteName, targetProvince) => {
                     if (!app.user) return app.auth.check();
+                    const selectorModal = document.getElementById('route-selector-modal');
+                    app.route._wasFromSelector = !!(selectorModal && !selectorModal.classList.contains('hidden'));
+                    if (app.route._wasFromSelector) {
+                        selectorModal.classList.add('hidden');
+                        const sc = document.getElementById('route-selector-content');
+                        if (sc) {
+                            sc.classList.remove('opacity-100', 'scale-100');
+                            sc.classList.add('opacity-0', 'scale-95');
+                        }
+                    }
 
                     const rName = targetRouteName || (app.route.currentProvince ? `${app.route.currentRoute} - ${app.route.currentProvince}` : app.route.currentRoute);
                     let rNo = rName.split(' - ')[0].trim();
@@ -13109,20 +13136,26 @@ if (!decodedProvince || decodedProvince.trim() === '') {
                     if (btnDelete) btnDelete.classList.remove('hidden');
                     if (provContainer) provContainer.classList.remove('hidden');
 
-                    if (provSelect && app.utils.provinceData) {
-                        provSelect.innerHTML = '<option value="">-- Chọn Tỉnh / Thành phố (Bắt buộc) --</option>';
-                        app.utils.provinceData.forEach(p => {
-                            const opt = document.createElement('option');
-                            opt.value = p.ten;
-                            opt.textContent = p.ten;
-                            if (prov && p.ten.toLowerCase() === prov.toLowerCase()) opt.selected = true;
-                            provSelect.appendChild(opt);
-                        });
+                    if (provSelect) {
+                        provSelect.disabled = true;
+                        provSelect.classList.add('bg-gray-100', 'cursor-not-allowed', 'opacity-70');
+                        if (app.utils.provinceData) {
+                            provSelect.innerHTML = '<option value="">-- Chọn Tỉnh / Thành phố (Bắt buộc) --</option>';
+                            app.utils.provinceData.forEach(p => {
+                                const opt = document.createElement('option');
+                                opt.value = p.ten;
+                                opt.textContent = p.ten;
+                                if (prov && p.ten.toLowerCase() === prov.toLowerCase()) opt.selected = true;
+                                provSelect.appendChild(opt);
+                            });
+                        }
                     }
 
                     const nameInput = document.getElementById('route-edit-name');
                     if (nameInput) {
                         nameInput.value = rNo;
+                        nameInput.disabled = true;
+                        nameInput.classList.add('bg-gray-100', 'cursor-not-allowed', 'opacity-70');
                     }
                     document.getElementById('route-edit-inactive').checked = false;
                     document.getElementById('route-edit-short-path').value = '';

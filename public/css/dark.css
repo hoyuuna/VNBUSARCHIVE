@@ -638,6 +638,23 @@ html.theme-dark .route-selector-item .text-gray-500 {
     scrollbar-color: #3f3f46 #000000;
 }
 
+/* No-scroll & disabled styles */
+html.no-scroll,
+body.no-scroll,
+html.theme-dark.no-scroll,
+body.theme-dark.no-scroll {
+    overflow: hidden !important;
+}
+
+input:disabled, select:disabled, textarea:disabled,
+body.theme-dark input:disabled, body.theme-dark select:disabled, body.theme-dark textarea:disabled {
+    background-color: #18181b !important;
+    color: #71717a !important;
+    border-color: #3f3f46 !important;
+    cursor: not-allowed !important;
+}
+
+
 
 
 
