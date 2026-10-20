@@ -16833,7 +16833,7 @@ Object.assign(window.app, {
             [ratioControls, rotateControls].forEach(c => {
                 if (!c) return;
                 c.classList.add('hidden');
-                c.classList.remove('flex');
+                c.classList.remove('flex', 'flex-col');
             });
 
             if (tab === 'ratio') {
@@ -16849,7 +16849,7 @@ Object.assign(window.app, {
                     slider.style.width = 'calc((100% - 14px) / 2)';
                 }
                 if (btnRotate) { btnRotate.classList.add('text-black'); btnRotate.classList.remove('text-gray-500', 'hover:text-black'); }
-                if (rotateControls) { rotateControls.classList.remove('hidden'); rotateControls.classList.add('flex'); }
+                if (rotateControls) { rotateControls.classList.remove('hidden'); rotateControls.classList.add('flex', 'flex-col'); }
             }
         },
         slideRotate: (val) => {

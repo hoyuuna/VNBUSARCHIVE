@@ -2169,7 +2169,7 @@ html.theme-dark .ct-icon {
             if (stored === 'system') {
                 theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
             }
-            document.write('<link rel="stylesheet" href="/css/' + theme + '.css?v=1792474244033" id="theme-css">');
+            document.write('<link rel="stylesheet" href="/css/' + theme + '.css?v=1792475719277" id="theme-css">');
             document.documentElement.classList.add('theme-' + theme);
             document.documentElement.style.backgroundColor = theme === 'dark' ? '#18181b' : '#fdfcf8';
         })();
@@ -2517,30 +2517,26 @@ html.theme-dark .ct-icon {
                             <button type="button" onclick="app.crop.setRatio(3/2)" class="crop-ratio-btn px-3 py-1.5 text-xs border border-gray-300 rounded-md hover:bg-gray-100 font-bold transition" data-ratio="1.5">3:2</button>
                             <button type="button" onclick="app.crop.setRatio(4/3)" class="crop-ratio-btn px-3 py-1.5 text-xs border border-gray-300 rounded-md hover:bg-gray-100 font-bold transition" data-ratio="1.3333333333333333">4:3</button>
                         </div>
-                        <div id="crop-rotate-controls" class="hidden flex-nowrap gap-2 sm:gap-4 w-full items-center">
-                            <div class="flex items-center gap-1 sm:gap-2 flex-1">
+                        <div id="crop-rotate-controls" class="hidden flex-col w-full max-w-xl mx-auto px-1 sm:px-2">
+                            <div class="flex justify-between items-center w-full mb-1.5">
+                                <div class="flex items-center gap-1.5">
+                                    <label class="text-[11px] font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">Góc xoay</label>
+                                    <span class="text-[10px] font-mono text-gray-400 font-bold">(-45° ~ +45°)</span>
+                                </div>
+                                <span id="crop-rotate-val" data-slider="crop-rotate-slider" data-unit="°" class="cursor-pointer hover:border-black dark:hover:border-white transition-colors select-none text-[10px] font-mono font-bold text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded border border-gray-200" title="Nhấp để nhập góc xoay">0°</span>
+                            </div>
+                            <div class="flex items-center gap-2 w-full">
                                 <button type="button" onclick="app.crop.stepRotate(-0.5)" class="w-7 h-7 sm:w-8 sm:h-8 shrink-0 flex items-center justify-center text-xs bg-white text-gray-700 border border-gray-300 rounded-md hover:bg-gray-100 font-bold transition shadow-sm active:scale-95" title="Nhích trái 0.5 độ">
                                     <i class="fa-solid fa-minus"></i>
                                 </button>
-                                <div class="flex flex-col items-center justify-center px-1 flex-1">
-                                    <div class="flex justify-between items-center w-full text-[10px] font-bold text-gray-500 mb-1">
-                                        <span id="crop-rotate-val" data-slider="crop-rotate-slider" data-unit="°" class="cursor-pointer hover:border-black dark:hover:border-white transition-colors select-none text-[10px] font-mono font-bold text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded border border-gray-200" title="Nhấp để nhập góc xoay">0°</span>
-                                        <div class="flex items-center gap-1.5 font-mono">
-                                            <span>-45°</span>
-                                            <span>/</span>
-                                            <span>+45°</span>
-                                        </div>
-                                    </div>
-                                    <input type="range" id="crop-rotate-slider" min="-45" max="45" step="0.5" value="0" class="vnbus-slider w-full" oninput="app.crop.slideRotate(this.value)" onchange="app.crop.pushHistory()">
-                                </div>
+                                <input type="range" id="crop-rotate-slider" min="-45" max="45" step="0.5" value="0" class="vnbus-slider flex-1 min-w-0" oninput="app.crop.slideRotate(this.value)" onchange="app.crop.pushHistory()">
                                 <button type="button" onclick="app.crop.stepRotate(0.5)" class="w-7 h-7 sm:w-8 sm:h-8 shrink-0 flex items-center justify-center text-xs bg-white text-gray-700 border border-gray-300 rounded-md hover:bg-gray-100 font-bold transition shadow-sm active:scale-95" title="Nhích phải 0.5 độ">
                                     <i class="fa-solid fa-plus"></i>
                                 </button>
+                                <button type="button" onclick="app.crop.rotateBy(90)" class="w-7 h-7 sm:w-8 sm:h-8 shrink-0 flex items-center justify-center text-xs bg-white text-gray-700 border border-gray-300 rounded-md hover:bg-gray-100 font-bold transition shadow-sm active:scale-95 ml-1" title="Xoay 90 độ">
+                                    <i class="fa-solid fa-rotate-right"></i>
+                                </button>
                             </div>
-
-                            <button type="button" onclick="app.crop.rotateBy(90)" class="w-7 h-7 sm:w-8 sm:h-8 shrink-0 flex items-center justify-center text-xs bg-white text-gray-700 border border-gray-300 rounded-md hover:bg-gray-100 font-bold transition shadow-sm active:scale-95" title="Xoay 90 độ">
-                                <i class="fa-solid fa-rotate-right"></i>
-                            </button>
                         </div>
                     </div>
                     <div class="p-3 md:p-4 flex justify-between items-center w-full">
@@ -7384,7 +7380,7 @@ html.theme-dark .ct-icon {
 
     <!-- KHAY CHỨA TOAST Z-INDEX CAO NHẤT -->
     <div id="toast-container" class="fixed left-0 w-full flex flex-col items-center gap-2 pointer-events-none z-[99999]" style="z-index: 99999 !important;"></div>
-<script src="/app.c94fd39297b6.js" onerror="if(!window.__app_fallback_loaded){window.__app_fallback_loaded=true;var s=document.createElement('script');s.src='/app.js?v=' + Date.now();document.head.appendChild(s);}"></script>
+<script src="/app.696bd312ea18.js" onerror="if(!window.__app_fallback_loaded){window.__app_fallback_loaded=true;var s=document.createElement('script');s.src='/app.js?v=' + Date.now();document.head.appendChild(s);}"></script>
 </body>
 </html>
 
