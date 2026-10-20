@@ -3204,54 +3204,14 @@ cleanupState: () => {
                 },
                 
                 triggerRouteSuggestion: async (inputId, suggestionId, query) => {
+                    // Đã loại bỏ hoàn toàn gợi ý tuyến cũ, hệ thống hiện dùng Popup Selector (app.route.openSelector)
                     const box = document.getElementById(suggestionId);
-                    if (!box) return;
-                    let currentType = '';
-                    if (inputId.startsWith('up-')) currentType = document.getElementById('up-type')?.value || '';
-                    else if (inputId.startsWith('info-')) currentType = document.getElementById('info-type')?.value || '';
-                    else if (inputId.startsWith('adm-p-')) currentType = document.getElementById(`adm-p-type-${inputId.split('-').pop()}`)?.value || '';
-                    else if (inputId.startsWith('req-') && !inputId.startsWith('req-v-')) currentType = document.getElementById(`req-type-${inputId.split('-').pop()}`)?.value || '';
-                    else if (app.currentVehicle) currentType = app.currentVehicle.type || '';
-                    let staticList = ['Dừng hoạt động', 'Ngoài giờ hoạt động', 'Chưa hoạt động'];
-                    if (currentType === 'coach' || currentType === '') {
-                        staticList.unshift('Hợp đồng');
+                    if (box) {
+                        box.classList.remove('active');
+                        box.innerHTML = '';
+                        box.style.display = 'none';
                     }
-                    let dbRoutes = [];
-                    try {
-                        let rQuery = window.sb.rpc('get_unique_routes');
-                        if (query.trim().length > 0) {
-                            const routeWords = query.trim().split(/\s+/).filter(w => w.length > 0);
-                            const { data } = await rQuery;
-                            if (data) {
-                                dbRoutes = data.map(item => item.route_no).filter(Boolean);
-                            }
-                        } else {
-                            const { data } = await rQuery;
-                            if (data) {
-                                dbRoutes = data.map(item => item.route_no).filter(Boolean);
-                            }
-                        }
-                    } catch (e) { console.log("Route suggestion error:", e.message); }
-                    const allRoutes = [...new Set([...staticList, ...dbRoutes])];
-                    const filtered = query.length === 0 ? allRoutes : allRoutes.filter(v => v.toLowerCase().includes(query.toLowerCase()));
-                    
-                    // GỌI HÀM SẮP XẾP
-                    if (query.length > 0) app.utils.sortMatchesByRelevance(filtered, query);
-
-                    if (filtered.length > 0) {
-                        box.innerHTML = filtered.map(v => {
-                            const safeHTML = app.utils.cleanText(v);
-                            const safeJS = v.replace(/'/g, "\\'").replace(/"/g, '&quot;');
-                            let displayHTML = safeHTML;
-                            if (query) {
-                                const escapedQuery = query.replace(/[.*+?^${}()|[\\]\\]/g, '\\$&');
-                                const regex = new RegExp(`(${escapedQuery})`, 'gi');
-                                displayHTML = safeHTML.replace(regex, '<strong class="font-extrabold">$1</strong>');
-                            }
-                            return `<div class="suggestion-item" onmousedown="event.preventDefault(); document.getElementById('${inputId}').value = '${safeJS}'; document.getElementById('${suggestionId}').classList.remove('active'); if('${inputId}' === 'up-route'){ app.upload.autoFillOperatorByRoute(); } if('${inputId}' === 'up-model' && app.upload && app.upload.checkModelPreview){ app.upload.checkModelPreview('${safeJS}'); }">${displayHTML}</div>`;
-                        }).join('');
-                        box.classList.add('active');
-                    } else { box.classList.remove('active'); }
+                    return;
                 },
                 triggerSuggestion: async (inputId, suggestionId, query, field = 'model') => {
                     const box = document.getElementById(suggestionId);

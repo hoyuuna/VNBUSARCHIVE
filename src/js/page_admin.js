@@ -691,7 +691,7 @@ Object.assign(window.app, {
                                                 <div>
                                                     <span class="admin-label">Tuyến${isNewRoute ? tagNew : ''}</span>
                                                     <div class="relative">
-                                                        <input type="text" id="adm-p-route-${p.id}" value="${route}" class="admin-input cursor-pointer bg-white" readonly onclick="app.route.openSelector({ targetInputId: 'adm-p-route-${p.id}' })">
+                                                        <input type="text" id="adm-p-route-${p.id}" value="${route}" class="admin-input cursor-pointer bg-white" readonly onclick="app.route.openSelector({ targetInputId: 'adm-p-route-${p.id}', vehicleType: document.getElementById('adm-p-type-${p.id}') ? document.getElementById('adm-p-type-${p.id}').value : '${type}', selectedRoute: this.value })">
                                                     </div>
                                                 </div>
                                             </div>
@@ -1737,7 +1737,7 @@ if (app.admin._activeLoadToken !== currentLoadToken || app.adminTab !== tab) ret
                                                 <div>
                                                     <span class="admin-label">Tuyến ${d.route !== curP.route_no ? tagNew : ''}</span>
                                                     <div class="relative">
-                                                        <input type="text" id="req-route-${r.id}" value="${app.utils.escapeAttr(d.route || '')}" class="admin-input cursor-pointer bg-white" readonly onclick="app.route.openSelector({ targetInputId: 'req-route-${r.id}' })">
+                                                        <input type="text" id="req-route-${r.id}" value="${app.utils.escapeAttr(d.route || '')}" class="admin-input cursor-pointer bg-white" readonly onclick="app.route.openSelector({ targetInputId: 'req-route-${r.id}', vehicleType: document.getElementById('req-type-${r.id}') ? document.getElementById('req-type-${r.id}').value : '${d.type || curP.type || ''}', selectedRoute: this.value })">
                                                     </div>
                                                 </div>
                                             </div>
@@ -1928,7 +1928,7 @@ if (app.admin._activeLoadToken !== currentLoadToken || app.adminTab !== tab) ret
                                                 <div>
                                                     <span class="admin-label">Tuyến ${routeTag}</span>
                                                     <div class="relative">
-                                                        <input type="text" id="req-h-route-${r.id}-${i}" value="${app.utils.escapeAttr(h.route || '')}" class="admin-input cursor-pointer bg-white" readonly onclick="app.route.openSelector({ targetInputId: 'req-h-route-${r.id}-${i}' })">
+                                                        <input type="text" id="req-h-route-${r.id}-${i}" value="${app.utils.escapeAttr(h.route || '')}" class="admin-input cursor-pointer bg-white" readonly onclick="app.route.openSelector({ targetInputId: 'req-h-route-${r.id}-${i}', vehicleType: '${curV.type || ''}', selectedRoute: this.value })">
                                                     </div>
                                                 </div>
                                             </div>

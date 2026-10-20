@@ -3939,8 +3939,7 @@ html.theme-dark .ct-icon {
                                             <td class="label bg-gray-50 border-r border-b border-gray-200" id="lbl-detail-route">Tuyến</td>
                                             <td class="value-cell border-b border-gray-200" x-data>
                                                 <div class="relative w-full h-full flex flex-col justify-center">
-                                                    <textarea rows="1" id="info-route" autocomplete="off" class="info-input clickable-search text-gray-700" readonly onfocus="if(!this.readOnly) app.utils.triggerRouteSuggestion('info-route', 'info-route-suggestions', '')" oninput="app.utils.triggerRouteSuggestion('info-route', 'info-route-suggestions', this.value); app.utils.checkRouteStatus(this.value, 'info-operator', 'info-operator-row')"></textarea>
-                                                    <div id="info-route-suggestions" class="suggestion-box"></div>
+                                                    <textarea rows="1" id="info-route" autocomplete="off" class="info-input clickable-search text-gray-700" readonly></textarea>
                                                 </div>
                                             </td>
                                         </tr>
@@ -5114,7 +5113,7 @@ html.theme-dark .ct-icon {
                                     <div class="relative w-full">
                                         <input type="text" id="up-route" readonly tabindex="3"
                                             placeholder="Nhấp để chọn tuyến xe..."
-                                            onclick="app.route.openSelector({ targetInputId: 'up-route', onSelect: (r) => { document.getElementById('up-route').value = r.route_no; app.utils.checkRouteStatus(r.route_no, 'up-operator', 'up-operator-wrapper'); if(app.upload && app.upload.autoFillOperatorByRoute) app.upload.autoFillOperatorByRoute(); } })"
+                                            onclick="app.route.openSelector({ targetInputId: 'up-route', vehicleType: (app.upload && app.upload.selectedType) ? app.upload.selectedType : 'bus', selectedRoute: this.dataset.routeName || this.value, onSelect: (r) => { const rDisplay = (r.route_name && r.route_name !== r.route_no) ? r.route_name : r.route_no; document.getElementById('up-route').value = rDisplay; document.getElementById('up-route').dataset.routeName = rDisplay; document.getElementById('up-route').dataset.routeNo = r.route_no; app.utils.checkRouteStatus(r.route_no, 'up-operator', 'up-operator-wrapper'); if(app.upload && app.upload.autoFillOperatorByRoute) app.upload.autoFillOperatorByRoute(); } })"
                                             class="w-full border border-gray-300 p-2.5 text-sm rounded-md focus:ring-2 focus:ring-black focus:border-transparent outline-none transition cursor-pointer bg-white">
                                     </div>
                                     <div id="up-route-quick" class="mt-2 flex flex-wrap gap-1.5">
@@ -7122,7 +7121,7 @@ html.theme-dark .ct-icon {
                     </div>
                 </div>
                 <!-- Bộ lọc phân định Loại xe (Xe Buýt / Xe Khách) -->
-                <div class="flex items-center gap-1.5 pt-0.5">
+                <div id="route-selector-type-container" class="flex items-center gap-1.5 pt-0.5">
                     <span class="text-[10px] font-bold text-gray-500 uppercase tracking-wider mr-1">Loại xe:</span>
                     <button type="button" onclick="app.route.setSelectorTypeFilter('all')" id="btn-sel-type-all" class="px-2.5 py-1 rounded-md text-[11px] font-bold border border-black bg-black text-white transition">Tất cả</button>
                     <button type="button" onclick="app.route.setSelectorTypeFilter('bus')" id="btn-sel-type-bus" class="px-2.5 py-1 rounded-md text-[11px] font-bold border border-black bg-white text-black hover:bg-gray-100 transition"><i class="fa-solid fa-bus mr-1"></i>Xe buýt</button>

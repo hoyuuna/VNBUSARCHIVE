@@ -477,7 +477,8 @@ export async function onRequestPost(context) {
                 updatePayload.location = location;
                 updatePayload.operator = op;
                 updatePayload.type = type;
-                updatePayload.route_no = route;
+                updatePayload.route_no = (route && route.includes(' - ')) ? route.split(' - ')[0].trim() : route;
+                updatePayload.borrowed_route = (route && route.includes(' - ')) ? route : null;
                 
                 if (plate && model) {
                     await sbAdmin.from('vehicles').upsert({ license_plate: plate, model: model }, { onConflict: 'license_plate' });

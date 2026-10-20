@@ -981,12 +981,14 @@ if (!decodedProvince || decodedProvince.trim() === '') {
                 selectorExcludeRoute: null,
                 selectorCurrentSelected: '',
                 selectorTypeFilter: 'all',
+                selectorLockedType: null,
                 isEditingExisting: false,
                 editingOriginalRouteName: '',
                 deletingRouteName: '',
 
                 updateSelectorTypeButtons: () => {
                     const filter = app.route.selectorTypeFilter || 'all';
+                    const locked = app.route.selectorLockedType;
                     const btnAll = document.getElementById('btn-sel-type-all');
                     const btnBus = document.getElementById('btn-sel-type-bus');
                     const btnCoach = document.getElementById('btn-sel-type-coach');
@@ -995,12 +997,35 @@ if (!decodedProvince || decodedProvince.trim() === '') {
                     const activeCls = 'px-2.5 py-1 rounded-md text-[11px] font-bold border border-black bg-black text-white transition';
                     const inactiveCls = 'px-2.5 py-1 rounded-md text-[11px] font-bold border border-black bg-white text-black hover:bg-gray-100 transition';
                     
-                    btnAll.className = filter === 'all' ? activeCls : inactiveCls;
-                    btnBus.className = filter === 'bus' ? activeCls : inactiveCls;
-                    btnCoach.className = filter === 'coach' ? activeCls : inactiveCls;
+                    if (locked === 'bus') {
+                        btnAll.classList.add('hidden');
+                        btnCoach.classList.add('hidden');
+                        btnBus.classList.remove('hidden');
+                        btnBus.className = activeCls + ' cursor-default';
+                        btnBus.innerHTML = '<i class="fa-solid fa-lock mr-1 text-[10px]"></i>Xe buýt (Đã khóa)';
+                    } else if (locked === 'coach') {
+                        btnAll.classList.add('hidden');
+                        btnBus.classList.add('hidden');
+                        btnCoach.classList.remove('hidden');
+                        btnCoach.className = activeCls + ' cursor-default';
+                        btnCoach.innerHTML = '<i class="fa-solid fa-lock mr-1 text-[10px]"></i>Xe khách (Đã khóa)';
+                    } else {
+                        btnAll.classList.remove('hidden');
+                        btnBus.classList.remove('hidden');
+                        btnCoach.classList.remove('hidden');
+                        btnAll.innerHTML = 'Tất cả';
+                        btnBus.innerHTML = 'Xe buýt';
+                        btnCoach.innerHTML = 'Xe khách';
+                        btnAll.className = filter === 'all' ? activeCls : inactiveCls;
+                        btnBus.className = filter === 'bus' ? activeCls : inactiveCls;
+                        btnCoach.className = filter === 'coach' ? activeCls : inactiveCls;
+                    }
                 },
 
                 setSelectorTypeFilter: (type) => {
+                    if (app.route.selectorLockedType && type !== app.route.selectorLockedType) {
+                        return;
+                    }
                     app.route.selectorTypeFilter = type;
                     app.route.updateSelectorTypeButtons();
                     app.route.filterSelector();
@@ -1175,20 +1200,37 @@ if (!decodedProvince || decodedProvince.trim() === '') {
                     app.route.selectorCallback = options.onSelect || null;
                     app.route.selectorTargetInputId = options.targetInputId || null;
                     app.route.selectorExcludeRoute = options.excludeRoute || null;
-                    app.route.selectorCurrentSelected = (options.selectedRoute || (options.targetInputId ? document.getElementById(options.targetInputId)?.value : '') || '').trim();
+                    
+                    let curSelected = '';
+                    if (options.selectedRoute) {
+                        curSelected = options.selectedRoute;
+                    } else if (options.targetInputId) {
+                        const el = document.getElementById(options.targetInputId);
+                        if (el) {
+                            curSelected = el.dataset.routeName || el.value || '';
+                        }
+                    }
+                    app.route.selectorCurrentSelected = (curSelected || '').trim();
 
-                    // Xác định bộ lọc loại xe ban đầu
+                    // Xác định bộ lọc loại xe ban đầu và khóa chặt nếu là xe buýt hoặc xe khách
                     let vType = options.vehicleType;
                     if (!vType) {
                         if (options.targetInputId === 'up-route' && app.upload && app.upload.selectedType) {
                             vType = app.upload.selectedType;
                         } else if (app.currentVehicle && app.currentVehicle.type) {
                             vType = app.currentVehicle.type;
-                        } else if (app.preference && app.preference.current && (app.preference.current === 'coach' || app.preference.current === 'bus')) {
-                            vType = app.preference.current;
+                        } else if (app.currentPhoto && app.currentPhoto.type) {
+                            vType = app.currentPhoto.type;
                         }
                     }
-                    app.route.selectorTypeFilter = vType === 'coach' ? 'coach' : (vType === 'bus' ? 'bus' : 'all');
+                    
+                    if (vType === 'bus' || vType === 'coach') {
+                        app.route.selectorLockedType = vType;
+                        app.route.selectorTypeFilter = vType;
+                    } else {
+                        app.route.selectorLockedType = null;
+                        app.route.selectorTypeFilter = 'all';
+                    }
                     app.route.updateSelectorTypeButtons();
 
                     const modal = document.getElementById('route-selector-modal');
@@ -1293,9 +1335,20 @@ if (!decodedProvince || decodedProvince.trim() === '') {
                     // Đưa tuyến đang chọn lên đầu danh sách bình thường (ghim lên top)
                     const isNormalSelected = (r) => {
                         if (!curSelected) return false;
-                        const rNo = (r.route_no || '').toLowerCase();
                         const rName = (r.route_name || '').toLowerCase();
-                        return rNo === curSelected || rName === curSelected;
+                        if (rName === curSelected) return true;
+                        
+                        // Nếu curSelected chỉ là route_no đơn thuần (dữ liệu cũ chưa có tên tuyến đầy đủ)
+                        const rNo = (r.route_no || '').toLowerCase();
+                        if (rNo === curSelected) {
+                            if (prov && r.province && r.province.toLowerCase() === prov.toLowerCase()) {
+                                return true;
+                            }
+                            if (!r.province || rName === rNo) {
+                                return true;
+                            }
+                        }
+                        return false;
                     };
                     const selectedNormal = normalList.filter(r => isNormalSelected(r));
                     const unselectedNormal = normalList.filter(r => !isNormalSelected(r));
@@ -1391,10 +1444,13 @@ if (!decodedProvince || decodedProvince.trim() === '') {
 
                 selectRoute: (routeNo, routeName) => {
                     const targetId = app.route.selectorTargetInputId;
+                    const selectedDisplayName = (routeName && routeName !== routeNo) ? routeName : routeNo;
                     if (targetId) {
                         const targetEl = document.getElementById(targetId);
                         if (targetEl) {
-                            targetEl.value = routeNo;
+                            targetEl.value = selectedDisplayName;
+                            targetEl.dataset.routeName = selectedDisplayName;
+                            targetEl.dataset.routeNo = routeNo;
                             targetEl.dispatchEvent(new Event('change', { bubbles: true }));
                             targetEl.dispatchEvent(new Event('input', { bubbles: true }));
                         }
@@ -1446,7 +1502,20 @@ if (!decodedProvince || decodedProvince.trim() === '') {
                     app.route.selectEditProvince('');
                     app.route.renderEditProvMenu('');
 
-                    app.route.setEditVehicleType(app.route.selectorTypeFilter === 'coach' ? 'coach' : 'bus');
+                    const targetType = app.route.selectorLockedType || (app.route.selectorTypeFilter === 'coach' ? 'coach' : 'bus');
+                    app.route.setEditVehicleType(targetType);
+                    const btnTypeBus = document.getElementById('btn-route-type-bus');
+                    const btnTypeCoach = document.getElementById('btn-route-type-coach');
+                    if (app.route.selectorLockedType === 'bus') {
+                        if (btnTypeCoach) { btnTypeCoach.disabled = true; btnTypeCoach.classList.add('opacity-40', 'cursor-not-allowed'); }
+                        if (btnTypeBus) { btnTypeBus.disabled = false; btnTypeBus.classList.remove('opacity-40', 'cursor-not-allowed'); }
+                    } else if (app.route.selectorLockedType === 'coach') {
+                        if (btnTypeBus) { btnTypeBus.disabled = true; btnTypeBus.classList.add('opacity-40', 'cursor-not-allowed'); }
+                        if (btnTypeCoach) { btnTypeCoach.disabled = false; btnTypeCoach.classList.remove('opacity-40', 'cursor-not-allowed'); }
+                    } else {
+                        if (btnTypeBus) { btnTypeBus.disabled = false; btnTypeBus.classList.remove('opacity-40', 'cursor-not-allowed'); }
+                        if (btnTypeCoach) { btnTypeCoach.disabled = false; btnTypeCoach.classList.remove('opacity-40', 'cursor-not-allowed'); }
+                    }
 
                     const nameInput = document.getElementById('route-edit-name');
                     if (nameInput) {
@@ -1528,6 +1597,11 @@ if (!decodedProvince || decodedProvince.trim() === '') {
                             btnProv.classList.remove('bg-gray-100', 'cursor-not-allowed', 'opacity-70');
                         }
                     }
+                    const btnTypeBus = document.getElementById('btn-route-type-bus');
+                    const btnTypeCoach = document.getElementById('btn-route-type-coach');
+                    if (btnTypeBus) { btnTypeBus.disabled = false; btnTypeBus.classList.remove('opacity-40', 'cursor-not-allowed'); }
+                    if (btnTypeCoach) { btnTypeCoach.disabled = false; btnTypeCoach.classList.remove('opacity-40', 'cursor-not-allowed'); }
+
                     app.route.selectEditProvince(prov || '');
                     app.route.renderEditProvMenu(prov || '');
 

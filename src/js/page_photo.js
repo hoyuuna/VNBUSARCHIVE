@@ -717,6 +717,9 @@ Object.assign(window.app, {
                                 app.currentPhoto.taken_at = payload.taken_at;
                             }
                         }
+                        const routeVal = (payload.route || '').trim();
+                        const routeNoVal = (routeVal && routeVal.includes(' - ')) ? routeVal.split(' - ')[0].trim() : routeVal;
+                        const borrowedVal = (routeVal && routeVal.includes(' - ')) ? routeVal : null;
                         if (app.role === 'admin' || app.role === 'manager') {
                             const { error: vError } = await window.sb.from('vehicles').upsert({
                                 license_plate: payload.license_plate,
@@ -729,7 +732,8 @@ Object.assign(window.app, {
                                 note: payload.note,
                                 operator: payload.operator,
                                 type: payload.type,
-                                route_no: payload.route
+                                route_no: routeNoVal,
+                                borrowed_route: borrowedVal
                             }).eq('id', app.currentPhoto.id);
                             if (pError) throw pError;
                             const afterSnapshot = {
@@ -740,7 +744,8 @@ Object.assign(window.app, {
                                 note: payload.note,
                                 operator: payload.operator,
                                 type: payload.type,
-                                route_no: payload.route,
+                                route_no: routeNoVal,
+                                borrowed_route: borrowedVal,
                                 model: payload.model
                             };
                             app.admin.logAction(
@@ -749,12 +754,12 @@ Object.assign(window.app, {
                                 { taken_at_changed: takenAtChanged, before: beforeSnapshot, after: afterSnapshot }
                             );
                             const isPlateChanged = beforeSnapshot.license_plate !== payload.license_plate;
-                            if (isPlateChanged || takenAtChanged || beforeSnapshot.operator !== payload.operator || beforeSnapshot.route_no !== payload.route) {
+                            if (isPlateChanged || takenAtChanged || beforeSnapshot.operator !== payload.operator || beforeSnapshot.route_no !== routeNoVal) {
                                 await app.vehicle.syncHistoryOnPhotoEdit(
                                     payload.license_plate,
                                     takenAtChanged ? payload.taken_at : beforeSnapshot.taken_at,
                                     { operator: beforeSnapshot.operator, route_no: beforeSnapshot.route_no },
-                                    { operator: payload.operator, route_no: payload.route },
+                                    { operator: payload.operator, route_no: routeNoVal },
                                     isPlateChanged
                                 );
                             }
@@ -768,7 +773,8 @@ Object.assign(window.app, {
                             app.currentPhoto.note = payload.note;
                             app.currentPhoto.operator = payload.operator;
                             app.currentPhoto.type = payload.type;
-                            app.currentPhoto.route_no = payload.route;
+                            app.currentPhoto.route_no = routeNoVal;
+                            app.currentPhoto.borrowed_route = borrowedVal;
                             if (app.currentVehicle) {
                                 app.currentVehicle.model = payload.model;
                             }
@@ -791,6 +797,8 @@ Object.assign(window.app, {
                                 license_plate: payload.license_plate,
                                 new_data: {
                                     ...payload,
+                                    route_no: routeNoVal,
+                                    borrowed_route: borrowedVal,
                                     request_type: 'update_vehicle_info',
                                     photo_id: app.currentPhoto.id
                                 },
