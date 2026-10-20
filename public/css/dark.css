@@ -672,6 +672,54 @@ body.theme-dark input:disabled, body.theme-dark select:disabled, body.theme-dark
     overflow-y: auto !important;
 }
 
+/* Tuyến được chọn trong selector - Giao diện tối: Nền trắng chữ đen */
+.selected-route-card,
+body.theme-dark .selected-route-card,
+html.theme-dark .selected-route-card {
+    background-color: #ffffff !important;
+    color: #000000 !important;
+    border-color: #ffffff !important;
+}
+.selected-route-card span,
+.selected-route-card i,
+body.theme-dark .selected-route-card span,
+body.theme-dark .selected-route-card i,
+html.theme-dark .selected-route-card span,
+html.theme-dark .selected-route-card i {
+    color: #000000 !important;
+}
+.selected-route-card .route-path-label,
+body.theme-dark .selected-route-card .route-path-label,
+html.theme-dark .selected-route-card .route-path-label {
+    color: #52525b !important;
+}
+.selected-route-card button,
+.selected-route-card a,
+body.theme-dark .selected-route-card button,
+body.theme-dark .selected-route-card a,
+html.theme-dark .selected-route-card button,
+html.theme-dark .selected-route-card a {
+    border-color: #000000 !important;
+    color: #000000 !important;
+    background-color: transparent !important;
+}
+.selected-route-card button:hover,
+.selected-route-card a:hover,
+body.theme-dark .selected-route-card button:hover,
+body.theme-dark .selected-route-card a:hover,
+html.theme-dark .selected-route-card button:hover,
+html.theme-dark .selected-route-card a:hover {
+    background-color: #000000 !important;
+    color: #ffffff !important;
+}
+
+body.theme-dark .filter-menu .sticky,
+html.theme-dark .filter-menu .sticky {
+    background-color: #000000 !important;
+    border-color: #ffffff !important;
+}
+
+
 
 
 

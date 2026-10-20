@@ -979,9 +979,148 @@ if (!decodedProvince || decodedProvince.trim() === '') {
                 selectorCallback: null,
                 selectorTargetInputId: null,
                 selectorExcludeRoute: null,
+                selectorCurrentSelected: '',
+                selectorTypeFilter: 'all',
                 isEditingExisting: false,
                 editingOriginalRouteName: '',
                 deletingRouteName: '',
+
+                updateSelectorTypeButtons: () => {
+                    const filter = app.route.selectorTypeFilter || 'all';
+                    const btnAll = document.getElementById('btn-sel-type-all');
+                    const btnBus = document.getElementById('btn-sel-type-bus');
+                    const btnCoach = document.getElementById('btn-sel-type-coach');
+                    if (!btnAll || !btnBus || !btnCoach) return;
+                    
+                    const activeCls = 'px-2.5 py-1 rounded-md text-[11px] font-bold border border-black bg-black text-white transition';
+                    const inactiveCls = 'px-2.5 py-1 rounded-md text-[11px] font-bold border border-black bg-white text-black hover:bg-gray-100 transition';
+                    
+                    btnAll.className = filter === 'all' ? activeCls : inactiveCls;
+                    btnBus.className = filter === 'bus' ? activeCls : inactiveCls;
+                    btnCoach.className = filter === 'coach' ? activeCls : inactiveCls;
+                },
+
+                setSelectorTypeFilter: (type) => {
+                    app.route.selectorTypeFilter = type;
+                    app.route.updateSelectorTypeButtons();
+                    app.route.filterSelector();
+                },
+
+                toggleSelectorProvMenu: (e) => {
+                    if (e) e.stopPropagation();
+                    const menu = document.getElementById('route-selector-prov-menu');
+                    if (menu) menu.classList.toggle('active');
+                },
+
+                renderSelectorProvMenu: () => {
+                    const listContainer = document.getElementById('route-selector-prov-list');
+                    if (!listContainer) return;
+                    const curVal = (document.getElementById('route-selector-prov-filter')?.value || '').trim().toLowerCase();
+                    const pData = app.utils.provinceData || [];
+                    
+                    let html = `
+                        <div class="filter-item ${!curVal ? 'selected' : ''}" onclick="app.route.selectSelectorProvince('')">
+                            <span class="font-bold">Tất cả tỉnh thành</span>
+                            ${!curVal ? '<i class="fa-solid fa-check text-xs ml-auto"></i>' : ''}
+                        </div>
+                    `;
+                    
+                    pData.forEach(p => {
+                        const isSel = curVal && curVal === p.ten.toLowerCase();
+                        html += `
+                            <div class="filter-item ${isSel ? 'selected' : ''}" data-prov="${app.utils.escapeAttr(p.ten)}" onclick="app.route.selectSelectorProvince('${app.utils.escapeAttr(p.ten)}')">
+                                <span>${app.utils.escapeHtml(p.ten)}</span>
+                                ${isSel ? '<i class="fa-solid fa-check text-xs ml-auto"></i>' : ''}
+                            </div>
+                        `;
+                    });
+                    listContainer.innerHTML = html;
+                },
+
+                selectSelectorProvince: (provName) => {
+                    const input = document.getElementById('route-selector-prov-filter');
+                    const label = document.getElementById('route-selector-prov-label');
+                    if (input) input.value = provName || '';
+                    if (label) label.innerText = provName || 'Tất cả tỉnh thành';
+                    const menu = document.getElementById('route-selector-prov-menu');
+                    if (menu) menu.classList.remove('active');
+                    app.route.renderSelectorProvMenu();
+                    app.route.filterSelector();
+                },
+
+                filterSelectorProvSearch: (q) => {
+                    const query = (q || '').trim().toLowerCase();
+                    const items = document.querySelectorAll('#route-selector-prov-list .filter-item');
+                    items.forEach(item => {
+                        const prov = item.dataset.prov;
+                        if (!prov) {
+                            item.style.display = query ? 'none' : 'flex';
+                        } else {
+                            item.style.display = prov.toLowerCase().includes(query) ? 'flex' : 'none';
+                        }
+                    });
+                },
+
+                toggleEditProvMenu: (e) => {
+                    const btn = document.getElementById('btn-route-edit-province');
+                    if (btn && btn.disabled) return;
+                    if (e) e.stopPropagation();
+                    const menu = document.getElementById('route-edit-prov-menu');
+                    if (menu) menu.classList.toggle('active');
+                },
+
+                renderEditProvMenu: (selectedProv = '') => {
+                    const listContainer = document.getElementById('route-edit-prov-list');
+                    if (!listContainer) return;
+                    const curVal = (selectedProv || document.getElementById('route-edit-province')?.value || '').trim().toLowerCase();
+                    const pData = app.utils.provinceData || [];
+                    
+                    let html = '';
+                    pData.forEach(p => {
+                        const isSel = curVal && curVal === p.ten.toLowerCase();
+                        html += `
+                            <div class="filter-item ${isSel ? 'selected' : ''}" data-prov="${app.utils.escapeAttr(p.ten)}" onclick="app.route.selectEditProvince('${app.utils.escapeAttr(p.ten)}')">
+                                <span>${app.utils.escapeHtml(p.ten)}</span>
+                                ${isSel ? '<i class="fa-solid fa-check text-xs ml-auto"></i>' : ''}
+                            </div>
+                        `;
+                    });
+                    listContainer.innerHTML = html;
+                },
+
+                selectEditProvince: (provName) => {
+                    const input = document.getElementById('route-edit-province');
+                    const label = document.getElementById('route-edit-prov-label');
+                    if (input) input.value = provName || '';
+                    if (label) label.innerText = provName || '-- Chọn Tỉnh / Thành phố --';
+                    const menu = document.getElementById('route-edit-prov-menu');
+                    if (menu) menu.classList.remove('active');
+                    app.route.renderEditProvMenu(provName);
+                },
+
+                filterEditProvinceSearch: (q) => {
+                    const query = (q || '').trim().toLowerCase();
+                    const items = document.querySelectorAll('#route-edit-prov-list .filter-item');
+                    items.forEach(item => {
+                        const prov = item.dataset.prov || '';
+                        item.style.display = prov.toLowerCase().includes(query) ? 'flex' : 'none';
+                    });
+                },
+
+                setEditVehicleType: (type = 'bus') => {
+                    const val = type === 'coach' ? 'coach' : 'bus';
+                    const hiddenInput = document.getElementById('route-edit-vehicle-type');
+                    if (hiddenInput) hiddenInput.value = val;
+                    const btnBus = document.getElementById('btn-route-type-bus');
+                    const btnCoach = document.getElementById('btn-route-type-coach');
+                    if (!btnBus || !btnCoach) return;
+                    
+                    const activeCls = 'py-2.5 px-3 rounded-md border border-black text-xs font-bold bg-black text-white transition flex items-center justify-center gap-1.5';
+                    const inactiveCls = 'py-2.5 px-3 rounded-md border border-black text-xs font-bold bg-white text-black hover:bg-gray-50 transition flex items-center justify-center gap-1.5';
+                    
+                    btnBus.className = val === 'bus' ? activeCls : inactiveCls;
+                    btnCoach.className = val === 'coach' ? activeCls : inactiveCls;
+                },
 
                 fetchRoutes: async (force = false) => {
                     if (app.route.cachedRoutes && !force) return app.route.cachedRoutes;
@@ -1025,6 +1164,9 @@ if (!decodedProvince || decodedProvince.trim() === '') {
                         }
                     });
 
+                    // Lọc bỏ các tuyến thông thường không có tỉnh (tuyến rác/mồ côi)
+                    routes = routes.filter(r => r.is_special || (r.province && r.province.trim() !== ''));
+
                     app.route.cachedRoutes = routes;
                     return routes;
                 },
@@ -1033,26 +1175,36 @@ if (!decodedProvince || decodedProvince.trim() === '') {
                     app.route.selectorCallback = options.onSelect || null;
                     app.route.selectorTargetInputId = options.targetInputId || null;
                     app.route.selectorExcludeRoute = options.excludeRoute || null;
+                    app.route.selectorCurrentSelected = (options.selectedRoute || (options.targetInputId ? document.getElementById(options.targetInputId)?.value : '') || '').trim();
+
+                    // Xác định bộ lọc loại xe ban đầu
+                    let vType = options.vehicleType;
+                    if (!vType) {
+                        if (options.targetInputId === 'up-route' && app.upload && app.upload.selectedType) {
+                            vType = app.upload.selectedType;
+                        } else if (app.currentVehicle && app.currentVehicle.type) {
+                            vType = app.currentVehicle.type;
+                        } else if (app.preference && app.preference.current && (app.preference.current === 'coach' || app.preference.current === 'bus')) {
+                            vType = app.preference.current;
+                        }
+                    }
+                    app.route.selectorTypeFilter = vType === 'coach' ? 'coach' : (vType === 'bus' ? 'bus' : 'all');
+                    app.route.updateSelectorTypeButtons();
 
                     const modal = document.getElementById('route-selector-modal');
                     const content = document.getElementById('route-selector-content');
                     if (!modal || !content) return;
 
-                    // Khởi tạo danh sách tỉnh thành cho bộ lọc
-                    const provFilter = document.getElementById('route-selector-prov-filter');
-                    if (provFilter && provFilter.options.length <= 1 && app.utils.provinceData) {
-                        provFilter.innerHTML = '<option value="">Tất cả tỉnh thành</option>';
-                        app.utils.provinceData.forEach(p => {
-                            const opt = document.createElement('option');
-                            opt.value = p.ten;
-                            opt.textContent = p.ten;
-                            provFilter.appendChild(opt);
-                        });
-                    }
-
+                    // Khởi tạo menu dropdown tỉnh thành
                     const searchInput = document.getElementById('route-selector-search');
                     if (searchInput) searchInput.value = '';
+                    const provFilter = document.getElementById('route-selector-prov-filter');
                     if (provFilter) provFilter.value = '';
+                    const provLabel = document.getElementById('route-selector-prov-label');
+                    if (provLabel) provLabel.innerText = 'Tất cả tỉnh thành';
+                    const provSearch = document.getElementById('route-selector-prov-search');
+                    if (provSearch) provSearch.value = '';
+                    app.route.renderSelectorProvMenu();
 
                     modal.classList.remove('hidden');
                     app.ui.lockScroll();
@@ -1091,13 +1243,27 @@ if (!decodedProvince || decodedProvince.trim() === '') {
 
                     const q = (searchInput ? searchInput.value : '').trim().toLowerCase();
                     const prov = (provFilter ? provFilter.value : '').trim();
+                    const typeFilter = app.route.selectorTypeFilter || 'all';
+                    const curSelected = (app.route.selectorCurrentSelected || '').trim().toLowerCase();
 
                     const routes = app.route.cachedRoutes || [];
                     const exclude = app.route.selectorExcludeRoute || '';
 
-                    // Lọc tuyến đặc biệt
-                    const specialList = routes.filter(r => r.is_special || app.route.specialRoutes.includes(r.route_no));
-                    // Lọc tuyến thông thường
+                    // 1. Tuyến trạng thái đặc biệt
+                    let specialList = routes.filter(r => r.is_special || app.route.specialRoutes.includes(r.route_no));
+                    if (typeFilter === 'bus') {
+                        // Xe buýt: Loại bỏ "Hợp đồng"
+                        specialList = specialList.filter(r => r.route_no !== 'Hợp đồng' && r.route_name !== 'Hợp đồng');
+                    } else if (typeFilter === 'coach') {
+                        // Xe khách: Tuyến Hợp đồng lên đầu
+                        specialList.sort((a, b) => {
+                            if (a.route_no === 'Hợp đồng') return -1;
+                            if (b.route_no === 'Hợp đồng') return 1;
+                            return 0;
+                        });
+                    }
+
+                    // 2. Tuyến thông thường
                     let normalList = routes.filter(r => !r.is_special && !app.route.specialRoutes.includes(r.route_no));
 
                     if (exclude) {
@@ -1106,6 +1272,12 @@ if (!decodedProvince || decodedProvince.trim() === '') {
 
                     if (prov) {
                         normalList = normalList.filter(r => r.province && r.province.toLowerCase() === prov.toLowerCase());
+                    }
+
+                    if (typeFilter === 'bus') {
+                        normalList = normalList.filter(r => (r.metadata?.vehicle_type || 'bus') === 'bus');
+                    } else if (typeFilter === 'coach') {
+                        normalList = normalList.filter(r => r.metadata?.vehicle_type === 'coach');
                     }
 
                     if (q) {
@@ -1118,9 +1290,20 @@ if (!decodedProvince || decodedProvince.trim() === '') {
                         });
                     }
 
+                    // Đưa tuyến đang chọn lên đầu danh sách bình thường (ghim lên top)
+                    const isNormalSelected = (r) => {
+                        if (!curSelected) return false;
+                        const rNo = (r.route_no || '').toLowerCase();
+                        const rName = (r.route_name || '').toLowerCase();
+                        return rNo === curSelected || rName === curSelected;
+                    };
+                    const selectedNormal = normalList.filter(r => isNormalSelected(r));
+                    const unselectedNormal = normalList.filter(r => !isNormalSelected(r));
+                    normalList = [...selectedNormal, ...unselectedNormal];
+
                     let html = '';
 
-                    // 1. Khối 4 trường hợp đặc biệt
+                    // Khối 1: Các trường hợp đặc biệt (nếu không chọn lọc theo một tỉnh cụ thể)
                     if (!prov) {
                         const matchedSpecials = q
                             ? specialList.filter(r => (r.route_no || '').toLowerCase().includes(q))
@@ -1131,20 +1314,24 @@ if (!decodedProvince || decodedProvince.trim() === '') {
                                 <div class="mb-3">
                                     <p class="text-[10px] font-bold uppercase tracking-wider text-gray-500 mb-1.5 px-1">Tuyến trạng thái đặc biệt</p>
                                     <div class="grid grid-cols-2 gap-1.5">
-                                        ${matchedSpecials.map(r => `
-                                            <div onclick="app.route.selectRoute('${app.utils.escapeAttr(r.route_no)}', '${app.utils.escapeAttr(r.route_name)}')"
-                                                 class="cursor-pointer bg-white hover:bg-gray-100 border border-black rounded-md p-2.5 flex items-center gap-2 transition active:scale-98 select-none">
-                                                <i class="fa-solid fa-tag text-xs text-black"></i>
-                                                <span class="text-xs font-bold text-black truncate">${app.utils.escapeHtml(r.route_no)}</span>
-                                            </div>
-                                        `).join('')}
+                                        ${matchedSpecials.map(r => {
+                                            const isSel = curSelected && ((r.route_no || '').toLowerCase() === curSelected || (r.route_name || '').toLowerCase() === curSelected);
+                                            const cardCls = isSel ? 'selected-route-card' : 'bg-white hover:bg-gray-100';
+                                            return `
+                                                <div onclick="app.route.selectRoute('${app.utils.escapeAttr(r.route_no)}', '${app.utils.escapeAttr(r.route_name)}')"
+                                                     class="cursor-pointer border border-black rounded-md p-2.5 flex items-center gap-2 transition active:scale-98 select-none ${cardCls}">
+                                                    <i class="fa-solid fa-tag text-xs ${isSel ? '' : 'text-black'}"></i>
+                                                    <span class="text-xs font-bold truncate ${isSel ? '' : 'text-black'}">${app.utils.escapeHtml(r.route_no)}</span>
+                                                </div>
+                                            `;
+                                        }).join('')}
                                     </div>
                                 </div>
                             `;
                         }
                     }
 
-                    // 2. Khối danh sách các tuyến thông thường
+                    // Khối 2: Danh sách các tuyến thông thường
                     html += `<div class="mb-2"><p class="text-[10px] font-bold uppercase tracking-wider text-gray-500 mb-1.5 px-1">Danh sách tuyến xe (${normalList.length})</p>`;
 
                     if (normalList.length === 0) {
@@ -1157,32 +1344,38 @@ if (!decodedProvince || decodedProvince.trim() === '') {
                     } else {
                         html += '<div class="space-y-1.5">';
                         normalList.forEach(r => {
+                            const isSel = isNormalSelected(r);
+                            const cardCls = isSel ? 'selected-route-card' : 'bg-white hover:bg-gray-50';
                             const badge = r.is_inactive 
-                                ? '<span class="text-[9px] px-1.5 py-0.5 rounded bg-black text-white font-bold shrink-0">Dừng HĐ</span>' 
+                                ? `<span class="text-[9px] px-1.5 py-0.5 rounded font-bold shrink-0 ${isSel ? 'bg-white text-black' : 'bg-black text-white'}">Dừng HĐ</span>` 
                                 : '';
-                            const provLabel = r.province ? `<span class="text-[11px] text-gray-500 font-medium">(${app.utils.escapeHtml(r.province)})</span>` : '';
-                            const pathLabel = r.short_path ? `<p class="text-[11px] text-gray-500 truncate mt-0.5">${app.utils.escapeHtml(r.short_path)}</p>` : '';
+                            const vTypeBadge = (r.metadata?.vehicle_type === 'coach')
+                                ? `<span class="text-[9px] px-1.5 py-0.5 rounded font-bold shrink-0 border ${isSel ? 'border-white text-white' : 'border-black text-black'}"><i class="fa-solid fa-van-shuttle mr-1"></i>Xe khách</span>`
+                                : '';
+                            const provLabel = r.province ? `<span class="text-[11px] ${isSel ? 'text-gray-200' : 'text-gray-500'} font-medium">(${app.utils.escapeHtml(r.province)})</span>` : '';
+                            const pathLabel = r.short_path ? `<p class="route-path-label text-[11px] ${isSel ? 'text-gray-300' : 'text-gray-500'} truncate mt-0.5">${app.utils.escapeHtml(r.short_path)}</p>` : '';
 
                             html += `
                                 <div onclick="app.route.selectRoute('${app.utils.escapeAttr(r.route_no)}', '${app.utils.escapeAttr(r.route_name)}')"
-                                     class="cursor-pointer bg-white hover:bg-gray-50 border border-black rounded-md p-2.5 flex items-center justify-between gap-3 transition active:scale-[0.99] select-none group">
+                                     class="cursor-pointer border border-black rounded-md p-2.5 flex items-center justify-between gap-3 transition active:scale-[0.99] select-none group ${cardCls}">
                                     <div class="min-w-0 flex-1">
                                         <div class="flex items-center gap-2 flex-wrap">
-                                            <span class="font-extrabold text-xs text-black tracking-wide">${app.utils.escapeHtml(r.route_no)}</span>
+                                            <span class="font-extrabold text-xs tracking-wide ${isSel ? '' : 'text-black'}">${app.utils.escapeHtml(r.route_no)}</span>
                                             ${provLabel}
+                                            ${vTypeBadge}
                                             ${badge}
                                         </div>
                                         ${pathLabel}
                                     </div>
                                     <div class="flex items-center gap-1.5 shrink-0" onclick="event.stopPropagation()">
                                         <button type="button" title="Chỉnh sửa thông tin tuyến" onclick="app.route.openEditPrompt('${app.utils.escapeAttr(r.route_name)}', '${app.utils.escapeAttr(r.province || '')}', true)"
-                                                class="w-7 h-7 flex items-center justify-center rounded-md border border-black text-black hover:bg-black hover:text-white transition text-xs">
+                                                class="w-7 h-7 flex items-center justify-center rounded-md border border-black ${isSel ? 'border-white text-white' : 'text-black hover:bg-black hover:text-white'} transition text-xs">
                                             <i class="fa-solid fa-pen"></i>
                                         </button>
                                         <a href="/route/${r.province ? encodeURIComponent(r.province) + '/' : ''}${encodeURIComponent(r.route_no)}"
                                            onclick="app.route.closeSelector()"
                                            title="Xem hồ sơ tuyến"
-                                           class="w-7 h-7 flex items-center justify-center rounded-md border border-black text-black hover:bg-black hover:text-white transition text-xs">
+                                           class="w-7 h-7 flex items-center justify-center rounded-md border border-black ${isSel ? 'border-white text-white' : 'text-black hover:bg-black hover:text-white'} transition text-xs">
                                             <i class="fa-solid fa-arrow-up-right-from-square"></i>
                                         </a>
                                     </div>
@@ -1240,25 +1433,20 @@ if (!decodedProvince || decodedProvince.trim() === '') {
                     const btnDelete = document.getElementById('btn-delete-route');
                     const warningText = document.getElementById('route-edit-warning-text');
                     const provContainer = document.getElementById('route-edit-province-container');
-                    const provSelect = document.getElementById('route-edit-province');
+                    const btnProv = document.getElementById('btn-route-edit-province');
 
                     if (titleEl) titleEl.innerHTML = '<i class="fa-solid fa-plus mr-2 text-gray-500"></i>Tạo Tuyến Mới';
                     if (btnDelete) btnDelete.classList.add('hidden');
                     if (provContainer) provContainer.classList.remove('hidden');
 
-                    if (provSelect) {
-                        provSelect.disabled = false;
-                        provSelect.classList.remove('bg-gray-100', 'cursor-not-allowed', 'opacity-70');
-                        if (app.utils.provinceData) {
-                            provSelect.innerHTML = '<option value="">-- Chọn Tỉnh / Thành phố (Bắt buộc) --</option>';
-                            app.utils.provinceData.forEach(p => {
-                                const opt = document.createElement('option');
-                                opt.value = p.ten;
-                                opt.textContent = p.ten;
-                                provSelect.appendChild(opt);
-                            });
-                        }
+                    if (btnProv) {
+                        btnProv.disabled = false;
+                        btnProv.classList.remove('bg-gray-100', 'cursor-not-allowed', 'opacity-70');
                     }
+                    app.route.selectEditProvince('');
+                    app.route.renderEditProvMenu('');
+
+                    app.route.setEditVehicleType(app.route.selectorTypeFilter === 'coach' ? 'coach' : 'bus');
 
                     const nameInput = document.getElementById('route-edit-name');
                     if (nameInput) {
@@ -1326,30 +1514,22 @@ if (!decodedProvince || decodedProvince.trim() === '') {
                     const btnDelete = document.getElementById('btn-delete-route');
                     const warningText = document.getElementById('route-edit-warning-text');
                     const provContainer = document.getElementById('route-edit-province-container');
-                    const provSelect = document.getElementById('route-edit-province');
+                    const btnProv = document.getElementById('btn-route-edit-province');
 
                     if (titleEl) titleEl.innerHTML = '<i class="fa-solid fa-route mr-2 text-gray-500"></i>Cập nhật Thông tin Tuyến';
                     if (btnDelete) btnDelete.classList.remove('hidden');
                     if (provContainer) provContainer.classList.remove('hidden');
 
-                    if (provSelect) {
-                        provSelect.disabled = isFromSelector;
+                    if (btnProv) {
+                        btnProv.disabled = isFromSelector;
                         if (isFromSelector) {
-                            provSelect.classList.add('bg-gray-100', 'cursor-not-allowed', 'opacity-70');
+                            btnProv.classList.add('bg-gray-100', 'cursor-not-allowed', 'opacity-70');
                         } else {
-                            provSelect.classList.remove('bg-gray-100', 'cursor-not-allowed', 'opacity-70');
-                        }
-                        if (app.utils.provinceData) {
-                            provSelect.innerHTML = '<option value="">-- Chọn Tỉnh / Thành phố (Bắt buộc) --</option>';
-                            app.utils.provinceData.forEach(p => {
-                                const opt = document.createElement('option');
-                                opt.value = p.ten;
-                                opt.textContent = p.ten;
-                                if (prov && p.ten.toLowerCase() === prov.toLowerCase()) opt.selected = true;
-                                provSelect.appendChild(opt);
-                            });
+                            btnProv.classList.remove('bg-gray-100', 'cursor-not-allowed', 'opacity-70');
                         }
                     }
+                    app.route.selectEditProvince(prov || '');
+                    app.route.renderEditProvMenu(prov || '');
 
                     const nameInput = document.getElementById('route-edit-name');
                     if (nameInput) {
@@ -1390,13 +1570,18 @@ if (!decodedProvince || decodedProvince.trim() === '') {
                                 document.getElementById('route-edit-ticket-price').value = exactInfo.metadata.ticket_price || '';
                                 document.getElementById('route-edit-headway').value = exactInfo.metadata.headway || '';
                                 document.getElementById('route-edit-wheelchair').checked = exactInfo.metadata.wheelchair_support || false;
+                                app.route.setEditVehicleType(exactInfo.metadata.vehicle_type || 'bus');
                                 let iconTypeMeta = exactInfo.metadata.icon_type || 'default';
                                 let iconLabelMeta = 'Mặc định';
                                 if (iconTypeMeta === 'circle') iconLabelMeta = 'Hình tròn (Max 5 kí tự)';
                                 else if (iconTypeMeta === 'trapezoid') iconLabelMeta = 'Hình thang cân (Max 5 kí tự)';
                                 document.getElementById('route-edit-icon').value = iconTypeMeta;
                                 document.getElementById('route-icon-label').innerText = iconLabelMeta;
+                            } else {
+                                app.route.setEditVehicleType('bus');
                             }
+                        } else {
+                            app.route.setEditVehicleType('bus');
                         }
 
                         // Fetch borrowed photos
@@ -1482,6 +1667,8 @@ if (!decodedProvince || decodedProvince.trim() === '') {
                     }
 
                     let metadata = {};
+                    const vehicleType = document.getElementById('route-edit-vehicle-type')?.value || 'bus';
+                    metadata.vehicle_type = vehicleType;
                     if (ticketPrice) metadata.ticket_price = ticketPrice;
                     if (headway) metadata.headway = headway;
                     if (wheelchairSupport) metadata.wheelchair_support = wheelchairSupport;

@@ -646,6 +646,32 @@ input:disabled, select:disabled, textarea:disabled {
     overflow-y: auto !important;
 }
 
+/* Tuyến được chọn trong selector - Giao diện sáng: Nền đen chữ trắng */
+.selected-route-card {
+    background-color: #000000 !important;
+    color: #ffffff !important;
+    border-color: #000000 !important;
+}
+.selected-route-card span,
+.selected-route-card i {
+    color: #ffffff !important;
+}
+.selected-route-card .route-path-label {
+    color: #a1a1aa !important;
+}
+.selected-route-card button,
+.selected-route-card a {
+    border-color: #ffffff !important;
+    color: #ffffff !important;
+    background-color: transparent !important;
+}
+.selected-route-card button:hover,
+.selected-route-card a:hover {
+    background-color: #ffffff !important;
+    color: #000000 !important;
+}
+
+
 
 
 
