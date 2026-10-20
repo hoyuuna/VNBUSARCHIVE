@@ -1231,12 +1231,24 @@ if (!decodedProvince || decodedProvince.trim() === '') {
                     app.route.selectorCurrentSelected = (curSelected || '').trim();
                     app.route.pendingSelectedRoute = null;
                     app.route.selectorDisplayLimit = 40;
-                    app.route.selectorContextProvince = options.province 
-                        || document.getElementById('up-province')?.value 
-                        || document.getElementById('info-province')?.value 
-                        || app.currentVehicle?.province 
-                        || app.currentPhoto?.province 
-                        || '';
+                    let targetProv = options.province || '';
+                    if (!targetProv && options.targetInputId) {
+                        const targetEl = document.getElementById(options.targetInputId);
+                        if (targetEl?.dataset?.routeName && targetEl.dataset.routeName.includes(' - ')) {
+                            targetProv = targetEl.dataset.routeName.split(' - ').slice(1).join(' - ').trim();
+                        } else if (targetEl?.dataset?.borrowed && targetEl.dataset.borrowed.includes(' - ')) {
+                            targetProv = targetEl.dataset.borrowed.split(' - ').slice(1).join(' - ').trim();
+                        }
+                    }
+                    if (!targetProv) {
+                        targetProv = document.getElementById('up-province')?.value 
+                            || document.getElementById('info-province')?.value 
+                            || (app.currentPhoto?.license_plate ? app.utils.getProvinceFromPlate(app.currentPhoto.license_plate) : '')
+                            || (app.currentVehicle?.license_plate ? app.utils.getProvinceFromPlate(app.currentVehicle.license_plate) : '')
+                            || '';
+                    }
+                    if (targetProv === 'Không xác định' || targetProv === 'Biển tạm') targetProv = '';
+                    app.route.selectorContextProvince = targetProv;
 
                     // Xác định bộ lọc loại xe ban đầu và khóa chặt nếu là xe buýt hoặc xe khách
                     let vType = options.vehicleType;
@@ -1305,15 +1317,66 @@ if (!decodedProvince || decodedProvince.trim() === '') {
 
                 highlightSelectorRoute: (routeNo, routeName) => {
                     const selName = routeName || routeNo;
+                    if (app.route.selectorCurrentSelected === selName) return;
+
+                    const container = document.getElementById('route-selector-items');
+                    
+                    // FLIP: Ghi nhận vị trí (First) trước khi sắp xếp lại DOM
+                    const firstTops = new Map();
+                    if (container) {
+                        const oldCards = container.querySelectorAll('.route-card-item');
+                        oldCards.forEach(card => {
+                            const key = card.dataset.routeItemKey;
+                            if (key) {
+                                firstTops.set(key, card.getBoundingClientRect().top);
+                            }
+                        });
+                    }
+
                     app.route.selectorCurrentSelected = selName;
                     app.route.pendingSelectedRoute = {
                         route_no: routeNo,
                         route_name: selName
                     };
-                    const container = document.getElementById('route-selector-items');
+
                     const scrollPos = container ? container.scrollTop : 0;
                     app.route.filterSelector(true);
                     if (container) container.scrollTop = scrollPos;
+
+                    // FLIP: Đo vị trí mới (Last) và đảo ngược (Invert)
+                    if (container && firstTops.size > 0) {
+                        const newCards = container.querySelectorAll('.route-card-item');
+                        const animatedCards = [];
+                        newCards.forEach(card => {
+                            const key = card.dataset.routeItemKey;
+                            const firstTop = firstTops.get(key);
+                            if (firstTop !== undefined) {
+                                const lastTop = card.getBoundingClientRect().top;
+                                const deltaY = firstTop - lastTop;
+                                if (Math.abs(deltaY) > 0.5) {
+                                    card.style.transform = `translateY(${deltaY}px)`;
+                                    card.style.transition = 'none';
+                                    animatedCards.push(card);
+                                }
+                            }
+                        });
+
+                        // FLIP: Kích hoạt chuyển động mượt mà (Play)
+                        if (animatedCards.length > 0) {
+                            requestAnimationFrame(() => {
+                                animatedCards.forEach(card => {
+                                    card.style.transition = 'transform 360ms cubic-bezier(0.16, 1, 0.3, 1)';
+                                    card.style.transform = '';
+                                });
+                                setTimeout(() => {
+                                    animatedCards.forEach(card => {
+                                        card.style.transition = '';
+                                        card.style.transform = '';
+                                    });
+                                }, 380);
+                            });
+                        }
+                    }
                 },
 
                 confirmSelector: () => {
@@ -1498,7 +1561,8 @@ if (!decodedProvince || decodedProvince.trim() === '') {
                             html += `
                                 <div onclick="app.route.highlightSelectorRoute('${app.utils.escapeAttr(r.route_no)}', '${app.utils.escapeAttr(r.route_name)}')"
                                      ondblclick="app.route.selectRoute('${app.utils.escapeAttr(r.route_no)}', '${app.utils.escapeAttr(r.route_name)}')"
-                                     class="cursor-pointer border border-black rounded-md p-2.5 flex items-center justify-between gap-3 transition active:scale-[0.99] select-none group ${cardCls}">
+                                     data-route-item-key="${app.utils.escapeAttr(r.route_name || r.route_no)}"
+                                     class="route-card-item cursor-pointer border border-black rounded-md p-2.5 flex items-center justify-between gap-3 active:scale-[0.99] select-none group ${cardCls}">
                                     <div class="min-w-0 flex-1">
                                         <div class="flex items-center gap-2 flex-wrap">
                                             <span class="font-extrabold text-xs tracking-wide ${isSel ? '' : 'text-black'}">${app.utils.escapeHtml(r.route_no)}</span>

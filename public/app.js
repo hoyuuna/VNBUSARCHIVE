@@ -4861,8 +4861,10 @@ Object.assign(window.app, {
                                     app.searchRedirect(this.value, fieldMap[id]);
                                 } else {
                                     let provName = '';
-                                    if (el.dataset.borrowed) {
+                                    if (el.dataset.borrowed && el.dataset.borrowed.includes(' - ')) {
                                         provName = el.dataset.borrowed.split(' - ')[1];
+                                    } else if (el.dataset.routeName && el.dataset.routeName.includes(' - ')) {
+                                        provName = el.dataset.routeName.split(' - ')[1];
                                     } else {
                                         const plateValue = document.getElementById('info-plate')?.value;
                                         if (plateValue) provName = app.utils.getProvinceFromPlate(plateValue);
@@ -8495,10 +8497,22 @@ Object.assign(window.app, {
                     if (elInfoType) elInfoType.value = snapshot.type || 'bus';
                     if (elInfoRoute) {
                         elInfoRoute.value = snapshot.route_no || 'Đã bị xóa';
+                        let fullRoute = photo.borrowed_route;
+                        if (!fullRoute && snapshot.route_no && (!app.route?.specialRoutes || !app.route.specialRoutes.includes(snapshot.route_no))) {
+                            const provFromPlate = photo.license_plate ? app.utils.getProvinceFromPlate(photo.license_plate) : '';
+                            if (provFromPlate && provFromPlate !== 'Không xác định' && provFromPlate !== 'Biển tạm') {
+                                fullRoute = `${snapshot.route_no} - ${provFromPlate}`;
+                            }
+                        }
                         if (photo.borrowed_route) {
                             elInfoRoute.dataset.borrowed = photo.borrowed_route;
                         } else {
                             delete elInfoRoute.dataset.borrowed;
+                        }
+                        if (fullRoute) {
+                            elInfoRoute.dataset.routeName = fullRoute;
+                        } else {
+                            delete elInfoRoute.dataset.routeName;
                         }
                     }
                     const lblDetailRoute = document.getElementById('lbl-detail-route');
@@ -13001,12 +13015,24 @@ if (!decodedProvince || decodedProvince.trim() === '') {
                     app.route.selectorCurrentSelected = (curSelected || '').trim();
                     app.route.pendingSelectedRoute = null;
                     app.route.selectorDisplayLimit = 40;
-                    app.route.selectorContextProvince = options.province 
-                        || document.getElementById('up-province')?.value 
-                        || document.getElementById('info-province')?.value 
-                        || app.currentVehicle?.province 
-                        || app.currentPhoto?.province 
-                        || '';
+                    let targetProv = options.province || '';
+                    if (!targetProv && options.targetInputId) {
+                        const targetEl = document.getElementById(options.targetInputId);
+                        if (targetEl?.dataset?.routeName && targetEl.dataset.routeName.includes(' - ')) {
+                            targetProv = targetEl.dataset.routeName.split(' - ').slice(1).join(' - ').trim();
+                        } else if (targetEl?.dataset?.borrowed && targetEl.dataset.borrowed.includes(' - ')) {
+                            targetProv = targetEl.dataset.borrowed.split(' - ').slice(1).join(' - ').trim();
+                        }
+                    }
+                    if (!targetProv) {
+                        targetProv = document.getElementById('up-province')?.value 
+                            || document.getElementById('info-province')?.value 
+                            || (app.currentPhoto?.license_plate ? app.utils.getProvinceFromPlate(app.currentPhoto.license_plate) : '')
+                            || (app.currentVehicle?.license_plate ? app.utils.getProvinceFromPlate(app.currentVehicle.license_plate) : '')
+                            || '';
+                    }
+                    if (targetProv === 'Không xác định' || targetProv === 'Biển tạm') targetProv = '';
+                    app.route.selectorContextProvince = targetProv;
 
                     // Xác định bộ lọc loại xe ban đầu và khóa chặt nếu là xe buýt hoặc xe khách
                     let vType = options.vehicleType;
@@ -13075,15 +13101,66 @@ if (!decodedProvince || decodedProvince.trim() === '') {
 
                 highlightSelectorRoute: (routeNo, routeName) => {
                     const selName = routeName || routeNo;
+                    if (app.route.selectorCurrentSelected === selName) return;
+
+                    const container = document.getElementById('route-selector-items');
+                    
+                    // FLIP: Ghi nhận vị trí (First) trước khi sắp xếp lại DOM
+                    const firstTops = new Map();
+                    if (container) {
+                        const oldCards = container.querySelectorAll('.route-card-item');
+                        oldCards.forEach(card => {
+                            const key = card.dataset.routeItemKey;
+                            if (key) {
+                                firstTops.set(key, card.getBoundingClientRect().top);
+                            }
+                        });
+                    }
+
                     app.route.selectorCurrentSelected = selName;
                     app.route.pendingSelectedRoute = {
                         route_no: routeNo,
                         route_name: selName
                     };
-                    const container = document.getElementById('route-selector-items');
+
                     const scrollPos = container ? container.scrollTop : 0;
                     app.route.filterSelector(true);
                     if (container) container.scrollTop = scrollPos;
+
+                    // FLIP: Đo vị trí mới (Last) và đảo ngược (Invert)
+                    if (container && firstTops.size > 0) {
+                        const newCards = container.querySelectorAll('.route-card-item');
+                        const animatedCards = [];
+                        newCards.forEach(card => {
+                            const key = card.dataset.routeItemKey;
+                            const firstTop = firstTops.get(key);
+                            if (firstTop !== undefined) {
+                                const lastTop = card.getBoundingClientRect().top;
+                                const deltaY = firstTop - lastTop;
+                                if (Math.abs(deltaY) > 0.5) {
+                                    card.style.transform = `translateY(${deltaY}px)`;
+                                    card.style.transition = 'none';
+                                    animatedCards.push(card);
+                                }
+                            }
+                        });
+
+                        // FLIP: Kích hoạt chuyển động mượt mà (Play)
+                        if (animatedCards.length > 0) {
+                            requestAnimationFrame(() => {
+                                animatedCards.forEach(card => {
+                                    card.style.transition = 'transform 360ms cubic-bezier(0.16, 1, 0.3, 1)';
+                                    card.style.transform = '';
+                                });
+                                setTimeout(() => {
+                                    animatedCards.forEach(card => {
+                                        card.style.transition = '';
+                                        card.style.transform = '';
+                                    });
+                                }, 380);
+                            });
+                        }
+                    }
                 },
 
                 confirmSelector: () => {
@@ -13268,7 +13345,8 @@ if (!decodedProvince || decodedProvince.trim() === '') {
                             html += `
                                 <div onclick="app.route.highlightSelectorRoute('${app.utils.escapeAttr(r.route_no)}', '${app.utils.escapeAttr(r.route_name)}')"
                                      ondblclick="app.route.selectRoute('${app.utils.escapeAttr(r.route_no)}', '${app.utils.escapeAttr(r.route_name)}')"
-                                     class="cursor-pointer border border-black rounded-md p-2.5 flex items-center justify-between gap-3 transition active:scale-[0.99] select-none group ${cardCls}">
+                                     data-route-item-key="${app.utils.escapeAttr(r.route_name || r.route_no)}"
+                                     class="route-card-item cursor-pointer border border-black rounded-md p-2.5 flex items-center justify-between gap-3 active:scale-[0.99] select-none group ${cardCls}">
                                     <div class="min-w-0 flex-1">
                                         <div class="flex items-center gap-2 flex-wrap">
                                             <span class="font-extrabold text-xs tracking-wide ${isSel ? '' : 'text-black'}">${app.utils.escapeHtml(r.route_no)}</span>
@@ -16420,8 +16498,14 @@ Object.assign(window.app, {
                     }
                     const valPlate = document.getElementById('up-plate').value.trim();
                     const valOp = document.getElementById('up-operator').value.trim();
-                    const valType = document.getElementById('up-type').value;
-                    const valRoute = document.getElementById('up-route').value.trim();
+                    const routeEl = document.getElementById('up-route');
+                    let valRoute = (routeEl?.dataset?.routeName || routeEl?.value || '').trim();
+                    if (valRoute && !valRoute.includes(' - ') && (!app.route?.specialRoutes || !app.route.specialRoutes.includes(valRoute))) {
+                        const upProv = document.getElementById('up-province')?.value || (valPlate ? app.utils.getProvinceFromPlate(valPlate) : '');
+                        if (upProv && upProv !== 'Không xác định' && upProv !== 'Biển tạm') {
+                            valRoute = `${valRoute} - ${upProv}`;
+                        }
+                    }
                     const valModel = document.getElementById('up-model').value.trim();
                     const valLoc = document.getElementById('up-location').value.trim();
                     const valDate = document.getElementById('up-date').value;
@@ -18857,11 +18941,19 @@ Object.assign(window.app, {
                     const btn = document.getElementById('btn-save-inline');
                     const originalText = btn.innerText;
                     btn.innerText = "Đang xử lý..."; btn.disabled = true;
+                    const routeEl = document.getElementById('info-route');
+                    let fullRouteName = (routeEl?.dataset?.routeName || routeEl?.value || '').trim();
+                    if (fullRouteName && !fullRouteName.includes(' - ') && (!app.route?.specialRoutes || !app.route.specialRoutes.includes(fullRouteName))) {
+                        const provFromPlate = document.getElementById('info-plate')?.value ? app.utils.getProvinceFromPlate(document.getElementById('info-plate').value) : '';
+                        if (provFromPlate && provFromPlate !== 'Không xác định' && provFromPlate !== 'Biển tạm') {
+                            fullRouteName = `${fullRouteName} - ${provFromPlate}`;
+                        }
+                    }
                     const payload = {
                         license_plate: document.getElementById('info-plate').value.replace(/[^A-Z0-9-]/gi, '').toUpperCase(),
                         operator: document.getElementById('info-operator').value,
                         type: document.getElementById('info-type').value,
-                        route: document.getElementById('info-route').value,
+                        route: fullRouteName,
                         model: document.getElementById('info-model').value,
                         location: document.getElementById('info-location').value,
                         note: document.getElementById('info-note').value,
@@ -18985,6 +19077,13 @@ Object.assign(window.app, {
                             app.currentPhoto.type = payload.type;
                             app.currentPhoto.route_no = routeNoVal;
                             app.currentPhoto.borrowed_route = borrowedVal;
+                            const elInfoRoute = document.getElementById('info-route');
+                            if (elInfoRoute) {
+                                elInfoRoute.value = routeNoVal;
+                                elInfoRoute.dataset.routeName = routeVal;
+                                if (borrowedVal) elInfoRoute.dataset.borrowed = borrowedVal;
+                                else delete elInfoRoute.dataset.borrowed;
+                            }
                             if (app.currentVehicle) {
                                 app.currentVehicle.model = payload.model;
                             }
@@ -23591,7 +23690,7 @@ if (cbQuality) newSubroles.push('quality_aud');
                         const typeEl = document.getElementById(`adm-p-type-${id}`);
                         const type = typeEl ? typeEl.value : (app.admin.originalData?.['photo_' + id]?.type || 'bus');
                         const routeEl = document.getElementById(`adm-p-route-${id}`);
-                        const route = routeEl ? routeEl.value.trim() : (app.admin.originalData?.['photo_' + id]?.route || '');
+                        const route = routeEl ? (routeEl.dataset?.routeName || routeEl.value.trim()) : (app.admin.originalData?.['photo_' + id]?.route || '');
                         const modelEl = document.getElementById(`adm-p-model-${id}`);
                         const model = modelEl ? modelEl.value.trim() : (app.admin.originalData?.['photo_' + id]?.model || '');
                         const locationEl = document.getElementById(`adm-p-location-${id}`);

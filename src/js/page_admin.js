@@ -3837,7 +3837,7 @@ if (cbQuality) newSubroles.push('quality_aud');
                         const typeEl = document.getElementById(`adm-p-type-${id}`);
                         const type = typeEl ? typeEl.value : (app.admin.originalData?.['photo_' + id]?.type || 'bus');
                         const routeEl = document.getElementById(`adm-p-route-${id}`);
-                        const route = routeEl ? routeEl.value.trim() : (app.admin.originalData?.['photo_' + id]?.route || '');
+                        const route = routeEl ? (routeEl.dataset?.routeName || routeEl.value.trim()) : (app.admin.originalData?.['photo_' + id]?.route || '');
                         const modelEl = document.getElementById(`adm-p-model-${id}`);
                         const model = modelEl ? modelEl.value.trim() : (app.admin.originalData?.['photo_' + id]?.model || '');
                         const locationEl = document.getElementById(`adm-p-location-${id}`);

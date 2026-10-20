@@ -653,11 +653,19 @@ Object.assign(window.app, {
                     const btn = document.getElementById('btn-save-inline');
                     const originalText = btn.innerText;
                     btn.innerText = "Đang xử lý..."; btn.disabled = true;
+                    const routeEl = document.getElementById('info-route');
+                    let fullRouteName = (routeEl?.dataset?.routeName || routeEl?.value || '').trim();
+                    if (fullRouteName && !fullRouteName.includes(' - ') && (!app.route?.specialRoutes || !app.route.specialRoutes.includes(fullRouteName))) {
+                        const provFromPlate = document.getElementById('info-plate')?.value ? app.utils.getProvinceFromPlate(document.getElementById('info-plate').value) : '';
+                        if (provFromPlate && provFromPlate !== 'Không xác định' && provFromPlate !== 'Biển tạm') {
+                            fullRouteName = `${fullRouteName} - ${provFromPlate}`;
+                        }
+                    }
                     const payload = {
                         license_plate: document.getElementById('info-plate').value.replace(/[^A-Z0-9-]/gi, '').toUpperCase(),
                         operator: document.getElementById('info-operator').value,
                         type: document.getElementById('info-type').value,
-                        route: document.getElementById('info-route').value,
+                        route: fullRouteName,
                         model: document.getElementById('info-model').value,
                         location: document.getElementById('info-location').value,
                         note: document.getElementById('info-note').value,
@@ -781,6 +789,13 @@ Object.assign(window.app, {
                             app.currentPhoto.type = payload.type;
                             app.currentPhoto.route_no = routeNoVal;
                             app.currentPhoto.borrowed_route = borrowedVal;
+                            const elInfoRoute = document.getElementById('info-route');
+                            if (elInfoRoute) {
+                                elInfoRoute.value = routeNoVal;
+                                elInfoRoute.dataset.routeName = routeVal;
+                                if (borrowedVal) elInfoRoute.dataset.borrowed = borrowedVal;
+                                else delete elInfoRoute.dataset.borrowed;
+                            }
                             if (app.currentVehicle) {
                                 app.currentVehicle.model = payload.model;
                             }

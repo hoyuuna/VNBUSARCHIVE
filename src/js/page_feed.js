@@ -1708,10 +1708,22 @@ Object.assign(window.app, {
                     if (elInfoType) elInfoType.value = snapshot.type || 'bus';
                     if (elInfoRoute) {
                         elInfoRoute.value = snapshot.route_no || 'Đã bị xóa';
+                        let fullRoute = photo.borrowed_route;
+                        if (!fullRoute && snapshot.route_no && (!app.route?.specialRoutes || !app.route.specialRoutes.includes(snapshot.route_no))) {
+                            const provFromPlate = photo.license_plate ? app.utils.getProvinceFromPlate(photo.license_plate) : '';
+                            if (provFromPlate && provFromPlate !== 'Không xác định' && provFromPlate !== 'Biển tạm') {
+                                fullRoute = `${snapshot.route_no} - ${provFromPlate}`;
+                            }
+                        }
                         if (photo.borrowed_route) {
                             elInfoRoute.dataset.borrowed = photo.borrowed_route;
                         } else {
                             delete elInfoRoute.dataset.borrowed;
+                        }
+                        if (fullRoute) {
+                            elInfoRoute.dataset.routeName = fullRoute;
+                        } else {
+                            delete elInfoRoute.dataset.routeName;
                         }
                     }
                     const lblDetailRoute = document.getElementById('lbl-detail-route');

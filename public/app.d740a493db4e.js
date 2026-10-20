@@ -204,6 +204,9 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
     });
+    if (window.app && window.app.ui && window.app.ui.initSliderEditableBadges) {
+        window.app.ui.initSliderEditableBadges();
+    }
 });
 
 Object.assign(window.app, {
@@ -606,6 +609,210 @@ Object.assign(window.app, {
             },
 
     ui: {
+                initSliderEditableBadges: () => {
+                    if (window._sliderEditableBadgesInit) return;
+                    window._sliderEditableBadgesInit = true;
+
+                    const sliderMap = {
+                        'crop-rotate-val': { slider: 'crop-rotate-slider', unit: '°' },
+                        'val-brightness': { slider: 'adj-brightness', unit: '%' },
+                        'val-contrast': { slider: 'adj-contrast', unit: '%' },
+                        'val-saturation': { slider: 'adj-saturation', unit: '%' },
+                        'val-denoise': { slider: 'adj-denoise', unit: '%' },
+                        'wm-rotate-val': { slider: 'wm-rotate-slider', unit: '°' },
+                        'wm-scale-val': { slider: 'wm-scale-slider', unit: '%' },
+                        'wm-bar-scale-val': { slider: 'wm-bar-scale-slider', unit: '%' },
+                        'mgr-wm-scale-val': { slider: 'mgr-wm-scale', unit: '%' },
+                        'mgr-wm-dx-val': { slider: 'mgr-wm-dx', unit: ' px' },
+                        'mgr-wm-dy-val': { slider: 'mgr-wm-dy', unit: ' px' }
+                    };
+
+                    document.addEventListener('click', (e) => {
+                        const badge = e.target.closest('[data-slider], #crop-rotate-val, #val-brightness, #val-contrast, #val-saturation, #val-denoise, #wm-rotate-val, #wm-scale-val, #wm-bar-scale-val, #mgr-wm-scale-val, #mgr-wm-dx-val, #mgr-wm-dy-val');
+                        if (!badge) return;
+
+                        if (badge.dataset.isEditing === 'true') return;
+
+                        let sliderId = badge.getAttribute('data-slider');
+                        let unit = badge.getAttribute('data-unit');
+                        if (!sliderId && sliderMap[badge.id]) {
+                            sliderId = sliderMap[badge.id].slider;
+                            unit = sliderMap[badge.id].unit;
+                        }
+
+                        const slider = sliderId ? document.getElementById(sliderId) : null;
+                        if (!slider) return;
+
+                        e.preventDefault();
+                        e.stopPropagation();
+
+                        if (!unit) {
+                            const text = badge.textContent || '';
+                            if (text.includes('°')) unit = '°';
+                            else if (text.includes('%')) unit = '%';
+                            else if (text.includes('px')) unit = ' px';
+                            else unit = '';
+                        }
+
+                        const min = slider.min !== '' ? parseFloat(slider.min) : -Infinity;
+                        const max = slider.max !== '' ? parseFloat(slider.max) : Infinity;
+                        const step = (slider.step !== '' && slider.step !== 'any') ? parseFloat(slider.step) : 1;
+
+                        const currentVal = slider.value !== undefined ? slider.value : '';
+                        const oldVal = currentVal;
+
+                        badge.dataset.isEditing = 'true';
+
+                        const wrapper = document.createElement('span');
+                        wrapper.className = 'inline-flex items-center justify-center p-0 m-0';
+
+                        const input = document.createElement('input');
+                        input.type = 'text';
+                        input.inputMode = (min < 0 || step < 1) ? 'text' : 'numeric';
+                        input.value = currentVal;
+                        input.className = 'bg-transparent text-center font-mono font-bold text-[10px] text-black dark:text-white outline-none p-0 m-0 border-none';
+                        input.style.width = Math.max(22, (String(currentVal).length + 0.5) * 7.5) + 'px';
+                        input.style.lineHeight = '1';
+
+                        const unitSpan = document.createElement('span');
+                        unitSpan.className = 'font-mono font-bold text-[10px] text-gray-500 dark:text-gray-400 select-none pointer-events-none';
+                        unitSpan.style.lineHeight = '1';
+                        unitSpan.innerText = unit;
+
+                        wrapper.appendChild(input);
+                        if (unit) wrapper.appendChild(unitSpan);
+
+                        badge.innerHTML = '';
+                        badge.appendChild(wrapper);
+
+                        badge.classList.add('ring-1', 'ring-black', 'dark:ring-white', 'border-black', 'dark:border-white', 'bg-white', 'dark:bg-black');
+
+                        setTimeout(() => {
+                            input.focus();
+                            input.select();
+                        }, 20);
+
+                        let finished = false;
+
+                        const cleanup = () => {
+                            badge.dataset.isEditing = 'false';
+                            badge.classList.remove('ring-1', 'ring-black', 'dark:ring-white', 'border-black', 'dark:border-white', 'bg-white', 'dark:bg-black');
+                        };
+
+                        const revert = () => {
+                            if (finished) return;
+                            finished = true;
+                            cleanup();
+                            badge.innerText = oldVal + unit;
+                        };
+
+                        const commit = () => {
+                            if (finished) return;
+                            finished = true;
+                            cleanup();
+
+                            let raw = input.value.trim();
+                            if (unit) {
+                                const escapedUnit = unit.trim().replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+                                if (escapedUnit) {
+                                    raw = raw.replace(new RegExp('[\\s' + escapedUnit + ']', 'g'), '');
+                                }
+                            }
+
+                            if (raw === '' || isNaN(Number(raw)) || raw === '-' || raw === '+') {
+                                badge.innerText = oldVal + unit;
+                                return;
+                            }
+
+                            let num = parseFloat(raw);
+                            if (isNaN(num)) {
+                                badge.innerText = oldVal + unit;
+                                return;
+                            }
+
+                            if (num < min) num = min;
+                            if (num > max) num = max;
+
+                            if (step && step > 0) {
+                                const base = min !== -Infinity ? min : 0;
+                                num = Math.round((num - base) / step) * step + base;
+                                if (step < 1) num = parseFloat(num.toFixed(4));
+                            }
+
+                            slider.value = num;
+
+                            if (typeof slider.oninput === 'function') {
+                                try { slider.oninput.call(slider); } catch(err) {}
+                            }
+                            slider.dispatchEvent(new Event('input', { bubbles: true }));
+                            if (typeof slider.onchange === 'function') {
+                                try { slider.onchange.call(slider); } catch(err) {}
+                            }
+                            slider.dispatchEvent(new Event('change', { bubbles: true }));
+
+                            badge.innerText = num + unit;
+                        };
+
+                        input.addEventListener('input', () => {
+                            let v = input.value;
+                            if (min >= 0) v = v.replace(/-/g, '');
+                            if (step >= 1) v = v.replace(/\./g, '');
+                            v = v.replace(/[^0-9\.\-]/g, '');
+                            if (v !== input.value) input.value = v;
+                            input.style.width = Math.max(22, (input.value.length + 0.5) * 7.5) + 'px';
+                        });
+
+                        input.addEventListener('keydown', (ke) => {
+                            if (ke.key === 'Enter') {
+                                ke.preventDefault();
+                                commit();
+                            } else if (ke.key === 'Escape') {
+                                ke.preventDefault();
+                                revert();
+                            } else if (ke.key === 'ArrowUp') {
+                                ke.preventDefault();
+                                let cur = parseFloat(input.value) || 0;
+                                cur = Math.min(max, cur + step);
+                                if (step < 1) cur = parseFloat(cur.toFixed(4));
+                                input.value = cur;
+                                input.dispatchEvent(new Event('input'));
+                            } else if (ke.key === 'ArrowDown') {
+                                ke.preventDefault();
+                                let cur = parseFloat(input.value) || 0;
+                                cur = Math.max(min, cur - step);
+                                if (step < 1) cur = parseFloat(cur.toFixed(4));
+                                input.value = cur;
+                                input.dispatchEvent(new Event('input'));
+                            } else {
+                                const allowedControlKeys = [
+                                    'Backspace', 'Delete', 'Tab', 'Escape', 'Enter',
+                                    'ArrowLeft', 'ArrowRight', 'Home', 'End'
+                                ];
+                                if (allowedControlKeys.includes(ke.key) || ke.ctrlKey || ke.metaKey) {
+                                    return;
+                                }
+                                if (ke.key === '-' && min < 0) {
+                                    if (input.selectionStart === 0 && (!input.value.includes('-') || input.selectionEnd > 0)) {
+                                        return;
+                                    }
+                                }
+                                if (ke.key === '.' && step < 1) {
+                                    if (!input.value.includes('.')) {
+                                        return;
+                                    }
+                                }
+                                if (/^[0-9]$/.test(ke.key)) {
+                                    return;
+                                }
+                                ke.preventDefault();
+                            }
+                        });
+
+                        input.addEventListener('blur', () => {
+                            commit();
+                        });
+                    });
+                },
                 alertInterval: null,
                 showAlert: (msg, okCallback = null, cancelCallback = null, options = {}) => {
                     const cleanMsg = (msg || '').toLowerCase();
@@ -1146,8 +1353,14 @@ closeCustomRolePrompt: () => {
                     modal.classList.add('hidden');
                     app.ui.unlockScroll();
                 },
-                lockScroll: () => document.body.classList.add('no-scroll'),
-                unlockScroll: () => document.body.classList.remove('no-scroll'),
+                lockScroll: () => {
+                    document.documentElement.classList.add('no-scroll');
+                    document.body.classList.add('no-scroll');
+                },
+                unlockScroll: () => {
+                    document.documentElement.classList.remove('no-scroll');
+                    document.body.classList.remove('no-scroll');
+                },
                 toggleUserMenu: (forceOpen = null) => {
                     const menu = document.getElementById('user-dropdown');
                     if (!menu) return;
@@ -1493,6 +1706,259 @@ closeCustomRolePrompt: () => {
                     return new Promise((resolve) => {
                         canvas.toBlob((blob) => resolve(blob), targetMime, quality);
                     });
+                },
+                computeHistogramData: (img, filterString = 'none') => {
+                    const sw = 256;
+                    const sh = Math.max(1, Math.round(sw * ((img.naturalHeight || img.height || 150) / (img.naturalWidth || img.width || 256))));
+                    const offCanvas = document.createElement('canvas');
+                    offCanvas.width = sw;
+                    offCanvas.height = sh;
+                    const ctx = offCanvas.getContext('2d', { willReadFrequently: true });
+                    if (filterString && filterString !== 'none') {
+                        ctx.filter = filterString;
+                    }
+                    ctx.drawImage(img, 0, 0, sw, sh);
+                    const data = ctx.getImageData(0, 0, sw, sh).data;
+                    
+                    const lumaBins = new Uint32Array(256);
+                    const rBins = new Uint32Array(256);
+                    const gBins = new Uint32Array(256);
+                    const bBins = new Uint32Array(256);
+                    let totalLuma = 0;
+                    let totalR = 0, totalG = 0, totalB = 0;
+                    let totalSat = 0;
+                    const totalPixels = data.length / 4;
+                    let shadowCount = 0;
+                    let highlightCount = 0;
+                    
+                    let centerLumaTotal = 0;
+                    let centerPixels = 0;
+                    let centerShadowCount = 0;
+                    let centerHighlightCount = 0;
+                    
+                    let topLumaTotal = 0;
+                    let topPixels = 0;
+                    
+                    let neutralRTotal = 0, neutralGTotal = 0, neutralBTotal = 0;
+                    let neutralPixels = 0;
+                    
+                    let rClipCount = 0, gClipCount = 0, bClipCount = 0;
+                    
+                    const minCenterX = sw * 0.12;
+                    const maxCenterX = sw * 0.88;
+                    const minCenterY = sh * 0.15;
+                    const maxCenterY = sh * 0.85;
+                    const maxTopY = sh * 0.25;
+                    
+                    for (let i = 0; i < data.length; i += 4) {
+                        const r = data[i];
+                        const g = data[i + 1];
+                        const b = data[i + 2];
+                        const luma = Math.round(0.299 * r + 0.587 * g + 0.114 * b);
+                        
+                        rBins[r]++;
+                        gBins[g]++;
+                        bBins[b]++;
+                        lumaBins[luma]++;
+                        
+                        totalLuma += luma;
+                        totalR += r;
+                        totalG += g;
+                        totalB += b;
+                        
+                        const maxVal = Math.max(r, g, b);
+                        const minVal = Math.min(r, g, b);
+                        let sat = 0;
+                        if (maxVal > 0) {
+                            sat = (maxVal - minVal) / maxVal;
+                            totalSat += sat;
+                        }
+                        
+                        if (luma <= 5) shadowCount++;
+                        if (luma >= 250) highlightCount++;
+                        
+                        if (r >= 252) rClipCount++;
+                        if (g >= 252) gClipCount++;
+                        if (b >= 252) bClipCount++;
+                        
+                        const pixelIdx = i / 4;
+                        const px = pixelIdx % sw;
+                        const py = (pixelIdx / sw) | 0;
+                        
+                        // Center zone (Vehicle body)
+                        if (px >= minCenterX && px <= maxCenterX && py >= minCenterY && py <= maxCenterY) {
+                            centerPixels++;
+                            centerLumaTotal += luma;
+                            if (luma <= 8) centerShadowCount++;
+                            if (luma >= 248) centerHighlightCount++;
+                        }
+                        
+                        // Top zone (Sky / Background)
+                        if (py <= maxTopY) {
+                            topPixels++;
+                            topLumaTotal += luma;
+                        }
+                        
+                        // Neutral surfaces (Asphalt road, curb, gray decals, concrete, neutral background)
+                        if (sat < 0.26 && luma >= 40 && luma <= 220) {
+                            neutralPixels++;
+                            neutralRTotal += r;
+                            neutralGTotal += g;
+                            neutralBTotal += b;
+                        }
+                    }
+                    
+                    let shadowZoneCount = 0;
+                    let deepShadowCount = 0;
+                    let midZoneCount = 0;
+                    let highlightZoneCount = 0;
+                    let count = 0;
+                    let p10 = 0, p50 = 128, p90 = 255;
+                    const t10 = totalPixels * 0.1;
+                    const t50 = totalPixels * 0.5;
+                    const t90 = totalPixels * 0.9;
+                    
+                    for (let i = 0; i < 256; i++) {
+                        const bin = lumaBins[i];
+                        if (i < 50) deepShadowCount += bin;
+                        if (i < 85) shadowZoneCount += bin;
+                        else if (i <= 175) midZoneCount += bin;
+                        else highlightZoneCount += bin;
+                        
+                        count += bin;
+                        if (p10 === 0 && count >= t10) p10 = i;
+                        if (p50 === 128 && count >= t50) p50 = i;
+                        if (count >= t90 && p90 === 255) p90 = i;
+                    }
+                    
+                    const avgNeutralR = neutralPixels > 0 ? (neutralRTotal / neutralPixels) : 128;
+                    const avgNeutralG = neutralPixels > 0 ? (neutralGTotal / neutralPixels) : 128;
+                    const avgNeutralB = neutralPixels > 0 ? (neutralBTotal / neutralPixels) : 128;
+                    
+                    return {
+                        totalPixels,
+                        lumaBins,
+                        rBins,
+                        gBins,
+                        bBins,
+                        avgLuma: totalPixels > 0 ? (totalLuma / totalPixels) : 128,
+                        avgR: totalPixels > 0 ? (totalR / totalPixels) : 128,
+                        avgG: totalPixels > 0 ? (totalG / totalPixels) : 128,
+                        avgB: totalPixels > 0 ? (totalB / totalPixels) : 128,
+                        avgSat: totalPixels > 0 ? ((totalSat / totalPixels) * 100) : 0,
+                        shadowPercent: totalPixels > 0 ? ((shadowCount / totalPixels) * 100) : 0,
+                        highlightPercent: totalPixels > 0 ? ((highlightCount / totalPixels) * 100) : 0,
+                        shadowZonePct: totalPixels > 0 ? ((shadowZoneCount / totalPixels) * 100) : 0,
+                        deepShadowPct: totalPixels > 0 ? ((deepShadowCount / totalPixels) * 100) : 0,
+                        midZonePct: totalPixels > 0 ? ((midZoneCount / totalPixels) * 100) : 0,
+                        highlightZonePct: totalPixels > 0 ? ((highlightZoneCount / totalPixels) * 100) : 0,
+                        p50,
+                        dynamicSpan: p90 - p10,
+                        centerLuma: centerPixels > 0 ? (centerLumaTotal / centerPixels) : (totalLuma / totalPixels),
+                        centerShadowPct: centerPixels > 0 ? ((centerShadowCount / centerPixels) * 100) : 0,
+                        centerHighlightPct: centerPixels > 0 ? ((centerHighlightCount / centerPixels) * 100) : 0,
+                        topLuma: topPixels > 0 ? (topLumaTotal / topPixels) : (totalLuma / totalPixels),
+                        neutralPixels,
+                        avgNeutralR,
+                        avgNeutralG,
+                        avgNeutralB,
+                        neutralDiffRB: avgNeutralR - avgNeutralB,
+                        neutralDiffGB: avgNeutralG - avgNeutralB,
+                        neutralDiffRG: avgNeutralR - avgNeutralG,
+                        neutralDiffGR: avgNeutralG - avgNeutralR,
+                        neutralDiffBR: avgNeutralB - avgNeutralR,
+                        channelClipR: totalPixels > 0 ? ((rClipCount / totalPixels) * 100) : 0,
+                        channelClipG: totalPixels > 0 ? ((gClipCount / totalPixels) * 100) : 0,
+                        channelClipB: totalPixels > 0 ? ((bClipCount / totalPixels) * 100) : 0
+                    };
+                },
+                drawHistogramCanvas: (canvas, data, mode = 'luma') => {
+                    if (!canvas || !data) return;
+                    const ctx = canvas.getContext('2d');
+                    if (!ctx) return;
+                    const w = canvas.width;
+                    const h = canvas.height;
+                    ctx.clearRect(0, 0, w, h);
+                    
+                    const smoothBins = (bins) => {
+                        const res = new Float32Array(256);
+                        for (let i = 0; i < 256; i++) {
+                            let sum = 0, count = 0;
+                            for (let j = Math.max(0, i - 2); j <= Math.min(255, i + 2); j++) {
+                                sum += bins[j];
+                                count++;
+                            }
+                            res[i] = sum / count;
+                        }
+                        return res;
+                    };
+                    
+                    const drawCurve = (bins, fillColor, strokeColor, compositeOp = 'source-over') => {
+                        let maxVal = 1;
+                        for (let i = 1; i < 255; i++) {
+                            if (bins[i] > maxVal) maxVal = bins[i];
+                        }
+                        
+                        ctx.save();
+                        ctx.globalCompositeOperation = compositeOp;
+                        ctx.beginPath();
+                        ctx.moveTo(0, h);
+                        
+                        for (let i = 0; i < 256; i++) {
+                            const x = (i / 255) * w;
+                            const normVal = Math.min(1.05, bins[i] / maxVal);
+                            const y = h - (normVal * (h - 8));
+                            ctx.lineTo(x, y);
+                        }
+                        
+                        ctx.lineTo(w, h);
+                        ctx.closePath();
+                        
+                        if (fillColor) {
+                            ctx.fillStyle = fillColor;
+                            ctx.fill();
+                        }
+                        if (strokeColor) {
+                            ctx.strokeStyle = strokeColor;
+                            ctx.lineWidth = 2;
+                            ctx.stroke();
+                        }
+                        ctx.restore();
+                    };
+                    
+                    const isDark = document.documentElement.classList.contains('theme-dark') || 
+                                   document.body.classList.contains('theme-dark');
+                    
+                    if (mode === 'luma') {
+                        const smoothed = smoothBins(data.lumaBins);
+                        if (isDark) {
+                            const grad = ctx.createLinearGradient(0, 0, 0, h);
+                            grad.addColorStop(0, 'rgba(255, 255, 255, 0.7)');
+                            grad.addColorStop(0.6, 'rgba(210, 210, 210, 0.35)');
+                            grad.addColorStop(1, 'rgba(160, 160, 160, 0.08)');
+                            drawCurve(smoothed, grad, '#ffffff');
+                        } else {
+                            const grad = ctx.createLinearGradient(0, 0, 0, h);
+                            grad.addColorStop(0, 'rgba(24, 24, 27, 0.75)');
+                            grad.addColorStop(0.6, 'rgba(63, 63, 70, 0.35)');
+                            grad.addColorStop(1, 'rgba(161, 161, 170, 0.08)');
+                            drawCurve(smoothed, grad, '#18181b');
+                        }
+                    } else {
+                        const rSmooth = smoothBins(data.rBins);
+                        const gSmooth = smoothBins(data.gBins);
+                        const bSmooth = smoothBins(data.bBins);
+                        
+                        if (isDark) {
+                            drawCurve(rSmooth, 'rgba(239, 68, 68, 0.4)', '#ef4444', 'screen');
+                            drawCurve(gSmooth, 'rgba(34, 197, 94, 0.4)', '#22c55e', 'screen');
+                            drawCurve(bSmooth, 'rgba(59, 130, 246, 0.4)', '#3b82f6', 'screen');
+                        } else {
+                            drawCurve(rSmooth, 'rgba(220, 38, 38, 0.35)', '#dc2626', 'multiply');
+                            drawCurve(gSmooth, 'rgba(22, 163, 74, 0.35)', '#16a34a', 'multiply');
+                            drawCurve(bSmooth, 'rgba(37, 99, 235, 0.35)', '#2563eb', 'multiply');
+                        }
+                    }
                 },
                 handleImgLoad: (img) => {
                     img.style.opacity = '1';
@@ -2309,7 +2775,7 @@ cleanupState: () => {
                                 const scale = (pos && typeof pos.scale === 'number') ? pos.scale : 1.0;
                                 const wmFontSize = height * 0.096 * scale;
                                 const rotate = (pos && typeof pos.rotate === 'number') ? pos.rotate : 0;
-                                const fontFace = '"Montserrat", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif';
+                                const fontFace = 'Montserrat, sans-serif';
                                 try {
                                     if (document.fonts && document.fonts.load) {
                                         await Promise.all([
@@ -2335,8 +2801,6 @@ cleanupState: () => {
                                 ctx.drawImage(tempCanvas, 0, safeBarY);
                                 ctx.fillStyle = 'rgba(0, 0, 0, 0.25)';
                                 ctx.fillRect(0, safeBarY, width, safeBarHeight);
-                                ctx.fillStyle = "rgba(255, 255, 255, 0.15)";
-                                ctx.fillRect(0, barY, width, Math.max(1, 1.5 * barScale));
                                 ctx.fillStyle = "white";
                                 ctx.textBaseline = 'alphabetic';
                                 ctx.textAlign = 'left';
@@ -2346,11 +2810,11 @@ cleanupState: () => {
                                 const vnbusWidth = ctx.measureText("VNBUSARCHIVE").width;
                                 ctx.font = `italic 700 ${fontSize * 0.8}px ${fontFace}`;
                                 ctx.fillText(".io.vn", (barHeight / 2) + vnbusWidth, textY);
-                                ctx.textBaseline = 'middle'; 
+                                ctx.textAlign = 'right';
+                                ctx.textBaseline = 'alphabetic'; 
                                 ctx.font = `700 ${fontSize}px ${fontFace}`;
                                 const rightText = `Bản quyền bởi ${username}`;
-                                const rightWidth = ctx.measureText(rightText).width;
-                                ctx.fillText(rightText, width - rightWidth - (barHeight / 2), height - barHeight / 2);
+                                ctx.fillText(rightText, width - (barHeight / 2), textY);
                                 const currentMode = pos.mode || (app.wmState && app.wmState.mode) || (typeof localStorage !== 'undefined' && localStorage.getItem('vnbus_wm_mode')) || 'basic';
                                 if (currentMode !== 'standard') {
                                     ctx.save();
@@ -2370,8 +2834,22 @@ cleanupState: () => {
                                     const hHalf = (textW * sin + textH * cos) / 2;
                                     let posX = width * (pos.x !== undefined ? pos.x : 0.5);
                                     let posY = height * (pos.y !== undefined ? pos.y : 0.5);
-                                    posX = Math.max(wHalf, Math.min(posX, width - wHalf));
-                                    posY = Math.max(hHalf, Math.min(posY, height - barHeight - hHalf));
+                                    let minX = wHalf;
+                                    let maxX = width - wHalf;
+                                    if (minX > maxX) {
+                                        minX = width / 2;
+                                        maxX = width / 2;
+                                    }
+
+                                    let minY = hHalf;
+                                    let maxY = height - barHeight - hHalf;
+                                    if (minY > maxY) {
+                                        minY = (height - barHeight) / 2;
+                                        maxY = (height - barHeight) / 2;
+                                    }
+
+                                    posX = Math.max(minX, Math.min(posX, maxX));
+                                    posY = Math.max(minY, Math.min(posY, maxY));
                                     ctx.translate(posX, posY);
                                     if (rotate) {
                                         ctx.rotate((rotate * Math.PI) / 180);
@@ -2728,54 +3206,14 @@ cleanupState: () => {
                 },
                 
                 triggerRouteSuggestion: async (inputId, suggestionId, query) => {
+                    // Đã loại bỏ hoàn toàn gợi ý tuyến cũ, hệ thống hiện dùng Popup Selector (app.route.openSelector)
                     const box = document.getElementById(suggestionId);
-                    if (!box) return;
-                    let currentType = '';
-                    if (inputId.startsWith('up-')) currentType = document.getElementById('up-type')?.value || '';
-                    else if (inputId.startsWith('info-')) currentType = document.getElementById('info-type')?.value || '';
-                    else if (inputId.startsWith('adm-p-')) currentType = document.getElementById(`adm-p-type-${inputId.split('-').pop()}`)?.value || '';
-                    else if (inputId.startsWith('req-') && !inputId.startsWith('req-v-')) currentType = document.getElementById(`req-type-${inputId.split('-').pop()}`)?.value || '';
-                    else if (app.currentVehicle) currentType = app.currentVehicle.type || '';
-                    let staticList = ['Dừng hoạt động', 'Ngoài giờ hoạt động', 'Chưa hoạt động'];
-                    if (currentType === 'coach' || currentType === '') {
-                        staticList.unshift('Hợp đồng');
+                    if (box) {
+                        box.classList.remove('active');
+                        box.innerHTML = '';
+                        box.style.display = 'none';
                     }
-                    let dbRoutes = [];
-                    try {
-                        let rQuery = window.sb.rpc('get_unique_routes');
-                        if (query.trim().length > 0) {
-                            const routeWords = query.trim().split(/\s+/).filter(w => w.length > 0);
-                            const { data } = await rQuery;
-                            if (data) {
-                                dbRoutes = data.map(item => item.route_no).filter(Boolean);
-                            }
-                        } else {
-                            const { data } = await rQuery;
-                            if (data) {
-                                dbRoutes = data.map(item => item.route_no).filter(Boolean);
-                            }
-                        }
-                    } catch (e) { console.log("Route suggestion error:", e.message); }
-                    const allRoutes = [...new Set([...staticList, ...dbRoutes])];
-                    const filtered = query.length === 0 ? allRoutes : allRoutes.filter(v => v.toLowerCase().includes(query.toLowerCase()));
-                    
-                    // GỌI HÀM SẮP XẾP
-                    if (query.length > 0) app.utils.sortMatchesByRelevance(filtered, query);
-
-                    if (filtered.length > 0) {
-                        box.innerHTML = filtered.map(v => {
-                            const safeHTML = app.utils.cleanText(v);
-                            const safeJS = v.replace(/'/g, "\\'").replace(/"/g, '&quot;');
-                            let displayHTML = safeHTML;
-                            if (query) {
-                                const escapedQuery = query.replace(/[.*+?^${}()|[\\]\\]/g, '\\$&');
-                                const regex = new RegExp(`(${escapedQuery})`, 'gi');
-                                displayHTML = safeHTML.replace(regex, '<strong class="font-extrabold">$1</strong>');
-                            }
-                            return `<div class="suggestion-item" onmousedown="event.preventDefault(); document.getElementById('${inputId}').value = '${safeJS}'; document.getElementById('${suggestionId}').classList.remove('active'); if('${inputId}' === 'up-route'){ app.upload.autoFillOperatorByRoute(); } if('${inputId}' === 'up-model' && app.upload && app.upload.checkModelPreview){ app.upload.checkModelPreview('${safeJS}'); }">${displayHTML}</div>`;
-                        }).join('');
-                        box.classList.add('active');
-                    } else { box.classList.remove('active'); }
+                    return;
                 },
                 triggerSuggestion: async (inputId, suggestionId, query, field = 'model') => {
                     const box = document.getElementById(suggestionId);
@@ -3210,8 +3648,8 @@ cleanupState: () => {
         x: 0.5, 
         y: 0.5, 
         color: 'white', 
-        scale: (typeof localStorage !== 'undefined' && localStorage.getItem('vnbus_wm_scale') !== null) ? (parseInt(localStorage.getItem('vnbus_wm_scale'), 10) / 100) : 1.0, 
-        rotate: (typeof localStorage !== 'undefined' && localStorage.getItem('vnbus_wm_rotate') !== null) ? parseInt(localStorage.getItem('vnbus_wm_rotate'), 10) : 0,
+        scale: 1.0, 
+        rotate: 0,
         barScale: (typeof localStorage !== 'undefined' && localStorage.getItem('vnbus_wm_bar_scale') !== null) ? (parseInt(localStorage.getItem('vnbus_wm_bar_scale'), 10) / 100) : 1.0,
         mode: (typeof localStorage !== 'undefined' && localStorage.getItem('vnbus_wm_mode')) || 'basic' 
     },
@@ -3992,16 +4430,6 @@ cleanupState: () => {
                                         if (app.upload.setWmMode) app.upload.setWmMode(dbPrefs.wmMode, false);
                                     }
                                 }
-                                if (dbPrefs.wmRotate !== undefined && app.wmState) {
-                                    const r = parseInt(dbPrefs.wmRotate, 10) || 0;
-                                    app.wmState.rotate = r;
-                                    try { localStorage.setItem('vnbus_wm_rotate', r.toString()); } catch(e){}
-                                }
-                                if (dbPrefs.wmScale !== undefined && app.wmState) {
-                                    const s = typeof dbPrefs.wmScale === 'number' && dbPrefs.wmScale <= 1.0 ? dbPrefs.wmScale : (parseInt(dbPrefs.wmScale, 10) / 100);
-                                    app.wmState.scale = s;
-                                    try { localStorage.setItem('vnbus_wm_scale', Math.round(s * 100).toString()); } catch(e){}
-                                }
                                 if (dbPrefs.wmBarScale !== undefined && app.wmState) {
                                     const bs = typeof dbPrefs.wmBarScale === 'number' && dbPrefs.wmBarScale <= 2.0 ? dbPrefs.wmBarScale : (parseInt(dbPrefs.wmBarScale, 10) / 100);
                                     app.wmState.barScale = bs;
@@ -4013,8 +4441,6 @@ cleanupState: () => {
                                         type: localPref, 
                                         wmMode: localWmMode, 
                                         pinnedLocations: [],
-                                        wmRotate: (app.wmState && app.wmState.rotate !== undefined) ? app.wmState.rotate : 0,
-                                        wmScale: (app.wmState && app.wmState.scale !== undefined) ? app.wmState.scale : 1.0,
                                         wmBarScale: (app.wmState && app.wmState.barScale !== undefined) ? app.wmState.barScale : 1.0
                                     }
                                 }).eq('id', user.id).then(()=>{});
@@ -4127,6 +4553,10 @@ app.utils.updateUptime = function() {
 };
 setInterval(app.utils.updateUptime, 60000);
 setTimeout(app.utils.updateUptime, 500);
+if (window.app && window.app.ui && window.app.ui.initSliderEditableBadges) {
+    window.app.ui.initSliderEditableBadges();
+}
+
 
 /* --- MODULE: 01_router.js --- */
 // Capture URL params BEFORE Supabase SDK clears them (PKCE flow removes token_hash after exchange)
@@ -4400,6 +4830,22 @@ Object.assign(window.app, {
                     const el = document.getElementById(id);
                     if(!el) return;
                     el.addEventListener('click', function () {
+                        if (id === 'info-route' && app.edit && app.edit.isEditing) {
+                            const curType = document.getElementById('info-type')?.value || app.currentPhoto?.type || app.currentVehicle?.type;
+                            app.route.openSelector({
+                                targetInputId: 'info-route',
+                                vehicleType: curType,
+                                selectedRoute: this.dataset.routeName || this.value,
+                                onSelect: (r) => {
+                                    const rDisplay = (r.route_name && r.route_name !== r.route_no) ? r.route_name : r.route_no;
+                                    document.getElementById('info-route').value = r.route_no;
+                                    document.getElementById('info-route').dataset.routeName = rDisplay;
+                                    document.getElementById('info-route').dataset.routeNo = r.route_no;
+                                    app.utils.checkRouteStatus(r.route_no, 'info-operator', 'info-operator-row');
+                                }
+                            });
+                            return;
+                        }
                         if (this.readOnly && this.value && this.value !== '---' && this.value !== 'N/A') {
                             if (id === 'info-plate') {
                                 app.utils.navigate(`/vehicle/${encodeURIComponent(this.value)}`);
@@ -4409,14 +4855,16 @@ Object.assign(window.app, {
                             }
                             else if (id === 'info-route') {
                                 const typeVal = document.getElementById('info-type')?.value;
-                                const specialRoutes = ['Dừng hoạt động', 'Ngoài giờ hoạt động', 'Chưa hoạt động'];
+                                const specialRoutes = ['Dừng hoạt động', 'Ngoài giờ hoạt động', 'Chưa hoạt động', 'Hợp đồng'];
                                 // Gộp chung điều kiện Xe khách (coach) và Các tuyến đặc biệt
                                 if (typeVal === 'coach' || specialRoutes.includes(this.value.trim())) {
                                     app.searchRedirect(this.value, fieldMap[id]);
                                 } else {
                                     let provName = '';
-                                    if (el.dataset.borrowed) {
+                                    if (el.dataset.borrowed && el.dataset.borrowed.includes(' - ')) {
                                         provName = el.dataset.borrowed.split(' - ')[1];
+                                    } else if (el.dataset.routeName && el.dataset.routeName.includes(' - ')) {
+                                        provName = el.dataset.routeName.split(' - ')[1];
                                     } else {
                                         const plateValue = document.getElementById('info-plate')?.value;
                                         if (plateValue) provName = app.utils.getProvinceFromPlate(plateValue);
@@ -8049,10 +8497,22 @@ Object.assign(window.app, {
                     if (elInfoType) elInfoType.value = snapshot.type || 'bus';
                     if (elInfoRoute) {
                         elInfoRoute.value = snapshot.route_no || 'Đã bị xóa';
+                        let fullRoute = photo.borrowed_route;
+                        if (!fullRoute && snapshot.route_no && (!app.route?.specialRoutes || !app.route.specialRoutes.includes(snapshot.route_no))) {
+                            const provFromPlate = photo.license_plate ? app.utils.getProvinceFromPlate(photo.license_plate) : '';
+                            if (provFromPlate && provFromPlate !== 'Không xác định' && provFromPlate !== 'Biển tạm') {
+                                fullRoute = `${snapshot.route_no} - ${provFromPlate}`;
+                            }
+                        }
                         if (photo.borrowed_route) {
                             elInfoRoute.dataset.borrowed = photo.borrowed_route;
                         } else {
                             delete elInfoRoute.dataset.borrowed;
+                        }
+                        if (fullRoute) {
+                            elInfoRoute.dataset.routeName = fullRoute;
+                        } else {
+                            delete elInfoRoute.dataset.routeName;
                         }
                     }
                     const lblDetailRoute = document.getElementById('lbl-detail-route');
@@ -8655,8 +9115,7 @@ let currentRouteProvName = null;
                                                 <td class="label bg-gray-50 border-r border-b border-gray-200">${isCoach ? 'Lộ trình' : 'Mã số tuyến'} hiện tại</td>
                                                 <td class="value-cell border-b border-gray-200">
                                                     <div class="relative w-full h-full flex flex-col justify-center">
-                                                        <textarea rows="1" id="vehicle-edit-route" autocomplete="off" class="info-input text-gray-700 w-full ${currentRouteClientSide ? 'clickable-search' : 'cursor-not-allowed'}" readonly ${currentRouteClientSide ? `onclick="if(this.readOnly && this.value && this.value!=='---') { const special = ['Dừng hoạt động', 'Ngoài giờ hoạt động', 'Chưa hoạt động']; if (${isCoach} || special.includes(this.value.trim())) { app.searchRedirect(this.value, 'route'); } else { app.utils.navigate('${vehProvName}' ? '/route/' + encodeURIComponent('${vehProvName}') + '/' + encodeURIComponent(this.value) : '/route/' + encodeURIComponent(this.value)); } }"` : ''} onfocus="if(!this.readOnly) app.utils.triggerRouteSuggestion('vehicle-edit-route', 'veh-sug-route', '')" oninput="app.utils.triggerRouteSuggestion('vehicle-edit-route', 'veh-sug-route', this.value); app.utils.checkRouteStatus(this.value, 'vehicle-edit-operator', 'vehicle-edit-operator-row')">${currentRouteClientSide}</textarea>
-                                                        <div id="veh-sug-route" class="suggestion-box"></div>
+                                                        <textarea rows="1" id="vehicle-edit-route" autocomplete="off" class="info-input text-gray-700 w-full ${currentRouteClientSide ? 'clickable-search' : 'cursor-not-allowed'}" readonly ${currentRouteClientSide ? `onclick="if(this.readOnly && this.value && this.value!=='---') { const special = ['Dừng hoạt động', 'Ngoài giờ hoạt động', 'Chưa hoạt động']; if (${isCoach} || special.includes(this.value.trim())) { app.searchRedirect(this.value, 'route'); } else { app.utils.navigate('${vehProvName}' ? '/route/' + encodeURIComponent('${vehProvName}') + '/' + encodeURIComponent(this.value) : '/route/' + encodeURIComponent(this.value)); } } else if(!this.readOnly) { app.route.openSelector({ targetInputId: 'vehicle-edit-route', vehicleType: '${isCoach ? 'coach' : 'bus'}', selectedRoute: this.dataset.routeName || this.value }); }"` : ''}>${currentRouteClientSide}</textarea>
                                                     </div>
                                                 </td>
                                             </tr>
@@ -12299,49 +12758,833 @@ if (!decodedProvince || decodedProvince.trim() === '') {
                      }
                      app.loadingBar.finish();
                  },
-                 openEditPrompt: async () => {
-                     // Check for special routes that don't have profiles
-                     const specialRoutes = ['Dừng hoạt động', 'Ngoài giờ hoạt động', 'Chưa hoạt động'];
-                     if (specialRoutes.includes(app.route.currentRoute)) {
-                         app.toast.show('error', 'Tuyến không có hồ sơ', `Tuyến "${app.route.currentRoute}" không có thông tin hồ sơ để chỉnh sửa.`);
-                         return;
-                     }
-                     
-                     if (!app.user) return app.auth.check();
+                specialRoutes: ['Dừng hoạt động', 'Ngoài giờ hoạt động', 'Chưa hoạt động', 'Hợp đồng'],
+                cachedRoutes: null,
+                selectorCallback: null,
+                selectorTargetInputId: null,
+                selectorExcludeRoute: null,
+                selectorCurrentSelected: '',
+                selectorTypeFilter: 'all',
+                selectorLockedType: null,
+                selectorContextProvince: '',
+                pendingSelectedRoute: null,
+                selectorDisplayLimit: 40,
+                isEditingExisting: false,
+                editingOriginalRouteName: '',
+                deletingRouteName: '',
+
+                updateSelectorTypeButtons: () => {
+                    const filter = app.route.selectorTypeFilter || 'all';
+                    const locked = app.route.selectorLockedType;
+                    const btnAll = document.getElementById('btn-sel-type-all');
+                    const btnBus = document.getElementById('btn-sel-type-bus');
+                    const btnCoach = document.getElementById('btn-sel-type-coach');
+                    if (!btnAll || !btnBus || !btnCoach) return;
+                    
+                    const activeCls = 'px-2.5 py-1 rounded-md text-[11px] font-bold border border-black bg-black text-white transition';
+                    const inactiveCls = 'px-2.5 py-1 rounded-md text-[11px] font-bold border border-black bg-white text-black hover:bg-gray-100 transition';
+                    
+                    if (locked === 'bus') {
+                        btnAll.classList.add('hidden');
+                        btnCoach.classList.add('hidden');
+                        btnBus.classList.remove('hidden');
+                        btnBus.className = activeCls + ' cursor-default';
+                        btnBus.innerHTML = '<i class="fa-solid fa-bus mr-1"></i>Xe buýt';
+                    } else if (locked === 'coach') {
+                        btnAll.classList.add('hidden');
+                        btnBus.classList.add('hidden');
+                        btnCoach.classList.remove('hidden');
+                        btnCoach.className = activeCls + ' cursor-default';
+                        btnCoach.innerHTML = '<i class="fa-solid fa-van-shuttle mr-1"></i>Xe khách';
+                    } else {
+                        btnAll.classList.remove('hidden');
+                        btnBus.classList.remove('hidden');
+                        btnCoach.classList.remove('hidden');
+                        btnAll.innerHTML = 'Tất cả';
+                        btnBus.innerHTML = '<i class="fa-solid fa-bus mr-1"></i>Xe buýt';
+                        btnCoach.innerHTML = '<i class="fa-solid fa-van-shuttle mr-1"></i>Xe khách';
+                        btnAll.className = filter === 'all' ? activeCls : inactiveCls;
+                        btnBus.className = filter === 'bus' ? activeCls : inactiveCls;
+                        btnCoach.className = filter === 'coach' ? activeCls : inactiveCls;
+                    }
+                },
+
+                setSelectorTypeFilter: (type) => {
+                    if (app.route.selectorLockedType && type !== app.route.selectorLockedType) {
+                        return;
+                    }
+                    app.route.selectorDisplayLimit = 40;
+                    app.route.selectorTypeFilter = type;
+                    app.route.updateSelectorTypeButtons();
+                    app.route.filterSelector();
+                },
+
+                toggleSelectorProvMenu: (e) => {
+                    if (e) e.stopPropagation();
+                    const menu = document.getElementById('route-selector-prov-menu');
+                    if (menu) menu.classList.toggle('active');
+                },
+
+                renderSelectorProvMenu: () => {
+                    const listContainer = document.getElementById('route-selector-prov-list');
+                    if (!listContainer) return;
+                    const curVal = (document.getElementById('route-selector-prov-filter')?.value || '').trim().toLowerCase();
+                    const pData = app.utils.provinceData || [];
+                    
+                    let html = `
+                        <div class="filter-item ${!curVal ? 'selected' : ''}" onclick="app.route.selectSelectorProvince('')">
+                            <span class="font-bold">Tất cả tỉnh thành</span>
+                            ${!curVal ? '<i class="fa-solid fa-check text-xs ml-auto"></i>' : ''}
+                        </div>
+                    `;
+                    
+                    pData.forEach(p => {
+                        const isSel = curVal && curVal === p.ten.toLowerCase();
+                        html += `
+                            <div class="filter-item ${isSel ? 'selected' : ''}" data-prov="${app.utils.escapeAttr(p.ten)}" onclick="app.route.selectSelectorProvince('${app.utils.escapeAttr(p.ten)}')">
+                                <span>${app.utils.escapeHtml(p.ten)}</span>
+                                ${isSel ? '<i class="fa-solid fa-check text-xs ml-auto"></i>' : ''}
+                            </div>
+                        `;
+                    });
+                    listContainer.innerHTML = html;
+                },
+
+                selectSelectorProvince: (provName) => {
+                    const input = document.getElementById('route-selector-prov-filter');
+                    const label = document.getElementById('route-selector-prov-label');
+                    if (input) input.value = provName || '';
+                    if (label) label.innerText = provName || 'Tất cả tỉnh thành';
+                    const menu = document.getElementById('route-selector-prov-menu');
+                    if (menu) menu.classList.remove('active');
+                    app.route.selectorDisplayLimit = 40;
+                    app.route.renderSelectorProvMenu();
+                    app.route.filterSelector();
+                },
+
+                filterSelectorProvSearch: (q) => {
+                    const query = (q || '').trim().toLowerCase();
+                    const items = document.querySelectorAll('#route-selector-prov-list .filter-item');
+                    items.forEach(item => {
+                        const prov = item.dataset.prov;
+                        if (!prov) {
+                            item.style.display = query ? 'none' : 'flex';
+                        } else {
+                            item.style.display = prov.toLowerCase().includes(query) ? 'flex' : 'none';
+                        }
+                    });
+                },
+
+                toggleEditProvMenu: (e) => {
+                    const btn = document.getElementById('btn-route-edit-province');
+                    if (btn && btn.disabled) return;
+                    if (e) e.stopPropagation();
+                    const menu = document.getElementById('route-edit-prov-menu');
+                    if (menu) menu.classList.toggle('active');
+                },
+
+                renderEditProvMenu: (selectedProv = '') => {
+                    const listContainer = document.getElementById('route-edit-prov-list');
+                    if (!listContainer) return;
+                    const curVal = (selectedProv || document.getElementById('route-edit-province')?.value || '').trim().toLowerCase();
+                    const pData = app.utils.provinceData || [];
+                    
+                    let html = '';
+                    pData.forEach(p => {
+                        const isSel = curVal && curVal === p.ten.toLowerCase();
+                        html += `
+                            <div class="filter-item ${isSel ? 'selected' : ''}" data-prov="${app.utils.escapeAttr(p.ten)}" onclick="app.route.selectEditProvince('${app.utils.escapeAttr(p.ten)}')">
+                                <span>${app.utils.escapeHtml(p.ten)}</span>
+                                ${isSel ? '<i class="fa-solid fa-check text-xs ml-auto"></i>' : ''}
+                            </div>
+                        `;
+                    });
+                    listContainer.innerHTML = html;
+                },
+
+                selectEditProvince: (provName) => {
+                    const input = document.getElementById('route-edit-province');
+                    const label = document.getElementById('route-edit-prov-label');
+                    if (input) input.value = provName || '';
+                    if (label) label.innerText = provName || '-- Chọn Tỉnh / Thành phố --';
+                    const menu = document.getElementById('route-edit-prov-menu');
+                    if (menu) menu.classList.remove('active');
+                    app.route.renderEditProvMenu(provName);
+                },
+
+                filterEditProvinceSearch: (q) => {
+                    const query = (q || '').trim().toLowerCase();
+                    const items = document.querySelectorAll('#route-edit-prov-list .filter-item');
+                    items.forEach(item => {
+                        const prov = item.dataset.prov || '';
+                        item.style.display = prov.toLowerCase().includes(query) ? 'flex' : 'none';
+                    });
+                },
+
+                setEditVehicleType: (type = 'bus') => {
+                    const val = type === 'coach' ? 'coach' : 'bus';
+                    const hiddenInput = document.getElementById('route-edit-vehicle-type');
+                    if (hiddenInput) hiddenInput.value = val;
+                    const btnBus = document.getElementById('btn-route-type-bus');
+                    const btnCoach = document.getElementById('btn-route-type-coach');
+                    if (!btnBus || !btnCoach) return;
+                    
+                    const activeCls = 'py-2.5 px-3 rounded-md border border-black text-xs font-bold bg-black text-white transition flex items-center justify-center gap-1.5';
+                    const inactiveCls = 'py-2.5 px-3 rounded-md border border-black text-xs font-bold bg-white text-black hover:bg-gray-50 transition flex items-center justify-center gap-1.5';
+                    
+                    btnBus.className = val === 'bus' ? activeCls : inactiveCls;
+                    btnCoach.className = val === 'coach' ? activeCls : inactiveCls;
+                },
+
+                fetchRoutes: async (force = false) => {
+                    if (app.route.cachedRoutes && !force) return app.route.cachedRoutes;
+                    let routes = [];
+                    try {
+                        const { data, error } = await window.sb
+                            .from('route_info')
+                            .select('route_name, short_path, is_inactive, metadata')
+                            .order('route_name', { ascending: true });
+                        if (!error && data) {
+                            routes = data.map(r => {
+                                const rName = r.route_name || '';
+                                let meta = r.metadata;
+                                if (typeof meta === 'string') {
+                                    try { meta = JSON.parse(meta); } catch (e) { meta = {}; }
+                                }
+                                meta = meta || {};
+                                let rNo = meta.route_no;
+                                let prov = meta.province;
+                                if (!rNo) {
+                                    rNo = rName.includes(' - ') ? rName.split(' - ')[0].trim() : rName;
+                                }
+                                if (!prov && rName.includes(' - ')) {
+                                    prov = rName.split(' - ').slice(1).join(' - ').trim();
+                                }
+                                const isSpecial = app.route.specialRoutes.includes(rNo) || app.route.specialRoutes.includes(rName);
+                                return {
+                                    ...r,
+                                    metadata: meta,
+                                    route_no: rNo,
+                                    province: isSpecial ? null : (prov || null),
+                                    is_special: isSpecial
+                                };
+                            });
+                        }
+                    } catch (e) {
+                        console.warn("Lỗi tải danh sách tuyến:", e);
+                    }
+                    
+                    // Đảm bảo 4 trường hợp đặc biệt luôn tồn tại trong danh sách
+                    app.route.specialRoutes.forEach(spec => {
+                        if (!routes.some(r => r.route_no === spec || r.route_name === spec)) {
+                            routes.unshift({
+                                route_name: spec,
+                                route_no: spec,
+                                province: null,
+                                is_special: true,
+                                is_inactive: false
+                            });
+                        }
+                    });
+
+                    // Khử các tuyến rác trùng số hiệu không có tỉnh nếu đã có tuyến cùng số hiệu có tỉnh
+                    const hasProvWithSameNo = (r) => {
+                        if (r.province || r.is_special) return false;
+                        return routes.some(other => other !== r && other.route_no === r.route_no && other.province);
+                    };
+                    routes = routes.filter(r => !hasProvWithSameNo(r));
+
+                    app.route.cachedRoutes = routes;
+                    return routes;
+                },
+
+                openSelector: async (options = {}) => {
+                    app.route.selectorCallback = options.onSelect || null;
+                    app.route.selectorTargetInputId = options.targetInputId || null;
+                    app.route.selectorExcludeRoute = options.excludeRoute || null;
+                    
+                    let curSelected = '';
+                    if (options.selectedRoute) {
+                        curSelected = options.selectedRoute;
+                    } else if (options.targetInputId) {
+                        const el = document.getElementById(options.targetInputId);
+                        if (el) {
+                            curSelected = el.dataset.routeName || el.value || '';
+                        }
+                    }
+                    app.route.selectorCurrentSelected = (curSelected || '').trim();
+                    app.route.pendingSelectedRoute = null;
+                    app.route.selectorDisplayLimit = 40;
+                    let targetProv = options.province || '';
+                    if (!targetProv && options.targetInputId) {
+                        const targetEl = document.getElementById(options.targetInputId);
+                        if (targetEl?.dataset?.routeName && targetEl.dataset.routeName.includes(' - ')) {
+                            targetProv = targetEl.dataset.routeName.split(' - ').slice(1).join(' - ').trim();
+                        } else if (targetEl?.dataset?.borrowed && targetEl.dataset.borrowed.includes(' - ')) {
+                            targetProv = targetEl.dataset.borrowed.split(' - ').slice(1).join(' - ').trim();
+                        }
+                    }
+                    if (!targetProv) {
+                        targetProv = document.getElementById('up-province')?.value 
+                            || document.getElementById('info-province')?.value 
+                            || (app.currentPhoto?.license_plate ? app.utils.getProvinceFromPlate(app.currentPhoto.license_plate) : '')
+                            || (app.currentVehicle?.license_plate ? app.utils.getProvinceFromPlate(app.currentVehicle.license_plate) : '')
+                            || '';
+                    }
+                    if (targetProv === 'Không xác định' || targetProv === 'Biển tạm') targetProv = '';
+                    app.route.selectorContextProvince = targetProv;
+
+                    // Xác định bộ lọc loại xe ban đầu và khóa chặt nếu là xe buýt hoặc xe khách
+                    let vType = options.vehicleType;
+                    if (!vType) {
+                        if (options.targetInputId === 'up-route' && app.upload && app.upload.selectedType) {
+                            vType = app.upload.selectedType;
+                        } else if (app.currentVehicle && app.currentVehicle.type) {
+                            vType = app.currentVehicle.type;
+                        } else if (app.currentPhoto && app.currentPhoto.type) {
+                            vType = app.currentPhoto.type;
+                        }
+                    }
+                    
+                    if (vType === 'bus' || vType === 'coach') {
+                        app.route.selectorLockedType = vType;
+                        app.route.selectorTypeFilter = vType;
+                    } else {
+                        app.route.selectorLockedType = null;
+                        app.route.selectorTypeFilter = 'all';
+                    }
+                    app.route.updateSelectorTypeButtons();
+
+                    const modal = document.getElementById('route-selector-modal');
+                    const content = document.getElementById('route-selector-content');
+                    if (!modal || !content) return;
+
+                    // Khởi tạo menu dropdown tỉnh thành
+                    const searchInput = document.getElementById('route-selector-search');
+                    if (searchInput) searchInput.value = '';
+                    const provFilter = document.getElementById('route-selector-prov-filter');
+                    if (provFilter) provFilter.value = '';
+                    const provLabel = document.getElementById('route-selector-prov-label');
+                    if (provLabel) provLabel.innerText = 'Tất cả tỉnh thành';
+                    const provSearch = document.getElementById('route-selector-prov-search');
+                    if (provSearch) provSearch.value = '';
+                    app.route.renderSelectorProvMenu();
+
+                    modal.classList.remove('hidden');
+                    app.ui.lockScroll();
+                    setTimeout(() => {
+                        content.classList.remove('opacity-0', 'scale-95');
+                        content.classList.add('opacity-100', 'scale-100');
+                    }, 10);
+
+                    await app.route.fetchRoutes();
+                    app.route.filterSelector();
+                },
+
+                closeSelector: () => {
+                    const modal = document.getElementById('route-selector-modal');
+                    const content = document.getElementById('route-selector-content');
+                    if (!modal || !content) return;
+                    content.classList.remove('opacity-100', 'scale-100');
+                    content.classList.add('opacity-0', 'scale-95');
+                    setTimeout(() => {
+                        modal.classList.add('hidden');
+                        const delModal = document.getElementById('route-delete-modal');
+                        if (delModal && app.route.deletingRouteName && delModal.classList.contains('hidden') && !app.route._wasFromSelector) {
+                            delModal.classList.remove('hidden');
+                            app.ui.lockScroll();
+                        } else if (!app.route._wasFromSelector && (!document.getElementById('route-edit-modal') || document.getElementById('route-edit-modal').classList.contains('hidden'))) {
+                            app.ui.unlockScroll();
+                        }
+                    }, 200);
+                },
+
+                highlightSelectorRoute: (routeNo, routeName) => {
+                    const selName = routeName || routeNo;
+                    if (app.route.selectorCurrentSelected === selName) return;
+
+                    const container = document.getElementById('route-selector-items');
+                    
+                    // FLIP: Ghi nhận vị trí (First) trước khi sắp xếp lại DOM
+                    const firstTops = new Map();
+                    if (container) {
+                        const oldCards = container.querySelectorAll('.route-card-item');
+                        oldCards.forEach(card => {
+                            const key = card.dataset.routeItemKey;
+                            if (key) {
+                                firstTops.set(key, card.getBoundingClientRect().top);
+                            }
+                        });
+                    }
+
+                    app.route.selectorCurrentSelected = selName;
+                    app.route.pendingSelectedRoute = {
+                        route_no: routeNo,
+                        route_name: selName
+                    };
+
+                    const scrollPos = container ? container.scrollTop : 0;
+                    app.route.filterSelector(true);
+                    if (container) container.scrollTop = scrollPos;
+
+                    // FLIP: Đo vị trí mới (Last) và đảo ngược (Invert)
+                    if (container && firstTops.size > 0) {
+                        const newCards = container.querySelectorAll('.route-card-item');
+                        const animatedCards = [];
+                        newCards.forEach(card => {
+                            const key = card.dataset.routeItemKey;
+                            const firstTop = firstTops.get(key);
+                            if (firstTop !== undefined) {
+                                const lastTop = card.getBoundingClientRect().top;
+                                const deltaY = firstTop - lastTop;
+                                if (Math.abs(deltaY) > 0.5) {
+                                    card.style.transform = `translateY(${deltaY}px)`;
+                                    card.style.transition = 'none';
+                                    animatedCards.push(card);
+                                }
+                            }
+                        });
+
+                        // FLIP: Kích hoạt chuyển động mượt mà (Play)
+                        if (animatedCards.length > 0) {
+                            requestAnimationFrame(() => {
+                                animatedCards.forEach(card => {
+                                    card.style.transition = 'transform 360ms cubic-bezier(0.16, 1, 0.3, 1)';
+                                    card.style.transform = '';
+                                });
+                                setTimeout(() => {
+                                    animatedCards.forEach(card => {
+                                        card.style.transition = '';
+                                        card.style.transform = '';
+                                    });
+                                }, 380);
+                            });
+                        }
+                    }
+                },
+
+                confirmSelector: () => {
+                    if (!app.route.pendingSelectedRoute && !app.route.selectorCurrentSelected) {
+                        app.ui.showAlert("Vui lòng chọn một tuyến xe từ danh sách trước khi xác nhận lưu.");
+                        return;
+                    }
+                    const sel = app.route.pendingSelectedRoute || {
+                        route_no: (app.route.selectorCurrentSelected.includes(' - ')) ? app.route.selectorCurrentSelected.split(' - ')[0].trim() : app.route.selectorCurrentSelected,
+                        route_name: app.route.selectorCurrentSelected
+                    };
+                    app.route.selectRoute(sel.route_no, sel.route_name);
+                },
+
+                loadMoreSelectorItems: () => {
+                    app.route.selectorDisplayLimit = (app.route.selectorDisplayLimit || 40) + 40;
+                    const container = document.getElementById('route-selector-items');
+                    const scrollPos = container ? container.scrollTop : 0;
+                    app.route.filterSelector(true);
+                    if (container) container.scrollTop = scrollPos;
+                },
+
+                filterSelector: (preserveScroll = false) => {
+                    const searchInput = document.getElementById('route-selector-search');
+                    const provFilter = document.getElementById('route-selector-prov-filter');
+                    const container = document.getElementById('route-selector-items');
+                    if (!container) return;
+
+                    const scrollPos = (preserveScroll && container) ? container.scrollTop : 0;
+
+                    const q = (searchInput ? searchInput.value : '').trim().toLowerCase();
+                    const prov = (provFilter ? provFilter.value : '').trim();
+                    const typeFilter = app.route.selectorTypeFilter || 'all';
+                    let curSelected = (app.route.selectorCurrentSelected || '').trim().toLowerCase();
+
+                    const routes = app.route.cachedRoutes || [];
+                    const exclude = app.route.selectorExcludeRoute || '';
+
+                    // Tự động đối chiếu chuẩn hóa nếu curSelected chỉ là số hiệu tuyến (ví dụ "59")
+                    if (curSelected) {
+                        let matchedRoute = routes.find(r => (r.route_name || '').toLowerCase() === curSelected);
+                        if (!matchedRoute) {
+                            const targetProv = (app.route.selectorContextProvince || '').trim().toLowerCase();
+                            const candidates = routes.filter(r => (r.route_no || '').toLowerCase() === curSelected);
+                            if (candidates.length === 1) {
+                                matchedRoute = candidates[0];
+                            } else if (candidates.length > 1) {
+                                if (targetProv) {
+                                    matchedRoute = candidates.find(r => (r.province || '').toLowerCase() === targetProv) || candidates[0];
+                                } else {
+                                    matchedRoute = candidates[0];
+                                }
+                            }
+                        }
+                        if (matchedRoute) {
+                            app.route.selectorCurrentSelected = matchedRoute.route_name;
+                            curSelected = matchedRoute.route_name.toLowerCase();
+                            if (!app.route.pendingSelectedRoute) {
+                                app.route.pendingSelectedRoute = {
+                                    route_no: matchedRoute.route_no,
+                                    route_name: matchedRoute.route_name
+                                };
+                            }
+                        }
+                    }
+
+                    // 1. Tuyến trạng thái đặc biệt
+                    let specialList = routes.filter(r => r.is_special || app.route.specialRoutes.includes(r.route_no));
+                    if (typeFilter === 'bus') {
+                        // Xe buýt: Loại bỏ "Hợp đồng"
+                        specialList = specialList.filter(r => r.route_no !== 'Hợp đồng' && r.route_name !== 'Hợp đồng');
+                    } else if (typeFilter === 'coach') {
+                        // Xe khách: Tuyến Hợp đồng lên đầu
+                        specialList.sort((a, b) => {
+                            if (a.route_no === 'Hợp đồng') return -1;
+                            if (b.route_no === 'Hợp đồng') return 1;
+                            return 0;
+                        });
+                    }
+
+                    // 2. Tuyến thông thường
+                    let normalList = routes.filter(r => !r.is_special && !app.route.specialRoutes.includes(r.route_no));
+
+                    if (exclude) {
+                        normalList = normalList.filter(r => r.route_name !== exclude && r.route_no !== exclude);
+                    }
+
+                    if (prov) {
+                        normalList = normalList.filter(r => r.province && r.province.toLowerCase() === prov.toLowerCase());
+                    }
+
+                    if (typeFilter === 'bus') {
+                        normalList = normalList.filter(r => (r.metadata?.vehicle_type || 'bus') === 'bus');
+                    } else if (typeFilter === 'coach') {
+                        normalList = normalList.filter(r => r.metadata?.vehicle_type === 'coach');
+                    }
+
+                    if (q) {
+                        normalList = normalList.filter(r => {
+                            const noMatch = (r.route_no || '').toLowerCase().includes(q);
+                            const nameMatch = (r.route_name || '').toLowerCase().includes(q);
+                            const pathMatch = (r.short_path || '').toLowerCase().includes(q);
+                            const provMatch = (r.province || '').toLowerCase().includes(q);
+                            return noMatch || nameMatch || pathMatch || provMatch;
+                        });
+                    }
+
+                    // Đưa tuyến đang chọn lên đầu danh sách bình thường (ghim lên top)
+                    const isNormalSelected = (r) => {
+                        if (!curSelected) return false;
+                        const rName = (r.route_name || '').toLowerCase();
+                        const rNo = (r.route_no || '').toLowerCase();
+                        if (rName === curSelected) return true;
+                        if (rNo === curSelected) {
+                            if (!app.route.selectorContextProvince) return true;
+                            if (r.province && r.province.toLowerCase() === app.route.selectorContextProvince.toLowerCase()) return true;
+                        }
+                        return false;
+                    };
+                    const selectedNormal = normalList.filter(r => isNormalSelected(r));
+                    const unselectedNormal = normalList.filter(r => !isNormalSelected(r));
+                    normalList = [...selectedNormal, ...unselectedNormal];
+
+                    let html = '';
+
+                    // Khối 1: Các trường hợp đặc biệt (nếu không chọn lọc theo một tỉnh cụ thể)
+                    if (!prov) {
+                        const matchedSpecials = q
+                            ? specialList.filter(r => (r.route_no || '').toLowerCase().includes(q))
+                            : specialList;
+
+                        if (matchedSpecials.length > 0) {
+                            html += `
+                                <div class="mb-3">
+                                    <p class="text-[10px] font-bold uppercase tracking-wider text-gray-500 mb-1.5 px-1">Tuyến trạng thái đặc biệt</p>
+                                    <div class="grid grid-cols-2 gap-1.5">
+                                        ${matchedSpecials.map(r => {
+                                            const isSel = curSelected && ((r.route_no || '').toLowerCase() === curSelected || (r.route_name || '').toLowerCase() === curSelected);
+                                            const cardCls = isSel ? 'selected-route-card' : 'bg-white hover:bg-gray-100';
+                                            return `
+                                                <div onclick="app.route.highlightSelectorRoute('${app.utils.escapeAttr(r.route_no)}', '${app.utils.escapeAttr(r.route_name)}')"
+                                                     ondblclick="app.route.selectRoute('${app.utils.escapeAttr(r.route_no)}', '${app.utils.escapeAttr(r.route_name)}')"
+                                                     class="cursor-pointer border border-black rounded-md p-2.5 flex items-center gap-2 transition active:scale-98 select-none ${cardCls}">
+                                                    <i class="fa-solid fa-tag text-xs ${isSel ? '' : 'text-black'}"></i>
+                                                    <span class="text-xs font-bold truncate ${isSel ? '' : 'text-black'}">${app.utils.escapeHtml(r.route_no)}</span>
+                                                </div>
+                                            `;
+                                        }).join('')}
+                                    </div>
+                                </div>
+                            `;
+                        }
+                    }
+
+                    // Khối 2: Danh sách các tuyến thông thường (Hỗ trợ lazyload phân trang 40 tuyến/trang)
+                    const displayLimit = app.route.selectorDisplayLimit || 40;
+                    const displayedItems = normalList.slice(0, displayLimit);
+
+                    html += `<div class="mb-2"><p class="text-[10px] font-bold uppercase tracking-wider text-gray-500 mb-1.5 px-1">Danh sách tuyến xe (${normalList.length})</p>`;
+
+                    if (normalList.length === 0) {
+                        html += `
+                            <div class="text-center py-8 text-gray-500 text-xs">
+                                <i class="fa-solid fa-route text-gray-300 text-2xl block mb-2"></i>
+                                Không tìm thấy tuyến phù hợp. Bạn có thể nhấn <strong>"+ Tạo tuyến mới"</strong> ở trên để thêm tuyến này.
+                            </div>
+                        `;
+                    } else {
+                        html += '<div class="space-y-1.5">';
+                        displayedItems.forEach(r => {
+                            const isSel = isNormalSelected(r);
+                            const cardCls = isSel ? 'selected-route-card' : 'bg-white hover:bg-gray-50';
+                            const badge = r.is_inactive 
+                                ? `<span class="route-status-badge text-[9px] px-1.5 py-0.5 rounded font-bold shrink-0 ${isSel ? '' : 'bg-black text-white dark:bg-white dark:text-black'}">Dừng HĐ</span>` 
+                                : '';
+                            const vTypeBadge = (r.metadata?.vehicle_type === 'coach')
+                                ? `<span class="text-[9px] px-1.5 py-0.5 rounded font-bold shrink-0 border ${isSel ? 'border-white text-white' : 'border-black text-black dark:border-white dark:text-white'}"><i class="fa-solid fa-van-shuttle mr-1"></i>Xe khách</span>`
+                                : '';
+                            const provLabel = r.province ? `<span class="text-[11px] ${isSel ? 'text-gray-200' : 'text-gray-500'} font-medium">(${app.utils.escapeHtml(r.province)})</span>` : '';
+                            const pathLabel = r.short_path ? `<p class="route-path-label text-[11px] ${isSel ? 'text-gray-300' : 'text-gray-500'} truncate mt-0.5">${app.utils.escapeHtml(r.short_path)}</p>` : '';
+
+                            html += `
+                                <div onclick="app.route.highlightSelectorRoute('${app.utils.escapeAttr(r.route_no)}', '${app.utils.escapeAttr(r.route_name)}')"
+                                     ondblclick="app.route.selectRoute('${app.utils.escapeAttr(r.route_no)}', '${app.utils.escapeAttr(r.route_name)}')"
+                                     data-route-item-key="${app.utils.escapeAttr(r.route_name || r.route_no)}"
+                                     class="route-card-item cursor-pointer border border-black rounded-md p-2.5 flex items-center justify-between gap-3 active:scale-[0.99] select-none group ${cardCls}">
+                                    <div class="min-w-0 flex-1">
+                                        <div class="flex items-center gap-2 flex-wrap">
+                                            <span class="font-extrabold text-xs tracking-wide ${isSel ? '' : 'text-black'}">${app.utils.escapeHtml(r.route_no)}</span>
+                                            ${provLabel}
+                                            ${vTypeBadge}
+                                            ${badge}
+                                        </div>
+                                        ${pathLabel}
+                                    </div>
+                                    <div class="flex items-center gap-1.5 shrink-0" onclick="event.stopPropagation()">
+                                        <button type="button" title="Chỉnh sửa thông tin tuyến" onclick="app.route.openEditPrompt('${app.utils.escapeAttr(r.route_name)}', '${app.utils.escapeAttr(r.province || '')}', true)"
+                                                class="w-7 h-7 flex items-center justify-center rounded-md border border-black ${isSel ? 'border-white text-white' : 'text-black hover:bg-black hover:text-white'} transition text-xs">
+                                            <i class="fa-solid fa-pen"></i>
+                                        </button>
+                                        <a href="/route/${r.province ? encodeURIComponent(r.province) + '/' : ''}${encodeURIComponent(r.route_no)}"
+                                           onclick="app.route.closeSelector()"
+                                           title="Xem hồ sơ tuyến"
+                                           class="w-7 h-7 flex items-center justify-center rounded-md border border-black ${isSel ? 'border-white text-white' : 'text-black hover:bg-black hover:text-white'} transition text-xs">
+                                            <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                                        </a>
+                                    </div>
+                                </div>
+                            `;
+                        });
+                        html += '</div>';
+
+                        if (normalList.length > displayLimit) {
+                            html += `
+                                <div class="pt-2 text-center">
+                                    <button type="button" onclick="app.route.loadMoreSelectorItems()" class="w-full py-2.5 border border-black dark:border-white rounded-md text-xs font-bold bg-white dark:bg-[#18181b] text-black dark:text-white hover:bg-gray-100 dark:hover:bg-[#27272a] transition active:scale-[0.99]">
+                                        <i class="fa-solid fa-angles-down mr-1"></i> Xem thêm (${normalList.length - displayLimit} tuyến khác)
+                                    </button>
+                                </div>
+                            `;
+                        }
+                    }
+                    html += '</div>';
+
+                    container.innerHTML = html;
+                    if (preserveScroll) {
+                        container.scrollTop = scrollPos;
+                    }
+                },
+
+                selectRoute: (routeNo, routeName) => {
+                    const targetId = app.route.selectorTargetInputId;
+                    const selectedDisplayName = (routeName && routeName !== routeNo) ? routeName : routeNo;
+                    if (targetId) {
+                        const targetEl = document.getElementById(targetId);
+                        if (targetEl) {
+                            targetEl.value = routeNo;
+                            targetEl.dataset.routeName = selectedDisplayName;
+                            targetEl.dataset.routeNo = routeNo;
+                            targetEl.dispatchEvent(new Event('change', { bubbles: true }));
+                            targetEl.dispatchEvent(new Event('input', { bubbles: true }));
+                        }
+                    }
+
+                    if (typeof app.route.selectorCallback === 'function') {
+                        app.route.selectorCallback({
+                            route_no: routeNo,
+                            route_name: routeName || routeNo
+                        });
+                    }
+
+                    app.route.closeSelector();
+                },
+
+                openCreatePrompt: () => {
+                    if (!app.user) return app.auth.check();
+                    const selectorModal = document.getElementById('route-selector-modal');
+                    app.route._wasFromSelector = !!(selectorModal && !selectorModal.classList.contains('hidden'));
+                    if (app.route._wasFromSelector) {
+                        selectorModal.classList.add('hidden');
+                        const sc = document.getElementById('route-selector-content');
+                        if (sc) {
+                            sc.classList.remove('opacity-100', 'scale-100');
+                            sc.classList.add('opacity-0', 'scale-95');
+                        }
+                    }
+
+                    app.route.isEditingExisting = false;
+                    app.route.editingOriginalRouteName = '';
+
                     const modal = document.getElementById('route-edit-modal');
                     const content = document.getElementById('route-edit-content');
+                    const titleEl = document.getElementById('route-edit-modal-title');
                     const btnSave = document.getElementById('btn-save-route');
-                    const warningText = content.querySelector('p.text-xs');
+                    const btnDelete = document.getElementById('btn-delete-route');
+                    const warningText = document.getElementById('route-edit-warning-text');
+                    const provContainer = document.getElementById('route-edit-province-container');
+                    const btnProv = document.getElementById('btn-route-edit-province');
+
+                    if (titleEl) titleEl.innerHTML = '<i class="fa-solid fa-plus mr-2 text-gray-500"></i>Tạo Tuyến Mới';
+                    if (btnDelete) btnDelete.classList.add('hidden');
+                    if (provContainer) provContainer.classList.remove('hidden');
+
+                    if (btnProv) {
+                        btnProv.disabled = false;
+                        btnProv.classList.remove('bg-gray-100', 'cursor-not-allowed', 'opacity-70');
+                    }
+                    app.route.selectEditProvince('');
+                    app.route.renderEditProvMenu('');
+
+                    const targetType = app.route.selectorLockedType || (app.route.selectorTypeFilter === 'coach' ? 'coach' : 'bus');
+                    app.route.setEditVehicleType(targetType);
+                    const btnTypeBus = document.getElementById('btn-route-type-bus');
+                    const btnTypeCoach = document.getElementById('btn-route-type-coach');
+                    if (app.route.selectorLockedType === 'bus') {
+                        if (btnTypeCoach) { btnTypeCoach.disabled = true; btnTypeCoach.classList.add('opacity-40', 'cursor-not-allowed'); }
+                        if (btnTypeBus) { btnTypeBus.disabled = false; btnTypeBus.classList.remove('opacity-40', 'cursor-not-allowed'); }
+                    } else if (app.route.selectorLockedType === 'coach') {
+                        if (btnTypeBus) { btnTypeBus.disabled = true; btnTypeBus.classList.add('opacity-40', 'cursor-not-allowed'); }
+                        if (btnTypeCoach) { btnTypeCoach.disabled = false; btnTypeCoach.classList.remove('opacity-40', 'cursor-not-allowed'); }
+                    } else {
+                        if (btnTypeBus) { btnTypeBus.disabled = false; btnTypeBus.classList.remove('opacity-40', 'cursor-not-allowed'); }
+                        if (btnTypeCoach) { btnTypeCoach.disabled = false; btnTypeCoach.classList.remove('opacity-40', 'cursor-not-allowed'); }
+                    }
+
+                    const nameInput = document.getElementById('route-edit-name');
+                    if (nameInput) {
+                        nameInput.value = '';
+                        nameInput.disabled = false;
+                        nameInput.readOnly = false;
+                        nameInput.classList.remove('bg-gray-100', 'cursor-not-allowed', 'opacity-70');
+                    }
                     document.getElementById('route-edit-inactive').checked = false;
                     document.getElementById('route-edit-short-path').value = '';
                     document.getElementById('route-edit-desc').value = '';
                     document.getElementById('route-edit-ticket-price').value = '';
                     document.getElementById('route-edit-headway').value = '';
                     document.getElementById('route-edit-wheelchair').checked = false;
-                    const iconTypeInit = 'default';
-                      document.getElementById('route-edit-icon').value = iconTypeInit;
-                      document.getElementById('route-icon-label').innerText = 'Mặc định';
-                      document.querySelectorAll('.route-icon-item').forEach(el => {
-                          el.classList.remove('selected');
-                          const icon = el.querySelector('.check-icon');
-                          if(icon) icon.classList.add('opacity-0');
-                      });
-                      const selectedInit = document.querySelector(`.route-icon-item[data-val="${iconTypeInit}"]`);
-                      if(selectedInit) {
-                          selectedInit.classList.add('selected');
-                          const icon = selectedInit.querySelector('.check-icon');
-                          if(icon) icon.classList.remove('opacity-0');
-                      }
+                    document.getElementById('route-edit-borrowed').value = '';
+                    document.getElementById('route-edit-icon').value = 'default';
+                    document.getElementById('route-icon-label').innerText = 'Mặc định';
+
+                    if (app.role === 'admin' || app.role === 'manager') {
+                        btnSave.innerText = "Tạo tuyến mới";
+                        if (warningText) warningText.innerText = "Tuyến mới sẽ được cập nhật trực tiếp vào hệ thống.";
+                    } else {
+                        btnSave.innerText = "Gửi yêu cầu tạo tuyến";
+                        if (warningText) warningText.innerText = "Thông tin tuyến mới sẽ được gửi đến hàng đợi và kiểm duyệt bởi Admin.";
+                    }
+
+                    modal.classList.remove('hidden');
+                    app.ui.lockScroll();
+                    setTimeout(() => {
+                        content.classList.remove('opacity-0', 'scale-95');
+                        content.classList.add('opacity-100', 'scale-100');
+                    }, 10);
+                },
+
+                openEditPrompt: async (targetRouteName, targetProvince, fromSelector = false) => {
+                    if (!app.user) return app.auth.check();
+                    const selectorModal = document.getElementById('route-selector-modal');
+                    const isFromSelector = !!fromSelector || !!(selectorModal && !selectorModal.classList.contains('hidden'));
+                    app.route._wasFromSelector = isFromSelector;
+                    if (selectorModal && !selectorModal.classList.contains('hidden')) {
+                        selectorModal.classList.add('hidden');
+                        const sc = document.getElementById('route-selector-content');
+                        if (sc) {
+                            sc.classList.remove('opacity-100', 'scale-100');
+                            sc.classList.add('opacity-0', 'scale-95');
+                        }
+                    }
+
+                    const rName = targetRouteName || (app.route.currentProvince ? `${app.route.currentRoute} - ${app.route.currentProvince}` : app.route.currentRoute);
+                    let rNo = rName.split(' - ')[0].trim();
+                    let prov = targetProvince || (rName.includes(' - ') ? rName.split(' - ')[1].trim() : app.route.currentProvince);
+
+                    if (app.route.specialRoutes.includes(rNo) || app.route.specialRoutes.includes(rName)) {
+                        app.toast.show('error', 'Tuyến không có hồ sơ', `Tuyến "${rNo}" là tuyến trạng thái đặc biệt mặc định của hệ thống, không có hồ sơ riêng và không thể chỉnh sửa.`);
+                        return;
+                    }
+
+                    app.route.isEditingExisting = true;
+                    app.route.editingOriginalRouteName = rName;
+
+                    const modal = document.getElementById('route-edit-modal');
+                    const content = document.getElementById('route-edit-content');
+                    const titleEl = document.getElementById('route-edit-modal-title');
+                    const btnSave = document.getElementById('btn-save-route');
+                    const btnDelete = document.getElementById('btn-delete-route');
+                    const warningText = document.getElementById('route-edit-warning-text');
+                    const provContainer = document.getElementById('route-edit-province-container');
+                    const btnProv = document.getElementById('btn-route-edit-province');
+
+                    if (titleEl) titleEl.innerHTML = '<i class="fa-solid fa-route mr-2 text-gray-500"></i>Cập nhật Thông tin Tuyến';
+                    if (btnDelete) btnDelete.classList.remove('hidden');
+                    if (provContainer) provContainer.classList.remove('hidden');
+
+                    if (btnProv) {
+                        btnProv.disabled = isFromSelector;
+                        if (isFromSelector) {
+                            btnProv.classList.add('bg-gray-100', 'cursor-not-allowed', 'opacity-70');
+                        } else {
+                            btnProv.classList.remove('bg-gray-100', 'cursor-not-allowed', 'opacity-70');
+                        }
+                    }
+                    const btnTypeBus = document.getElementById('btn-route-type-bus');
+                    const btnTypeCoach = document.getElementById('btn-route-type-coach');
+                    if (btnTypeBus) { btnTypeBus.disabled = false; btnTypeBus.classList.remove('opacity-40', 'cursor-not-allowed'); }
+                    if (btnTypeCoach) { btnTypeCoach.disabled = false; btnTypeCoach.classList.remove('opacity-40', 'cursor-not-allowed'); }
+
+                    app.route.selectEditProvince(prov || '');
+                    app.route.renderEditProvMenu(prov || '');
+
+                    const nameInput = document.getElementById('route-edit-name');
+                    if (nameInput) {
+                        nameInput.value = rNo;
+                        nameInput.disabled = isFromSelector;
+                        if (isFromSelector) {
+                            nameInput.classList.add('bg-gray-100', 'cursor-not-allowed', 'opacity-70');
+                        } else {
+                            nameInput.readOnly = false;
+                            nameInput.classList.remove('bg-gray-100', 'cursor-not-allowed', 'opacity-70');
+                        }
+                    }
+                    document.getElementById('route-edit-inactive').checked = false;
+                    document.getElementById('route-edit-short-path').value = '';
+                    document.getElementById('route-edit-desc').value = '';
+                    document.getElementById('route-edit-ticket-price').value = '';
+                    document.getElementById('route-edit-headway').value = '';
+                    document.getElementById('route-edit-wheelchair').checked = false;
+                    document.getElementById('route-edit-borrowed').value = '';
+                    document.getElementById('route-edit-icon').value = 'default';
+                    document.getElementById('route-icon-label').innerText = 'Mặc định';
+
                     if (app.role === 'admin' || app.role === 'manager') {
                         btnSave.innerText = "Lưu thông tin";
-                        warningText.innerHTML = "";
+                        if (warningText) warningText.innerText = "";
                     } else {
-                        btnSave.innerText = "Lưu thông tin";
-                        warningText.innerText = "Thông tin này sẽ được kiểm duyệt bởi Admin. Việc để trống tất cả sẽ gửi yêu cầu xóa thông tin hiện tại.";
+                        btnSave.innerText = "Gửi yêu cầu chỉnh sửa";
+                        if (warningText) warningText.innerText = "Thông tin này sẽ được gửi đến hàng đợi và kiểm duyệt bởi Admin.";
                     }
+
                     try {
-                        const routeName = app.route.currentProvince ? `${app.route.currentRoute} - ${app.route.currentProvince}` : app.route.currentRoute;
-                        const { data: exactInfo } = await window.sb.from('route_info').select('description, short_path, is_inactive, metadata').eq('route_name', routeName).maybeSingle();
+                        const { data: exactInfo } = await window.sb.from('route_info').select('description, short_path, is_inactive, metadata').eq('route_name', rName).maybeSingle();
                         if (exactInfo) {
                             document.getElementById('route-edit-inactive').checked = exactInfo.is_inactive || false;
                             document.getElementById('route-edit-short-path').value = exactInfo.short_path || '';
@@ -12350,45 +13593,40 @@ if (!decodedProvince || decodedProvince.trim() === '') {
                                 document.getElementById('route-edit-ticket-price').value = exactInfo.metadata.ticket_price || '';
                                 document.getElementById('route-edit-headway').value = exactInfo.metadata.headway || '';
                                 document.getElementById('route-edit-wheelchair').checked = exactInfo.metadata.wheelchair_support || false;
+                                app.route.setEditVehicleType(exactInfo.metadata.vehicle_type || 'bus');
                                 let iconTypeMeta = exactInfo.metadata.icon_type || 'default';
                                 let iconLabelMeta = 'Mặc định';
                                 if (iconTypeMeta === 'circle') iconLabelMeta = 'Hình tròn (Max 5 kí tự)';
                                 else if (iconTypeMeta === 'trapezoid') iconLabelMeta = 'Hình thang cân (Max 5 kí tự)';
                                 document.getElementById('route-edit-icon').value = iconTypeMeta;
                                 document.getElementById('route-icon-label').innerText = iconLabelMeta;
-                                document.querySelectorAll('.route-icon-item').forEach(el => {
-                                    el.classList.remove('selected');
-                                    const icon = el.querySelector('.check-icon');
-                                    if(icon) icon.classList.add('opacity-0');
-                                });
-                                const selectedMeta = document.querySelector(`.route-icon-item[data-val="${iconTypeMeta}"]`);
-                                if(selectedMeta) {
-                                    selectedMeta.classList.add('selected');
-                                    const icon = selectedMeta.querySelector('.check-icon');
-                                    if(icon) icon.classList.remove('opacity-0');
-                                }
+                            } else {
+                                app.route.setEditVehicleType('bus');
                             }
+                        } else {
+                            app.route.setEditVehicleType('bus');
                         }
-                        
+
                         // Fetch borrowed photos
-                          const { data: bPhotos } = await window.sb.from('photos').select('id, license_plate').eq('borrowed_route', routeName);
-                          let bList = [];
-                          let plates = [];
-                          if (exactInfo && exactInfo.metadata && exactInfo.metadata.borrowed_plates) {
-                              plates = exactInfo.metadata.borrowed_plates;
-                          }
-                          if (bPhotos && bPhotos.length > 0) {
-                              bPhotos.forEach(p => {
-                                  if (!plates.some(pl => pl.toLowerCase() === p.license_plate.toLowerCase())) {
-                                      bList.push(p.id);
-                                  }
-                              });
-                          }
-                          bList.push(...plates);
-                          document.getElementById('route-edit-borrowed').value = bList.join(', ');
+                        const { data: bPhotos } = await window.sb.from('photos').select('id, license_plate').eq('borrowed_route', rName);
+                        let bList = [];
+                        let plates = [];
+                        if (exactInfo && exactInfo.metadata && exactInfo.metadata.borrowed_plates) {
+                            plates = exactInfo.metadata.borrowed_plates;
+                        }
+                        if (bPhotos && bPhotos.length > 0) {
+                            bPhotos.forEach(p => {
+                                if (!plates.some(pl => pl.toLowerCase() === p.license_plate.toLowerCase())) {
+                                    bList.push(p.id);
+                                }
+                            });
+                        }
+                        bList.push(...plates);
+                        document.getElementById('route-edit-borrowed').value = bList.join(', ');
                     } catch(e) {
                         console.error("Lỗi khi load dữ liệu sửa tuyến:", e);
                     }
+
                     modal.classList.remove('hidden');
                     app.ui.lockScroll();
                     setTimeout(() => {
@@ -12396,9 +13634,239 @@ if (!decodedProvince || decodedProvince.trim() === '') {
                         content.classList.add('opacity-100', 'scale-100');
                     }, 10);
                 },
+
                 closeEditPrompt: () => {
                     const modal = document.getElementById('route-edit-modal');
                     const content = document.getElementById('route-edit-content');
+                    if (!modal || !content) return;
+                    content.classList.remove('opacity-100', 'scale-100');
+                    content.classList.add('opacity-0', 'scale-95');
+                    setTimeout(() => {
+                        modal.classList.add('hidden');
+                        if (app.route._wasFromSelector) {
+                            app.route._wasFromSelector = false;
+                            app.route.openSelector({
+                                targetInputId: app.route.selectorTargetInputId,
+                                onSelect: app.route.selectorCallback
+                            });
+                        } else {
+                            app.ui.unlockScroll();
+                        }
+                    }, 200);
+                },
+
+                submitEdit: async () => {
+                    if (!app.user) return;
+                    const routeNo = (document.getElementById('route-edit-name')?.value || '').trim();
+                    const province = (document.getElementById('route-edit-province')?.value || '').trim();
+                    const desc = (document.getElementById('route-edit-desc')?.value || '').trim();
+                    const shortPath = (document.getElementById('route-edit-short-path')?.value || '').trim();
+                    const isInactive = document.getElementById('route-edit-inactive')?.checked || false;
+                    const ticketPrice = (document.getElementById('route-edit-ticket-price')?.value || '').trim();
+                    const headway = (document.getElementById('route-edit-headway')?.value || '').trim();
+                    const wheelchairSupport = document.getElementById('route-edit-wheelchair')?.checked || false;
+                    const borrowedPhotosStr = (document.getElementById('route-edit-borrowed')?.value || '').trim();
+
+                    if (!routeNo) {
+                        return app.ui.showAlert("Vui lòng nhập Số hiệu tuyến xe.");
+                    }
+                    if (!province) {
+                        return app.ui.showAlert("Vui lòng chọn Tỉnh / Thành phố cho tuyến xe.");
+                    }
+
+                    // Kiểm tra không được tạo trùng tên với 4 trường hợp đặc biệt
+                    if (app.route.specialRoutes.some(s => s.toLowerCase() === routeNo.toLowerCase())) {
+                        return app.ui.showAlert(`Tên tuyến "${routeNo}" trùng với tuyến trạng thái đặc biệt mặc định của hệ thống và không được phép tạo mới.`);
+                    }
+
+                    const routeName = `${routeNo} - ${province}`;
+
+                    // Nếu tạo mới HOẶC đổi số hiệu / tỉnh thành từ trang chi tiết, kiểm tra trùng lặp
+                    if (!app.route.isEditingExisting || (app.route.editingOriginalRouteName && routeName !== app.route.editingOriginalRouteName)) {
+                        const { data: exist } = await window.sb.from('route_info').select('route_name').eq('route_name', routeName).maybeSingle();
+                        if (exist) {
+                            return app.ui.showAlert(`Tuyến "${routeName}" (Số hiệu ${routeNo} - Tỉnh ${province}) đã tồn tại trên hệ thống. Vui lòng chọn số hiệu hoặc tỉnh thành khác!`);
+                        }
+                    }
+
+                    let metadata = {};
+                    const vehicleType = document.getElementById('route-edit-vehicle-type')?.value || 'bus';
+                    metadata.vehicle_type = vehicleType;
+                    if (ticketPrice) metadata.ticket_price = ticketPrice;
+                    if (headway) metadata.headway = headway;
+                    if (wheelchairSupport) metadata.wheelchair_support = wheelchairSupport;
+
+                    const iconType = document.getElementById('route-edit-icon')?.value || 'default';
+                    if (iconType !== 'default') {
+                        if (routeNo.length <= 5) {
+                            metadata.icon_type = iconType;
+                        } else {
+                            app.toast.show('warning', 'Lưu ý', 'Tên tuyến dài hơn 5 kí tự không thể sử dụng icon tùy chỉnh. Đã tự động chuyển về mặc định.');
+                        }
+                    }
+
+                    let metadataObj = Object.keys(metadata).length > 0 ? metadata : null;
+                    const rawInputList = borrowedPhotosStr ? borrowedPhotosStr.split(',').map(s => s.trim()).filter(Boolean) : [];
+                    const enteredIdsStr = rawInputList.filter(s => /^\d+$/.test(s));
+                    const enteredPlates = rawInputList.filter(s => !/^\d+$/.test(s));
+                    const newBorrowedIds = enteredIdsStr.map(Number);
+
+                    if (enteredPlates.length > 0) {
+                        metadataObj = metadataObj || {};
+                        metadataObj.borrowed_plates = enteredPlates;
+                    }
+
+                    const btn = document.getElementById('btn-save-route');
+                    const origText = btn.innerHTML;
+                    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1"></i> Đang xử lý...';
+                    btn.disabled = true;
+
+                    try {
+                        if (app.role === 'admin' || app.role === 'manager') {
+                            const { error: upsertErr } = await window.sb.from('route_info').upsert({
+                                route_name: routeName,
+                                route_no: routeNo,
+                                province: province,
+                                short_path: shortPath || null,
+                                description: desc || null,
+                                is_inactive: isInactive,
+                                is_special: false,
+                                metadata: metadataObj
+                            }, { onConflict: 'route_name' });
+                            if (upsertErr) throw upsertErr;
+
+                            // Nếu đổi tên tuyến từ trang chi tiết, dọn dẹp bản ghi cũ và di chuyển liên kết
+                            if (app.route.isEditingExisting && app.route.editingOriginalRouteName && app.route.editingOriginalRouteName !== routeName) {
+                                await window.sb.from('route_info').delete().eq('route_name', app.route.editingOriginalRouteName);
+                                await window.sb.from('photos').update({ borrowed_route: routeName }).eq('borrowed_route', app.route.editingOriginalRouteName);
+                            }
+
+                            // Xử lý cập nhật ID ảnh và biển số xe vá tuyến
+                            const { data: curBorrowed } = await window.sb.from('photos').select('id, license_plate').eq('borrowed_route', routeName);
+                            const curIds = curBorrowed ? curBorrowed.map(p => p.id) : [];
+                            const addedIdsRaw = newBorrowedIds.filter(id => !curIds.includes(id));
+                            const removedIds = curIds.filter(id => !newBorrowedIds.includes(id));
+
+                            if (enteredPlates.length > 0) {
+                                const { data: retroPhotos } = await window.sb.from('photos').select('id, route_no').in('license_plate', enteredPlates).eq('route_no', routeNo);
+                                if (retroPhotos && retroPhotos.length > 0) {
+                                    retroPhotos.forEach(p => {
+                                        if (!curIds.includes(p.id) && !addedIdsRaw.includes(p.id)) {
+                                            addedIdsRaw.push(p.id);
+                                        }
+                                    });
+                                }
+                            }
+
+                            if (addedIdsRaw.length > 0) {
+                                const { data: validPhotos } = await window.sb.from('photos').select('id, route_no').in('id', addedIdsRaw);
+                                const trulyAddedIds = (validPhotos || []).filter(p => p.route_no === routeNo).map(p => p.id);
+                                if (trulyAddedIds.length > 0) {
+                                    await window.sb.from('photos').update({ borrowed_route: routeName }).in('id', trulyAddedIds);
+                                }
+                            }
+
+                            let finalRemovedIds = removedIds;
+                            if (enteredPlates.length > 0 && curBorrowed) {
+                                finalRemovedIds = removedIds.filter(id => {
+                                    const photo = curBorrowed.find(p => p.id === id);
+                                    return !(photo && enteredPlates.some(plate => plate.toLowerCase() === photo.license_plate.toLowerCase()));
+                                });
+                            }
+                            if (finalRemovedIds.length > 0) {
+                                for (const id of finalRemovedIds) {
+                                    await window.sb.from('photos').update({ borrowed_route: null }).eq('id', id);
+                                }
+                            }
+
+                            app.route.cachedRoutes = null;
+                            app.toast.show('success', 'Thành công', app.route.isEditingExisting ? 'Đã lưu thông tin Tuyến!' : 'Đã tạo tuyến mới thành công!');
+                            const wasFromSelector = app.route._wasFromSelector;
+                            app.route._wasFromSelector = false;
+                            app.route.closeEditPrompt();
+
+                            if (app.route.isEditingExisting && app.route.editingOriginalRouteName && app.route.editingOriginalRouteName !== routeName) {
+                                app.route.currentRoute = routeNo;
+                                app.route.currentProvince = province;
+                                app.utils.navigate('/route/' + (province ? encodeURIComponent(province) + '/' : '') + encodeURIComponent(routeNo));
+                            } else if (app.route.currentRoute === routeNo && app.route.currentProvince === province) {
+                                app.route.loadRoutePage(province, routeNo, true);
+                            }
+                            await app.route.fetchRoutes(true);
+                            app.route.filterSelector();
+
+                            if (wasFromSelector && (app.route.selectorTargetInputId || typeof app.route.selectorCallback === 'function')) {
+                                app.route.selectRoute(routeNo, routeName);
+                            }
+                        } else {
+                            // Người dùng thường gửi yêu cầu qua edit_requests
+                            app.route._wasFromSelector = false;
+                            const reqType = app.route.isEditingExisting ? 'update_route_info' : 'create_route_info';
+                            let checkQuery = window.sb.from('edit_requests').select('*', { count: 'exact', head: true }).eq('status', 'pending');
+                            const { count, error: checkErr } = await checkQuery.contains('new_data', { request_type: reqType, route_name: routeName });
+                            if (checkErr) throw checkErr;
+                            if (count > 0) throw new Error("Đã có một yêu cầu cho tuyến này đang chờ duyệt.");
+
+                            const reqData = {
+                                requester_id: app.user.id,
+                                license_plate: 'ROUTE_INFO',
+                                new_data: {
+                                    request_type: reqType,
+                                    old_route_name: app.route.isEditingExisting ? app.route.editingOriginalRouteName : null,
+                                    route_name: routeName,
+                                    route_no: routeNo,
+                                    province: province,
+                                    short_path: shortPath || null,
+                                    description: desc || null,
+                                    is_inactive: isInactive,
+                                    metadata: metadataObj,
+                                    borrowed_photos_str: borrowedPhotosStr
+                                },
+                                status: 'pending'
+                            };
+                            const { error } = await window.sb.from('edit_requests').insert(reqData);
+                            if (error) throw error;
+                            app.ui.showAlert(app.route.isEditingExisting ? "Đã gửi yêu cầu cập nhật thông tin Tuyến và đang chờ Admin duyệt." : "Đã gửi yêu cầu tạo Tuyến mới và đang chờ Admin duyệt.");
+                            app.route.closeEditPrompt();
+                        }
+                    } catch (err) {
+                        app.ui.showAlert("Lỗi: " + err.message);
+                    } finally {
+                        btn.innerHTML = origText;
+                        btn.disabled = false;
+                    }
+                },
+
+                openDeletePrompt: (targetRouteName) => {
+                    if (!app.user) return app.auth.check();
+                    const target = targetRouteName || app.route.editingOriginalRouteName || (app.route.currentProvince ? `${app.route.currentRoute} - ${app.route.currentProvince}` : app.route.currentRoute);
+                    if (!target) return;
+
+                    const targetNo = target.split(' - ')[0].trim();
+                    if (app.route.specialRoutes.includes(targetNo) || app.route.specialRoutes.includes(target)) {
+                        return app.ui.showAlert("Các tuyến trạng thái đặc biệt mặc định của hệ thống không thể bị xóa.");
+                    }
+
+                    app.route.deletingRouteName = target;
+                    document.getElementById('del-route-target-name').innerText = target;
+                    document.getElementById('del-route-dest-display').value = 'Ngoài giờ hoạt động';
+                    document.getElementById('del-route-dest-val').value = 'Ngoài giờ hoạt động';
+                    document.getElementById('del-route-dest-val').dataset.routeName = 'Ngoài giờ hoạt động';
+
+                    const modal = document.getElementById('route-delete-modal');
+                    const content = document.getElementById('route-delete-content');
+                    modal.classList.remove('hidden');
+                    app.ui.lockScroll();
+                    setTimeout(() => {
+                        content.classList.remove('opacity-0', 'scale-95');
+                        content.classList.add('opacity-100', 'scale-100');
+                    }, 10);
+                },
+
+                closeDeletePrompt: () => {
+                    const modal = document.getElementById('route-delete-modal');
+                    const content = document.getElementById('route-delete-content');
+                    if (!modal || !content) return;
                     content.classList.remove('opacity-100', 'scale-100');
                     content.classList.add('opacity-0', 'scale-95');
                     setTimeout(() => {
@@ -12406,161 +13874,94 @@ if (!decodedProvince || decodedProvince.trim() === '') {
                         app.ui.unlockScroll();
                     }, 200);
                 },
-                submitEdit: async () => {
-                    if (!app.user) return;
-                    const desc = document.getElementById('route-edit-desc').value.trim();
-                    const shortPath = document.getElementById('route-edit-short-path').value.trim();
-                    const isInactive = document.getElementById('route-edit-inactive').checked;
-                    const ticketPrice = document.getElementById('route-edit-ticket-price').value.trim();
-                    const headway = document.getElementById('route-edit-headway').value.trim();
-                    const wheelchairSupport = document.getElementById('route-edit-wheelchair').checked;
-                    const borrowedPhotosStr = document.getElementById('route-edit-borrowed').value.trim();
-                    
-                    let metadata = {};
-                    if (ticketPrice) metadata.ticket_price = ticketPrice;
-                    if (headway) metadata.headway = headway;
-                    if (wheelchairSupport) metadata.wheelchair_support = wheelchairSupport;
-                    
-                    const iconType = document.getElementById('route-edit-icon').value;
-                    if (iconType !== 'default') {
-                        const expectedRouteNo = (app.route.currentProvince ? `${app.route.currentRoute} - ${app.route.currentProvince}` : app.route.currentRoute).split(' - ')[0];
-                        if (expectedRouteNo.length <= 5) {
-                            metadata.icon_type = iconType;
-                        } else {
-                            app.toast.show('warning', 'Lưu ý', 'Tên tuyến dài hơn 5 kí tự không thể sử dụng icon tùy chỉnh. Đã tự động chuyển về mặc định.');
-                        }
-                    }
-                    
-                    let metadataObj = Object.keys(metadata).length > 0 ? metadata : null;
-                      const rawInputList = borrowedPhotosStr ? borrowedPhotosStr.split(',').map(s => s.trim()).filter(Boolean) : [];
-                      const enteredIdsStr = rawInputList.filter(s => /^\d+$/.test(s));
-                      const enteredPlates = rawInputList.filter(s => !/^\d+$/.test(s));
-                      const newBorrowedIds = enteredIdsStr.map(Number);
-                      
-                      if (enteredPlates.length > 0) {
-                          metadataObj = metadataObj || {};
-                          metadataObj.borrowed_plates = enteredPlates;
-                      } else if (metadataObj && metadataObj.borrowed_plates) {
-                          delete metadataObj.borrowed_plates;
-                          if (Object.keys(metadataObj).length === 0) metadataObj = null;
-                      }
-                    
-                    const btn = document.getElementById('btn-save-route');
-                    
-                    const executeSave = async () => {
-                        if (app.role !== 'admin' && app.role !== 'manager') {
-                            try { await app.captcha.request(); } catch (err) { if (err.message !== "CAPTCHA_CANCELLED") app.ui.showAlert("Lỗi xác thực Captcha."); return; }
-                        }
-                        const origText = btn.innerHTML;
-                        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang xử lý...';
-                        btn.disabled = true;
-                        try {
-                            if (app.role === 'admin' || app.role === 'manager') {
-                                const routeName = app.route.currentProvince ? `${app.route.currentRoute} - ${app.route.currentProvince}` : app.route.currentRoute;
-                                if (!desc && !shortPath && !isInactive && !metadataObj) {
-                                    const { error: delErr } = await window.sb.from('route_info').delete().eq('route_name', routeName);
-                                    if (delErr) throw delErr;
-                                } else {
-                                    const { error: upsertErr } = await window.sb.from('route_info').upsert({
-                                        route_name: routeName,
-                                        short_path: shortPath || null,
-                                        description: desc || null,
-                                        is_inactive: isInactive,
-                                        metadata: metadataObj
-                                    });
-                                    if (upsertErr) throw upsertErr;
-                                }
-                                
-                                // Xử lý cập nhật ID ảnh và biển số xe vá tuyến
-                                  const { data: curBorrowed } = await window.sb.from('photos').select('id, license_plate').eq('borrowed_route', routeName);
-                                  const curIds = curBorrowed ? curBorrowed.map(p => p.id) : [];
-                                  const addedIdsRaw = newBorrowedIds.filter(id => !curIds.includes(id));
-                                  const removedIds = curIds.filter(id => !newBorrowedIds.includes(id));
-                                  
-                                  const expectedRouteNo = routeName.split(' - ')[0];
-                                  if (enteredPlates.length > 0) {
-                                      const { data: retroPhotos } = await window.sb.from('photos').select('id, route_no').in('license_plate', enteredPlates).eq('route_no', expectedRouteNo);
-                                      if (retroPhotos && retroPhotos.length > 0) {
-                                          retroPhotos.forEach(p => {
-                                              if (!curIds.includes(p.id) && !addedIdsRaw.includes(p.id)) {
-                                                  addedIdsRaw.push(p.id);
-                                              }
-                                          });
-                                      }
-                                  }
-                                  
-                                  if (addedIdsRaw.length > 0) {
-                                      const { data: validPhotos } = await window.sb.from('photos').select('id, route_no').in('id', addedIdsRaw);
-                                      const trulyAddedIds = (validPhotos || []).filter(p => p.route_no === expectedRouteNo).map(p => p.id);
-                                      
-                                      if (trulyAddedIds.length > 0) {
-                                          await window.sb.from('photos').update({ borrowed_route: routeName }).in('id', trulyAddedIds);
-                                      }
-                                  }
-                                  
-                                  let finalRemovedIds = removedIds;
-                                  if (enteredPlates.length > 0 && curBorrowed) {
-                                      finalRemovedIds = removedIds.filter(id => {
-                                          const photo = curBorrowed.find(p => p.id === id);
-                                          return !(photo && enteredPlates.some(plate => plate.toLowerCase() === photo.license_plate.toLowerCase()));
-                                      });
-                                  }
-                                  if (finalRemovedIds.length > 0) {
-                                    const removedPhotos = curBorrowed.filter(p => finalRemovedIds.includes(p.id));
-                                    for (const p of removedPhotos) {
-                                        let defProv = 'Chưa xác định';
-                                        const match = p.license_plate.match(/^(\d{2})/);
-                                        if (match && app.utils.provinceData) {
-                                            const num = match[1];
-                                            const pData = app.utils.provinceData.find(pd => {
-                                                if (Array.isArray(pd.ky_hieu)) return pd.ky_hieu.includes(parseInt(num)) || pd.ky_hieu.includes(num);
-                                                return String(pd.ky_hieu).split(',').map(s=>s.trim()).includes(num);
-                                            });
-                                            if (pData) defProv = pData.ten;
-                                        }
-                                        await window.sb.from('photos').update({ borrowed_route: null }).eq('id', p.id);
-                                    }
-                                }
-                                app.toast.show('success', 'Thành công', 'Đã lưu thông tin Tuyến!');
-                                app.route.closeEditPrompt();
-                                app.route.loadRoutePage(app.route.currentProvince, app.route.currentRoute, true);
-                            } else {
-                                const routeName = app.route.currentProvince ? `${app.route.currentRoute} - ${app.route.currentProvince}` : app.route.currentRoute;
-                                let checkQuery = window.sb.from('edit_requests').select('*', { count: 'exact', head: true }).eq('status', 'pending');
-                                const { count, error: checkErr } = await checkQuery.contains('new_data', { request_type: 'update_route_info', route_name: routeName });
-                                if (checkErr) throw checkErr;
-                                if (count > 0) throw new Error("Đã có một yêu cầu cập nhật thông tin cho tuyến này đang chờ duyệt.");
-                                
-                                const reqData = {
-                                    requester_id: app.user.id,
-                                    license_plate: 'ROUTE_INFO',
-                                    new_data: {
-                                        request_type: 'update_route_info',
-                                        route_name: routeName,
-                                        short_path: shortPath || null,
-                                        description: desc || null,
-                                        is_inactive: isInactive,
-                                        metadata: metadataObj,
-                                        borrowed_photos_str: borrowedPhotosStr
-                                    },
-                                    status: 'pending'
-                                };
-                                const { error } = await window.sb.from('edit_requests').insert(reqData);
-                                if (error) throw error;
-                                app.ui.showAlert("Đã gửi yêu cầu cập nhật thông tin Tuyến và đang chờ Admin duyệt.");
-                                app.route.closeEditPrompt();
+
+                chooseDeleteDestination: () => {
+                    const delModal = document.getElementById('route-delete-modal');
+                    if (delModal) delModal.classList.add('hidden');
+                    app.route.openSelector({
+                        excludeRoute: app.route.deletingRouteName,
+                        onSelect: (r) => {
+                            const disp = r.route_name || r.route_no;
+                            document.getElementById('del-route-dest-display').value = disp;
+                            document.getElementById('del-route-dest-val').value = r.route_no;
+                            document.getElementById('del-route-dest-val').dataset.routeName = disp;
+                            if (delModal) {
+                                delModal.classList.remove('hidden');
+                                app.ui.lockScroll();
                             }
-                        } catch (err) {
-                            app.ui.showAlert("Lỗi: " + err.message);
-                        } finally {
-                            btn.innerHTML = origText;
-                            btn.disabled = false;
                         }
-                    };
-                    
-                    executeSave();
+                    });
+                },
+
+                confirmDeleteRoute: async () => {
+                    if (!app.user) return;
+                    const deletingName = app.route.deletingRouteName;
+                    if (!deletingName) return;
+                    const deletingNo = deletingName.split(' - ')[0].trim();
+
+                    const destRouteNo = (document.getElementById('del-route-dest-val')?.value || 'Ngoài giờ hoạt động').trim();
+                    const destRouteName = (document.getElementById('del-route-dest-val')?.dataset.routeName || destRouteNo).trim();
+
+                    const btn = document.getElementById('btn-confirm-delete-route');
+                    const origText = btn.innerHTML;
+                    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1"></i> Đang xóa...';
+                    btn.disabled = true;
+
+                    try {
+                        if (app.role === 'admin' || app.role === 'manager') {
+                            // 1. Chuyển tất cả ảnh thuộc tuyến bị xóa sang tuyến đích
+                            const newBorrowed = destRouteName !== destRouteNo ? destRouteName : null;
+                            await window.sb.from('photos')
+                                .update({ route_no: destRouteNo, borrowed_route: newBorrowed })
+                                .or(`route_no.eq."${deletingNo}",borrowed_route.eq."${deletingName}"`);
+
+                            // 2. Chuyển tất cả lịch sử phương tiện (vehicle_history) sang tuyến đích
+                            await window.sb.from('vehicle_history')
+                                .update({ route: destRouteNo })
+                                .or(`route.eq."${deletingNo}",route.eq."${deletingName}"`);
+
+                            // 3. Xóa hồ sơ tuyến khỏi bảng route_info
+                            const { error: delErr } = await window.sb.from('route_info').delete().eq('route_name', deletingName);
+                            if (delErr) throw delErr;
+
+                            app.route.cachedRoutes = null;
+                            app.toast.show('success', 'Đã xóa tuyến', `Đã chuyển toàn bộ ảnh và lịch sử xe sang tuyến "${destRouteName}" và xóa hồ sơ.`);
+                            app.route.closeDeletePrompt();
+                            app.route.closeEditPrompt();
+
+                            if (app.route.currentRoute === deletingNo) {
+                                app.utils.navigate('/');
+                            }
+                            await app.route.fetchRoutes(true);
+                            app.route.filterSelector();
+                        } else {
+                            // Thành viên thường gửi yêu cầu duyệt xóa
+                            const reqData = {
+                                requester_id: app.user.id,
+                                license_plate: 'ROUTE_INFO',
+                                new_data: {
+                                    request_type: 'delete_route',
+                                    route_name: deletingName,
+                                    route_no: deletingNo,
+                                    dest_route_no: destRouteNo,
+                                    dest_route_name: destRouteName
+                                },
+                                status: 'pending'
+                            };
+                            const { error } = await window.sb.from('edit_requests').insert(reqData);
+                            if (error) throw error;
+                            app.ui.showAlert(`Đã gửi yêu cầu xóa tuyến và chuyển dữ liệu sang tuyến "${destRouteName}". Admin sẽ kiểm duyệt yêu cầu của bạn.`);
+                            app.route.closeDeletePrompt();
+                            app.route.closeEditPrompt();
+                        }
+                    } catch (err) {
+                        app.ui.showAlert("Lỗi khi xóa tuyến: " + err.message);
+                    } finally {
+                        btn.innerHTML = origText;
+                        btn.disabled = false;
+                    }
                 }
-  }
+            }
 });
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -12745,8 +14146,8 @@ Object.assign(window.app, {
                          existingPrefs.type = app.preference.current;
                          existingPrefs.wmMode = app.wmState ? app.wmState.mode : 'basic';
                          existingPrefs.pinnedLocations = app.preference.pinnedLocations || [];
-                         existingPrefs.wmRotate = (app.wmState && app.wmState.rotate !== undefined) ? app.wmState.rotate : 0;
-                         existingPrefs.wmScale = (app.wmState && app.wmState.scale !== undefined) ? app.wmState.scale : 1.0;
+                         delete existingPrefs.wmRotate;
+                         delete existingPrefs.wmScale;
                          existingPrefs.wmBarScale = (app.wmState && app.wmState.barScale !== undefined) ? app.wmState.barScale : 1.0;
                          
                          await window.sb.from('profiles').update({
@@ -13754,11 +15155,9 @@ Object.assign(window.app, {
                                 existingPrefs.type = curPref;
                                 existingPrefs.wmMode = mode;
                                 existingPrefs.pinnedLocations = (app.preference && app.preference.pinnedLocations) || [];
-                                if (app.wmState) {
-                                    if (app.wmState.rotate !== undefined) existingPrefs.wmRotate = app.wmState.rotate;
-                                    if (app.wmState.scale !== undefined) existingPrefs.wmScale = app.wmState.scale;
-                                    if (app.wmState.barScale !== undefined) existingPrefs.wmBarScale = app.wmState.barScale;
-                                }
+                                delete existingPrefs.wmRotate;
+                                delete existingPrefs.wmScale;
+                                if (app.wmState && app.wmState.barScale !== undefined) existingPrefs.wmBarScale = app.wmState.barScale;
                                 window.sb.from('profiles').update({ preferences: existingPrefs }).eq('id', app.user.id).then(()=>{});
                             });
                         }
@@ -13866,19 +15265,22 @@ Object.assign(window.app, {
                     }
                 },
                 updateWmRotate: (val) => {
-                    const deg = parseInt(val, 10) || 0;
+                    let deg = parseInt(val, 10);
+                    if (isNaN(deg)) deg = 0;
+                    if (deg < -180) deg = -180;
+                    if (deg > 180) deg = 180;
                     if (!app.wmState) app.wmState = {};
                     app.wmState.rotate = deg;
                     const valEl = document.getElementById('wm-rotate-val');
                     if (valEl) valEl.innerText = deg + '°';
-                    try { localStorage.setItem('vnbus_wm_rotate', deg.toString()); } catch(e){}
-                    if (!app.upload.debouncedSaveWmPrefs) {
-                        app.upload.debouncedSaveWmPrefs = app.utils.debounce(() => {
-                            if (app.upload.savePreferencesToServer) app.upload.savePreferencesToServer();
-                        }, 500);
-                    }
-                    app.upload.debouncedSaveWmPrefs();
+                    const rotSlider = document.getElementById('wm-rotate-slider');
+                    if (rotSlider && parseInt(rotSlider.value, 10) !== deg) rotSlider.value = deg;
                     if (app.upload.clampWmPosition) app.upload.clampWmPosition();
+                },
+                stepWmRotate: (delta) => {
+                    const slider = document.getElementById('wm-rotate-slider');
+                    let current = slider ? (parseInt(slider.value, 10) || 0) : ((app.wmState && app.wmState.rotate !== undefined) ? app.wmState.rotate : 0);
+                    app.upload.updateWmRotate(current + delta);
                 },
                 updateWmScale: (val) => {
                     const scaleVal = parseInt(val, 10) || 100;
@@ -13886,14 +15288,16 @@ Object.assign(window.app, {
                     app.wmState.scale = scaleVal / 100;
                     const valEl = document.getElementById('wm-scale-val');
                     if (valEl) valEl.innerText = scaleVal + '%';
-                    try { localStorage.setItem('vnbus_wm_scale', scaleVal.toString()); } catch(e){}
-                    if (!app.upload.debouncedSaveWmPrefs) {
-                        app.upload.debouncedSaveWmPrefs = app.utils.debounce(() => {
-                            if (app.upload.savePreferencesToServer) app.upload.savePreferencesToServer();
-                        }, 500);
-                    }
-                    app.upload.debouncedSaveWmPrefs();
+                    const slider = document.getElementById('wm-scale-slider');
+                    if (slider && parseInt(slider.value, 10) !== scaleVal) slider.value = scaleVal;
                     if (app.upload.clampWmPosition) app.upload.clampWmPosition();
+                },
+                stepWmScale: (delta) => {
+                    const slider = document.getElementById('wm-scale-slider');
+                    let current = slider ? (parseInt(slider.value, 10) || 100) : ((app.wmState && app.wmState.scale !== undefined) ? Math.round(app.wmState.scale * 100) : 100);
+                    let nextVal = Math.min(100, Math.max(50, current + delta));
+                    if (slider) slider.value = nextVal;
+                    app.upload.updateWmScale(nextVal);
                 },
                 updateWmBarScale: (val) => {
                     const barScaleVal = parseInt(val, 10) || 100;
@@ -13901,6 +15305,8 @@ Object.assign(window.app, {
                     app.wmState.barScale = barScaleVal / 100;
                     const valEl = document.getElementById('wm-bar-scale-val');
                     if (valEl) valEl.innerText = barScaleVal + '%';
+                    const slider = document.getElementById('wm-bar-scale-slider');
+                    if (slider && parseInt(slider.value, 10) !== barScaleVal) slider.value = barScaleVal;
                     try { localStorage.setItem('vnbus_wm_bar_scale', barScaleVal.toString()); } catch(e){}
                     if (!app.upload.debouncedSaveWmPrefs) {
                         app.upload.debouncedSaveWmPrefs = app.utils.debounce(() => {
@@ -13910,6 +15316,13 @@ Object.assign(window.app, {
                     app.upload.debouncedSaveWmPrefs();
                     if (app.previewUpdateSize) app.previewUpdateSize();
                     if (app.upload.clampWmPosition) app.upload.clampWmPosition();
+                },
+                stepWmBarScale: (delta) => {
+                    const slider = document.getElementById('wm-bar-scale-slider');
+                    let current = slider ? (parseInt(slider.value, 10) || 100) : ((app.wmState && app.wmState.barScale !== undefined) ? Math.round(app.wmState.barScale * 100) : 100);
+                    let nextVal = Math.min(150, Math.max(50, current + delta));
+                    if (slider) slider.value = nextVal;
+                    app.upload.updateWmBarScale(nextVal);
                 },
                 clampWmPosition: () => {
                     const el = document.getElementById('draggable-watermark');
@@ -13927,8 +15340,8 @@ Object.assign(window.app, {
                     if (!cWidth || !cHeight) return;
                     
                     const wmCanvas = document.getElementById('preview-wm-canvas');
-                    const rawW = wmCanvas ? wmCanvas.width : (el.offsetWidth || 100);
-                    const rawH = wmCanvas ? wmCanvas.height : (el.offsetHeight || 30);
+                    const rawW = wmCanvas ? (parseFloat(wmCanvas.style.width) || wmCanvas.width) : (el.offsetWidth || 100);
+                    const rawH = wmCanvas ? (parseFloat(wmCanvas.style.height) || wmCanvas.height) : (el.offsetHeight || 30);
                     
                     const rad = Math.abs((rotate || 0) * Math.PI / 180);
                     const cos = Math.abs(Math.cos(rad));
@@ -13937,13 +15350,21 @@ Object.assign(window.app, {
                     const wHalf = (scale * (rawW * cos + rawH * sin)) / 2;
                     const hHalf = (scale * (rawW * sin + rawH * cos)) / 2;
                     
-                    const footerBar = document.getElementById('preview-footer-bar');
-                    const footerBarH = footerBar ? footerBar.offsetHeight : (cHeight * 0.0576 * barScale);
+                    const footerBarH = cHeight * 0.0576 * barScale;
                     
-                    const minLeft = wHalf;
-                    const maxLeft = Math.max(minLeft, cWidth - wHalf);
-                    const minTop = hHalf;
-                    const maxTop = Math.max(minTop, cHeight - footerBarH - hHalf);
+                    let minLeft = wHalf;
+                    let maxLeft = cWidth - wHalf;
+                    if (minLeft > maxLeft) {
+                        minLeft = cWidth / 2;
+                        maxLeft = cWidth / 2;
+                    }
+
+                    let minTop = hHalf;
+                    let maxTop = cHeight - footerBarH - hHalf;
+                    if (minTop > maxTop) {
+                        minTop = (cHeight - footerBarH) / 2;
+                        maxTop = (cHeight - footerBarH) / 2;
+                    }
                     
                     let currentLeft = (app.wmState.x !== undefined ? app.wmState.x : 0.5) * cWidth;
                     let currentTop = (app.wmState.y !== undefined ? app.wmState.y : 0.5) * cHeight;
@@ -13961,7 +15382,10 @@ Object.assign(window.app, {
                     if (!app.wmState) app.wmState = {};
                     app.wmState.rotate = 0;
                     app.wmState.scale = 1.0;
-                    app.wmState.barScale = 1.0;
+                    const savedBarScale = (typeof localStorage !== 'undefined' && localStorage.getItem('vnbus_wm_bar_scale') !== null) ? (parseInt(localStorage.getItem('vnbus_wm_bar_scale'), 10) / 100) : 1.0;
+                    if (app.wmState.barScale === undefined) {
+                        app.wmState.barScale = savedBarScale;
+                    }
                     app.wmState.color = 'white';
                     app.wmState.x = 0.5;
                     app.wmState.y = 0.5;
@@ -13977,20 +15401,18 @@ Object.assign(window.app, {
                     if (valEl) valEl.innerText = '100%';
                     
                     const barSlider = document.getElementById('wm-bar-scale-slider');
-                    if (barSlider) barSlider.value = 100;
+                    const bsPercent = Math.round((app.wmState.barScale !== undefined ? app.wmState.barScale : 1.0) * 100);
+                    if (barSlider) barSlider.value = bsPercent;
                     const barValEl = document.getElementById('wm-bar-scale-val');
-                    if (barValEl) barValEl.innerText = '100%';
+                    if (barValEl) barValEl.innerText = bsPercent + '%';
                     
                     const chk = document.getElementById('chk-wm-black');
                     if (chk) chk.checked = false;
                     
                     try {
-                        localStorage.setItem('vnbus_wm_rotate', '0');
-                        localStorage.setItem('vnbus_wm_scale', '100');
-                        localStorage.setItem('vnbus_wm_bar_scale', '100');
+                        localStorage.removeItem('vnbus_wm_rotate');
+                        localStorage.removeItem('vnbus_wm_scale');
                     } catch(e){}
-                    
-                    if (app.upload.savePreferencesToServer) app.upload.savePreferencesToServer();
                     
                     const savedMode = (typeof localStorage !== 'undefined' && localStorage.getItem('vnbus_wm_mode')) || (app.wmState && app.wmState.mode) || 'basic';
                     app.upload.setWmMode(savedMode, false);
@@ -14060,11 +15482,11 @@ Object.assign(window.app, {
                 },
                 currentFilters: 'none',
                 closeAllUploadPanels: () => {
-                    ['color-adjust-panel', 'blur-adjust-panel', 'wm-adjust-panel'].forEach(id => {
+                    ['color-adjust-panel', 'histogram-panel', 'blur-adjust-panel', 'wm-adjust-panel'].forEach(id => {
                         const el = document.getElementById(id);
                         if (el) el.classList.add('hidden');
                     });
-                    ['btn-adjust-color', 'btn-add-blur', 'btn-adjust-wm'].forEach(id => {
+                    ['btn-adjust-color', 'btn-histogram', 'btn-add-blur', 'btn-adjust-wm'].forEach(id => {
                         const el = document.getElementById(id);
                         if (el) {
                             el.classList.remove('bg-black', 'text-white', 'border-black');
@@ -14083,6 +15505,99 @@ Object.assign(window.app, {
                             btn.classList.remove('bg-white', 'text-gray-700', 'border-gray-300', 'hover:bg-gray-100', 'hover:text-black');
                             btn.classList.add('bg-black', 'text-white', 'border-black');
                         }
+                    }
+                },
+                histogramMode: 'luma',
+                histogramData: null,
+                histDebounce: null,
+                toggleHistogramPanel: () => {
+                    const panel = document.getElementById('histogram-panel');
+                    const btn = document.getElementById('btn-histogram');
+                    const isHidden = panel ? panel.classList.contains('hidden') : true;
+                    if (app.upload.closeAllUploadPanels) app.upload.closeAllUploadPanels();
+                    if (isHidden && panel) {
+                        panel.classList.remove('hidden');
+                        if (btn) {
+                            btn.classList.remove('bg-white', 'text-gray-700', 'border-gray-300', 'hover:bg-gray-100', 'hover:text-black');
+                            btn.classList.add('bg-black', 'text-white', 'border-black');
+                        }
+                        app.upload.renderHistogram();
+                    }
+                },
+                switchHistogramMode: (mode) => {
+                    app.upload.histogramMode = mode;
+                    if (app.upload.histogramData) {
+                        app.upload.drawHistogram(app.upload.histogramData, mode);
+                    } else {
+                        app.upload.renderHistogram();
+                    }
+                },
+                renderHistogram: () => {
+                    const previewImg = document.getElementById('preview-img');
+                    if (!previewImg || !previewImg.src) return;
+                    const loadingEl = document.getElementById('up-hist-loading');
+                    if (loadingEl) loadingEl.classList.remove('hidden');
+
+                    const doCompute = () => {
+                        try {
+                            const data = app.utils.computeHistogramData(previewImg, app.upload.currentFilters || 'none');
+                            app.upload.histogramData = data;
+                            app.upload.drawHistogram(data, app.upload.histogramMode || 'luma');
+                        } catch (err) {
+                            console.error('Lỗi tính toán Histogram:', err);
+                            if (loadingEl) {
+                                loadingEl.innerHTML = '<span class="text-red-400 text-xs">Không thể phân tích ảnh</span>';
+                            }
+                        }
+                    };
+
+                    if (!previewImg.complete || previewImg.naturalWidth === 0) {
+                        previewImg.onload = () => {
+                            doCompute();
+                        };
+                        return;
+                    }
+                    setTimeout(doCompute, 20);
+                },
+                drawHistogram: (data, mode = null) => {
+                    const canvas = document.getElementById('up-hist-canvas');
+                    if (!canvas || !data) return;
+
+                    const activeMode = mode || app.upload.histogramMode || 'luma';
+                    app.upload.histogramMode = activeMode;
+
+                    const btnLuma = document.getElementById('up-hist-btn-luma');
+                    const btnRgb = document.getElementById('up-hist-btn-rgb');
+                    if (btnLuma && btnRgb) {
+                        if (activeMode === 'luma') {
+                            btnLuma.className = "text-[10px] font-bold px-2.5 py-1 rounded border border-black dark:border-white bg-black text-white dark:bg-white dark:text-black transition";
+                            btnRgb.className = "text-[10px] font-bold px-2.5 py-1 rounded border border-black dark:border-white bg-white text-black dark:bg-black dark:text-white hover:bg-gray-100 dark:hover:bg-gray-800 transition";
+                        } else {
+                            btnRgb.className = "text-[10px] font-bold px-2.5 py-1 rounded border border-black dark:border-white bg-black text-white dark:bg-white dark:text-black transition";
+                            btnLuma.className = "text-[10px] font-bold px-2.5 py-1 rounded border border-black dark:border-white bg-white text-black dark:bg-black dark:text-white hover:bg-gray-100 dark:hover:bg-gray-800 transition";
+                        }
+                    }
+
+                    app.utils.drawHistogramCanvas(canvas, data, activeMode);
+
+                    const loadingEl = document.getElementById('up-hist-loading');
+                    if (loadingEl) loadingEl.classList.add('hidden');
+
+                    const avgEl = document.getElementById('up-hist-avg');
+                    const shadowEl = document.getElementById('up-hist-shadow');
+                    const highEl = document.getElementById('up-hist-high');
+
+                    const avgPct = Math.round((data.avgLuma / 255) * 100);
+                    if (avgEl) avgEl.innerText = `${avgPct}%`;
+                    if (shadowEl) {
+                        shadowEl.innerText = `${data.shadowPercent.toFixed(1)}%`;
+                        if (data.shadowPercent > 18) shadowEl.className = "text-xs font-bold text-red-600 font-mono";
+                        else shadowEl.className = "text-xs font-bold text-black dark:text-white font-mono";
+                    }
+                    if (highEl) {
+                        highEl.innerText = `${data.highlightPercent.toFixed(1)}%`;
+                        if (data.highlightPercent > 5) highEl.className = "text-xs font-bold text-red-600 font-mono";
+                        else highEl.className = "text-xs font-bold text-black dark:text-white font-mono";
                     }
                 },
                 currentDenoise: 0,
@@ -14110,6 +15625,14 @@ Object.assign(window.app, {
                     if(previewImg) previewImg.style.filter = filterString;
                     app.upload.currentFilters = filterString;
                     app.upload.currentDenoise = d;
+
+                    if (app.upload.histDebounce) clearTimeout(app.upload.histDebounce);
+                    const histPanel = document.getElementById('histogram-panel');
+                    if (histPanel && !histPanel.classList.contains('hidden')) {
+                        app.upload.histDebounce = setTimeout(() => {
+                            app.upload.renderHistogram();
+                        }, 60);
+                    }
 
                     if (app.upload.denoiseTimeout) clearTimeout(app.upload.denoiseTimeout);
                     app.upload.denoiseTimeout = setTimeout(() => {
@@ -14250,6 +15773,8 @@ Object.assign(window.app, {
                     if(app.upload.resetFilters) app.upload.resetFilters();
                     document.querySelectorAll('.blur-panel').forEach(p => p.remove());
                     if (app.upload.updateBlurBtn) app.upload.updateBlurBtn();
+                    if (app.upload.closeAllUploadPanels) app.upload.closeAllUploadPanels();
+                    app.upload.histogramData = null;
                 },
                 handleFileSelect: async (e) => {
                     const fileInput = document.getElementById('up-file');
@@ -14656,7 +16181,12 @@ Object.assign(window.app, {
                     app.upload.basePreviewUrl = url;
                     app.upload.basePreviewImage = new Image();
                     app.upload.basePreviewImage.src = url;
+                    document.getElementById('preview-box').classList.remove('hidden');
+                    document.getElementById('drop-zone').classList.add('hidden');
+                    if (app.upload.restoreDropZone) app.upload.restoreDropZone();
                     const previewImg = document.getElementById('preview-img');
+                    if (!previewImg) return;
+
                     previewImg.onload = () => {
                         const updateSize = () => {
                             const nw = previewImg.naturalWidth, nh = previewImg.naturalHeight;
@@ -14665,7 +16195,13 @@ Object.assign(window.app, {
                             const box = document.getElementById('preview-box');
                             container.style.width = '100%';
                             container.style.height = 'auto';
-                            const availableWidth = box.clientWidth;
+                            let availableWidth = box ? box.clientWidth : 0;
+                            if (!availableWidth && box && box.parentElement) {
+                                availableWidth = box.parentElement.clientWidth;
+                            }
+                            if (!availableWidth) {
+                                availableWidth = Math.min(window.innerWidth - 32, 600);
+                            }
                             const availableHeight = window.innerHeight * 0.65;
                             const ratio = nw / nh;
                             let finalW = availableWidth;
@@ -14674,22 +16210,61 @@ Object.assign(window.app, {
                                 finalH = availableHeight;
                                 finalW = finalH * ratio;
                             }
+                            finalW = Math.round(finalW);
+                            finalH = Math.round(finalH);
                             container.style.width = finalW + 'px';
                             container.style.height = finalH + 'px';
+
                             const barScale = (app.wmState && app.wmState.barScale !== undefined) ? app.wmState.barScale : 1.0;
                             const barHeight = finalH * 0.0576 * barScale;
-                            const baseFontSize = finalH * 0.02304 * barScale;
-                            const watermarkFontSize = finalH * 0.096;
+                            const fontSize = barHeight * 0.4;
+                            const padX = barHeight / 2;
+
                             const footerBar = document.getElementById('preview-footer-bar');
                             if (footerBar) {
                                 footerBar.style.height = barHeight + 'px';
-                                footerBar.style.paddingLeft = (barHeight / 2) + 'px';
-                                footerBar.style.paddingRight = (barHeight / 2) + 'px';
+                                let footerCanvas = document.getElementById('preview-footer-canvas');
+                                if (!footerCanvas) {
+                                    footerCanvas = document.createElement('canvas');
+                                    footerCanvas.id = 'preview-footer-canvas';
+                                    footerCanvas.className = 'w-full h-full block pointer-events-none';
+                                    footerBar.innerHTML = '';
+                                    footerBar.appendChild(footerCanvas);
+                                }
+                                const dpr = Math.max(1, window.devicePixelRatio || 1);
+                                footerCanvas.width = Math.round(finalW * dpr);
+                                footerCanvas.height = Math.round(barHeight * dpr);
+                                footerCanvas.style.width = finalW + 'px';
+                                footerCanvas.style.height = barHeight + 'px';
+
+                                const fCtx = footerCanvas.getContext('2d');
+                                fCtx.clearRect(0, 0, footerCanvas.width, footerCanvas.height);
+                                fCtx.save();
+                                fCtx.scale(dpr, dpr);
+
+                                fCtx.fillStyle = "white";
+                                fCtx.textBaseline = 'alphabetic';
+
+                                const fontFace = 'Montserrat, sans-serif';
+                                const textY = (barHeight / 2) + (fontSize * 0.35);
+
+                                // Chữ bên trái: VNBUSARCHIVE.io.vn
+                                fCtx.textAlign = 'left';
+                                fCtx.font = `italic 900 ${fontSize}px ${fontFace}`;
+                                fCtx.fillText("VNBUSARCHIVE", padX, textY);
+                                const vnbusWidth = fCtx.measureText("VNBUSARCHIVE").width;
+                                fCtx.font = `italic 700 ${fontSize * 0.8}px ${fontFace}`;
+                                fCtx.fillText(".io.vn", padX + vnbusWidth, textY);
+
+                                // Chữ bên phải: Bản quyền bởi [name] (dùng chung textY để thẳng tắp một hàng ngang)
+                                fCtx.textAlign = 'right';
+                                fCtx.font = `700 ${fontSize}px ${fontFace}`;
+                                const name = app.username || "Guest";
+                                fCtx.fillText(`Bản quyền bởi ${name}`, finalW - padX, textY);
+
+                                fCtx.restore();
                             }
-                            const leftText = document.querySelector('.footer-text-left');
-                            const rightText = document.getElementById('preview-footer-copy');
-                            if (leftText) leftText.style.fontSize = baseFontSize + 'px';
-                            if (rightText) rightText.style.fontSize = baseFontSize + 'px';
+
                             const wmDrag = document.getElementById('draggable-watermark');
                             if (wmDrag) {
                                 let wmCanvas = document.getElementById('preview-wm-canvas');
@@ -14702,19 +16277,29 @@ Object.assign(window.app, {
                                     wmDrag.style.border = 'none';
                                 }
                                 const text = `© ${app.username || 'Guest'}`;
-                                const fontFace = '"Montserrat", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif';
+                                const fontFace = 'Montserrat, sans-serif';
+                                const watermarkFontSize = finalH * 0.096;
                                 const font = `700 ${watermarkFontSize}px ${fontFace}`;
                                 const ctx = wmCanvas.getContext('2d');
                                 ctx.font = font;
                                 const metrics = ctx.measureText(text);
-                                wmCanvas.width = metrics.width + 4; 
-                                wmCanvas.height = watermarkFontSize * 1.5; 
+                                const rawW = Math.ceil(metrics.width + 4);
+                                const rawH = Math.ceil(watermarkFontSize * 1.5);
+                                const dpr = Math.max(1, window.devicePixelRatio || 1);
+                                wmCanvas.width = Math.round(rawW * dpr);
+                                wmCanvas.height = Math.round(rawH * dpr);
+                                wmCanvas.style.width = rawW + 'px';
+                                wmCanvas.style.height = rawH + 'px';
+                                ctx.save();
+                                ctx.scale(dpr, dpr);
                                 ctx.font = font;
                                 ctx.textAlign = 'center';
                                 ctx.textBaseline = 'middle';
                                 ctx.fillStyle = wmDrag.classList.contains('wm-black') ? 'black' : 'white';
-                                ctx.clearRect(0, 0, wmCanvas.width, wmCanvas.height);
-                                ctx.fillText(text, wmCanvas.width / 2, wmCanvas.height / 2);
+                                ctx.clearRect(0, 0, rawW, rawH);
+                                ctx.fillText(text, rawW / 2, rawH / 2);
+                                ctx.restore();
+
                                 const currentScale = app.wmState ? (app.wmState.scale !== undefined ? app.wmState.scale : 1.0) : 1.0;
                                 const currentRotate = app.wmState ? (app.wmState.rotate !== undefined ? app.wmState.rotate : 0) : 0;
                                 wmDrag.style.transform = `translate(-50%, -50%) rotate(${currentRotate}deg) scale(${currentScale})`;
@@ -14727,6 +16312,16 @@ Object.assign(window.app, {
                         };
                         updateSize();
                         app.previewUpdateSize = updateSize;
+                        if (typeof document !== 'undefined' && document.fonts && document.fonts.load) {
+                            Promise.all([
+                                document.fonts.load(`italic 900 16px Montserrat`),
+                                document.fonts.load(`italic 700 16px Montserrat`),
+                                document.fonts.load(`700 16px Montserrat`),
+                                document.fonts.load(`700 32px Montserrat`)
+                            ]).then(() => {
+                                if (app.previewUpdateSize) app.previewUpdateSize();
+                            }).catch(() => {});
+                        }
                         
                         if (app.upload._draftPending) {
                             const pending = app.upload._draftPending;
@@ -14761,16 +16356,18 @@ Object.assign(window.app, {
                         }
 
                         if (app.upload.updateBlurBtn) app.upload.updateBlurBtn();
+                        const histPanel = document.getElementById('histogram-panel');
+                        if (histPanel && !histPanel.classList.contains('hidden')) {
+                            app.upload.renderHistogram();
+                        }
                     };
                     previewImg.src = url;
-                    document.getElementById('preview-box').classList.remove('hidden');
-                    document.getElementById('drop-zone').classList.add('hidden');
-                    if (app.upload.restoreDropZone) app.upload.restoreDropZone();
+                    if (previewImg.complete && previewImg.naturalWidth) {
+                        previewImg.onload();
+                    }
                     const name = app.username || "Guest";
                     const wmName = document.getElementById('wm-username');
                     if (wmName) wmName.innerText = name;
-                    const footerCopy = document.getElementById('preview-footer-copy');
-                    if (footerCopy) footerCopy.innerText = `Bản quyền bởi ${name}`;
                     const wmDrag = document.getElementById('draggable-watermark');
                     if (wmDrag) {
                         if (app.wmState && app.wmState.mode === 'standard') {
@@ -14780,20 +16377,25 @@ Object.assign(window.app, {
                         }
                         wmDrag.classList.remove('wm-active');
                     }
-                    if (app.upload.resetWm) app.upload.resetWm();
+                    if (!app.upload._draftPending && app.upload.resetWm) app.upload.resetWm();
                     if (app.upload.resetFilters) app.upload.resetFilters();
+                    if (app.upload.initDraggable) app.upload.initDraggable();
                 },
                 initDraggable: () => {
-                    if (app.draggableInitialized) return;
-                    app.draggableInitialized = true;
                     const el = document.getElementById('draggable-watermark');
                     const container = document.getElementById('preview-container');
+                    if (!el || !container) return;
+                    if (app.draggableInitialized) return;
+                    app.draggableInitialized = true;
                     let isDragging = false;
                     let startX, startY, initialLeft, initialTop;
-                    const resizeObserver = new ResizeObserver(() => {
-                        if (app.previewUpdateSize) app.previewUpdateSize();
-                    });
-                    resizeObserver.observe(document.getElementById('preview-box'));
+                    const previewBox = document.getElementById('preview-box');
+                    if (previewBox && typeof ResizeObserver !== 'undefined') {
+                        const resizeObserver = new ResizeObserver(() => {
+                            if (app.previewUpdateSize) app.previewUpdateSize();
+                        });
+                        resizeObserver.observe(previewBox);
+                    }
                     document.addEventListener('mousedown', (e) => {
                         if (!el.contains(e.target)) el.classList.remove('wm-active');
                     });
@@ -14831,8 +16433,8 @@ Object.assign(window.app, {
                         const barScale = (app.wmState && app.wmState.barScale !== undefined) ? app.wmState.barScale : 1.0;
 
                         const wmCanvas = document.getElementById('preview-wm-canvas');
-                        const rawW = wmCanvas ? wmCanvas.width : (el.offsetWidth || 100);
-                        const rawH = wmCanvas ? wmCanvas.height : (el.offsetHeight || 30);
+                        const rawW = wmCanvas ? (parseFloat(wmCanvas.style.width) || wmCanvas.width) : (el.offsetWidth || 100);
+                        const rawH = wmCanvas ? (parseFloat(wmCanvas.style.height) || wmCanvas.height) : (el.offsetHeight || 30);
 
                         const rad = Math.abs(rotate * Math.PI / 180);
                         const cos = Math.abs(Math.cos(rad));
@@ -14842,13 +16444,21 @@ Object.assign(window.app, {
                         const hHalf = (scale * (rawW * sin + rawH * cos)) / 2;
 
                         const cRect = container.getBoundingClientRect();
-                        const footerBar = document.getElementById('preview-footer-bar');
-                        const footerBarH = footerBar ? footerBar.offsetHeight : (cRect.height * 0.0576 * barScale);
+                        const footerBarH = cRect.height * 0.0576 * barScale;
 
-                        const minLeft = wHalf;
-                        const maxLeft = Math.max(minLeft, cRect.width - wHalf);
-                        const minTop = hHalf;
-                        const maxTop = Math.max(minTop, cRect.height - footerBarH - hHalf);
+                        let minLeft = wHalf;
+                        let maxLeft = cRect.width - wHalf;
+                        if (minLeft > maxLeft) {
+                            minLeft = cRect.width / 2;
+                            maxLeft = cRect.width / 2;
+                        }
+
+                        let minTop = hHalf;
+                        let maxTop = cRect.height - footerBarH - hHalf;
+                        if (minTop > maxTop) {
+                            minTop = (cRect.height - footerBarH) / 2;
+                            maxTop = (cRect.height - footerBarH) / 2;
+                        }
 
                         newLeft = Math.max(minLeft, Math.min(newLeft, maxLeft));
                         newTop = Math.max(minTop, Math.min(newTop, maxTop));
@@ -14888,8 +16498,14 @@ Object.assign(window.app, {
                     }
                     const valPlate = document.getElementById('up-plate').value.trim();
                     const valOp = document.getElementById('up-operator').value.trim();
-                    const valType = document.getElementById('up-type').value;
-                    const valRoute = document.getElementById('up-route').value.trim();
+                    const routeEl = document.getElementById('up-route');
+                    let valRoute = (routeEl?.dataset?.routeName || routeEl?.value || '').trim();
+                    if (valRoute && !valRoute.includes(' - ') && (!app.route?.specialRoutes || !app.route.specialRoutes.includes(valRoute))) {
+                        const upProv = document.getElementById('up-province')?.value || (valPlate ? app.utils.getProvinceFromPlate(valPlate) : '');
+                        if (upProv && upProv !== 'Không xác định' && upProv !== 'Biển tạm') {
+                            valRoute = `${valRoute} - ${upProv}`;
+                        }
+                    }
                     const valModel = document.getElementById('up-model').value.trim();
                     const valLoc = document.getElementById('up-location').value.trim();
                     const valDate = document.getElementById('up-date').value;
@@ -16160,7 +17776,7 @@ Object.assign(window.app, {
             [ratioControls, rotateControls].forEach(c => {
                 if (!c) return;
                 c.classList.add('hidden');
-                c.classList.remove('flex');
+                c.classList.remove('flex', 'flex-col');
             });
 
             if (tab === 'ratio') {
@@ -16176,7 +17792,7 @@ Object.assign(window.app, {
                     slider.style.width = 'calc((100% - 14px) / 2)';
                 }
                 if (btnRotate) { btnRotate.classList.add('text-black'); btnRotate.classList.remove('text-gray-500', 'hover:text-black'); }
-                if (rotateControls) { rotateControls.classList.remove('hidden'); rotateControls.classList.add('flex'); }
+                if (rotateControls) { rotateControls.classList.remove('hidden'); rotateControls.classList.add('flex', 'flex-col'); }
             }
         },
         slideRotate: (val) => {
@@ -16578,11 +18194,9 @@ select: (val) => {
                             existingPrefs.type = app.preference.current;
                             existingPrefs.wmMode = curWmMode;
                             existingPrefs.pinnedLocations = app.preference.pinnedLocations || [];
-                            if (app.wmState) {
-                                if (app.wmState.rotate !== undefined) existingPrefs.wmRotate = app.wmState.rotate;
-                                if (app.wmState.scale !== undefined) existingPrefs.wmScale = app.wmState.scale;
-                                if (app.wmState.barScale !== undefined) existingPrefs.wmBarScale = app.wmState.barScale;
-                            }
+                            delete existingPrefs.wmRotate;
+                            delete existingPrefs.wmScale;
+                            if (app.wmState && app.wmState.barScale !== undefined) existingPrefs.wmBarScale = app.wmState.barScale;
                             window.sb.from('profiles').update({ preferences: existingPrefs }).eq('id', app.user.id).then(()=>{});
                         });
                     }
@@ -17242,9 +18856,16 @@ Object.assign(window.app, {
                     app.edit.isEditing = !app.edit.isEditing;
                     if (app.edit.isEditing) {
                         formInputs.forEach(input => {
-                            if (input.tagName === 'SELECT') { input.disabled = false; } 
+                            if (input.tagName === 'SELECT') {
+                                input.classList.remove('pointer-events-none', 'appearance-none', 'bg-transparent', 'cursor-default');
+                                input.classList.add('cursor-pointer', 'bg-white');
+                            } 
                             else {
-                                if (input.id !== 'info-plate' && input.id !== 'info-date') input.readOnly = false;
+                                if (input.id !== 'info-plate' && input.id !== 'info-date' && input.id !== 'info-route') input.readOnly = false;
+                                if (input.id === 'info-route') {
+                                    input.readOnly = true;
+                                    input.classList.add('cursor-pointer', 'bg-gray-50');
+                                }
                                 if (input.id === 'info-note') {
                                     const displayDiv = document.getElementById('info-note-display');
                                     if (displayDiv) displayDiv.classList.add('hidden');
@@ -17280,9 +18901,15 @@ Object.assign(window.app, {
                 cancel: () => {
                     const formInputs = document.querySelectorAll('#inline-edit-form .info-input');
                     formInputs.forEach(input => {
-                        if (input.tagName === 'SELECT') input.disabled = true;
+                        if (input.tagName === 'SELECT') {
+                            input.classList.add('pointer-events-none', 'appearance-none', 'bg-transparent', 'cursor-default');
+                            input.classList.remove('cursor-pointer', 'bg-white');
+                        }
                         else {
                             input.readOnly = true;
+                            if (input.id === 'info-route') {
+                                input.classList.remove('cursor-pointer', 'bg-gray-50');
+                            }
                             if (input.id === 'info-note') {
                                 const displayDiv = document.getElementById('info-note-display');
                                 if (displayDiv) displayDiv.classList.remove('hidden');
@@ -17314,11 +18941,19 @@ Object.assign(window.app, {
                     const btn = document.getElementById('btn-save-inline');
                     const originalText = btn.innerText;
                     btn.innerText = "Đang xử lý..."; btn.disabled = true;
+                    const routeEl = document.getElementById('info-route');
+                    let fullRouteName = (routeEl?.dataset?.routeName || routeEl?.value || '').trim();
+                    if (fullRouteName && !fullRouteName.includes(' - ') && (!app.route?.specialRoutes || !app.route.specialRoutes.includes(fullRouteName))) {
+                        const provFromPlate = document.getElementById('info-plate')?.value ? app.utils.getProvinceFromPlate(document.getElementById('info-plate').value) : '';
+                        if (provFromPlate && provFromPlate !== 'Không xác định' && provFromPlate !== 'Biển tạm') {
+                            fullRouteName = `${fullRouteName} - ${provFromPlate}`;
+                        }
+                    }
                     const payload = {
                         license_plate: document.getElementById('info-plate').value.replace(/[^A-Z0-9-]/gi, '').toUpperCase(),
                         operator: document.getElementById('info-operator').value,
                         type: document.getElementById('info-type').value,
-                        route: document.getElementById('info-route').value,
+                        route: fullRouteName,
                         model: document.getElementById('info-model').value,
                         location: document.getElementById('info-location').value,
                         note: document.getElementById('info-note').value,
@@ -17384,6 +19019,9 @@ Object.assign(window.app, {
                                 app.currentPhoto.taken_at = payload.taken_at;
                             }
                         }
+                        const routeVal = (payload.route || '').trim();
+                        const routeNoVal = (routeVal && routeVal.includes(' - ')) ? routeVal.split(' - ')[0].trim() : routeVal;
+                        const borrowedVal = (routeVal && routeVal.includes(' - ')) ? routeVal : null;
                         if (app.role === 'admin' || app.role === 'manager') {
                             const { error: vError } = await window.sb.from('vehicles').upsert({
                                 license_plate: payload.license_plate,
@@ -17396,7 +19034,8 @@ Object.assign(window.app, {
                                 note: payload.note,
                                 operator: payload.operator,
                                 type: payload.type,
-                                route_no: payload.route
+                                route_no: routeNoVal,
+                                borrowed_route: borrowedVal
                             }).eq('id', app.currentPhoto.id);
                             if (pError) throw pError;
                             const afterSnapshot = {
@@ -17407,7 +19046,8 @@ Object.assign(window.app, {
                                 note: payload.note,
                                 operator: payload.operator,
                                 type: payload.type,
-                                route_no: payload.route,
+                                route_no: routeNoVal,
+                                borrowed_route: borrowedVal,
                                 model: payload.model
                             };
                             app.admin.logAction(
@@ -17416,12 +19056,12 @@ Object.assign(window.app, {
                                 { taken_at_changed: takenAtChanged, before: beforeSnapshot, after: afterSnapshot }
                             );
                             const isPlateChanged = beforeSnapshot.license_plate !== payload.license_plate;
-                            if (isPlateChanged || takenAtChanged || beforeSnapshot.operator !== payload.operator || beforeSnapshot.route_no !== payload.route) {
+                            if (isPlateChanged || takenAtChanged || beforeSnapshot.operator !== payload.operator || beforeSnapshot.route_no !== routeNoVal) {
                                 await app.vehicle.syncHistoryOnPhotoEdit(
                                     payload.license_plate,
                                     takenAtChanged ? payload.taken_at : beforeSnapshot.taken_at,
                                     { operator: beforeSnapshot.operator, route_no: beforeSnapshot.route_no },
-                                    { operator: payload.operator, route_no: payload.route },
+                                    { operator: payload.operator, route_no: routeNoVal },
                                     isPlateChanged
                                 );
                             }
@@ -17435,7 +19075,15 @@ Object.assign(window.app, {
                             app.currentPhoto.note = payload.note;
                             app.currentPhoto.operator = payload.operator;
                             app.currentPhoto.type = payload.type;
-                            app.currentPhoto.route_no = payload.route;
+                            app.currentPhoto.route_no = routeNoVal;
+                            app.currentPhoto.borrowed_route = borrowedVal;
+                            const elInfoRoute = document.getElementById('info-route');
+                            if (elInfoRoute) {
+                                elInfoRoute.value = routeNoVal;
+                                elInfoRoute.dataset.routeName = routeVal;
+                                if (borrowedVal) elInfoRoute.dataset.borrowed = borrowedVal;
+                                else delete elInfoRoute.dataset.borrowed;
+                            }
                             if (app.currentVehicle) {
                                 app.currentVehicle.model = payload.model;
                             }
@@ -17458,6 +19106,8 @@ Object.assign(window.app, {
                                 license_plate: payload.license_plate,
                                 new_data: {
                                     ...payload,
+                                    route_no: routeNoVal,
+                                    borrowed_route: borrowedVal,
                                     request_type: 'update_vehicle_info',
                                     photo_id: app.currentPhoto.id
                                 },
@@ -18524,9 +20174,253 @@ Object.assign(window.app, {
                         btn.disabled = false;
                     }
                 },
+                // ================= HISTOGRAM HELPER METHODS =================
+                histogramCache: {},
+                histogramMode: {},
+                computeHistogramData: (img) => {
+                    return app.utils.computeHistogramData(img);
+                },
+                drawHistogram: (photoId, data, mode = null) => {
+                    const canvas = document.getElementById(`adm-hist-canvas-${photoId}`);
+                    if (!canvas) return;
+                    
+                    const loadingEl = document.getElementById(`adm-hist-loading-${photoId}`);
+                    if (loadingEl) loadingEl.classList.add('hidden');
+                    
+                    if (!app.admin.histogramMode) app.admin.histogramMode = {};
+                    const activeMode = mode || app.admin.histogramMode[photoId] || 'luma';
+                    app.admin.histogramMode[photoId] = activeMode;
+                    
+                    const btnLuma = document.getElementById(`adm-hist-btn-luma-${photoId}`);
+                    const btnRgb = document.getElementById(`adm-hist-btn-rgb-${photoId}`);
+                    if (btnLuma && btnRgb) {
+                        if (activeMode === 'luma') {
+                            btnLuma.className = "text-[10px] font-bold px-2 py-0.5 rounded border border-black dark:border-white bg-black text-white dark:bg-white dark:text-black transition";
+                            btnRgb.className = "text-[10px] font-bold px-2 py-0.5 rounded border border-black dark:border-white bg-white text-black dark:bg-black dark:text-white hover:bg-gray-100 dark:hover:bg-gray-800 transition";
+                        } else {
+                            btnRgb.className = "text-[10px] font-bold px-2 py-0.5 rounded border border-black dark:border-white bg-black text-white dark:bg-white dark:text-black transition";
+                            btnLuma.className = "text-[10px] font-bold px-2 py-0.5 rounded border border-black dark:border-white bg-white text-black dark:bg-black dark:text-white hover:bg-gray-100 dark:hover:bg-gray-800 transition";
+                        }
+                    }
+                    
+                    app.utils.drawHistogramCanvas(canvas, data, activeMode);
+                    
+                    const avgEl = document.getElementById(`adm-hist-avg-${photoId}`);
+                    const shadowEl = document.getElementById(`adm-hist-shadow-${photoId}`);
+                    const highEl = document.getElementById(`adm-hist-high-${photoId}`);
+                    const diagEl = document.getElementById(`adm-hist-diag-${photoId}`);
+                    
+                    const avgPct = Math.round((data.avgLuma / 255) * 100);
+                    if (avgEl) avgEl.innerText = `${avgPct}%`;
+                    if (shadowEl) {
+                        shadowEl.innerText = `${data.shadowPercent.toFixed(1)}%`;
+                        if (data.shadowPercent > 18) shadowEl.className = "text-xs font-bold text-red-600 font-mono";
+                        else shadowEl.className = "text-xs font-bold text-black dark:text-white font-mono";
+                    }
+                    if (highEl) {
+                        highEl.innerText = `${data.highlightPercent.toFixed(1)}%`;
+                        if (data.highlightPercent > 5) highEl.className = "text-xs font-bold text-red-600 font-mono";
+                        else highEl.className = "text-xs font-bold text-black dark:text-white font-mono";
+                    }
+                    if (diagEl) {
+                        const lightIssues = [];
+                        let isSevere = false;
+                        const shadowZonePct = data.shadowZonePct || 0;
+                        const deepShadowPct = data.deepShadowPct || 0;
+                        const midZonePct = data.midZonePct || 0;
+                        const highlightZonePct = data.highlightZonePct || 0;
+                        const p50 = data.p50 || 128;
+                        const dynamicSpan = data.dynamicSpan || 150;
+                        const centerLuma = data.centerLuma !== undefined ? data.centerLuma : data.avgLuma;
+                        const centerShadowPct = data.centerShadowPct || 0;
+                        const centerHighlightPct = data.centerHighlightPct || 0;
+                        const topLuma = data.topLuma !== undefined ? data.topLuma : data.avgLuma;
+
+                        // 1. Cháy sáng thân xe vs Cháy sáng bầu trời
+                        if (centerHighlightPct > 4.5 || (centerLuma > 165 && data.highlightPercent > 5.0)) {
+                            lightIssues.push("Cháy sáng thân xe");
+                            if (centerHighlightPct > 8.0 || centerLuma > 185) isSevere = true;
+                        } else if (data.highlightPercent > 3.5) {
+                            lightIssues.push("Cháy sáng vùng trời / hậu cảnh");
+                        }
+
+                        // 2. Cháy tối thân xe vs Vùng tối tự nhiên của lốp xe/mặt đường
+                        if (centerShadowPct > 18.0 || data.shadowPercent > 22.0) {
+                            lightIssues.push("Cháy tối thân xe");
+                            if (centerShadowPct > 30.0 || data.shadowPercent > 32.0) isSevere = true;
+                        }
+
+                        // 3. Ảnh ngược sáng (Backlit)
+                        const isBacklit = (centerLuma < 85 || p50 < 82) && (topLuma > 165 || highlightZonePct > 7) && (shadowZonePct > 1.3 * midZonePct);
+                        if (isBacklit) {
+                            lightIssues.push("Ảnh bị ngược sáng");
+                            if (centerLuma < 65 || p50 < 68) isSevere = true;
+                        } else if (centerLuma < 75 && shadowZonePct > 50 && highlightZonePct <= 7) {
+                            // 4. Thiếu sáng tổng thể
+                            lightIssues.push("Ảnh thiếu sáng");
+                            if (centerLuma < 58 || p50 < 60) isSevere = true;
+                        } else if (avgPct < 28 && data.shadowPercent <= 16.0) {
+                            lightIssues.push("Ảnh tối");
+                        }
+
+                        // 5. Quá sáng
+                        if (centerLuma > 158 && highlightZonePct > 35 && data.highlightPercent <= 3.5) {
+                            lightIssues.push("Ảnh quá sáng");
+                        }
+
+                        // 6. Chênh sáng gắt / bóng đổ sâu (Chụp trưa nắng gắt)
+                        if (highlightZonePct > 20 && shadowZonePct > 32 && midZonePct < 30) {
+                            lightIssues.push("Độ tương phản gắt");
+                        }
+
+                        // 7. Đục mờ / thiếu tương phản (Thời tiết mù / mưa)
+                        if (shadowZonePct < 8 && highlightZonePct < 8 && dynamicSpan < 85) {
+                            lightIssues.push("Thiếu tương phản");
+                        }
+
+                        if (lightIssues.length === 0) {
+                            diagEl.innerHTML = `<span class="inline-flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400"><i class="fa-solid fa-circle-check"></i> Ánh sáng: Đo sáng tốt</span>`;
+                        } else if (isSevere) {
+                            diagEl.innerHTML = `<span class="inline-flex items-center gap-1.5 text-red-600 dark:text-red-400"><i class="fa-solid fa-circle-exclamation"></i> Ánh sáng: ${app.utils.escapeHtml(lightIssues.join(' • '))}</span>`;
+                        } else {
+                            diagEl.innerHTML = `<span class="inline-flex items-center gap-1.5 text-amber-600 dark:text-amber-400"><i class="fa-solid fa-triangle-exclamation"></i> Ánh sáng: ${app.utils.escapeHtml(lightIssues.join(' • '))}</span>`;
+                        }
+                    }
+                    const colorDiagEl = document.getElementById(`adm-hist-color-diag-${photoId}`);
+                    if (colorDiagEl) {
+                        const avgR = data.avgR || 128;
+                        const avgG = data.avgG || 128;
+                        const avgB = data.avgB || 128;
+                        const avgSat = data.avgSat || 0;
+                        const neutralPixels = data.neutralPixels || 0;
+                        const neutralDiffRB = data.neutralDiffRB !== undefined ? data.neutralDiffRB : (avgR - avgB);
+                        const neutralDiffGB = data.neutralDiffGB !== undefined ? data.neutralDiffGB : (avgG - avgB);
+                        const neutralDiffRG = data.neutralDiffRG !== undefined ? data.neutralDiffRG : (avgR - avgG);
+                        const neutralDiffGR = data.neutralDiffGR !== undefined ? data.neutralDiffGR : (avgG - avgR);
+                        const neutralDiffBR = data.neutralDiffBR !== undefined ? data.neutralDiffBR : (avgB - avgR);
+                        const channelClipR = data.channelClipR || 0;
+                        const channelClipG = data.channelClipG || 0;
+                        const channelClipB = data.channelClipB || 0;
+                        const colorIssues = [];
+
+                        // 1. Phân tích Cân bằng trắng (White Balance) trên bề mặt trung tính (mặt đường, vỉa hè, kính, trần xe)
+                        // Giúp không bị đánh lừa bởi màu sơn đặc trưng của xe (VinBus xanh lá, Phương Trang cam, Hanoibus đỏ-vàng...)
+                        if (neutralPixels > 300) {
+                            if (neutralDiffRB > 22 && neutralDiffGB > 10) {
+                                colorIssues.push("Ám vàng / nóng màu");
+                            } else if (neutralDiffBR > 20) {
+                                colorIssues.push("Ám xanh / lạnh màu");
+                            } else if (neutralDiffRG > 18 && neutralDiffBR > 12) {
+                                colorIssues.push("Ám tím / hồng");
+                            } else if (neutralDiffGR > 18 && neutralDiffGB > 12) {
+                                colorIssues.push("Ám xanh lá");
+                            }
+                        } else {
+                            // Dự phòng khi ảnh không đủ điểm ảnh trung tính (dùng ngưỡng lệch lớn để không báo nhầm màu sơn xe)
+                            if ((avgR - avgB) > 36 && (avgG - avgB) > 18) {
+                                colorIssues.push("Ám vàng / nóng màu");
+                            } else if ((avgB - avgR) > 32) {
+                                colorIssues.push("Ám xanh / lạnh màu");
+                            } else if ((avgG - avgR) > 32 && (avgG - avgB) > 22) {
+                                colorIssues.push("Ám xanh lá");
+                            }
+                        }
+
+                        // 2. Phân tích Bệt màu & Độ tươi (Saturation & Channel Clipping)
+                        if (channelClipR > 4.0 || channelClipG > 4.0 || channelClipB > 4.0) {
+                            colorIssues.push("Bệt màu");
+                        } else if (avgSat > 52) {
+                            colorIssues.push("Quá rực màu");
+                        } else if (avgSat < 10) {
+                            colorIssues.push("Nhợt nhạt");
+                        }
+
+                        if (colorIssues.length === 0) {
+                            colorDiagEl.innerHTML = `<span class="inline-flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400"><i class="fa-solid fa-circle-check"></i> Màu sắc: Cân bằng tốt</span>`;
+                        } else {
+                            colorDiagEl.innerHTML = `<span class="inline-flex items-center gap-1.5 text-amber-600 dark:text-amber-400"><i class="fa-solid fa-triangle-exclamation"></i> Màu sắc: ${app.utils.escapeHtml(colorIssues.join(' • '))}</span>`;
+                        }
+                    }
+                },
+                switchHistogramMode: (photoId, mode) => {
+                    if (!app.admin.histogramMode) app.admin.histogramMode = {};
+                    app.admin.histogramMode[photoId] = mode;
+                    if (app.admin.histogramCache && app.admin.histogramCache[photoId]) {
+                        app.admin.drawHistogram(photoId, app.admin.histogramCache[photoId], mode);
+                    }
+                },
+                renderHistogram: (photoId, imgUrl) => {
+                    if (!imgUrl) {
+                        app.admin.showHistogramError(photoId);
+                        return;
+                    }
+                    if (app.admin.histogramCache && app.admin.histogramCache[photoId]) {
+                        app.admin.drawHistogram(photoId, app.admin.histogramCache[photoId]);
+                        return;
+                    }
+                    const canvas = document.getElementById(`adm-hist-canvas-${photoId}`);
+                    if (!canvas) return;
+                    
+                    const tempImg = new Image();
+                    tempImg.crossOrigin = 'anonymous';
+                    tempImg.src = app.utils.getProxiedUrl(imgUrl, 'hist.jpg', 'thumb');
+                    
+                    let isHandled = false;
+                    const handleSuccess = () => {
+                        if (isHandled) return;
+                        isHandled = true;
+                        try {
+                            const data = app.admin.computeHistogramData(tempImg);
+                            if (!app.admin.histogramCache) app.admin.histogramCache = {};
+                            app.admin.histogramCache[photoId] = data;
+                            app.admin.drawHistogram(photoId, data);
+                        } catch (e) {
+                            tryFallback();
+                        }
+                    };
+                    
+                    const tryFallback = () => {
+                        if (tempImg.src === imgUrl) {
+                            app.admin.showHistogramError(photoId);
+                            return;
+                        }
+                        const fallbackImg = new Image();
+                        fallbackImg.crossOrigin = 'anonymous';
+                        fallbackImg.src = imgUrl;
+                        fallbackImg.onload = () => {
+                            try {
+                                const data = app.admin.computeHistogramData(fallbackImg);
+                                if (!app.admin.histogramCache) app.admin.histogramCache = {};
+                                app.admin.histogramCache[photoId] = data;
+                                app.admin.drawHistogram(photoId, data);
+                            } catch (err) {
+                                app.admin.showHistogramError(photoId);
+                            }
+                        };
+                        fallbackImg.onerror = () => {
+                            app.admin.showHistogramError(photoId);
+                        };
+                    };
+                    
+                    tempImg.onload = handleSuccess;
+                    tempImg.onerror = tryFallback;
+                },
+                showHistogramError: (photoId) => {
+                    const loadingEl = document.getElementById(`adm-hist-loading-${photoId}`);
+                    if (loadingEl) {
+                        loadingEl.innerHTML = `<span class="text-[11px] text-gray-400"><i class="fa-solid fa-circle-exclamation mr-1 text-red-500"></i>Không thể đo sáng nguồn ảnh</span>`;
+                        loadingEl.classList.remove('hidden');
+                    }
+                    const diagEl = document.getElementById(`adm-hist-diag-${photoId}`);
+                    if (diagEl) {
+                        diagEl.innerHTML = `<span class="text-[11px] text-gray-400 italic">Không thể phân tích dữ liệu điểm ảnh</span>`;
+                    }
+                    const colorDiagEl = document.getElementById(`adm-hist-color-diag-${photoId}`);
+                    if (colorDiagEl) colorDiagEl.innerHTML = '';
+                },
                 // ======================================================
 
-                renderSinglePhotoCardHTML: (p, approvedPlateSet = app.admin?.approvedPlateSet || new Set(), approvedOpSet = app.admin?.approvedOpSet || new Set(), approvedRouteSet = app.admin?.approvedRouteSet || new Set(), approvedModelSet = app.admin?.approvedModelSet || new Set()) => {
+                renderSinglePhotoCardHTML: (p, approvedPlateSet = app.admin?.approvedPlateSet || new Set(), approvedOpSet = app.admin?.approvedOpSet || new Set(), approvedRouteSet = app.admin?.approvedRouteSet || new Set(), approvedModelSet = app.admin?.approvedModelSet || new Set(), isQuality = (app.adminTab === 'quality' || p.status === 'pending_quality')) => {
                     const op = app.utils.cleanText(p.operator || '');
                     const type = p.type || 'bus';
                     const route = app.utils.cleanText(p.route_no || '');
@@ -18564,7 +20458,7 @@ Object.assign(window.app, {
                                     ${reviewTabHtml}
                                     <div class="admin-card-header relative z-10 bg-white rounded-t-lg">
                                         <div class="flex items-center gap-2 flex-wrap">
-                                            <span class="font-bold text-sm">${safePlate}</span>
+                                            <span class="font-bold text-sm">${safePlate || ('Ảnh #' + p.id)}</span>
                                             ${plateKey && plateKey !== '---' && !approvedPlateSet.has(plateKey) ? '<span class="badge-xe-moi"><i class="fa-solid fa-sparkles"></i> XE MỚI</span>' : ''}
                                             ${p.suspected_exif_fraud ? '<span class="bg-red-600 text-white px-1.5 py-0.5 rounded text-[10px] font-bold ml-1 tracking-wider whitespace-nowrap"><i class="fa-solid fa-triangle-exclamation mr-1"></i>Nghi ngờ gian lận</span>' : ''}
                                         </div>
@@ -18582,48 +20476,102 @@ Object.assign(window.app, {
                                         <button onclick="app.admin.openZoom('${app.utils.getProxiedUrl(p.url)}', false, true)" class="absolute top-2 right-2 bg-black/50 text-white w-8 h-8 rounded hover:bg-black flex items-center justify-center transition z-20" title="Soi ảnh"><i class="fa-solid fa-expand"></i></button>
                                     </div>
                                     <div class="admin-card-body">
+                                        ${isQuality ? `
+                                            <!-- Bảng đo sáng (Exposure Histogram) -->
+                                            <div class="admin-hist-box border border-black dark:border-white rounded-md p-3 bg-white dark:bg-black">
+                                                <div class="flex items-center justify-between mb-2">
+                                                    <span class="text-xs font-bold text-black dark:text-white flex items-center gap-1.5">
+                                                        <i class="fa-solid fa-mountain-sun"></i> Bảng đo sáng
+                                                    </span>
+                                                    <div class="flex items-center gap-1">
+                                                        <button type="button" onclick="app.admin.switchHistogramMode('${p.id}', 'luma')" id="adm-hist-btn-luma-${p.id}" class="text-[10px] font-bold px-2 py-0.5 rounded border border-black dark:border-white bg-black text-white dark:bg-white dark:text-black transition">Độ sáng</button>
+                                                        <button type="button" onclick="app.admin.switchHistogramMode('${p.id}', 'rgb')" id="adm-hist-btn-rgb-${p.id}" class="text-[10px] font-bold px-2 py-0.5 rounded border border-black dark:border-white bg-white text-black dark:bg-black dark:text-white hover:bg-gray-100 dark:hover:bg-gray-800 transition">RGB</button>
+                                                    </div>
+                                                </div>
+                                                <div class="hist-canvas-box relative w-full h-24 bg-white dark:bg-[#111113] rounded border border-black dark:border-zinc-700 overflow-hidden flex items-center justify-center">
+                                                    <canvas id="adm-hist-canvas-${p.id}" width="512" height="180" class="w-full h-full block"></canvas>
+                                                    <div class="absolute inset-0 pointer-events-none flex justify-between px-[25%] opacity-20">
+                                                        <div class="hist-grid-line w-px h-full bg-black dark:bg-white border-r border-dashed border-black dark:border-white"></div>
+                                                        <div class="hist-grid-line w-px h-full bg-black dark:bg-white border-r border-dashed border-black dark:border-white"></div>
+                                                    </div>
+                                                    <div id="adm-hist-loading-${p.id}" class="hist-loading-overlay absolute inset-0 bg-white/80 dark:bg-[#111113]/80 flex items-center justify-center text-xs text-gray-500 dark:text-gray-400">
+                                                        <i class="fa-solid fa-spinner fa-spin mr-1.5"></i> Đang phân tích sáng...
+                                                    </div>
+                                                </div>
+                                                <div class="flex justify-between items-center text-[10px] text-gray-500 font-mono mt-1 px-1">
+                                                    <span>Tối (0)</span>
+                                                    <span>Trung gian (128)</span>
+                                                    <span>Sáng (255)</span>
+                                                </div>
+                                                <div id="adm-hist-stats-${p.id}" class="mt-2.5 grid grid-cols-3 gap-1.5 text-center">
+                                                    <div class="admin-hist-stat-item p-1.5 bg-gray-50 dark:bg-zinc-900 border border-black dark:border-zinc-700 rounded">
+                                                        <div class="text-[9px] text-gray-500 uppercase font-bold">Độ sáng TB</div>
+                                                        <div id="adm-hist-avg-${p.id}" class="text-xs font-bold text-black dark:text-white font-mono">--%</div>
+                                                    </div>
+                                                    <div class="admin-hist-stat-item p-1.5 bg-gray-50 dark:bg-zinc-900 border border-black dark:border-zinc-700 rounded">
+                                                        <div class="text-[9px] text-gray-500 uppercase font-bold">Cháy tối</div>
+                                                        <div id="adm-hist-shadow-${p.id}" class="text-xs font-bold text-black dark:text-white font-mono">--%</div>
+                                                    </div>
+                                                    <div class="admin-hist-stat-item p-1.5 bg-gray-50 dark:bg-zinc-900 border border-black dark:border-zinc-700 rounded">
+                                                        <div class="text-[9px] text-gray-500 uppercase font-bold">Cháy sáng</div>
+                                                        <div id="adm-hist-high-${p.id}" class="text-xs font-bold text-black dark:text-white font-mono">--%</div>
+                                                    </div>
+                                                </div>
+                                                <div id="adm-hist-diag-${p.id}" class="mt-2 text-center text-[11px] font-bold text-gray-600 dark:text-gray-300"></div>
+                                                <div id="adm-hist-color-diag-${p.id}" class="mt-1 text-center text-[11px] font-bold text-gray-600 dark:text-gray-300"></div>
+                                            </div>
 
-                                        <div class="grid grid-cols-2 gap-2 mb-2">
-                                            <div><span class="admin-label">Biển số</span><input type="text" id="adm-p-plate-${p.id}" value="${safePlate}" class="admin-input transition-all" oninput="app.utils.formatPlateInput(this)" onchange="app.admin.checkPlateAdmin(this, '${p.id}', 'photo')"></div>
-                                            <div>
-                                                <span class="admin-label">Đơn vị${isNewOp ? tagNew : ''}</span>
-                                                <div class="relative">
-                                                    <input type="text" id="adm-p-op-${p.id}" value="${op}" class="admin-input" autocomplete="off" oninput="app.utils.formatNoPunctuation(this); app.utils.triggerSuggestion('adm-p-op-${p.id}', 'adm-sug-op-${p.id}', this.value, 'operator')">
-                                                    <div id="adm-sug-op-${p.id}" class="suggestion-box"></div>
-                                                </div>
-                                            </div>
-                                            <div><span class="admin-label">Loại xe</span><select id="adm-p-type-${p.id}" class="admin-input"><option value="bus" ${type === 'bus' ? 'selected' : ''}>Xe buýt</option><option value="coach" ${type === 'coach' ? 'selected' : ''}>Xe khách</option></select></div>
-                                            <div>
-                                                <span class="admin-label">Tuyến${isNewRoute ? tagNew : ''}</span>
-                                                <div class="relative">
-                                                    <input type="text" id="adm-p-route-${p.id}" value="${route}" class="admin-input" autocomplete="off" onfocus="app.utils.triggerRouteSuggestion('adm-p-route-${p.id}', 'adm-sug-route-${p.id}', '')" oninput="app.utils.triggerRouteSuggestion('adm-p-route-${p.id}', 'adm-sug-route-${p.id}', this.value)">
-                                                    <div id="adm-sug-route-${p.id}" class="suggestion-box"></div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="grid grid-cols-2 gap-2 mb-2">
-                                            <div>
-                                                <span class="admin-label">Dòng xe${isNewModel ? tagNew : ''}</span>
-                                                <div class="relative">
-                                                    ${isNewVehicle ? `
-                                                        <input type="text" id="adm-p-model-${p.id}" value="${model}" class="admin-input" autocomplete="off" oninput="app.utils.triggerSuggestion('adm-p-model-${p.id}', 'adm-sug-model-${p.id}', this.value, 'model')">
-                                                    ` : `
-                                                        <input type="text" id="adm-p-model-${p.id}" value="${model}" class="admin-input cursor-pointer" autocomplete="off" readonly onclick="app.admin.showModelDisabledAlert('${app.utils.escapeAttr(safePlate)}', '${p.id}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();app.admin.showModelDisabledAlert('${app.utils.escapeAttr(safePlate)}', '${p.id}');}" title="Bấm để xem hồ sơ xe">
-                                                    `}
-                                                    <div id="adm-sug-model-${p.id}" class="suggestion-box"></div>
-                                                </div>
-                                            </div>
-                                            <div><span class="admin-label">Vị trí</span><input type="text" id="adm-p-location-${p.id}" value="${location}" class="admin-input" onchange="app.admin.checkDuplicateDateAdmin('${p.id}', '${p.uploader_id}', '${p.taken_at ? p.taken_at.split('T')[0] : ''}')"></div>
-                                        </div>
+                                            ${p.mod_note ? `<div class="mt-2 p-2.5 bg-gray-100 dark:bg-zinc-900 border border-black dark:border-white rounded-md"><span class="block text-xs font-bold text-black dark:text-white mb-1"><i class="fa-solid fa-shield-halved mr-1"></i>Note dành cho kiểm duyệt (Không công khai):</span><div class="text-xs text-black dark:text-white font-mono leading-relaxed whitespace-pre-wrap">${app.utils.escapeHtml(p.mod_note)}</div></div>` : ''}
 
-                                        <div><span class="admin-label">Ghi chú ảnh (Công khai)</span><textarea id="adm-p-note-${p.id}" rows="2" class="admin-input">${note}</textarea></div>
-                                        ${p.mod_note ? `<div class="mt-2 p-2.5 bg-gray-100 border border-black rounded-md"><span class="block text-xs font-bold text-black mb-1"><i class="fa-solid fa-shield-halved mr-1"></i>Note dành cho kiểm duyệt (Không công khai):</span><div class="text-xs text-black font-mono leading-relaxed whitespace-pre-wrap">${app.utils.escapeHtml(p.mod_note)}</div></div>` : ''}
-                                        
-                                        <div class="grid grid-cols-2 gap-2 mt-2">
-                                            <div><span class="admin-label">Ngày chụp gốc</span><input type="text" class="admin-input bg-gray-50 !text-gray-500" value="${p.taken_at ? p.taken_at.split('T')[0] : 'Không rõ'}" disabled></div>
-                                            <div><span class="admin-label">Thiết bị chụp</span><input type="text" class="admin-input bg-gray-50 !text-gray-500 truncate" value="${p.camera_model || 'Không rõ'}" disabled title="${p.camera_model || 'Không rõ'}"></div>
-                                        </div>
-                                        ${p.exif_params ? `<div class="mt-2"><span class="admin-label">Thông số EXIF</span><input type="text" class="admin-input bg-gray-50 !text-gray-500 truncate" value="${p.exif_params}" disabled title="${p.exif_params}"></div>` : ''}
+                                            <div class="mt-2">
+                                                <span class="admin-label">Thiết bị chụp</span>
+                                                <input type="text" class="admin-input bg-gray-50 !text-gray-500 truncate" value="${p.camera_model || 'Không rõ'}" disabled title="${p.camera_model || 'Không rõ'}">
+                                            </div>
+                                            ${p.exif_params ? `<div class="mt-2"><span class="admin-label">Thông số EXIF</span><input type="text" class="admin-input bg-gray-50 !text-gray-500 truncate" value="${p.exif_params}" disabled title="${p.exif_params}"></div>` : ''}
+
+                                            <img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg'/>" class="hidden" onerror="app.admin.renderHistogram('${p.id}', '${app.utils.escapeAttr(p.url)}')">
+                                        ` : `
+                                            <div class="grid grid-cols-2 gap-2 mb-2">
+                                                <div><span class="admin-label">Biển số</span><input type="text" id="adm-p-plate-${p.id}" value="${safePlate}" class="admin-input transition-all" oninput="app.utils.formatPlateInput(this)" onchange="app.admin.checkPlateAdmin(this, '${p.id}', 'photo')"></div>
+                                                <div>
+                                                    <span class="admin-label">Đơn vị${isNewOp ? tagNew : ''}</span>
+                                                    <div class="relative">
+                                                        <input type="text" id="adm-p-op-${p.id}" value="${op}" class="admin-input" autocomplete="off" oninput="app.utils.formatNoPunctuation(this); app.utils.triggerSuggestion('adm-p-op-${p.id}', 'adm-sug-op-${p.id}', this.value, 'operator')">
+                                                        <div id="adm-sug-op-${p.id}" class="suggestion-box"></div>
+                                                    </div>
+                                                </div>
+                                                <div><span class="admin-label">Loại xe</span><select id="adm-p-type-${p.id}" class="admin-input"><option value="bus" ${type === 'bus' ? 'selected' : ''}>Xe buýt</option><option value="coach" ${type === 'coach' ? 'selected' : ''}>Xe khách</option></select></div>
+                                                <div>
+                                                    <span class="admin-label">Tuyến${isNewRoute ? tagNew : ''}</span>
+                                                    <div class="relative">
+                                                        <input type="text" id="adm-p-route-${p.id}" value="${route}" class="admin-input cursor-pointer bg-white" readonly onclick="app.route.openSelector({ targetInputId: 'adm-p-route-${p.id}', vehicleType: document.getElementById('adm-p-type-${p.id}') ? document.getElementById('adm-p-type-${p.id}').value : '${type}', selectedRoute: this.value })">
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="grid grid-cols-2 gap-2 mb-2">
+                                                <div>
+                                                    <span class="admin-label">Dòng xe${isNewModel ? tagNew : ''}</span>
+                                                    <div class="relative">
+                                                        ${isNewVehicle ? `
+                                                            <input type="text" id="adm-p-model-${p.id}" value="${model}" class="admin-input" autocomplete="off" oninput="app.utils.triggerSuggestion('adm-p-model-${p.id}', 'adm-sug-model-${p.id}', this.value, 'model')">
+                                                        ` : `
+                                                            <input type="text" id="adm-p-model-${p.id}" value="${model}" class="admin-input cursor-pointer" autocomplete="off" readonly onclick="app.admin.showModelDisabledAlert('${app.utils.escapeAttr(safePlate)}', '${p.id}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();app.admin.showModelDisabledAlert('${app.utils.escapeAttr(safePlate)}', '${p.id}');}" title="Bấm để xem hồ sơ xe">
+                                                        `}
+                                                        <div id="adm-sug-model-${p.id}" class="suggestion-box"></div>
+                                                    </div>
+                                                </div>
+                                                <div><span class="admin-label">Vị trí</span><input type="text" id="adm-p-location-${p.id}" value="${location}" class="admin-input" onchange="app.admin.checkDuplicateDateAdmin('${p.id}', '${p.uploader_id}', '${p.taken_at ? p.taken_at.split('T')[0] : ''}')"></div>
+                                            </div>
+
+                                            <div><span class="admin-label">Ghi chú ảnh (Công khai)</span><textarea id="adm-p-note-${p.id}" rows="2" class="admin-input">${note}</textarea></div>
+                                            ${p.mod_note ? `<div class="mt-2 p-2.5 bg-gray-100 border border-black rounded-md"><span class="block text-xs font-bold text-black mb-1"><i class="fa-solid fa-shield-halved mr-1"></i>Note dành cho kiểm duyệt (Không công khai):</span><div class="text-xs text-black font-mono leading-relaxed whitespace-pre-wrap">${app.utils.escapeHtml(p.mod_note)}</div></div>` : ''}
+                                            
+                                            <div class="grid grid-cols-2 gap-2 mt-2">
+                                                <div><span class="admin-label">Ngày chụp gốc</span><input type="text" class="admin-input bg-gray-50 !text-gray-500" value="${p.taken_at ? p.taken_at.split('T')[0] : 'Không rõ'}" disabled></div>
+                                                <div><span class="admin-label">Thiết bị chụp</span><input type="text" class="admin-input bg-gray-50 !text-gray-500 truncate" value="${p.camera_model || 'Không rõ'}" disabled title="${p.camera_model || 'Không rõ'}"></div>
+                                            </div>
+                                            ${p.exif_params ? `<div class="mt-2"><span class="admin-label">Thông số EXIF</span><input type="text" class="admin-input bg-gray-50 !text-gray-500 truncate" value="${p.exif_params}" disabled title="${p.exif_params}"></div>` : ''}
+                                        `}
                                         ${(() => {
                                         const isOwnPhoto = p.uploader_id === app.user.id;
                                         const canApprove = (!isOwnPhoto || app.role === 'manager') && !p._isReviewedByMe;
@@ -19440,6 +21388,11 @@ if (app.admin._activeLoadToken !== currentLoadToken || app.adminTab !== tab) ret
                             if (app.admin.update3x3UI) app.admin.update3x3UI();
                             if (app.admin.updateRulerUI) app.admin.updateRulerUI();
                             if (app.admin.updateHideMineUI) app.admin.updateHideMineUI();
+                            if (tab === 'quality') {
+                                photos.forEach(p => {
+                                    setTimeout(() => app.admin.renderHistogram(p.id, p.url), 20);
+                                });
+                            }
 } else if (tab === 'delete') {
                             let html = '';
                             if (app.role === 'manager') {
@@ -19637,8 +21590,7 @@ if (app.admin._activeLoadToken !== currentLoadToken || app.adminTab !== tab) ret
                                                 <div>
                                                     <span class="admin-label">Tuyến ${d.route !== curP.route_no ? tagNew : ''}</span>
                                                     <div class="relative">
-                                                        <input type="text" id="req-route-${r.id}" value="${app.utils.escapeAttr(d.route || '')}" class="admin-input" autocomplete="off" onfocus="app.utils.triggerRouteSuggestion('req-route-${r.id}', 'req-sug-route-${r.id}', '')" oninput="app.utils.triggerRouteSuggestion('req-route-${r.id}', 'req-sug-route-${r.id}', this.value)">
-                                                        <div id="req-sug-route-${r.id}" class="suggestion-box"></div>
+                                                        <input type="text" id="req-route-${r.id}" value="${app.utils.escapeAttr(d.route || '')}" class="admin-input cursor-pointer bg-white" readonly onclick="app.route.openSelector({ targetInputId: 'req-route-${r.id}', vehicleType: document.getElementById('req-type-${r.id}') ? document.getElementById('req-type-${r.id}').value : '${d.type || curP.type || ''}', selectedRoute: this.value })">
                                                     </div>
                                                 </div>
                                             </div>
@@ -19722,6 +21674,42 @@ if (app.admin._activeLoadToken !== currentLoadToken || app.adminTab !== tab) ret
                                             </div>
                                         </div>
                                     </div>`;
+                                } else if (type === 'create_route_info') {
+                                    return `
+                                    <div class="admin-card overflow-visible">
+                                        <div class="admin-card-header bg-teal-50"><span class="font-bold text-xs uppercase text-teal-600">TẠO TUYẾN MỚI</span><span class="text-xs text-gray-500">${username}</span></div>
+                                        <div class="admin-card-body text-xs">
+                                            <p class="font-bold text-sm mb-2 text-black"><i class="fa-solid fa-route mr-1 text-gray-400"></i> ${app.utils.escapeAttr(d.route_name)}</p>
+                                            <div class="space-y-1 mb-4 text-xs border p-2 rounded bg-gray-50">
+                                                <div><span class="font-bold">Số hiệu tuyến:</span> ${app.utils.escapeAttr(d.route_no || '-')}</div>
+                                                <div><span class="font-bold">Tỉnh / Thành phố:</span> ${app.utils.escapeAttr(d.province || '-')}</div>
+                                                <div><span class="font-bold">Lộ trình ngắn:</span> ${app.utils.escapeAttr(d.short_path || '-')}</div>
+                                                <div><span class="font-bold">Mô tả:</span> ${app.utils.escapeAttr(d.description || '-')}</div>
+                                                <div><span class="font-bold">Giá vé lượt:</span> ${app.utils.escapeAttr(d.metadata?.ticket_price || '-')}</div>
+                                                <div><span class="font-bold">Giãn cách:</span> ${app.utils.escapeAttr(d.metadata?.headway || '-')}</div>
+                                                <div><span class="font-bold">Hỗ trợ xe lăn:</span> ${d.metadata?.wheelchair_support ? 'Có' : 'Không'}</div>
+                                            </div>
+                                            <div class="flex gap-2 mt-3">
+                                                <button onclick="app.admin.approveReq('${r.id}', this, 'create_route_info')" class="flex-1 bg-green-600 text-white py-1.5 font-bold rounded hover:bg-green-700">DUYỆT TẠO</button>
+                                                <button onclick="app.admin.denyReq('${r.id}', this)" class="flex-1 bg-red-600 text-white py-1.5 font-bold rounded hover:bg-red-700">TỪ CHỐI</button>
+                                            </div>
+                                        </div>
+                                    </div>`;
+                                } else if (type === 'delete_route') {
+                                    return `
+                                    <div class="admin-card overflow-visible">
+                                        <div class="admin-card-header bg-red-50"><span class="font-bold text-xs uppercase text-red-600">YÊU CẦU XÓA TUYẾN</span><span class="text-xs text-gray-500">${username}</span></div>
+                                        <div class="admin-card-body text-xs">
+                                            <p class="font-bold text-sm mb-2 text-black"><i class="fa-solid fa-triangle-exclamation mr-1 text-red-500"></i> Xóa tuyến: ${app.utils.escapeAttr(d.route_name)}</p>
+                                            <div class="p-2.5 bg-gray-50 border border-gray-200 rounded text-xs leading-relaxed mb-3">
+                                                Chuyển toàn bộ ảnh và lịch sử xe sang tuyến: <strong class="text-black">${app.utils.escapeAttr(d.dest_route_name || d.dest_route_no || 'Ngoài giờ hoạt động')}</strong>.
+                                            </div>
+                                            <div class="flex gap-2 mt-3">
+                                                <button onclick="app.admin.approveReq('${r.id}', this, 'delete_route')" class="flex-1 bg-red-600 text-white py-1.5 font-bold rounded hover:bg-red-700">DUYỆT XÓA</button>
+                                                <button onclick="app.admin.denyReq('${r.id}', this)" class="flex-1 bg-gray-600 text-white py-1.5 font-bold rounded hover:bg-gray-700">TỪ CHỐI</button>
+                                            </div>
+                                        </div>
+                                    </div>`;
                                 } else if (type === 'unmerge_vehicle') {
                                     let details = `<div class="p-3 bg-red-50 border border-red-200 rounded text-red-800 text-sm">
                                         <p class="font-bold mb-1"><i class="fa-solid fa-scissors mr-1"></i> Yêu cầu tách xe</p>
@@ -19793,8 +21781,7 @@ if (app.admin._activeLoadToken !== currentLoadToken || app.adminTab !== tab) ret
                                                 <div>
                                                     <span class="admin-label">Tuyến ${routeTag}</span>
                                                     <div class="relative">
-                                                        <input type="text" id="req-h-route-${r.id}-${i}" value="${app.utils.escapeAttr(h.route || '')}" class="admin-input" autocomplete="off" onfocus="app.utils.triggerRouteSuggestion('req-h-route-${r.id}-${i}', 'req-h-sug-route-${r.id}-${i}', '')" oninput="app.utils.triggerRouteSuggestion('req-h-route-${r.id}-${i}', 'req-h-sug-route-${r.id}-${i}', this.value)">
-                                                        <div id="req-h-sug-route-${r.id}-${i}" class="suggestion-box"></div>
+                                                        <input type="text" id="req-h-route-${r.id}-${i}" value="${app.utils.escapeAttr(h.route || '')}" class="admin-input cursor-pointer bg-white" readonly onclick="app.route.openSelector({ targetInputId: 'req-h-route-${r.id}-${i}', vehicleType: '${curV.type || ''}', selectedRoute: this.value })">
                                                     </div>
                                                 </div>
                                             </div>
@@ -21696,16 +23683,23 @@ if (cbQuality) newSubroles.push('quality_aud');
                     window.scrollTo({ top: currentScrollY, behavior: 'instant' });
                     btn.innerText = "Đang tải lên CDN..."; btn.disabled = true; btn.classList.add('btn-loading');
                     try {
-                        const plate = document.getElementById(`adm-p-plate-${id}`).value.trim();
-                        const op = document.getElementById(`adm-p-op-${id}`).value.trim();
-                        const type = document.getElementById(`adm-p-type-${id}`).value;
-                        const route = document.getElementById(`adm-p-route-${id}`).value.trim();
-                        const model = document.getElementById(`adm-p-model-${id}`).value.trim();
-                        const location = document.getElementById(`adm-p-location-${id}`).value.trim();
-                        const note = document.getElementById(`adm-p-note-${id}`).value.trim();
+                        const plateEl = document.getElementById(`adm-p-plate-${id}`);
+                        const plate = plateEl ? plateEl.value.trim() : (app.admin.originalData?.['photo_' + id]?.plate || '');
+                        const opEl = document.getElementById(`adm-p-op-${id}`);
+                        const op = opEl ? opEl.value.trim() : (app.admin.originalData?.['photo_' + id]?.operator || '');
+                        const typeEl = document.getElementById(`adm-p-type-${id}`);
+                        const type = typeEl ? typeEl.value : (app.admin.originalData?.['photo_' + id]?.type || 'bus');
+                        const routeEl = document.getElementById(`adm-p-route-${id}`);
+                        const route = routeEl ? (routeEl.dataset?.routeName || routeEl.value.trim()) : (app.admin.originalData?.['photo_' + id]?.route || '');
+                        const modelEl = document.getElementById(`adm-p-model-${id}`);
+                        const model = modelEl ? modelEl.value.trim() : (app.admin.originalData?.['photo_' + id]?.model || '');
+                        const locationEl = document.getElementById(`adm-p-location-${id}`);
+                        const location = locationEl ? locationEl.value.trim() : (app.admin.originalData?.['photo_' + id]?.location || '');
+                        const noteEl = document.getElementById(`adm-p-note-${id}`);
+                        const note = noteEl ? noteEl.value.trim() : '';
                         const provinceEl = document.getElementById(`adm-p-province-${id}`);
                         const province = provinceEl ? provinceEl.value : '';
-                        if (await app.utils.checkModelDuplicatePolicy(plate, model)) {
+                        if (plateEl && modelEl && await app.utils.checkModelDuplicatePolicy(plate, model)) {
                             if (cardEl && parentEl) {
                                 if (originalNextSibling && originalNextSibling !== cardEl) parentEl.insertBefore(cardEl, originalNextSibling);
                                 else parentEl.appendChild(cardEl);
@@ -21718,7 +23712,7 @@ if (cbQuality) newSubroles.push('quality_aud');
                         }
                         let exif_perfect = false;
                         const orig = app.admin.originalData && app.admin.originalData['photo_' + id];
-                        if (orig && orig.plate === plate && orig.operator === op && orig.type === type && orig.route === route && orig.model === model && orig.location === location) {
+                        if (plateEl && orig && orig.plate === plate && orig.operator === op && orig.type === type && orig.route === route && orig.model === model && orig.location === location) {
                             exif_perfect = true;
                         }
 
@@ -21881,7 +23875,8 @@ if (cbQuality) newSubroles.push('quality_aud');
                         btn.innerText = "Đang xử lý..."; btn.disabled = true; btn.classList.add('btn-loading');
                         (async () => {
                             try {
-                                const plate = document.getElementById(`adm-p-plate-${id}`).value.trim();
+                                const plateEl = document.getElementById(`adm-p-plate-${id}`);
+                                const plate = plateEl ? plateEl.value.trim() : (app.admin.originalData?.['photo_' + id]?.plate || '');
                                 const location = document.getElementById(`adm-p-location-${id}`)?.value?.trim();
                                 const res = await fetch('/api/admin/action', {
                                     method: 'POST',
@@ -22106,19 +24101,26 @@ if (cbQuality) newSubroles.push('quality_aud');
                                 if (Object.keys(metadataObj).length === 0) metadataObj = null;
                             }
                             
+                            const expectedRouteNo = req.new_data.route_no || (req.new_data.route_name.includes(' - ') ? req.new_data.route_name.split(' - ')[0].trim() : req.new_data.route_name);
+                            const targetProvince = req.new_data.province || (req.new_data.route_name.includes(' - ') ? req.new_data.route_name.split(' - ')[1].trim() : null);
+
                             if (!desc && !shortPath && !isInactive && !metadataObj) {
                                 const { error: delErr } = await window.sb.from('route_info').delete().eq('route_name', req.new_data.route_name);
                                 if (delErr) throw delErr;
                             } else {
                                 const { error: upsertErr } = await window.sb.from('route_info').upsert({
                                     route_name: req.new_data.route_name,
+                                    route_no: expectedRouteNo,
+                                    province: targetProvince,
                                     short_path: shortPath || null,
                                     description: desc || null,
                                     is_inactive: isInactive,
+                                    is_special: false,
                                     metadata: metadataObj
-                                });
+                                }, { onConflict: 'route_name' });
                                 if (upsertErr) throw upsertErr;
                             }
+                            if (app.route) app.route.cachedRoutes = null;
                             
                             // Xử lý cập nhật ID ảnh và biển số xe vá tuyến
                             const rawInputList = borrowedPhotosStr ? borrowedPhotosStr.split(',').map(s => s.trim()).filter(Boolean) : [];
@@ -22131,9 +24133,6 @@ if (cbQuality) newSubroles.push('quality_aud');
                             
                             const addedIdsRaw = newBorrowedIds.filter(id => !curIds.includes(id));
                             const removedIds = curIds.filter(id => !newBorrowedIds.includes(id));
-                            
-                            const expectedRouteNo = req.new_data.route_name.split(' - ')[0];
-                            const targetProvince = req.new_data.route_name.split(' - ')[1] || '';
                             
                             if (enteredPlates.length > 0) {
                                 const { data: retroPhotos } = await window.sb.from('photos').select('id, route_no').in('license_plate', enteredPlates).eq('route_no', expectedRouteNo);
@@ -22179,6 +24178,50 @@ if (cbQuality) newSubroles.push('quality_aud');
                                     await window.sb.from('photos').update({ borrowed_route: null }).eq('id', p.id);
                                 }
                             }
+                        }
+                        else if (reqType === 'create_route_info' || req.new_data?.request_type === 'create_route_info') {
+                            const d = req.new_data;
+                            const routeName = d.route_name;
+                            const routeNo = d.route_no || (routeName.includes(' - ') ? routeName.split(' - ')[0].trim() : routeName);
+                            const province = d.province || (routeName.includes(' - ') ? routeName.split(' - ')[1].trim() : null);
+
+                            const { error: upsertErr } = await window.sb.from('route_info').upsert({
+                                route_name: routeName,
+                                route_no: routeNo,
+                                province: province,
+                                short_path: d.short_path || null,
+                                description: d.description || null,
+                                is_inactive: !!d.is_inactive,
+                                is_special: false,
+                                metadata: d.metadata || null
+                            }, { onConflict: 'route_name' });
+                            if (upsertErr) throw upsertErr;
+
+                            if (app.route) app.route.cachedRoutes = null;
+                        }
+                        else if (reqType === 'delete_route' || req.new_data?.request_type === 'delete_route') {
+                            const d = req.new_data;
+                            const deletingName = d.route_name;
+                            const deletingNo = d.route_no || deletingName.split(' - ')[0].trim();
+                            const destRouteNo = (d.dest_route_no || 'Ngoài giờ hoạt động').trim();
+                            const destRouteName = (d.dest_route_name || destRouteNo).trim();
+                            const newBorrowed = destRouteName !== destRouteNo ? destRouteName : null;
+
+                            // 1. Chuyển tất cả ảnh thuộc tuyến bị xóa sang tuyến đích
+                            await window.sb.from('photos')
+                                .update({ route_no: destRouteNo, borrowed_route: newBorrowed })
+                                .or(`route_no.eq."${deletingNo}",borrowed_route.eq."${deletingName}"`);
+
+                            // 2. Chuyển tất cả lịch sử phương tiện (vehicle_history) sang tuyến đích
+                            await window.sb.from('vehicle_history')
+                                .update({ route: destRouteNo })
+                                .or(`route.eq."${deletingNo}",route.eq."${deletingName}"`);
+
+                            // 3. Xóa hồ sơ tuyến khỏi bảng route_info
+                            const { error: delErr } = await window.sb.from('route_info').delete().eq('route_name', deletingName);
+                            if (delErr) throw delErr;
+
+                            if (app.route) app.route.cachedRoutes = null;
                         }
                         else if (reqType === 'model_info' || req.new_data.request_type === 'update_model_info') {
                             const logo = document.getElementById(`req-mdl-logo-${id}`).value.trim();

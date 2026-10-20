@@ -2498,8 +2498,14 @@ Object.assign(window.app, {
                     }
                     const valPlate = document.getElementById('up-plate').value.trim();
                     const valOp = document.getElementById('up-operator').value.trim();
-                    const valType = document.getElementById('up-type').value;
-                    const valRoute = document.getElementById('up-route').value.trim();
+                    const routeEl = document.getElementById('up-route');
+                    let valRoute = (routeEl?.dataset?.routeName || routeEl?.value || '').trim();
+                    if (valRoute && !valRoute.includes(' - ') && (!app.route?.specialRoutes || !app.route.specialRoutes.includes(valRoute))) {
+                        const upProv = document.getElementById('up-province')?.value || (valPlate ? app.utils.getProvinceFromPlate(valPlate) : '');
+                        if (upProv && upProv !== 'Không xác định' && upProv !== 'Biển tạm') {
+                            valRoute = `${valRoute} - ${upProv}`;
+                        }
+                    }
                     const valModel = document.getElementById('up-model').value.trim();
                     const valLoc = document.getElementById('up-location').value.trim();
                     const valDate = document.getElementById('up-date').value;
