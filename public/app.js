@@ -8972,7 +8972,13 @@ let currentRouteProvName = null;
                             const latestHist = historyData[historyData.length - 1];
                             const histRoute = (latestHist.route || '').trim();
                             if (histRoute && histRoute !== '-' && histRoute !== '---') {
-                                currentRouteClientSide = histRoute;
+                                if (histRoute.includes(' - ')) {
+                                    const parts = histRoute.split(' - ');
+                                    currentRouteClientSide = parts[0].trim();
+                                    if (parts.length > 1) currentRouteProvName = parts.slice(1).join(' - ').trim();
+                                } else {
+                                    currentRouteClientSide = histRoute;
+                                }
                             }
                             const histOp = (latestHist.operator || '').trim();
                             if (histOp && histOp !== '-' && histOp !== '---') {
@@ -9064,7 +9070,7 @@ let currentRouteProvName = null;
                                             </div>
                                         </div>
                                             <span class="sm:hidden font-bold text-gray-500 mb-1">Tuyến</span>
-                                            <input type="text" id="veh-hist-new-route" readonly placeholder="Chọn tuyến..." onfocus="this.blur()" class="hist-input cursor-pointer bg-white select-none caret-transparent" onclick="this.blur(); app.route.openSelector({ targetInputId: 'veh-hist-new-route', isHistory: true, onSelect: (r) => { document.getElementById('veh-hist-new-route').value = r.route_no; app.utils.checkRouteStatus(r.route_no, 'veh-hist-new-op', 'veh-hist-new-op-wrapper'); } })">
+                                            <input type="text" id="veh-hist-new-route" readonly placeholder="Chọn tuyến..." onfocus="this.blur()" class="hist-input cursor-pointer bg-white select-none caret-transparent" onclick="this.blur(); app.route.openSelector({ targetInputId: 'veh-hist-new-route', isHistory: true, onSelect: (r) => { const plate = document.getElementById('veh-hist-new-plate')?.value.trim() || app.currentPlate || ''; const vehProv = plate ? app.utils.getProvinceFromPlate(plate) : ''; const routeProv = r.route_name && r.route_name.includes(' - ') ? r.route_name.split(' - ').slice(1).join(' - ').trim() : ''; const routeVal = (routeProv && vehProv && routeProv.toLowerCase() !== vehProv.toLowerCase()) ? r.route_name : r.route_no; const el = document.getElementById('veh-hist-new-route'); if (el) { el.value = routeVal; el.dataset.routeName = r.route_name || routeVal; } app.utils.checkRouteStatus(r.route_no, 'veh-hist-new-op', 'veh-hist-new-op-wrapper'); } })">
                                         </div>
                                     </div>
                                     <div class="flex flex-col sm:flex-row gap-2 items-start mt-1">
@@ -14055,6 +14061,12 @@ if (!decodedProvince || decodedProvince.trim() === '') {
                             const isHistMatch = (h) => {
                                 if (h.route === deletingName) return true;
                                 if (h.route === deletingNo) {
+                                    const vehiclePhotos = (candPhotos || []).filter(p => (p.license_plate || '').toUpperCase() === (h.license_plate || '').toUpperCase());
+                                    const hasThisBorrowed = vehiclePhotos.some(p => p.borrowed_route === deletingName);
+                                    if (hasThisBorrowed) return true;
+                                    const hasOtherBorrowed = vehiclePhotos.some(p => p.borrowed_route && p.borrowed_route !== deletingName && p.route_no === deletingNo);
+                                    if (hasOtherBorrowed) return false;
+
                                     if (provMatch) {
                                         if (provPrefixes.some(pref => (h.license_plate || '').startsWith(pref))) return true;
                                         if (app.utils.getProvinceFromPlate && app.utils.getProvinceFromPlate(h.license_plate) === provMatch.ten) return true;
@@ -19521,7 +19533,7 @@ Object.assign(window.app, {
                                   </div>
                                   <div class="flex flex-col sm:flex-1 min-w-0">
                                       <span class="sm:hidden font-bold text-gray-500 mb-1">Tuyến</span>
-                                      <input type="text" id="${prefix}hist-route-${index}" value="${app.utils.escapeAttr(h.route || '')}" readonly placeholder="Chọn tuyến..." onfocus="this.blur()" class="hist-input cursor-pointer bg-white select-none caret-transparent" onclick="this.blur(); app.route.openSelector({ targetInputId: '${prefix}hist-route-${index}', isHistory: true, selectedRoute: this.value, onSelect: (r) => { app.vehicle.updateHistoryItem(${index}, 'route', r.route_no, '${prefix}'); app.utils.checkRouteStatus(r.route_no, '${prefix}hist-op-input-${index}', '${prefix}hist-op-wrapper-${index}'); } })">
+                                      <input type="text" id="${prefix}hist-route-${index}" value="${app.utils.escapeAttr(h.route || '')}" readonly placeholder="Chọn tuyến..." onfocus="this.blur()" class="hist-input cursor-pointer bg-white select-none caret-transparent" onclick="this.blur(); app.route.openSelector({ targetInputId: '${prefix}hist-route-${index}', isHistory: true, selectedRoute: this.value, onSelect: (r) => { const itemPlate = app.vehicle.tempHistory[${index}]?.plate || app.currentPlate || ''; const vehProv = itemPlate ? app.utils.getProvinceFromPlate(itemPlate) : ''; const routeProv = r.route_name && r.route_name.includes(' - ') ? r.route_name.split(' - ').slice(1).join(' - ').trim() : ''; const routeVal = (routeProv && vehProv && routeProv.toLowerCase() !== vehProv.toLowerCase()) ? r.route_name : r.route_no; app.vehicle.updateHistoryItem(${index}, 'route', routeVal, '${prefix}'); const targetEl = document.getElementById('${prefix}hist-route-${index}'); if (targetEl) targetEl.value = routeVal; app.utils.checkRouteStatus(r.route_no, '${prefix}hist-op-input-${index}', '${prefix}hist-op-wrapper-${index}'); } })">
                                   </div>
                             </div>
                             <div class="flex flex-col sm:flex-row gap-2 items-start mt-1">
@@ -19577,15 +19589,22 @@ Object.assign(window.app, {
                     const rawDate = document.getElementById(prefix + 'hist-new-date').value;
                     const dateVal = app.utils.parseDDMMYYYYToDate(rawDate);
                     const op = document.getElementById(prefix + 'hist-new-op').value;
-                    const route = (document.getElementById(prefix + 'hist-new-route')?.value || '').trim();
+                    const routeInput = document.getElementById(prefix + 'hist-new-route');
+                    let route = (routeInput?.dataset.routeName || routeInput?.value || '').trim();
                     const note = document.getElementById(prefix + 'hist-new-note') ? document.getElementById(prefix + 'hist-new-note').value : '';
-                    const plate = document.getElementById(prefix + 'hist-new-plate') ? document.getElementById(prefix + 'hist-new-plate').value.trim() : '';
+                    const plate = (document.getElementById(prefix + 'hist-new-plate') ? document.getElementById(prefix + 'hist-new-plate').value.trim() : '') || app.currentPlate || '';
                     if(!rawDate || !op) return app.ui.showAlert("Vui lòng nhập Ngày áp dụng và Đơn vị vận hành!");
                     if(!dateVal) return app.ui.showAlert("Ngày không hợp lệ! Vui lòng nhập đúng định dạng DD/MM/YYYY.");
                     
                     const invalidHistoryRoutes = ['Ngoài giờ hoạt động', 'Chưa hoạt động'];
                     if (invalidHistoryRoutes.includes(route)) {
                         return app.ui.showAlert(`Tuyến "${route}" không được phép ghi vào lịch sử xe. Chỉ có tuyến "Dừng hoạt động" được phép ghi vào lịch sử.`);
+                    }
+
+                    const vehProv = plate ? app.utils.getProvinceFromPlate(plate) : '';
+                    const routeProv = route.includes(' - ') ? route.split(' - ').slice(1).join(' - ').trim() : '';
+                    if (routeProv && vehProv && routeProv.toLowerCase() === vehProv.toLowerCase()) {
+                        route = route.split(' - ')[0].trim();
                     }
 
                     app.vehicle.tempHistory.push({
@@ -19600,7 +19619,10 @@ Object.assign(window.app, {
                     if(document.getElementById(prefix + 'hist-new-plate')) document.getElementById(prefix + 'hist-new-plate').value = '';
                     if(document.getElementById(prefix + 'hist-new-note')) document.getElementById(prefix + 'hist-new-note').value = '';
                     if(document.getElementById(prefix + 'hist-new-op')) document.getElementById(prefix + 'hist-new-op').value = '';
-                    if(document.getElementById(prefix + 'hist-new-route')) document.getElementById(prefix + 'hist-new-route').value = '';
+                    if(document.getElementById(prefix + 'hist-new-route')) {
+                        document.getElementById(prefix + 'hist-new-route').value = '';
+                        document.getElementById(prefix + 'hist-new-route').dataset.routeName = '';
+                    }
                     app.vehicle.renderEditList(prefix);
                 },
                 removeHistoryItem: (index, prefix) => {
@@ -19619,14 +19641,20 @@ Object.assign(window.app, {
                         if (!rawDate || !op) return app.ui.showAlert("Vui lòng nhập Ngày áp dụng và Đơn vị vận hành cho mục mới đang nhập dở!");
                         if (!dateVal) return app.ui.showAlert("Ngày đang nhập dở không hợp lệ! Vui lòng nhập đúng định dạng DD/MM/YYYY.");
                         
-                        const route = document.getElementById(prefix + 'hist-new-route') ? document.getElementById(prefix + 'hist-new-route').value.trim() : '';
+                        const routeInput = document.getElementById(prefix + 'hist-new-route');
+                        let route = (routeInput?.dataset.routeName || routeInput?.value || '').trim();
                         const invalidHistoryRoutes = ['Ngoài giờ hoạt động', 'Chưa hoạt động'];
                         if (invalidHistoryRoutes.includes(route)) {
                             return app.ui.showAlert(`Tuyến "${route}" không được phép ghi vào lịch sử xe. Chỉ có tuyến "Dừng hoạt động" được phép ghi vào lịch sử.`);
                         }
 
                         const note = document.getElementById(prefix + 'hist-new-note') ? document.getElementById(prefix + 'hist-new-note').value.trim() : '';
-                        const plate = document.getElementById(prefix + 'hist-new-plate') ? document.getElementById(prefix + 'hist-new-plate').value.trim() : '';
+                        const plate = (document.getElementById(prefix + 'hist-new-plate') ? document.getElementById(prefix + 'hist-new-plate').value.trim() : '') || app.currentPlate || '';
+                        const vehProv = plate ? app.utils.getProvinceFromPlate(plate) : '';
+                        const routeProv = route.includes(' - ') ? route.split(' - ').slice(1).join(' - ').trim() : '';
+                        if (routeProv && vehProv && routeProv.toLowerCase() === vehProv.toLowerCase()) {
+                            route = route.split(' - ')[0].trim();
+                        }
                         
                         app.vehicle.tempHistory.push({
                             license_plate: app.currentPlate,
@@ -19641,7 +19669,10 @@ Object.assign(window.app, {
                         opInput.value = '';
                         if(document.getElementById(prefix + 'hist-new-plate')) document.getElementById(prefix + 'hist-new-plate').value = '';
                         if(document.getElementById(prefix + 'hist-new-note')) document.getElementById(prefix + 'hist-new-note').value = '';
-                        if(document.getElementById(prefix + 'hist-new-route')) document.getElementById(prefix + 'hist-new-route').value = '';
+                        if(document.getElementById(prefix + 'hist-new-route')) {
+                            document.getElementById(prefix + 'hist-new-route').value = '';
+                            document.getElementById(prefix + 'hist-new-route').dataset.routeName = '';
+                        }
                         
                         app.vehicle.renderEditList(prefix);
                     }
@@ -19765,13 +19796,24 @@ Object.assign(window.app, {
                 },
                 syncHistoryOnPhotoEdit: async (plate, takenAtIso, oldData, newData, isPlateChanged = false) => {
                     if (!takenAtIso || !plate) return;
-                    if (!isPlateChanged && oldData.operator === newData.operator && oldData.route_no === newData.route_no) return;
+                    if (!isPlateChanged && oldData.operator === newData.operator && oldData.route_no === newData.route_no && oldData.borrowed_route === newData.borrowed_route) return;
                     const targetDate = takenAtIso.split('T')[0];
                     const specialRoutes = ['Ngoài giờ hoạt động', 'Chưa hoạt động'];
                     const isSpecial = specialRoutes.includes(newData.route_no);
-                    const isSameRoute = (r1, r2) => (r1 || '').trim().toLowerCase() === (r2 || '').trim().toLowerCase();
+                    const isSameRoute = (r1, r2) => {
+                        if (!r1 || !r2) return false;
+                        const s1 = (r1 || '').trim().toLowerCase();
+                        const s2 = (r2 || '').trim().toLowerCase();
+                        if (s1 === s2) return true;
+                        const p1 = s1.includes(' - ') ? s1.split(' - ').slice(1).join(' - ').trim() : '';
+                        const p2 = s2.includes(' - ') ? s2.split(' - ').slice(1).join(' - ').trim() : '';
+                        if (p1 && p2 && p1 !== p2) return false;
+                        const no1 = s1.split(' - ')[0].trim();
+                        const no2 = s2.split(' - ')[0].trim();
+                        return no1 === no2;
+                    };
                     try {
-                        const { data: photos } = await window.sb.from('photos').select('id, operator, route_no')
+                        const { data: photos } = await window.sb.from('photos').select('id, operator, route_no, borrowed_route')
                             .eq('license_plate', plate)
                             .like('taken_at', `${targetDate}%`)
                             .eq('status', 'approved');
@@ -19781,7 +19823,7 @@ Object.assign(window.app, {
                                 const fallback = otherNormalPhotos[0];
                                 await window.sb.from('vehicle_history').update({
                                     operator: fallback.operator,
-                                    route: fallback.route_no
+                                    route: fallback.borrowed_route || fallback.route_no
                                 }).eq('license_plate', plate).eq('effective_date', targetDate);
                             } else {
                                 await window.sb.from('vehicle_history').delete()
@@ -19794,7 +19836,10 @@ Object.assign(window.app, {
                                 .order('effective_date', { ascending: true });
                             allHistory = allHistory || [];
 
-                            const route = newData.route_no;
+                            const vehProv = plate ? app.utils.getProvinceFromPlate(plate) : '';
+                            const rawBorrow = newData.borrowed_route || (newData.route_name && newData.route_name.includes(' - ') ? newData.route_name : null);
+                            const routeProv = rawBorrow && rawBorrow.includes(' - ') ? rawBorrow.split(' - ').slice(1).join(' - ').trim() : '';
+                            const route = (rawBorrow && routeProv && vehProv && routeProv.toLowerCase() !== vehProv.toLowerCase()) ? rawBorrow : newData.route_no;
                             const op = newData.operator;
 
                             const normalizeText = (str) => {
@@ -24235,17 +24280,17 @@ if (cbQuality) newSubroles.push('quality_aud');
                             if (vError) throw vError;
                             if (req.new_data.photo_id) {
                                 const { data: oldP } = await window.sb.from('photos').select('license_plate, operator, route_no, taken_at').eq('id', req.new_data.photo_id).single();
+                                const finalRouteNo = (route && route.includes(' - ')) ? route.split(' - ')[0].trim() : route;
+                                const finalBorrowed = (route && route.includes(' - ')) ? route : (req.new_data?.borrowed_route || null);
                                 let updateObj = {
                                     license_plate: plate,
                                     note: note,
                                     location: loc,
                                     operator: op,
                                     type: type,
-                                    route_no: route
+                                    route_no: finalRouteNo,
+                                    borrowed_route: finalBorrowed
                                 };
-                                if (oldP && oldP.route_no !== route) {
-                                    updateObj.borrowed_route = null;
-                                }
                                 const { error: pError } = await window.sb.from('photos').update(updateObj).eq('id', req.new_data.photo_id);
                                 if (pError) throw pError;
                                 if (oldP && oldP.taken_at) {
@@ -24253,8 +24298,8 @@ if (cbQuality) newSubroles.push('quality_aud');
                                     await app.vehicle.syncHistoryOnPhotoEdit(
                                         plate,
                                         oldP.taken_at,
-                                        { operator: oldP.operator, route_no: oldP.route_no },
-                                        { operator: op, route_no: route },
+                                        { operator: oldP.operator, route_no: oldP.route_no, borrowed_route: oldP.borrowed_route },
+                                        { operator: op, route_no: finalRouteNo, borrowed_route: finalBorrowed },
                                         isPlateChanged
                                     );
                                 }
@@ -24548,6 +24593,12 @@ if (cbQuality) newSubroles.push('quality_aud');
                             const isHistMatch = (h) => {
                                 if (h.route === deletingName) return true;
                                 if (h.route === deletingNo) {
+                                    const vehiclePhotos = (candPhotos || []).filter(p => (p.license_plate || '').toUpperCase() === (h.license_plate || '').toUpperCase());
+                                    const hasThisBorrowed = vehiclePhotos.some(p => p.borrowed_route === deletingName);
+                                    if (hasThisBorrowed) return true;
+                                    const hasOtherBorrowed = vehiclePhotos.some(p => p.borrowed_route && p.borrowed_route !== deletingName && p.route_no === deletingNo);
+                                    if (hasOtherBorrowed) return false;
+
                                     if (provMatch) {
                                         if (provPrefixes.some(pref => (h.license_plate || '').startsWith(pref))) return true;
                                         if (app.utils.getProvinceFromPlate && app.utils.getProvinceFromPlate(h.license_plate) === provMatch.ten) return true;

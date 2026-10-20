@@ -2182,7 +2182,13 @@ let currentRouteProvName = null;
                             const latestHist = historyData[historyData.length - 1];
                             const histRoute = (latestHist.route || '').trim();
                             if (histRoute && histRoute !== '-' && histRoute !== '---') {
-                                currentRouteClientSide = histRoute;
+                                if (histRoute.includes(' - ')) {
+                                    const parts = histRoute.split(' - ');
+                                    currentRouteClientSide = parts[0].trim();
+                                    if (parts.length > 1) currentRouteProvName = parts.slice(1).join(' - ').trim();
+                                } else {
+                                    currentRouteClientSide = histRoute;
+                                }
                             }
                             const histOp = (latestHist.operator || '').trim();
                             if (histOp && histOp !== '-' && histOp !== '---') {
@@ -2274,7 +2280,7 @@ let currentRouteProvName = null;
                                             </div>
                                         </div>
                                             <span class="sm:hidden font-bold text-gray-500 mb-1">Tuyến</span>
-                                            <input type="text" id="veh-hist-new-route" readonly placeholder="Chọn tuyến..." onfocus="this.blur()" class="hist-input cursor-pointer bg-white select-none caret-transparent" onclick="this.blur(); app.route.openSelector({ targetInputId: 'veh-hist-new-route', isHistory: true, onSelect: (r) => { document.getElementById('veh-hist-new-route').value = r.route_no; app.utils.checkRouteStatus(r.route_no, 'veh-hist-new-op', 'veh-hist-new-op-wrapper'); } })">
+                                            <input type="text" id="veh-hist-new-route" readonly placeholder="Chọn tuyến..." onfocus="this.blur()" class="hist-input cursor-pointer bg-white select-none caret-transparent" onclick="this.blur(); app.route.openSelector({ targetInputId: 'veh-hist-new-route', isHistory: true, onSelect: (r) => { const plate = document.getElementById('veh-hist-new-plate')?.value.trim() || app.currentPlate || ''; const vehProv = plate ? app.utils.getProvinceFromPlate(plate) : ''; const routeProv = r.route_name && r.route_name.includes(' - ') ? r.route_name.split(' - ').slice(1).join(' - ').trim() : ''; const routeVal = (routeProv && vehProv && routeProv.toLowerCase() !== vehProv.toLowerCase()) ? r.route_name : r.route_no; const el = document.getElementById('veh-hist-new-route'); if (el) { el.value = routeVal; el.dataset.routeName = r.route_name || routeVal; } app.utils.checkRouteStatus(r.route_no, 'veh-hist-new-op', 'veh-hist-new-op-wrapper'); } })">
                                         </div>
                                     </div>
                                     <div class="flex flex-col sm:flex-row gap-2 items-start mt-1">

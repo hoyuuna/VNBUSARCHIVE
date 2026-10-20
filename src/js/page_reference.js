@@ -2259,6 +2259,12 @@ if (!decodedProvince || decodedProvince.trim() === '') {
                             const isHistMatch = (h) => {
                                 if (h.route === deletingName) return true;
                                 if (h.route === deletingNo) {
+                                    const vehiclePhotos = (candPhotos || []).filter(p => (p.license_plate || '').toUpperCase() === (h.license_plate || '').toUpperCase());
+                                    const hasThisBorrowed = vehiclePhotos.some(p => p.borrowed_route === deletingName);
+                                    if (hasThisBorrowed) return true;
+                                    const hasOtherBorrowed = vehiclePhotos.some(p => p.borrowed_route && p.borrowed_route !== deletingName && p.route_no === deletingNo);
+                                    if (hasOtherBorrowed) return false;
+
                                     if (provMatch) {
                                         if (provPrefixes.some(pref => (h.license_plate || '').startsWith(pref))) return true;
                                         if (app.utils.getProvinceFromPlate && app.utils.getProvinceFromPlate(h.license_plate) === provMatch.ten) return true;

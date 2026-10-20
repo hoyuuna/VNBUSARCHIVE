@@ -4202,17 +4202,17 @@ if (cbQuality) newSubroles.push('quality_aud');
                             if (vError) throw vError;
                             if (req.new_data.photo_id) {
                                 const { data: oldP } = await window.sb.from('photos').select('license_plate, operator, route_no, taken_at').eq('id', req.new_data.photo_id).single();
+                                const finalRouteNo = (route && route.includes(' - ')) ? route.split(' - ')[0].trim() : route;
+                                const finalBorrowed = (route && route.includes(' - ')) ? route : (req.new_data?.borrowed_route || null);
                                 let updateObj = {
                                     license_plate: plate,
                                     note: note,
                                     location: loc,
                                     operator: op,
                                     type: type,
-                                    route_no: route
+                                    route_no: finalRouteNo,
+                                    borrowed_route: finalBorrowed
                                 };
-                                if (oldP && oldP.route_no !== route) {
-                                    updateObj.borrowed_route = null;
-                                }
                                 const { error: pError } = await window.sb.from('photos').update(updateObj).eq('id', req.new_data.photo_id);
                                 if (pError) throw pError;
                                 if (oldP && oldP.taken_at) {
@@ -4220,8 +4220,8 @@ if (cbQuality) newSubroles.push('quality_aud');
                                     await app.vehicle.syncHistoryOnPhotoEdit(
                                         plate,
                                         oldP.taken_at,
-                                        { operator: oldP.operator, route_no: oldP.route_no },
-                                        { operator: op, route_no: route },
+                                        { operator: oldP.operator, route_no: oldP.route_no, borrowed_route: oldP.borrowed_route },
+                                        { operator: op, route_no: finalRouteNo, borrowed_route: finalBorrowed },
                                         isPlateChanged
                                     );
                                 }
@@ -4515,6 +4515,12 @@ if (cbQuality) newSubroles.push('quality_aud');
                             const isHistMatch = (h) => {
                                 if (h.route === deletingName) return true;
                                 if (h.route === deletingNo) {
+                                    const vehiclePhotos = (candPhotos || []).filter(p => (p.license_plate || '').toUpperCase() === (h.license_plate || '').toUpperCase());
+                                    const hasThisBorrowed = vehiclePhotos.some(p => p.borrowed_route === deletingName);
+                                    if (hasThisBorrowed) return true;
+                                    const hasOtherBorrowed = vehiclePhotos.some(p => p.borrowed_route && p.borrowed_route !== deletingName && p.route_no === deletingNo);
+                                    if (hasOtherBorrowed) return false;
+
                                     if (provMatch) {
                                         if (provPrefixes.some(pref => (h.license_plate || '').startsWith(pref))) return true;
                                         if (app.utils.getProvinceFromPlate && app.utils.getProvinceFromPlate(h.license_plate) === provMatch.ten) return true;
