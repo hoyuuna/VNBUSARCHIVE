@@ -1143,13 +1143,26 @@ if (!decodedProvince || decodedProvince.trim() === '') {
                     if (hiddenInput) hiddenInput.value = val;
                     const btnBus = document.getElementById('btn-route-type-bus');
                     const btnCoach = document.getElementById('btn-route-type-coach');
-                    if (!btnBus || !btnCoach) return;
                     
                     const activeCls = 'py-2.5 px-3 rounded-md border border-black text-xs font-bold bg-black text-white transition flex items-center justify-center gap-1.5';
                     const inactiveCls = 'py-2.5 px-3 rounded-md border border-black text-xs font-bold bg-white text-black hover:bg-gray-50 transition flex items-center justify-center gap-1.5';
                     
-                    btnBus.className = val === 'bus' ? activeCls : inactiveCls;
-                    btnCoach.className = val === 'coach' ? activeCls : inactiveCls;
+                    if (btnBus) btnBus.className = val === 'bus' ? activeCls : inactiveCls;
+                    if (btnCoach) btnCoach.className = val === 'coach' ? activeCls : inactiveCls;
+
+                    const busFields = document.getElementById('route-edit-bus-profile-fields');
+                    const nameLabel = document.getElementById('route-edit-name-label');
+                    const nameInput = document.getElementById('route-edit-name');
+
+                    if (val === 'coach') {
+                        if (busFields) busFields.classList.add('hidden');
+                        if (nameLabel) nameLabel.innerHTML = 'Tên tuyến / Lộ trình <span class="text-red-500">*</span>';
+                        if (nameInput) nameInput.placeholder = 'VD: Hà Nội - Hải Phòng, Sài Gòn - Vũng Tàu...';
+                    } else {
+                        if (busFields) busFields.classList.remove('hidden');
+                        if (nameLabel) nameLabel.innerHTML = 'Số hiệu tuyến <span class="text-red-500">*</span>';
+                        if (nameInput) nameInput.placeholder = 'VD: 01, 20B, BRT01...';
+                    }
                 },
 
                 fetchRoutes: async (force = false) => {
@@ -1189,6 +1202,64 @@ if (!decodedProvince || decodedProvince.trim() === '') {
                     } catch (e) {
                         console.warn("Lỗi tải danh sách tuyến:", e);
                     }
+
+                    // Tải thêm danh sách tuyến xe khách từ các ảnh xe khách đã được duyệt
+                    try {
+                        const { data: coachPhotos, error: coachErr } = await window.sb
+                            .from('photos')
+                            .select('route_no, borrowed_route, license_plate')
+                            .eq('type', 'coach')
+                            .eq('status', 'approved');
+                        if (!coachErr && coachPhotos && coachPhotos.length > 0) {
+                            const seenCoachRoutes = new Set();
+                            routes.forEach(r => {
+                                if (r.metadata?.vehicle_type === 'coach') {
+                                    seenCoachRoutes.add((r.route_name || '').toLowerCase());
+                                    seenCoachRoutes.add((r.route_no || '').toLowerCase());
+                                }
+                            });
+
+                            coachPhotos.forEach(p => {
+                                const raw = (p.borrowed_route || p.route_no || '').trim();
+                                if (!raw) return;
+                                if (app.route.specialRoutes.includes(raw)) return;
+                                const key = raw.toLowerCase();
+                                if (seenCoachRoutes.has(key)) return;
+                                seenCoachRoutes.add(key);
+
+                                let prov = null;
+                                let rNo = raw;
+                                if (raw.includes(' - ')) {
+                                    const possibleProv = raw.split(' - ').slice(1).join(' - ').trim();
+                                    const matchedProv = app.utils.matchProvinceName ? app.utils.matchProvinceName(possibleProv) : null;
+                                    if (matchedProv) {
+                                        prov = matchedProv;
+                                        rNo = raw.split(' - ')[0].trim();
+                                    }
+                                }
+                                if (!prov && p.license_plate && app.utils.getProvinceFromPlate) {
+                                    const autoProv = app.utils.getProvinceFromPlate(p.license_plate);
+                                    if (autoProv && autoProv !== 'Không xác định' && autoProv !== 'Biển tạm') {
+                                        prov = autoProv;
+                                    }
+                                }
+
+                                routes.push({
+                                    route_name: raw,
+                                    route_no: rNo,
+                                    province: prov || null,
+                                    short_path: raw.includes(' - ') ? raw : null,
+                                    is_special: false,
+                                    is_inactive: false,
+                                    metadata: {
+                                        vehicle_type: 'coach'
+                                    }
+                                });
+                            });
+                        }
+                    } catch (e) {
+                        console.warn("Lỗi tải tuyến xe khách từ ảnh:", e);
+                    }
                     
                     // Đảm bảo 4 trường hợp đặc biệt luôn tồn tại trong danh sách
                     app.route.specialRoutes.forEach(spec => {
@@ -1205,7 +1276,7 @@ if (!decodedProvince || decodedProvince.trim() === '') {
 
                     // Khử các tuyến rác trùng số hiệu không có tỉnh nếu đã có tuyến cùng số hiệu có tỉnh
                     const hasProvWithSameNo = (r) => {
-                        if (r.province || r.is_special) return false;
+                        if (r.province || r.is_special || r.metadata?.vehicle_type === 'coach') return false;
                         return routes.some(other => other !== r && other.route_no === r.route_no && other.province);
                     };
                     routes = routes.filter(r => !hasProvWithSameNo(r));
@@ -1218,6 +1289,7 @@ if (!decodedProvince || decodedProvince.trim() === '') {
                     app.route.selectorCallback = options.onSelect || null;
                     app.route.selectorTargetInputId = options.targetInputId || null;
                     app.route.selectorExcludeRoute = options.excludeRoute || null;
+                    app.route.selectorIsHistory = !!(options.isHistory || (options.targetInputId && (options.targetInputId.includes('hist') || options.targetInputId.includes('req-h-'))));
                     
                     let curSelected = '';
                     if (options.selectedRoute) {
@@ -1445,7 +1517,10 @@ if (!decodedProvince || decodedProvince.trim() === '') {
 
                     // 1. Tuyến trạng thái đặc biệt
                     let specialList = routes.filter(r => r.is_special || app.route.specialRoutes.includes(r.route_no));
-                    if (typeFilter === 'bus') {
+                    if (app.route.selectorIsHistory) {
+                        // Lịch sử xe: CHỈ CÓ DỪNG HOẠT ĐỘNG ĐƯỢC GHI VÀO LỊCH SỬ
+                        specialList = specialList.filter(r => r.route_no === 'Dừng hoạt động' || r.route_name === 'Dừng hoạt động');
+                    } else if (typeFilter === 'bus') {
                         // Xe buýt: Loại bỏ "Hợp đồng"
                         specialList = specialList.filter(r => r.route_no !== 'Hợp đồng' && r.route_name !== 'Hợp đồng');
                     } else if (typeFilter === 'coach') {
@@ -1552,9 +1627,7 @@ if (!decodedProvince || decodedProvince.trim() === '') {
                             const badge = r.is_inactive 
                                 ? `<span class="route-status-badge text-[9px] px-1.5 py-0.5 rounded font-bold shrink-0 ${isSel ? '' : 'bg-black text-white dark:bg-white dark:text-black'}">Dừng HĐ</span>` 
                                 : '';
-                            const vTypeBadge = (r.metadata?.vehicle_type === 'coach')
-                                ? `<span class="text-[9px] px-1.5 py-0.5 rounded font-bold shrink-0 border ${isSel ? 'border-white text-white' : 'border-black text-black dark:border-white dark:text-white'}"><i class="fa-solid fa-van-shuttle mr-1"></i>Xe khách</span>`
-                                : '';
+                            const isCoach = r.metadata?.vehicle_type === 'coach';
                             const provLabel = r.province ? `<span class="text-[11px] ${isSel ? 'text-gray-200' : 'text-gray-500'} font-medium">(${app.utils.escapeHtml(r.province)})</span>` : '';
                             const pathLabel = r.short_path ? `<p class="route-path-label text-[11px] ${isSel ? 'text-gray-300' : 'text-gray-500'} truncate mt-0.5">${app.utils.escapeHtml(r.short_path)}</p>` : '';
 
@@ -1567,7 +1640,6 @@ if (!decodedProvince || decodedProvince.trim() === '') {
                                         <div class="flex items-center gap-2 flex-wrap">
                                             <span class="font-extrabold text-xs tracking-wide ${isSel ? '' : 'text-black'}">${app.utils.escapeHtml(r.route_no)}</span>
                                             ${provLabel}
-                                            ${vTypeBadge}
                                             ${badge}
                                         </div>
                                         ${pathLabel}
@@ -1577,12 +1649,13 @@ if (!decodedProvince || decodedProvince.trim() === '') {
                                                 class="w-7 h-7 flex items-center justify-center rounded-md border border-black ${isSel ? 'border-white text-white' : 'text-black hover:bg-black hover:text-white'} transition text-xs">
                                             <i class="fa-solid fa-pen"></i>
                                         </button>
+                                        ${!isCoach ? `
                                         <a href="/route/${r.province ? encodeURIComponent(r.province) + '/' : ''}${encodeURIComponent(r.route_no)}"
                                            onclick="app.route.closeSelector()"
                                            title="Xem hồ sơ tuyến"
                                            class="w-7 h-7 flex items-center justify-center rounded-md border border-black ${isSel ? 'border-white text-white' : 'text-black hover:bg-black hover:text-white'} transition text-xs">
                                             <i class="fa-solid fa-arrow-up-right-from-square"></i>
-                                        </a>
+                                        </a>` : ''}
                                     </div>
                                 </div>
                             `;
@@ -1682,6 +1755,9 @@ if (!decodedProvince || decodedProvince.trim() === '') {
                         if (btnTypeCoach) { btnTypeCoach.disabled = false; btnTypeCoach.classList.remove('opacity-40', 'cursor-not-allowed'); }
                     }
 
+                    const inactiveContainer = document.getElementById('route-edit-inactive-container');
+                    if (inactiveContainer) inactiveContainer.classList.add('hidden');
+
                     const nameInput = document.getElementById('route-edit-name');
                     if (nameInput) {
                         nameInput.value = '';
@@ -1754,6 +1830,9 @@ if (!decodedProvince || decodedProvince.trim() === '') {
                     if (btnDelete) btnDelete.classList.remove('hidden');
                     if (provContainer) provContainer.classList.remove('hidden');
 
+                    const inactiveContainer = document.getElementById('route-edit-inactive-container');
+                    if (inactiveContainer) inactiveContainer.classList.remove('hidden');
+
                     if (btnProv) {
                         btnProv.disabled = isFromSelector;
                         if (isFromSelector) {
@@ -1766,6 +1845,10 @@ if (!decodedProvince || decodedProvince.trim() === '') {
                     const btnTypeCoach = document.getElementById('btn-route-type-coach');
                     if (btnTypeBus) { btnTypeBus.disabled = false; btnTypeBus.classList.remove('opacity-40', 'cursor-not-allowed'); }
                     if (btnTypeCoach) { btnTypeCoach.disabled = false; btnTypeCoach.classList.remove('opacity-40', 'cursor-not-allowed'); }
+
+                    const cachedRouteMatch = (app.route.cachedRoutes || []).find(r => r.route_name === rName || (r.route_no === rNo && (!r.province || r.province === prov)));
+                    const isTargetCoach = cachedRouteMatch?.metadata?.vehicle_type === 'coach';
+                    app.route.setEditVehicleType(isTargetCoach ? 'coach' : 'bus');
 
                     app.route.selectEditProvince(prov || '');
                     app.route.renderEditProvMenu(prov || '');
@@ -1809,7 +1892,7 @@ if (!decodedProvince || decodedProvince.trim() === '') {
                                 document.getElementById('route-edit-ticket-price').value = exactInfo.metadata.ticket_price || '';
                                 document.getElementById('route-edit-headway').value = exactInfo.metadata.headway || '';
                                 document.getElementById('route-edit-wheelchair').checked = exactInfo.metadata.wheelchair_support || false;
-                                app.route.setEditVehicleType(exactInfo.metadata.vehicle_type || 'bus');
+                                app.route.setEditVehicleType(exactInfo.metadata.vehicle_type || (isTargetCoach ? 'coach' : 'bus'));
                                 let iconTypeMeta = exactInfo.metadata.icon_type || 'default';
                                 let iconLabelMeta = 'Mặc định';
                                 if (iconTypeMeta === 'circle') iconLabelMeta = 'Hình tròn (Max 5 kí tự)';
@@ -1817,10 +1900,10 @@ if (!decodedProvince || decodedProvince.trim() === '') {
                                 document.getElementById('route-edit-icon').value = iconTypeMeta;
                                 document.getElementById('route-icon-label').innerText = iconLabelMeta;
                             } else {
-                                app.route.setEditVehicleType('bus');
+                                app.route.setEditVehicleType(isTargetCoach ? 'coach' : 'bus');
                             }
                         } else {
-                            app.route.setEditVehicleType('bus');
+                            app.route.setEditVehicleType(isTargetCoach ? 'coach' : 'bus');
                         }
 
                         // Fetch borrowed photos
@@ -1908,28 +1991,38 @@ if (!decodedProvince || decodedProvince.trim() === '') {
                     let metadata = {};
                     const vehicleType = document.getElementById('route-edit-vehicle-type')?.value || 'bus';
                     metadata.vehicle_type = vehicleType;
-                    if (ticketPrice) metadata.ticket_price = ticketPrice;
-                    if (headway) metadata.headway = headway;
-                    if (wheelchairSupport) metadata.wheelchair_support = wheelchairSupport;
 
-                    const iconType = document.getElementById('route-edit-icon')?.value || 'default';
-                    if (iconType !== 'default') {
-                        if (routeNo.length <= 5) {
-                            metadata.icon_type = iconType;
-                        } else {
-                            app.toast.show('warning', 'Lưu ý', 'Tên tuyến dài hơn 5 kí tự không thể sử dụng icon tùy chỉnh. Đã tự động chuyển về mặc định.');
+                    let metadataObj = null;
+                    let rawInputList = [];
+                    let newBorrowedIds = [];
+                    let enteredPlates = [];
+
+                    if (vehicleType === 'coach') {
+                        metadataObj = { vehicle_type: 'coach' };
+                    } else {
+                        if (ticketPrice) metadata.ticket_price = ticketPrice;
+                        if (headway) metadata.headway = headway;
+                        if (wheelchairSupport) metadata.wheelchair_support = wheelchairSupport;
+
+                        const iconType = document.getElementById('route-edit-icon')?.value || 'default';
+                        if (iconType !== 'default') {
+                            if (routeNo.length <= 5) {
+                                metadata.icon_type = iconType;
+                            } else {
+                                app.toast.show('warning', 'Lưu ý', 'Tên tuyến dài hơn 5 kí tự không thể sử dụng icon tùy chỉnh. Đã tự động chuyển về mặc định.');
+                            }
                         }
-                    }
 
-                    let metadataObj = Object.keys(metadata).length > 0 ? metadata : null;
-                    const rawInputList = borrowedPhotosStr ? borrowedPhotosStr.split(',').map(s => s.trim()).filter(Boolean) : [];
-                    const enteredIdsStr = rawInputList.filter(s => /^\d+$/.test(s));
-                    const enteredPlates = rawInputList.filter(s => !/^\d+$/.test(s));
-                    const newBorrowedIds = enteredIdsStr.map(Number);
+                        metadataObj = Object.keys(metadata).length > 0 ? metadata : null;
+                        rawInputList = borrowedPhotosStr ? borrowedPhotosStr.split(',').map(s => s.trim()).filter(Boolean) : [];
+                        const enteredIdsStr = rawInputList.filter(s => /^\d+$/.test(s));
+                        enteredPlates = rawInputList.filter(s => !/^\d+$/.test(s));
+                        newBorrowedIds = enteredIdsStr.map(Number);
 
-                    if (enteredPlates.length > 0) {
-                        metadataObj = metadataObj || {};
-                        metadataObj.borrowed_plates = enteredPlates;
+                        if (enteredPlates.length > 0) {
+                            metadataObj = metadataObj || {};
+                            metadataObj.borrowed_plates = enteredPlates;
+                        }
                     }
 
                     const btn = document.getElementById('btn-save-route');
@@ -2118,6 +2211,7 @@ if (!decodedProvince || decodedProvince.trim() === '') {
                     const deletingName = app.route.deletingRouteName;
                     if (!deletingName) return;
                     const deletingNo = deletingName.split(' - ')[0].trim();
+                    const deletingProv = deletingName.includes(' - ') ? deletingName.split(' - ').slice(1).join(' - ').trim() : '';
 
                     const destRouteNo = (document.getElementById('del-route-dest-val')?.value || 'Ngoài giờ hoạt động').trim();
                     const destRouteName = (document.getElementById('del-route-dest-val')?.dataset.routeName || destRouteNo).trim();
@@ -2129,16 +2223,57 @@ if (!decodedProvince || decodedProvince.trim() === '') {
 
                     try {
                         if (app.role === 'admin' || app.role === 'manager') {
-                            // 1. Chuyển tất cả ảnh thuộc tuyến bị xóa sang tuyến đích
                             const newBorrowed = destRouteName !== destRouteNo ? destRouteName : null;
-                            await window.sb.from('photos')
-                                .update({ route_no: destRouteNo, borrowed_route: newBorrowed })
-                                .or(`route_no.eq."${deletingNo}",borrowed_route.eq."${deletingName}"`);
+                            const provMatch = deletingProv && app.utils.provinceData ? app.utils.provinceData.find(p => p.ten.toLowerCase() === deletingProv.toLowerCase()) : null;
+                            const provPrefixes = provMatch ? (Array.isArray(provMatch.ky_hieu) ? provMatch.ky_hieu : String(provMatch.ky_hieu).split(',').map(s => s.trim())) : [];
 
-                            // 2. Chuyển tất cả lịch sử phương tiện (vehicle_history) sang tuyến đích
-                            await window.sb.from('vehicle_history')
-                                .update({ route: destRouteNo })
+                            // 1. Chuyển tất cả ảnh thuộc tuyến bị xóa sang tuyến đích (chỉ các ảnh thực sự thuộc tuyến và tỉnh này)
+                            const { data: candPhotos } = await window.sb.from('photos')
+                                .select('id, license_plate, route_no, borrowed_route')
+                                .or(`route_no.eq."${deletingNo}",borrowed_route.eq."${deletingName}"`);
+                            
+                            const isPhotoMatch = (p) => {
+                                if (p.borrowed_route === deletingName) return true;
+                                if (p.route_no === deletingNo && (!p.borrowed_route || p.borrowed_route === '')) {
+                                    if (provMatch) {
+                                        if (provPrefixes.some(pref => (p.license_plate || '').startsWith(pref))) return true;
+                                        if (app.utils.getProvinceFromPlate && app.utils.getProvinceFromPlate(p.license_plate) === provMatch.ten) return true;
+                                        return false;
+                                    }
+                                    return p.borrowed_route === deletingName || p.route_no === deletingName;
+                                }
+                                return false;
+                            };
+
+                            const targetPhotoIds = (candPhotos || []).filter(isPhotoMatch).map(p => p.id);
+                            for (let i = 0; i < targetPhotoIds.length; i += 100) {
+                                const chunk = targetPhotoIds.slice(i, i + 100);
+                                await window.sb.from('photos').update({ route_no: destRouteNo, borrowed_route: newBorrowed }).in('id', chunk);
+                            }
+
+                            // 2. Chuyển tất cả lịch sử phương tiện (vehicle_history) sang tuyến đích (chỉ xe thuộc tỉnh này)
+                            const { data: candHist } = await window.sb.from('vehicle_history')
+                                .select('id, license_plate, route')
                                 .or(`route.eq."${deletingNo}",route.eq."${deletingName}"`);
+
+                            const isHistMatch = (h) => {
+                                if (h.route === deletingName) return true;
+                                if (h.route === deletingNo) {
+                                    if (provMatch) {
+                                        if (provPrefixes.some(pref => (h.license_plate || '').startsWith(pref))) return true;
+                                        if (app.utils.getProvinceFromPlate && app.utils.getProvinceFromPlate(h.license_plate) === provMatch.ten) return true;
+                                        return false;
+                                    }
+                                    return h.route === deletingName;
+                                }
+                                return false;
+                            };
+
+                            const targetHistIds = (candHist || []).filter(isHistMatch).map(h => h.id);
+                            for (let i = 0; i < targetHistIds.length; i += 100) {
+                                const chunk = targetHistIds.slice(i, i + 100);
+                                await window.sb.from('vehicle_history').update({ route: destRouteNo }).in('id', chunk);
+                            }
 
                             // 3. Xóa hồ sơ tuyến khỏi bảng route_info
                             const { error: delErr } = await window.sb.from('route_info').delete().eq('route_name', deletingName);
@@ -2163,6 +2298,7 @@ if (!decodedProvince || decodedProvince.trim() === '') {
                                     request_type: 'delete_route',
                                     route_name: deletingName,
                                     route_no: deletingNo,
+                                    province: deletingProv,
                                     dest_route_no: destRouteNo,
                                     dest_route_name: destRouteName
                                 },

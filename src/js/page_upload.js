@@ -986,7 +986,7 @@ Object.assign(window.app, {
                         if (exactVehicle) {
                             const { data } = await window.sb
                                 .from('photos')
-                                .select('operator, route_no, type, taken_at, created_at')
+                                .select('operator, route_no, borrowed_route, type, taken_at, created_at')
                                 .eq('license_plate', rawPlate)
                                 .eq('status', 'approved')
                                 .order('taken_at', { ascending: false, nullsFirst: false })
@@ -1008,9 +1008,16 @@ Object.assign(window.app, {
                                     return Math.abs(timeA - uploadDate) - Math.abs(timeB - uploadDate);
                                 });
                                 let validPhoto = recentPhotos.find(p => p.route_no !== 'Ngoài giờ hoạt động');
-                                if (!validPhoto) validPhoto = { operator: recentPhotos[0].operator, route_no: '', type: recentPhotos[0].type };
+                                if (!validPhoto) validPhoto = { operator: recentPhotos[0].operator, route_no: '', borrowed_route: null, type: recentPhotos[0].type };
                                 document.getElementById('up-operator').value = validPhoto.operator || '';
-                                document.getElementById('up-route').value = validPhoto.route_no || '';
+                                const upRouteEl = document.getElementById('up-route');
+                                const finalRouteName = validPhoto.borrowed_route || validPhoto.route_no || '';
+                                const finalRouteNo = validPhoto.route_no || finalRouteName;
+                                if (upRouteEl) {
+                                    upRouteEl.value = finalRouteNo;
+                                    upRouteEl.dataset.routeName = finalRouteName;
+                                    upRouteEl.dataset.routeNo = finalRouteNo;
+                                }
                                 const dbType = validPhoto.type || 'bus';
                                 const prefType = app.preference.current;
                                 if (prefType !== 'both' && dbType !== prefType) {

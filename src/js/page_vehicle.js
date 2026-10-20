@@ -230,7 +230,7 @@ Object.assign(window.app, {
                                   </div>
                                   <div class="flex flex-col sm:flex-1 min-w-0">
                                       <span class="sm:hidden font-bold text-gray-500 mb-1">Tuyến</span>
-                                      <input type="text" value="${app.utils.escapeAttr(h.route || '')}" placeholder="Tuyến" oninput="app.utils.checkRouteStatus(this.value, '${prefix}hist-op-input-${index}', '${prefix}hist-op-wrapper-${index}')" onchange="app.vehicle.updateHistoryItem(${index}, 'route', this.value, '${prefix}'); app.vehicle.updateHistoryItem(${index}, 'operator', document.getElementById('${prefix}hist-op-input-${index}').value, '${prefix}')" class="hist-input">
+                                      <input type="text" id="${prefix}hist-route-${index}" value="${app.utils.escapeAttr(h.route || '')}" readonly placeholder="Chọn tuyến..." onfocus="this.blur()" class="hist-input cursor-pointer bg-white select-none caret-transparent" onclick="this.blur(); app.route.openSelector({ targetInputId: '${prefix}hist-route-${index}', isHistory: true, selectedRoute: this.value, onSelect: (r) => { app.vehicle.updateHistoryItem(${index}, 'route', r.route_no, '${prefix}'); app.utils.checkRouteStatus(r.route_no, '${prefix}hist-op-input-${index}', '${prefix}hist-op-wrapper-${index}'); } })">
                                   </div>
                             </div>
                             <div class="flex flex-col sm:flex-row gap-2 items-start mt-1">
@@ -286,11 +286,17 @@ Object.assign(window.app, {
                     const rawDate = document.getElementById(prefix + 'hist-new-date').value;
                     const dateVal = app.utils.parseDDMMYYYYToDate(rawDate);
                     const op = document.getElementById(prefix + 'hist-new-op').value;
-                    const route = document.getElementById(prefix + 'hist-new-route').value;
+                    const route = (document.getElementById(prefix + 'hist-new-route')?.value || '').trim();
                     const note = document.getElementById(prefix + 'hist-new-note') ? document.getElementById(prefix + 'hist-new-note').value : '';
                     const plate = document.getElementById(prefix + 'hist-new-plate') ? document.getElementById(prefix + 'hist-new-plate').value.trim() : '';
                     if(!rawDate || !op) return app.ui.showAlert("Vui lòng nhập Ngày áp dụng và Đơn vị vận hành!");
                     if(!dateVal) return app.ui.showAlert("Ngày không hợp lệ! Vui lòng nhập đúng định dạng DD/MM/YYYY.");
+                    
+                    const invalidHistoryRoutes = ['Ngoài giờ hoạt động', 'Chưa hoạt động'];
+                    if (invalidHistoryRoutes.includes(route)) {
+                        return app.ui.showAlert(`Tuyến "${route}" không được phép ghi vào lịch sử xe. Chỉ có tuyến "Dừng hoạt động" được phép ghi vào lịch sử.`);
+                    }
+
                     app.vehicle.tempHistory.push({
                         license_plate: app.currentPlate,
                         plate: plate || app.currentPlate || null,
@@ -323,6 +329,11 @@ Object.assign(window.app, {
                         if (!dateVal) return app.ui.showAlert("Ngày đang nhập dở không hợp lệ! Vui lòng nhập đúng định dạng DD/MM/YYYY.");
                         
                         const route = document.getElementById(prefix + 'hist-new-route') ? document.getElementById(prefix + 'hist-new-route').value.trim() : '';
+                        const invalidHistoryRoutes = ['Ngoài giờ hoạt động', 'Chưa hoạt động'];
+                        if (invalidHistoryRoutes.includes(route)) {
+                            return app.ui.showAlert(`Tuyến "${route}" không được phép ghi vào lịch sử xe. Chỉ có tuyến "Dừng hoạt động" được phép ghi vào lịch sử.`);
+                        }
+
                         const note = document.getElementById(prefix + 'hist-new-note') ? document.getElementById(prefix + 'hist-new-note').value.trim() : '';
                         const plate = document.getElementById(prefix + 'hist-new-plate') ? document.getElementById(prefix + 'hist-new-plate').value.trim() : '';
                         
@@ -348,6 +359,15 @@ Object.assign(window.app, {
                         app.vehicle.sortTempHistory();
                         // Tự động xóa mốc "Dừng hoạt động" nếu có mốc lịch sử khác sau ngày dừng hoạt động
                         app.vehicle.tempHistory = app.vehicle.autoRemoveStoppedAfterNewer(app.vehicle.tempHistory);
+
+                        const invalidHistoryRoutes = ['Ngoài giờ hoạt động', 'Chưa hoạt động'];
+                        for (const item of app.vehicle.tempHistory) {
+                            if (invalidHistoryRoutes.includes((item.route || '').trim())) {
+                                resetBtn();
+                                return app.ui.showAlert(`Tuyến "${item.route}" không được phép ghi vào lịch sử xe. Chỉ có tuyến "Dừng hoạt động" được phép ghi vào lịch sử.`);
+                            }
+                        }
+
                         for (let i = 1; i < app.vehicle.tempHistory.length; i++) {
                             const prev = app.vehicle.tempHistory[i - 1];
                             const curr = app.vehicle.tempHistory[i];

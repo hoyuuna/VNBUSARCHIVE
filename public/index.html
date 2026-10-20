@@ -2188,7 +2188,7 @@ html.theme-dark .ct-icon {
             if (stored === 'system') {
                 theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
             }
-            document.write('<link rel="stylesheet" href="/css/' + theme + '.css?v=1792502671086" id="theme-css">');
+            document.write('<link rel="stylesheet" href="/css/' + theme + '.css?v=1792506172744" id="theme-css">');
             document.documentElement.classList.add('theme-' + theme);
             document.documentElement.style.backgroundColor = theme === 'dark' ? '#18181b' : '#fdfcf8';
         })();
@@ -7195,7 +7195,7 @@ html.theme-dark .ct-icon {
                 </div>
 
                 <div>
-                    <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Số hiệu tuyến <span class="text-red-500">*</span></label>
+                    <label id="route-edit-name-label" class="block text-xs font-bold text-gray-700 uppercase mb-1">Số hiệu tuyến <span class="text-red-500">*</span></label>
                     <input type="text" id="route-edit-name" required class="w-full bg-white border border-black rounded-md p-3 text-sm font-medium focus:ring-1 focus:ring-black outline-none transition-all text-black" placeholder="VD: 01, 20B, BRT01...">
                 </div>
 
@@ -7215,7 +7215,7 @@ html.theme-dark .ct-icon {
                     </div>
                 </div>
 
-                <div>
+                <div id="route-edit-inactive-container">
                     <div class="flex items-center justify-between bg-white border border-black rounded-md p-3 hover:bg-gray-50 transition-all">
                         <span class="text-sm font-bold text-gray-700">Đánh dấu tuyến này đã dừng hoạt động</span>
                         <label class="relative inline-flex items-center cursor-pointer shrink-0 ml-4 self-center">
@@ -7225,65 +7225,68 @@ html.theme-dark .ct-icon {
                     </div>
                 </div>
 
-                <div>
-                    <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Lộ trình ngắn gọn</label>
-                    <input type="text" id="route-edit-short-path" class="w-full bg-white border border-black rounded-md p-3 text-sm font-medium focus:ring-1 focus:ring-black outline-none transition-all text-black" placeholder="VD: Long Biên - Giáp Bát">
-                    <p class="text-[10px] text-gray-500 mt-1 font-medium">Ghi theo định dạng: [Điểm đầu] - [Điểm cuối] (có thể thêm điểm giữa nếu cần). Tuyệt đối không viết tắt.</p>
-                </div>
-                
-                <div>
-                    <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Mô tả chi tiết</label>
-                    <textarea id="route-edit-desc" rows="3" style="field-sizing: content; min-height: 72px;" class="w-full bg-white border border-black rounded-md p-3 text-sm font-medium focus:ring-1 focus:ring-black outline-none transition-all resize-none overflow-hidden text-black" placeholder="Cung cấp thông tin về Lộ trình..."></textarea>
-                </div>
-                
-                <div>
-                    <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Giá vé lượt</label>
-                    <input type="text" id="route-edit-ticket-price" class="w-full bg-white border border-black rounded-md p-3 text-sm font-medium focus:ring-1 focus:ring-black outline-none transition-all text-black" placeholder="VD: 9.000đ">
-                    <p class="text-[10px] text-gray-500 mt-1 font-medium">Định dạng: x.xxxđ hoặc "Miễn phí" hoặc khoảng giá (VD: 5.000đ - 7.000đ). HN mới: "3.000đ mở cửa + 450đ x km".</p>
-                </div>
-                
-                <div>
-                    <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Giãn cách, TG hoạt động</label>
-                    <input type="text" id="route-edit-headway" class="w-full bg-white border border-black rounded-md p-3 text-sm font-medium focus:ring-1 focus:ring-black outline-none transition-all text-black" placeholder="VD: 10 - 15 phút (07:00 - 19:00)">
-                    <p class="text-[10px] text-gray-500 mt-1 font-medium">Định dạng chuẩn: xx - xx phút (Giờ mở bến - Giờ đóng bến). Dùng chuẩn giờ 24h.</p>
-                </div>
-                
-                <div>
-                    <div class="flex items-center justify-between bg-white border border-black rounded-md p-3 hover:bg-gray-50 transition-all">
-                        <span class="text-sm font-bold text-gray-700">Có hỗ trợ xe lăn</span>
-                        <label class="relative inline-flex items-center cursor-pointer shrink-0 ml-4 self-center">
-                            <input type="checkbox" id="route-edit-wheelchair" class="sr-only peer">
-                            <div class="w-11 h-6 bg-black rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white dark:after:bg-black after:border-gray-300 dark:after:border-black after:border after:rounded-full after:h-5 after:w-5 after:transition-all shadow-inner"></div>
-                        </label>
+                <!-- Các trường hồ sơ chi tiết chỉ dành cho Xe buýt -->
+                <div id="route-edit-bus-profile-fields" class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Lộ trình ngắn gọn</label>
+                        <input type="text" id="route-edit-short-path" class="w-full bg-white border border-black rounded-md p-3 text-sm font-medium focus:ring-1 focus:ring-black outline-none transition-all text-black" placeholder="VD: Long Biên - Giáp Bát">
+                        <p class="text-[10px] text-gray-500 mt-1 font-medium">Ghi theo định dạng: [Điểm đầu] - [Điểm cuối] (có thể thêm điểm giữa nếu cần). Tuyệt đối không viết tắt.</p>
                     </div>
-                </div>
+                    
+                    <div>
+                        <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Mô tả chi tiết</label>
+                        <textarea id="route-edit-desc" rows="3" style="field-sizing: content; min-height: 72px;" class="w-full bg-white border border-black rounded-md p-3 text-sm font-medium focus:ring-1 focus:ring-black outline-none transition-all resize-none overflow-hidden text-black" placeholder="Cung cấp thông tin về Lộ trình..."></textarea>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Giá vé lượt</label>
+                        <input type="text" id="route-edit-ticket-price" class="w-full bg-white border border-black rounded-md p-3 text-sm font-medium focus:ring-1 focus:ring-black outline-none transition-all text-black" placeholder="VD: 9.000đ">
+                        <p class="text-[10px] text-gray-500 mt-1 font-medium">Định dạng: x.xxxđ hoặc "Miễn phí" hoặc khoảng giá (VD: 5.000đ - 7.000đ). HN mới: "3.000đ mở cửa + 450đ x km".</p>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Giãn cách, TG hoạt động</label>
+                        <input type="text" id="route-edit-headway" class="w-full bg-white border border-black rounded-md p-3 text-sm font-medium focus:ring-1 focus:ring-black outline-none transition-all text-black" placeholder="VD: 10 - 15 phút (07:00 - 19:00)">
+                        <p class="text-[10px] text-gray-500 mt-1 font-medium">Định dạng chuẩn: xx - xx phút (Giờ mở bến - Giờ đóng bến). Dùng chuẩn giờ 24h.</p>
+                    </div>
+                    
+                    <div>
+                        <div class="flex items-center justify-between bg-white border border-black rounded-md p-3 hover:bg-gray-50 transition-all">
+                            <span class="text-sm font-bold text-gray-700">Có hỗ trợ xe lăn</span>
+                            <label class="relative inline-flex items-center cursor-pointer shrink-0 ml-4 self-center">
+                                <input type="checkbox" id="route-edit-wheelchair" class="sr-only peer">
+                                <div class="w-11 h-6 bg-black rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white dark:after:bg-black after:border-gray-300 dark:after:border-black after:border after:rounded-full after:h-5 after:w-5 after:transition-all shadow-inner"></div>
+                            </label>
+                        </div>
+                    </div>
 
-                <div>
-                    <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Kiểu Icon hiển thị</label>
-                    <input type="hidden" id="route-edit-icon" value="default">
-                    <div class="relative w-full z-40">
-                        <button type="button" onclick="document.getElementById('route-icon-menu').classList.toggle('active')" id="btn-route-icon" class="w-full bg-white border border-black rounded-md p-3 text-sm font-medium focus:ring-1 focus:ring-black outline-none transition-all text-black flex justify-between items-center text-left">
-                            <span id="route-icon-label">Mặc định</span>
-                            <i class="fa-solid fa-chevron-down text-gray-500 text-xs"></i>
-                        </button>
-                        <div id="route-icon-menu" class="filter-menu w-full mt-1 left-0 origin-top">
-                            <div class="filter-item selected route-icon-item" onclick="app.views.selectRouteIcon('default', 'Mặc định')" data-val="default">
-                                <span>Mặc định</span> <i class="fa-solid fa-check check-icon"></i>
-                            </div>
-                            <div class="filter-item route-icon-item" onclick="app.views.selectRouteIcon('circle', 'Hình tròn (Max 5 kí tự)')" data-val="circle">
-                                <span>Hình tròn (Max 5 kí tự)</span> <i class="fa-solid fa-check opacity-0 check-icon"></i>
-                            </div>
-                            <div class="filter-item route-icon-item" onclick="app.views.selectRouteIcon('trapezoid', 'Hình thang cân (Max 5 kí tự)')" data-val="trapezoid">
-                                <span>Hình thang cân (Max 5 kí tự)</span> <i class="fa-solid fa-check opacity-0 check-icon"></i>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Kiểu Icon hiển thị</label>
+                        <input type="hidden" id="route-edit-icon" value="default">
+                        <div class="relative w-full z-40">
+                            <button type="button" onclick="document.getElementById('route-icon-menu').classList.toggle('active')" id="btn-route-icon" class="w-full bg-white border border-black rounded-md p-3 text-sm font-medium focus:ring-1 focus:ring-black outline-none transition-all text-black flex justify-between items-center text-left">
+                                <span id="route-icon-label">Mặc định</span>
+                                <i class="fa-solid fa-chevron-down text-gray-500 text-xs"></i>
+                            </button>
+                            <div id="route-icon-menu" class="filter-menu w-full mt-1 left-0 origin-top">
+                                <div class="filter-item selected route-icon-item" onclick="app.views.selectRouteIcon('default', 'Mặc định')" data-val="default">
+                                    <span>Mặc định</span> <i class="fa-solid fa-check check-icon"></i>
+                                </div>
+                                <div class="filter-item route-icon-item" onclick="app.views.selectRouteIcon('circle', 'Hình tròn (Max 5 kí tự)')" data-val="circle">
+                                    <span>Hình tròn (Max 5 kí tự)</span> <i class="fa-solid fa-check opacity-0 check-icon"></i>
+                                </div>
+                                <div class="filter-item route-icon-item" onclick="app.views.selectRouteIcon('trapezoid', 'Hình thang cân (Max 5 kí tự)')" data-val="trapezoid">
+                                    <span>Hình thang cân (Max 5 kí tự)</span> <i class="fa-solid fa-check opacity-0 check-icon"></i>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
 
-                <div>
-                    <label class="block text-xs font-bold text-gray-700 uppercase mb-1">ID ảnh / Xe vá tuyến</label>
-                    <input type="text" id="route-edit-borrowed" class="w-full bg-white border border-black rounded-md p-3 text-sm font-medium focus:ring-1 focus:ring-black outline-none transition-all text-black" placeholder="VD: 12345, 12A34567" oninput="this.value = this.value.toUpperCase()">
-                    <p class="text-[10px] text-gray-500 mt-1 font-medium">Nhập ID ảnh (VD: 123) hoặc Biển số xe (VD: 12A34567, 12A34567-1). Ngăn cách bằng dấu phẩy. Ảnh/Xe sẽ tự động được gán về tuyến này.</p>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-700 uppercase mb-1">ID ảnh / Xe vá tuyến</label>
+                        <input type="text" id="route-edit-borrowed" class="w-full bg-white border border-black rounded-md p-3 text-sm font-medium focus:ring-1 focus:ring-black outline-none transition-all text-black" placeholder="VD: 12345, 12A34567" oninput="this.value = this.value.toUpperCase()">
+                        <p class="text-[10px] text-gray-500 mt-1 font-medium">Nhập ID ảnh (VD: 123) hoặc Biển số xe (VD: 12A34567, 12A34567-1). Ngăn cách bằng dấu phẩy. Ảnh/Xe sẽ tự động được gán về tuyến này.</p>
+                    </div>
                 </div>
             </div>
             <div class="px-5 py-4 flex gap-3 shrink-0" style="flex-shrink: 0 !important;">
@@ -7515,7 +7518,7 @@ html.theme-dark .ct-icon {
 
     <!-- KHAY CHỨA TOAST Z-INDEX CAO NHẤT -->
     <div id="toast-container" class="fixed left-0 w-full flex flex-col items-center gap-2 pointer-events-none z-[99999]" style="z-index: 99999 !important;"></div>
-<script src="/app.173f98ebdc94.js" onerror="if(!window.__app_fallback_loaded){window.__app_fallback_loaded=true;var s=document.createElement('script');s.src='/app.js?v=' + Date.now();document.head.appendChild(s);}"></script>
+<script src="/app.ea629f37d018.js" onerror="if(!window.__app_fallback_loaded){window.__app_fallback_loaded=true;var s=document.createElement('script');s.src='/app.js?v=' + Date.now();document.head.appendChild(s);}"></script>
 </body>
 </html>
 

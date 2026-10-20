@@ -4475,19 +4475,61 @@ if (cbQuality) newSubroles.push('quality_aud');
                             const d = req.new_data;
                             const deletingName = d.route_name;
                             const deletingNo = d.route_no || deletingName.split(' - ')[0].trim();
+                            const deletingProv = d.province || (deletingName.includes(' - ') ? deletingName.split(' - ').slice(1).join(' - ').trim() : '');
                             const destRouteNo = (d.dest_route_no || 'Ngoài giờ hoạt động').trim();
                             const destRouteName = (d.dest_route_name || destRouteNo).trim();
                             const newBorrowed = destRouteName !== destRouteNo ? destRouteName : null;
 
-                            // 1. Chuyển tất cả ảnh thuộc tuyến bị xóa sang tuyến đích
-                            await window.sb.from('photos')
-                                .update({ route_no: destRouteNo, borrowed_route: newBorrowed })
+                            const provMatch = deletingProv && app.utils.provinceData ? app.utils.provinceData.find(p => p.ten.toLowerCase() === deletingProv.toLowerCase()) : null;
+                            const provPrefixes = provMatch ? (Array.isArray(provMatch.ky_hieu) ? provMatch.ky_hieu : String(provMatch.ky_hieu).split(',').map(s => s.trim())) : [];
+
+                            // 1. Chuyển tất cả ảnh thuộc tuyến bị xóa sang tuyến đích (chỉ các ảnh thực sự thuộc tuyến và tỉnh này)
+                            const { data: candPhotos } = await window.sb.from('photos')
+                                .select('id, license_plate, route_no, borrowed_route')
                                 .or(`route_no.eq."${deletingNo}",borrowed_route.eq."${deletingName}"`);
 
-                            // 2. Chuyển tất cả lịch sử phương tiện (vehicle_history) sang tuyến đích
-                            await window.sb.from('vehicle_history')
-                                .update({ route: destRouteNo })
+                            const isPhotoMatch = (p) => {
+                                if (p.borrowed_route === deletingName) return true;
+                                if (p.route_no === deletingNo && (!p.borrowed_route || p.borrowed_route === '')) {
+                                    if (provMatch) {
+                                        if (provPrefixes.some(pref => (p.license_plate || '').startsWith(pref))) return true;
+                                        if (app.utils.getProvinceFromPlate && app.utils.getProvinceFromPlate(p.license_plate) === provMatch.ten) return true;
+                                        return false;
+                                    }
+                                    return p.borrowed_route === deletingName || p.route_no === deletingName;
+                                }
+                                return false;
+                            };
+
+                            const targetPhotoIds = (candPhotos || []).filter(isPhotoMatch).map(p => p.id);
+                            for (let i = 0; i < targetPhotoIds.length; i += 100) {
+                                const chunk = targetPhotoIds.slice(i, i + 100);
+                                await window.sb.from('photos').update({ route_no: destRouteNo, borrowed_route: newBorrowed }).in('id', chunk);
+                            }
+
+                            // 2. Chuyển tất cả lịch sử phương tiện (vehicle_history) sang tuyến đích (chỉ xe thuộc tỉnh này)
+                            const { data: candHist } = await window.sb.from('vehicle_history')
+                                .select('id, license_plate, route')
                                 .or(`route.eq."${deletingNo}",route.eq."${deletingName}"`);
+
+                            const isHistMatch = (h) => {
+                                if (h.route === deletingName) return true;
+                                if (h.route === deletingNo) {
+                                    if (provMatch) {
+                                        if (provPrefixes.some(pref => (h.license_plate || '').startsWith(pref))) return true;
+                                        if (app.utils.getProvinceFromPlate && app.utils.getProvinceFromPlate(h.license_plate) === provMatch.ten) return true;
+                                        return false;
+                                    }
+                                    return h.route === deletingName;
+                                }
+                                return false;
+                            };
+
+                            const targetHistIds = (candHist || []).filter(isHistMatch).map(h => h.id);
+                            for (let i = 0; i < targetHistIds.length; i += 100) {
+                                const chunk = targetHistIds.slice(i, i + 100);
+                                await window.sb.from('vehicle_history').update({ route: destRouteNo }).in('id', chunk);
+                            }
 
                             // 3. Xóa hồ sơ tuyến khỏi bảng route_info
                             const { error: delErr } = await window.sb.from('route_info').delete().eq('route_name', deletingName);
@@ -4572,6 +4614,15 @@ if (cbQuality) newSubroles.push('quality_aud');
                                     });
                                 }
                             }
+
+                            // Chặn 2 tuyến trạng thái đặc biệt không được ghi vào lịch sử
+                            const invalidHistoryRoutes = ['Ngoài giờ hoạt động', 'Chưa hoạt động'];
+                            for (const item of newItems) {
+                                if (invalidHistoryRoutes.includes((item.route || '').trim())) {
+                                    return app.ui.showAlert(`Tuyến "${item.route}" không được phép ghi vào lịch sử xe. Vui lòng chỉnh sửa trước khi duyệt.`);
+                                }
+                            }
+
                             const currentPlate = req.license_plate;
                             // Tự động xóa mốc "Dừng hoạt động" nếu có mốc lịch sử khác sau ngày dừng hoạt động
                             newItems = app.vehicle.autoRemoveStoppedAfterNewer(newItems);

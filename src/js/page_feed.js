@@ -2273,9 +2273,8 @@ let currentRouteProvName = null;
                                                 <div id="veh-sug-hist-new-op" class="suggestion-box"></div>
                                             </div>
                                         </div>
-                                        <div class="flex flex-col sm:flex-1 min-w-0">
                                             <span class="sm:hidden font-bold text-gray-500 mb-1">Tuyến</span>
-                                            <input type="text" id="veh-hist-new-route" placeholder="Tuyến" class="hist-input" oninput="app.utils.checkRouteStatus(this.value, 'veh-hist-new-op', 'veh-hist-new-op-wrapper')">
+                                            <input type="text" id="veh-hist-new-route" readonly placeholder="Chọn tuyến..." onfocus="this.blur()" class="hist-input cursor-pointer bg-white select-none caret-transparent" onclick="this.blur(); app.route.openSelector({ targetInputId: 'veh-hist-new-route', isHistory: true, onSelect: (r) => { document.getElementById('veh-hist-new-route').value = r.route_no; app.utils.checkRouteStatus(r.route_no, 'veh-hist-new-op', 'veh-hist-new-op-wrapper'); } })">
                                         </div>
                                     </div>
                                     <div class="flex flex-col sm:flex-row gap-2 items-start mt-1">
