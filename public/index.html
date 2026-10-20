@@ -2169,7 +2169,7 @@ html.theme-dark .ct-icon {
             if (stored === 'system') {
                 theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
             }
-            document.write('<link rel="stylesheet" href="/css/' + theme + '.css?v=1792475719277" id="theme-css">');
+            document.write('<link rel="stylesheet" href="/css/' + theme + '.css?v=1792476078576" id="theme-css">');
             document.documentElement.classList.add('theme-' + theme);
             document.documentElement.style.backgroundColor = theme === 'dark' ? '#18181b' : '#fdfcf8';
         })();
@@ -2518,22 +2518,25 @@ html.theme-dark .ct-icon {
                             <button type="button" onclick="app.crop.setRatio(4/3)" class="crop-ratio-btn px-3 py-1.5 text-xs border border-gray-300 rounded-md hover:bg-gray-100 font-bold transition" data-ratio="1.3333333333333333">4:3</button>
                         </div>
                         <div id="crop-rotate-controls" class="hidden flex-col w-full max-w-xl mx-auto px-1 sm:px-2">
-                            <div class="flex justify-between items-center w-full mb-1.5">
-                                <div class="flex items-center gap-1.5">
-                                    <label class="text-[11px] font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">Góc xoay</label>
-                                    <span class="text-[10px] font-mono text-gray-400 font-bold">(-45° ~ +45°)</span>
-                                </div>
+                            <div class="flex justify-between items-center w-full mb-1">
+                                <label class="text-[11px] font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">Góc xoay</label>
                                 <span id="crop-rotate-val" data-slider="crop-rotate-slider" data-unit="°" class="cursor-pointer hover:border-black dark:hover:border-white transition-colors select-none text-[10px] font-mono font-bold text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded border border-gray-200" title="Nhấp để nhập góc xoay">0°</span>
                             </div>
-                            <div class="flex items-center gap-2 w-full">
-                                <button type="button" onclick="app.crop.stepRotate(-0.5)" class="w-7 h-7 sm:w-8 sm:h-8 shrink-0 flex items-center justify-center text-xs bg-white text-gray-700 border border-gray-300 rounded-md hover:bg-gray-100 font-bold transition shadow-sm active:scale-95" title="Nhích trái 0.5 độ">
+                            <div class="flex items-end gap-2 w-full">
+                                <button type="button" onclick="app.crop.stepRotate(-0.5)" class="w-7 h-7 sm:w-8 sm:h-8 shrink-0 flex items-center justify-center text-xs bg-white text-gray-700 border border-gray-300 rounded-md hover:bg-gray-100 font-bold transition shadow-sm active:scale-95 mb-0.5" title="Nhích trái 0.5 độ">
                                     <i class="fa-solid fa-minus"></i>
                                 </button>
-                                <input type="range" id="crop-rotate-slider" min="-45" max="45" step="0.5" value="0" class="vnbus-slider flex-1 min-w-0" oninput="app.crop.slideRotate(this.value)" onchange="app.crop.pushHistory()">
-                                <button type="button" onclick="app.crop.stepRotate(0.5)" class="w-7 h-7 sm:w-8 sm:h-8 shrink-0 flex items-center justify-center text-xs bg-white text-gray-700 border border-gray-300 rounded-md hover:bg-gray-100 font-bold transition shadow-sm active:scale-95" title="Nhích phải 0.5 độ">
+                                <div class="flex flex-col flex-1 min-w-0">
+                                    <div class="flex justify-between items-center text-[10px] font-mono font-bold text-gray-400 dark:text-zinc-500 mb-1 px-0.5 select-none">
+                                        <span>-45°</span>
+                                        <span>+45°</span>
+                                    </div>
+                                    <input type="range" id="crop-rotate-slider" min="-45" max="45" step="0.5" value="0" class="vnbus-slider w-full" oninput="app.crop.slideRotate(this.value)" onchange="app.crop.pushHistory()">
+                                </div>
+                                <button type="button" onclick="app.crop.stepRotate(0.5)" class="w-7 h-7 sm:w-8 sm:h-8 shrink-0 flex items-center justify-center text-xs bg-white text-gray-700 border border-gray-300 rounded-md hover:bg-gray-100 font-bold transition shadow-sm active:scale-95 mb-0.5" title="Nhích phải 0.5 độ">
                                     <i class="fa-solid fa-plus"></i>
                                 </button>
-                                <button type="button" onclick="app.crop.rotateBy(90)" class="w-7 h-7 sm:w-8 sm:h-8 shrink-0 flex items-center justify-center text-xs bg-white text-gray-700 border border-gray-300 rounded-md hover:bg-gray-100 font-bold transition shadow-sm active:scale-95 ml-1" title="Xoay 90 độ">
+                                <button type="button" onclick="app.crop.rotateBy(90)" class="w-7 h-7 sm:w-8 sm:h-8 shrink-0 flex items-center justify-center text-xs bg-white text-gray-700 border border-gray-300 rounded-md hover:bg-gray-100 font-bold transition shadow-sm active:scale-95 ml-1 mb-0.5" title="Xoay 90 độ">
                                     <i class="fa-solid fa-rotate-right"></i>
                                 </button>
                             </div>
@@ -4856,49 +4859,73 @@ html.theme-dark .ct-icon {
                                 <!-- Khối trượt -->
                                 <div class="grid grid-cols-1 gap-4">
                                     <div>
-                                        <div class="flex justify-between items-center mb-2"><label class="text-[11px] font-bold text-gray-700 uppercase tracking-wider">Độ sáng</label><span id="val-brightness" data-slider="adj-brightness" data-unit="%" class="cursor-pointer hover:border-black dark:hover:border-white transition-colors select-none text-[10px] font-mono font-bold text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded border border-gray-200" title="Nhấp để nhập giá trị">100%</span></div>
-                                        <div class="flex items-center gap-2">
-                                            <button type="button" onclick="app.upload.stepFilter('brightness', -1)" class="w-7 h-7 sm:w-8 sm:h-8 shrink-0 flex items-center justify-center text-xs bg-white text-gray-700 border border-gray-300 rounded-md hover:bg-gray-100 font-bold transition shadow-sm active:scale-95" title="Giảm độ sáng 1%">
+                                        <div class="flex justify-between items-center mb-1"><label class="text-[11px] font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">Độ sáng</label><span id="val-brightness" data-slider="adj-brightness" data-unit="%" class="cursor-pointer hover:border-black dark:hover:border-white transition-colors select-none text-[10px] font-mono font-bold text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded border border-gray-200" title="Nhấp để nhập giá trị">100%</span></div>
+                                        <div class="flex items-end gap-2">
+                                            <button type="button" onclick="app.upload.stepFilter('brightness', -1)" class="w-7 h-7 sm:w-8 sm:h-8 shrink-0 flex items-center justify-center text-xs bg-white text-gray-700 border border-gray-300 rounded-md hover:bg-gray-100 font-bold transition shadow-sm active:scale-95 mb-0.5" title="Giảm độ sáng 1%">
                                                 <i class="fa-solid fa-minus"></i>
                                             </button>
-                                            <input type="range" id="adj-brightness" min="50" max="150" value="100" class="vnbus-slider flex-1 min-w-0" oninput="app.upload.updateFilters()" onmousedown="event.stopPropagation()" ontouchstart="event.stopPropagation()">
-                                            <button type="button" onclick="app.upload.stepFilter('brightness', 1)" class="w-7 h-7 sm:w-8 sm:h-8 shrink-0 flex items-center justify-center text-xs bg-white text-gray-700 border border-gray-300 rounded-md hover:bg-gray-100 font-bold transition shadow-sm active:scale-95" title="Tăng độ sáng 1%">
+                                            <div class="flex flex-col flex-1 min-w-0">
+                                                <div class="flex justify-between items-center text-[10px] font-mono font-bold text-gray-400 dark:text-zinc-500 mb-1 px-0.5 select-none">
+                                                    <span>50%</span>
+                                                    <span>150%</span>
+                                                </div>
+                                                <input type="range" id="adj-brightness" min="50" max="150" value="100" class="vnbus-slider w-full" oninput="app.upload.updateFilters()" onmousedown="event.stopPropagation()" ontouchstart="event.stopPropagation()">
+                                            </div>
+                                            <button type="button" onclick="app.upload.stepFilter('brightness', 1)" class="w-7 h-7 sm:w-8 sm:h-8 shrink-0 flex items-center justify-center text-xs bg-white text-gray-700 border border-gray-300 rounded-md hover:bg-gray-100 font-bold transition shadow-sm active:scale-95 mb-0.5" title="Tăng độ sáng 1%">
                                                 <i class="fa-solid fa-plus"></i>
                                             </button>
                                         </div>
                                     </div>
                                     <div>
-                                        <div class="flex justify-between items-center mb-2"><label class="text-[11px] font-bold text-gray-700 uppercase tracking-wider">Tương phản</label><span id="val-contrast" data-slider="adj-contrast" data-unit="%" class="cursor-pointer hover:border-black dark:hover:border-white transition-colors select-none text-[10px] font-mono font-bold text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded border border-gray-200" title="Nhấp để nhập giá trị">100%</span></div>
-                                        <div class="flex items-center gap-2">
-                                            <button type="button" onclick="app.upload.stepFilter('contrast', -1)" class="w-7 h-7 sm:w-8 sm:h-8 shrink-0 flex items-center justify-center text-xs bg-white text-gray-700 border border-gray-300 rounded-md hover:bg-gray-100 font-bold transition shadow-sm active:scale-95" title="Giảm tương phản 1%">
+                                        <div class="flex justify-between items-center mb-1"><label class="text-[11px] font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">Tương phản</label><span id="val-contrast" data-slider="adj-contrast" data-unit="%" class="cursor-pointer hover:border-black dark:hover:border-white transition-colors select-none text-[10px] font-mono font-bold text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded border border-gray-200" title="Nhấp để nhập giá trị">100%</span></div>
+                                        <div class="flex items-end gap-2">
+                                            <button type="button" onclick="app.upload.stepFilter('contrast', -1)" class="w-7 h-7 sm:w-8 sm:h-8 shrink-0 flex items-center justify-center text-xs bg-white text-gray-700 border border-gray-300 rounded-md hover:bg-gray-100 font-bold transition shadow-sm active:scale-95 mb-0.5" title="Giảm tương phản 1%">
                                                 <i class="fa-solid fa-minus"></i>
                                             </button>
-                                            <input type="range" id="adj-contrast" min="50" max="150" value="100" class="vnbus-slider flex-1 min-w-0" oninput="app.upload.updateFilters()" onmousedown="event.stopPropagation()" ontouchstart="event.stopPropagation()">
-                                            <button type="button" onclick="app.upload.stepFilter('contrast', 1)" class="w-7 h-7 sm:w-8 sm:h-8 shrink-0 flex items-center justify-center text-xs bg-white text-gray-700 border border-gray-300 rounded-md hover:bg-gray-100 font-bold transition shadow-sm active:scale-95" title="Tăng tương phản 1%">
+                                            <div class="flex flex-col flex-1 min-w-0">
+                                                <div class="flex justify-between items-center text-[10px] font-mono font-bold text-gray-400 dark:text-zinc-500 mb-1 px-0.5 select-none">
+                                                    <span>50%</span>
+                                                    <span>150%</span>
+                                                </div>
+                                                <input type="range" id="adj-contrast" min="50" max="150" value="100" class="vnbus-slider w-full" oninput="app.upload.updateFilters()" onmousedown="event.stopPropagation()" ontouchstart="event.stopPropagation()">
+                                            </div>
+                                            <button type="button" onclick="app.upload.stepFilter('contrast', 1)" class="w-7 h-7 sm:w-8 sm:h-8 shrink-0 flex items-center justify-center text-xs bg-white text-gray-700 border border-gray-300 rounded-md hover:bg-gray-100 font-bold transition shadow-sm active:scale-95 mb-0.5" title="Tăng tương phản 1%">
                                                 <i class="fa-solid fa-plus"></i>
                                             </button>
                                         </div>
                                     </div>
                                     <div>
-                                        <div class="flex justify-between items-center mb-2"><label class="text-[11px] font-bold text-gray-700 uppercase tracking-wider">Độ bão hòa (Màu sắc)</label><span id="val-saturation" data-slider="adj-saturation" data-unit="%" class="cursor-pointer hover:border-black dark:hover:border-white transition-colors select-none text-[10px] font-mono font-bold text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded border border-gray-200" title="Nhấp để nhập giá trị">100%</span></div>
-                                        <div class="flex items-center gap-2">
-                                            <button type="button" onclick="app.upload.stepFilter('saturation', -1)" class="w-7 h-7 sm:w-8 sm:h-8 shrink-0 flex items-center justify-center text-xs bg-white text-gray-700 border border-gray-300 rounded-md hover:bg-gray-100 font-bold transition shadow-sm active:scale-95" title="Giảm độ bão hòa 1%">
+                                        <div class="flex justify-between items-center mb-1"><label class="text-[11px] font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">Độ bão hòa (Màu sắc)</label><span id="val-saturation" data-slider="adj-saturation" data-unit="%" class="cursor-pointer hover:border-black dark:hover:border-white transition-colors select-none text-[10px] font-mono font-bold text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded border border-gray-200" title="Nhấp để nhập giá trị">100%</span></div>
+                                        <div class="flex items-end gap-2">
+                                            <button type="button" onclick="app.upload.stepFilter('saturation', -1)" class="w-7 h-7 sm:w-8 sm:h-8 shrink-0 flex items-center justify-center text-xs bg-white text-gray-700 border border-gray-300 rounded-md hover:bg-gray-100 font-bold transition shadow-sm active:scale-95 mb-0.5" title="Giảm độ bão hòa 1%">
                                                 <i class="fa-solid fa-minus"></i>
                                             </button>
-                                            <input type="range" id="adj-saturation" min="0" max="200" value="100" class="vnbus-slider flex-1 min-w-0" oninput="app.upload.updateFilters()" onmousedown="event.stopPropagation()" ontouchstart="event.stopPropagation()">
-                                            <button type="button" onclick="app.upload.stepFilter('saturation', 1)" class="w-7 h-7 sm:w-8 sm:h-8 shrink-0 flex items-center justify-center text-xs bg-white text-gray-700 border border-gray-300 rounded-md hover:bg-gray-100 font-bold transition shadow-sm active:scale-95" title="Tăng độ bão hòa 1%">
+                                            <div class="flex flex-col flex-1 min-w-0">
+                                                <div class="flex justify-between items-center text-[10px] font-mono font-bold text-gray-400 dark:text-zinc-500 mb-1 px-0.5 select-none">
+                                                    <span>0%</span>
+                                                    <span>200%</span>
+                                                </div>
+                                                <input type="range" id="adj-saturation" min="0" max="200" value="100" class="vnbus-slider w-full" oninput="app.upload.updateFilters()" onmousedown="event.stopPropagation()" ontouchstart="event.stopPropagation()">
+                                            </div>
+                                            <button type="button" onclick="app.upload.stepFilter('saturation', 1)" class="w-7 h-7 sm:w-8 sm:h-8 shrink-0 flex items-center justify-center text-xs bg-white text-gray-700 border border-gray-300 rounded-md hover:bg-gray-100 font-bold transition shadow-sm active:scale-95 mb-0.5" title="Tăng độ bão hòa 1%">
                                                 <i class="fa-solid fa-plus"></i>
                                             </button>
                                         </div>
                                     </div>
                                     <div>
-                                        <div class="flex justify-between items-center mb-2"><label class="text-[11px] font-bold text-gray-700 uppercase tracking-wider">Khử nhiễu</label><span id="val-denoise" data-slider="adj-denoise" data-unit="%" class="cursor-pointer hover:border-black dark:hover:border-white transition-colors select-none text-[10px] font-mono font-bold text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded border border-gray-200" title="Nhấp để nhập giá trị">0%</span></div>
-                                        <div class="flex items-center gap-2">
-                                            <button type="button" onclick="app.upload.stepFilter('denoise', -5)" class="w-7 h-7 sm:w-8 sm:h-8 shrink-0 flex items-center justify-center text-xs bg-white text-gray-700 border border-gray-300 rounded-md hover:bg-gray-100 font-bold transition shadow-sm active:scale-95" title="Giảm khử nhiễu 5%">
+                                        <div class="flex justify-between items-center mb-1"><label class="text-[11px] font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">Khử nhiễu</label><span id="val-denoise" data-slider="adj-denoise" data-unit="%" class="cursor-pointer hover:border-black dark:hover:border-white transition-colors select-none text-[10px] font-mono font-bold text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded border border-gray-200" title="Nhấp để nhập giá trị">0%</span></div>
+                                        <div class="flex items-end gap-2">
+                                            <button type="button" onclick="app.upload.stepFilter('denoise', -5)" class="w-7 h-7 sm:w-8 sm:h-8 shrink-0 flex items-center justify-center text-xs bg-white text-gray-700 border border-gray-300 rounded-md hover:bg-gray-100 font-bold transition shadow-sm active:scale-95 mb-0.5" title="Giảm khử nhiễu 5%">
                                                 <i class="fa-solid fa-minus"></i>
                                             </button>
-                                            <input type="range" id="adj-denoise" min="0" max="100" step="5" value="0" class="vnbus-slider flex-1 min-w-0" oninput="app.upload.updateFilters()" onmousedown="event.stopPropagation()" ontouchstart="event.stopPropagation()">
-                                            <button type="button" onclick="app.upload.stepFilter('denoise', 5)" class="w-7 h-7 sm:w-8 sm:h-8 shrink-0 flex items-center justify-center text-xs bg-white text-gray-700 border border-gray-300 rounded-md hover:bg-gray-100 font-bold transition shadow-sm active:scale-95" title="Tăng khử nhiễu 5%">
+                                            <div class="flex flex-col flex-1 min-w-0">
+                                                <div class="flex justify-between items-center text-[10px] font-mono font-bold text-gray-400 dark:text-zinc-500 mb-1 px-0.5 select-none">
+                                                    <span>0%</span>
+                                                    <span>100%</span>
+                                                </div>
+                                                <input type="range" id="adj-denoise" min="0" max="100" step="5" value="0" class="vnbus-slider w-full" oninput="app.upload.updateFilters()" onmousedown="event.stopPropagation()" ontouchstart="event.stopPropagation()">
+                                            </div>
+                                            <button type="button" onclick="app.upload.stepFilter('denoise', 5)" class="w-7 h-7 sm:w-8 sm:h-8 shrink-0 flex items-center justify-center text-xs bg-white text-gray-700 border border-gray-300 rounded-md hover:bg-gray-100 font-bold transition shadow-sm active:scale-95 mb-0.5" title="Tăng khử nhiễu 5%">
                                                 <i class="fa-solid fa-plus"></i>
                                             </button>
                                         </div>
@@ -4990,16 +5017,22 @@ html.theme-dark .ct-icon {
                                             </div>
                                             <!-- 1. XOAY DẤU CHÌM TÊN -->
                                             <div>
-                                                <div class="flex justify-between items-center mb-2">
-                                                    <label class="text-[11px] font-bold text-gray-700 uppercase tracking-wider">Xoay dấu chìm tên</label>
+                                                <div class="flex justify-between items-center mb-1">
+                                                    <label class="text-[11px] font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">Xoay dấu chìm tên</label>
                                                     <span id="wm-rotate-val" data-slider="wm-rotate-slider" data-unit="°" class="cursor-pointer hover:border-black dark:hover:border-white transition-colors select-none text-[10px] font-mono font-bold text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded border border-gray-200" title="Nhấp để nhập góc xoay">0°</span>
                                                 </div>
-                                                <div class="flex items-center gap-2">
-                                                    <button type="button" onclick="app.upload.stepWmRotate(-1)" class="w-7 h-7 sm:w-8 sm:h-8 shrink-0 flex items-center justify-center text-xs bg-white text-gray-700 border border-gray-300 rounded-md hover:bg-gray-100 font-bold transition shadow-sm active:scale-95" title="Xoay ngược chiều kim đồng hồ 1°">
+                                                <div class="flex items-end gap-2">
+                                                    <button type="button" onclick="app.upload.stepWmRotate(-1)" class="w-7 h-7 sm:w-8 sm:h-8 shrink-0 flex items-center justify-center text-xs bg-white text-gray-700 border border-gray-300 rounded-md hover:bg-gray-100 font-bold transition shadow-sm active:scale-95 mb-0.5" title="Xoay ngược chiều kim đồng hồ 1°">
                                                         <i class="fa-solid fa-minus"></i>
                                                     </button>
-                                                    <input type="range" id="wm-rotate-slider" min="-180" max="180" value="0" step="1" class="vnbus-slider flex-1 min-w-0" oninput="app.upload.updateWmRotate(this.value)" onmousedown="event.stopPropagation()" ontouchstart="event.stopPropagation()">
-                                                    <button type="button" onclick="app.upload.stepWmRotate(1)" class="w-7 h-7 sm:w-8 sm:h-8 shrink-0 flex items-center justify-center text-xs bg-white text-gray-700 border border-gray-300 rounded-md hover:bg-gray-100 font-bold transition shadow-sm active:scale-95" title="Xoay theo chiều kim đồng hồ 1°">
+                                                    <div class="flex flex-col flex-1 min-w-0">
+                                                        <div class="flex justify-between items-center text-[10px] font-mono font-bold text-gray-400 dark:text-zinc-500 mb-1 px-0.5 select-none">
+                                                            <span>-180°</span>
+                                                            <span>+180°</span>
+                                                        </div>
+                                                        <input type="range" id="wm-rotate-slider" min="-180" max="180" value="0" step="1" class="vnbus-slider w-full" oninput="app.upload.updateWmRotate(this.value)" onmousedown="event.stopPropagation()" ontouchstart="event.stopPropagation()">
+                                                    </div>
+                                                    <button type="button" onclick="app.upload.stepWmRotate(1)" class="w-7 h-7 sm:w-8 sm:h-8 shrink-0 flex items-center justify-center text-xs bg-white text-gray-700 border border-gray-300 rounded-md hover:bg-gray-100 font-bold transition shadow-sm active:scale-95 mb-0.5" title="Xoay theo chiều kim đồng hồ 1°">
                                                         <i class="fa-solid fa-plus"></i>
                                                     </button>
                                                 </div>
@@ -5007,16 +5040,22 @@ html.theme-dark .ct-icon {
 
                                             <!-- 2. KÍCH THƯỚC DẤU CHÌM TÊN -->
                                             <div>
-                                                <div class="flex justify-between items-center mb-2">
-                                                    <label class="text-[11px] font-bold text-gray-700 uppercase tracking-wider">Kích thước dấu chìm tên</label>
+                                                <div class="flex justify-between items-center mb-1">
+                                                    <label class="text-[11px] font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">Kích thước dấu chìm tên</label>
                                                     <span id="wm-scale-val" data-slider="wm-scale-slider" data-unit="%" class="cursor-pointer hover:border-black dark:hover:border-white transition-colors select-none text-[10px] font-mono font-bold text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded border border-gray-200" title="Nhấp để nhập kích thước">100%</span>
                                                 </div>
-                                                <div class="flex items-center gap-2">
-                                                    <button type="button" onclick="app.upload.stepWmScale(-5)" class="w-7 h-7 sm:w-8 sm:h-8 shrink-0 flex items-center justify-center text-xs bg-white text-gray-700 border border-gray-300 rounded-md hover:bg-gray-100 font-bold transition shadow-sm active:scale-95" title="Giảm kích thước 5%">
+                                                <div class="flex items-end gap-2">
+                                                    <button type="button" onclick="app.upload.stepWmScale(-5)" class="w-7 h-7 sm:w-8 sm:h-8 shrink-0 flex items-center justify-center text-xs bg-white text-gray-700 border border-gray-300 rounded-md hover:bg-gray-100 font-bold transition shadow-sm active:scale-95 mb-0.5" title="Giảm kích thước 5%">
                                                         <i class="fa-solid fa-minus"></i>
                                                     </button>
-                                                    <input type="range" id="wm-scale-slider" min="50" max="100" value="100" class="vnbus-slider flex-1 min-w-0" oninput="app.upload.updateWmScale(this.value)" onmousedown="event.stopPropagation()" ontouchstart="event.stopPropagation()">
-                                                    <button type="button" onclick="app.upload.stepWmScale(5)" class="w-7 h-7 sm:w-8 sm:h-8 shrink-0 flex items-center justify-center text-xs bg-white text-gray-700 border border-gray-300 rounded-md hover:bg-gray-100 font-bold transition shadow-sm active:scale-95" title="Tăng kích thước 5%">
+                                                    <div class="flex flex-col flex-1 min-w-0">
+                                                        <div class="flex justify-between items-center text-[10px] font-mono font-bold text-gray-400 dark:text-zinc-500 mb-1 px-0.5 select-none">
+                                                            <span>50%</span>
+                                                            <span>100%</span>
+                                                        </div>
+                                                        <input type="range" id="wm-scale-slider" min="50" max="100" value="100" class="vnbus-slider w-full" oninput="app.upload.updateWmScale(this.value)" onmousedown="event.stopPropagation()" ontouchstart="event.stopPropagation()">
+                                                    </div>
+                                                    <button type="button" onclick="app.upload.stepWmScale(5)" class="w-7 h-7 sm:w-8 sm:h-8 shrink-0 flex items-center justify-center text-xs bg-white text-gray-700 border border-gray-300 rounded-md hover:bg-gray-100 font-bold transition shadow-sm active:scale-95 mb-0.5" title="Tăng kích thước 5%">
                                                         <i class="fa-solid fa-plus"></i>
                                                     </button>
                                                 </div>
@@ -5025,16 +5064,22 @@ html.theme-dark .ct-icon {
 
                                         <!-- 3. KÍCH THƯỚC DẤU CHÌM DƯỚI -->
                                         <div>
-                                            <div class="flex justify-between items-center mb-2">
-                                                <label class="text-[11px] font-bold text-gray-700 uppercase tracking-wider">Kích thước dấu chìm dưới</label>
+                                            <div class="flex justify-between items-center mb-1">
+                                                <label class="text-[11px] font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">Kích thước dấu chìm dưới</label>
                                                 <span id="wm-bar-scale-val" data-slider="wm-bar-scale-slider" data-unit="%" class="cursor-pointer hover:border-black dark:hover:border-white transition-colors select-none text-[10px] font-mono font-bold text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded border border-gray-200" title="Nhấp để nhập kích thước">100%</span>
                                             </div>
-                                            <div class="flex items-center gap-2">
-                                                <button type="button" onclick="app.upload.stepWmBarScale(-10)" class="w-7 h-7 sm:w-8 sm:h-8 shrink-0 flex items-center justify-center text-xs bg-white text-gray-700 border border-gray-300 rounded-md hover:bg-gray-100 font-bold transition shadow-sm active:scale-95" title="Giảm kích thước 10%">
+                                            <div class="flex items-end gap-2">
+                                                <button type="button" onclick="app.upload.stepWmBarScale(-10)" class="w-7 h-7 sm:w-8 sm:h-8 shrink-0 flex items-center justify-center text-xs bg-white text-gray-700 border border-gray-300 rounded-md hover:bg-gray-100 font-bold transition shadow-sm active:scale-95 mb-0.5" title="Giảm kích thước 10%">
                                                     <i class="fa-solid fa-minus"></i>
                                                 </button>
-                                                <input type="range" id="wm-bar-scale-slider" min="50" max="150" step="5" value="100" class="vnbus-slider flex-1 min-w-0" oninput="app.upload.updateWmBarScale(this.value)" onmousedown="event.stopPropagation()" ontouchstart="event.stopPropagation()">
-                                                <button type="button" onclick="app.upload.stepWmBarScale(10)" class="w-7 h-7 sm:w-8 sm:h-8 shrink-0 flex items-center justify-center text-xs bg-white text-gray-700 border border-gray-300 rounded-md hover:bg-gray-100 font-bold transition shadow-sm active:scale-95" title="Tăng kích thước 10%">
+                                                <div class="flex flex-col flex-1 min-w-0">
+                                                    <div class="flex justify-between items-center text-[10px] font-mono font-bold text-gray-400 dark:text-zinc-500 mb-1 px-0.5 select-none">
+                                                        <span>50%</span>
+                                                        <span>150%</span>
+                                                    </div>
+                                                    <input type="range" id="wm-bar-scale-slider" min="50" max="150" step="5" value="100" class="vnbus-slider w-full" oninput="app.upload.updateWmBarScale(this.value)" onmousedown="event.stopPropagation()" ontouchstart="event.stopPropagation()">
+                                                </div>
+                                                <button type="button" onclick="app.upload.stepWmBarScale(10)" class="w-7 h-7 sm:w-8 sm:h-8 shrink-0 flex items-center justify-center text-xs bg-white text-gray-700 border border-gray-300 rounded-md hover:bg-gray-100 font-bold transition shadow-sm active:scale-95 mb-0.5" title="Tăng kích thước 10%">
                                                     <i class="fa-solid fa-plus"></i>
                                                 </button>
                                             </div>
