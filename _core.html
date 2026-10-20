@@ -7099,7 +7099,7 @@ html.theme-dark .ct-icon {
     </div>
 
     <!-- MODAL XÓA TUYẾN & CHUYỂN DỮ LIỆU -->
-    <div id="route-delete-modal" class="hidden fixed inset-0 z-[3100] flex items-center justify-center p-4 backdrop-blur-md">
+    <div id="route-delete-modal" class="hidden fixed inset-0 z-[3300] flex items-center justify-center p-4 backdrop-blur-md overflow-hidden">
         <div id="route-delete-content" class="rounded-2xl w-full overflow-hidden transform transition-all opacity-0 scale-95 flex flex-col bg-white border border-black" style="max-width: 480px">
             <div class="p-5 flex justify-between items-center shrink-0">
                 <h3 class="text-lg font-bold text-black tracking-tight"><i class="fa-solid fa-triangle-exclamation mr-2 text-red-500"></i>Xóa Tuyến Xe</h3>
@@ -7122,7 +7122,7 @@ html.theme-dark .ct-icon {
                     <input type="hidden" id="del-route-dest-val" value="Ngoài giờ hoạt động">
                 </div>
             </div>
-            <div class="px-5 py-4 flex gap-3">
+            <div class="px-5 py-4 flex gap-3 shrink-0">
                 <button type="button" onclick="app.route.closeDeletePrompt()" class="flex-1 rounded-md px-4 py-2.5 bg-white border border-black text-sm font-bold text-gray-700 hover:bg-gray-50 transition-all">Hủy bỏ</button>
                 <button type="button" id="btn-confirm-delete-route" onclick="app.route.confirmDeleteRoute()" class="flex-1 rounded-md px-4 py-2.5 bg-red-600 border border-red-600 text-sm font-bold text-white hover:bg-red-700 transition-all">Xác nhận xóa</button>
             </div>
@@ -7130,13 +7130,13 @@ html.theme-dark .ct-icon {
     </div>
 
     <!-- MODAL CẬP NHẬT TUYẾN (ROUTE) -->
-    <div id="route-edit-modal" class="hidden fixed inset-0 z-[3000] flex items-center justify-center p-4 backdrop-blur-md" >
-        <div id="route-edit-content" class="rounded-2xl w-full overflow-hidden transform transition-all opacity-0 scale-95 flex flex-col bg-white border border-black" style="max-width: 480px; max-height: 90vh;">
+    <div id="route-edit-modal" class="hidden fixed inset-0 z-[3200] flex items-center justify-center p-4 backdrop-blur-md overflow-hidden">
+        <div id="route-edit-content" class="rounded-2xl w-full overflow-hidden transform transition-all opacity-0 scale-95 flex flex-col bg-white border border-black" style="max-width: 480px; max-height: 85vh;">
             <div class="p-5 flex justify-between items-center shrink-0">
                 <h3 class="text-lg font-bold text-black tracking-tight" id="route-edit-modal-title"><i class="fa-solid fa-route mr-2 text-gray-500"></i>Cập nhật Thông tin Tuyến</h3>
                 <button onclick="app.route.closeEditPrompt()" class="text-gray-400 hover:text-red-500 transition text-xl px-2"><i class="fa-solid fa-xmark"></i></button>
             </div>
-            <div class="p-5 bg-transparent space-y-4 overflow-y-auto custom-scrollbar flex-1">
+            <div class="p-5 bg-transparent space-y-4 overflow-y-auto custom-scrollbar flex-1 min-h-0">
                 <p id="route-edit-warning-text" class="text-xs text-gray-600 font-medium leading-relaxed">Thông tin này sẽ được kiểm duyệt bởi Admin.</p>
                 
                 <div>
@@ -7169,7 +7169,7 @@ html.theme-dark .ct-icon {
                 
                 <div>
                     <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Mô tả chi tiết</label>
-                    <textarea id="route-edit-desc" rows="3" class="w-full bg-white border border-black rounded-md p-3 text-sm font-medium focus:ring-1 focus:ring-black outline-none transition-all resize-none custom-scrollbar text-black" placeholder="Cung cấp thông tin về Lộ trình..."></textarea>
+                    <textarea id="route-edit-desc" rows="3" class="w-full bg-white border border-black rounded-md p-3 text-sm font-medium focus:ring-1 focus:ring-black outline-none transition-all resize-none text-black" placeholder="Cung cấp thông tin về Lộ trình..."></textarea>
                 </div>
                 
                 <div>
@@ -7222,7 +7222,7 @@ html.theme-dark .ct-icon {
                     <p class="text-[10px] text-gray-500 mt-1 font-medium">Nhập ID ảnh (VD: 123) hoặc Biển số xe (VD: 12A34567, 12A34567-1). Ngăn cách bằng dấu phẩy. Ảnh/Xe sẽ tự động được gán về tuyến này.</p>
                 </div>
             </div>
-            <div class="px-5 py-4 flex gap-3">
+            <div class="px-5 py-4 flex gap-3 shrink-0">
                 <button type="button" id="btn-delete-route" onclick="app.route.openDeletePrompt()" class="hidden px-4 py-2.5 rounded-md border border-red-500 text-red-600 hover:bg-red-50 text-sm font-bold transition-all"><i class="fa-solid fa-trash mr-1"></i> Xóa tuyến</button>
                 <button type="button" onclick="app.route.closeEditPrompt()" class="flex-1 rounded-md px-4 py-2.5 bg-white border border-black text-sm font-bold text-gray-700 hover:bg-gray-50 transition-all">Hủy bỏ</button>
                 <button type="button" id="btn-save-route" onclick="app.route.submitEdit()" class="flex-1 rounded-md px-4 py-2.5 bg-black border border-black text-sm font-bold text-white hover:bg-gray-800 transition-all">Lưu thông tin</button>

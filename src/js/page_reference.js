@@ -1073,7 +1073,13 @@ if (!decodedProvince || decodedProvince.trim() === '') {
                     content.classList.add('opacity-0', 'scale-95');
                     setTimeout(() => {
                         modal.classList.add('hidden');
-                        app.ui.unlockScroll();
+                        const delModal = document.getElementById('route-delete-modal');
+                        if (delModal && app.route.deletingRouteName && delModal.classList.contains('hidden') && !app.route._wasFromSelector) {
+                            delModal.classList.remove('hidden');
+                            app.ui.lockScroll();
+                        } else if (!app.route._wasFromSelector && (!document.getElementById('route-edit-modal') || document.getElementById('route-edit-modal').classList.contains('hidden'))) {
+                            app.ui.unlockScroll();
+                        }
                     }, 200);
                 },
 
@@ -1213,6 +1219,12 @@ if (!decodedProvince || decodedProvince.trim() === '') {
 
                 openCreatePrompt: () => {
                     if (!app.user) return app.auth.check();
+                    const selectorModal = document.getElementById('route-selector-modal');
+                    app.route._wasFromSelector = !!(selectorModal && !selectorModal.classList.contains('hidden'));
+                    if (app.route._wasFromSelector) {
+                        app.route.closeSelector();
+                    }
+
                     app.route.isEditingExisting = false;
                     app.route.editingOriginalRouteName = '';
 
@@ -1386,7 +1398,15 @@ if (!decodedProvince || decodedProvince.trim() === '') {
                     content.classList.add('opacity-0', 'scale-95');
                     setTimeout(() => {
                         modal.classList.add('hidden');
-                        app.ui.unlockScroll();
+                        if (app.route._wasFromSelector) {
+                            app.route._wasFromSelector = false;
+                            app.route.openSelector({
+                                targetInputId: app.route.selectorTargetInputId,
+                                onSelect: app.route.selectorCallback
+                            });
+                        } else {
+                            app.ui.unlockScroll();
+                        }
                     }, 200);
                 },
 
@@ -1508,6 +1528,8 @@ if (!decodedProvince || decodedProvince.trim() === '') {
 
                             app.route.cachedRoutes = null;
                             app.toast.show('success', 'Thành công', app.route.isEditingExisting ? 'Đã lưu thông tin Tuyến!' : 'Đã tạo tuyến mới thành công!');
+                            const wasFromSelector = app.route._wasFromSelector;
+                            app.route._wasFromSelector = false;
                             app.route.closeEditPrompt();
 
                             if (app.route.currentRoute === routeNo && app.route.currentProvince === province) {
@@ -1515,8 +1537,13 @@ if (!decodedProvince || decodedProvince.trim() === '') {
                             }
                             await app.route.fetchRoutes(true);
                             app.route.filterSelector();
+
+                            if (wasFromSelector && (app.route.selectorTargetInputId || typeof app.route.selectorCallback === 'function')) {
+                                app.route.selectRoute(routeNo, routeName);
+                            }
                         } else {
                             // Người dùng thường gửi yêu cầu qua edit_requests
+                            app.route._wasFromSelector = false;
                             const reqType = app.route.isEditingExisting ? 'update_route_info' : 'create_route_info';
                             let checkQuery = window.sb.from('edit_requests').select('*', { count: 'exact', head: true }).eq('status', 'pending');
                             const { count, error: checkErr } = await checkQuery.contains('new_data', { request_type: reqType, route_name: routeName });
@@ -1591,6 +1618,8 @@ if (!decodedProvince || decodedProvince.trim() === '') {
                 },
 
                 chooseDeleteDestination: () => {
+                    const delModal = document.getElementById('route-delete-modal');
+                    if (delModal) delModal.classList.add('hidden');
                     app.route.openSelector({
                         excludeRoute: app.route.deletingRouteName,
                         onSelect: (r) => {
@@ -1598,6 +1627,10 @@ if (!decodedProvince || decodedProvince.trim() === '') {
                             document.getElementById('del-route-dest-display').value = disp;
                             document.getElementById('del-route-dest-val').value = r.route_no;
                             document.getElementById('del-route-dest-val').dataset.routeName = disp;
+                            if (delModal) {
+                                delModal.classList.remove('hidden');
+                                app.ui.lockScroll();
+                            }
                         }
                     });
                 },
