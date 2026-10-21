@@ -975,14 +975,14 @@ Object.assign(window.app, {
                         null, null, { title: "Chính sách giới hạn đăng tải", btnOkText: "Đã hiểu" }
                     );
                 },
-                showPrompt: (msg, defaultValue = '', callback) => {
+                showPrompt: (msg, defaultValue = '', callback, options = {}) => {
                     const modal = document.getElementById('custom-prompt-modal');
                     const content = document.getElementById('custom-prompt-content');
                     const titleEl = document.getElementById('custom-prompt-title');
                     const msgEl = document.getElementById('custom-prompt-msg');
                     const inputEl = document.getElementById('custom-prompt-input');
                     const okBtn = document.getElementById('custom-prompt-ok-btn');
-                    titleEl.innerText = "Nhập thông tin";
+                    titleEl.innerText = options.title || "Nhập thông tin";
                     msgEl.innerText = msg;
                     inputEl.value = defaultValue;
                     if (app.ui.promptCloseTimeout) clearTimeout(app.ui.promptCloseTimeout);
@@ -997,11 +997,15 @@ Object.assign(window.app, {
                     }, 200);
                     inputEl.onkeydown = (e) => {
                         if (e.key === 'Enter') {
+                            if (!options.allowEmpty && !inputEl.value.trim()) {
+                                app.ui.showAlert("Vui lòng nhập nội dung, không được để trống!");
+                                return;
+                            }
                             app.ui.closePrompt(true);
                         }
                     };
                     okBtn.onclick = () => {
-                        if (!inputEl.value.trim()) {
+                        if (!options.allowEmpty && !inputEl.value.trim()) {
                             app.ui.showAlert("Vui lòng nhập nội dung, không được để trống!");
                             return;
                         }

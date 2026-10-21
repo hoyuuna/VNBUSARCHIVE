@@ -977,14 +977,14 @@ Object.assign(window.app, {
                         null, null, { title: "Chính sách giới hạn đăng tải", btnOkText: "Đã hiểu" }
                     );
                 },
-                showPrompt: (msg, defaultValue = '', callback) => {
+                showPrompt: (msg, defaultValue = '', callback, options = {}) => {
                     const modal = document.getElementById('custom-prompt-modal');
                     const content = document.getElementById('custom-prompt-content');
                     const titleEl = document.getElementById('custom-prompt-title');
                     const msgEl = document.getElementById('custom-prompt-msg');
                     const inputEl = document.getElementById('custom-prompt-input');
                     const okBtn = document.getElementById('custom-prompt-ok-btn');
-                    titleEl.innerText = "Nhập thông tin";
+                    titleEl.innerText = options.title || "Nhập thông tin";
                     msgEl.innerText = msg;
                     inputEl.value = defaultValue;
                     if (app.ui.promptCloseTimeout) clearTimeout(app.ui.promptCloseTimeout);
@@ -999,11 +999,15 @@ Object.assign(window.app, {
                     }, 200);
                     inputEl.onkeydown = (e) => {
                         if (e.key === 'Enter') {
+                            if (!options.allowEmpty && !inputEl.value.trim()) {
+                                app.ui.showAlert("Vui lòng nhập nội dung, không được để trống!");
+                                return;
+                            }
                             app.ui.closePrompt(true);
                         }
                     };
                     okBtn.onclick = () => {
-                        if (!inputEl.value.trim()) {
+                        if (!options.allowEmpty && !inputEl.value.trim()) {
                             app.ui.showAlert("Vui lòng nhập nội dung, không được để trống!");
                             return;
                         }
@@ -8051,12 +8055,13 @@ Object.assign(window.app, {
                             </div>
                         `;
                     }
-                    if (req.admin_note) {
+                    const adminNoteText = req.new_data?.admin_note || req.admin_note;
+                    if (adminNoteText) {
                         detailsHtml += `
                             <div class="mt-4 text-left">
                                 <span class="text-gray-500 font-medium block mb-1">Ghi chú của Admin:</span>
                                 <div class="bg-gray-50 p-2.5 rounded border border-gray-100 text-gray-700 italic text-sm">
-                                    ${app.utils.cleanText(req.admin_note)}
+                                    ${app.utils.cleanText(adminNoteText)}
                                 </div>
                             </div>
                         `;
@@ -21700,10 +21705,10 @@ if (app.admin._activeLoadToken !== currentLoadToken || app.adminTab !== tab) ret
                                         <div class="flex gap-2 mt-3">
                                         ${app.role === 'manager' ? `
                                             <button onclick="app.admin.approveDeleteReq('${req.id}', '${req.new_data.photo_id}', '${req.requester_id}', '${userReason}', this)" class="flex-1 bg-red-600 text-white py-1.5 font-bold rounded hover:bg-red-700">DUYỆT XÓA</button>
-                                            <button onclick="app.admin.denyReq('${req.id}', this)" class="flex-1 bg-gray-600 text-white py-1.5 font-bold rounded hover:bg-gray-700">TỪ CHỐI</button>
                                         ` : `
-                                            <div class="flex-1 bg-gray-100 text-gray-400 py-1.5 font-bold rounded text-center border border-gray-200 cursor-not-allowed">Chỉ Manager được duyệt</div>
+                                            <div class="flex-1 bg-gray-100 text-gray-400 py-1.5 font-bold rounded text-center border border-gray-200 cursor-not-allowed text-[11px] flex items-center justify-center">Chỉ Manager duyệt xóa</div>
                                         `}
+                                            <button onclick="app.admin.denyReq('${req.id}', this)" class="flex-1 bg-gray-600 text-white py-1.5 font-bold rounded hover:bg-gray-700">TỪ CHỐI</button>
                                         </div>
                                     </div>
                                 </div>`
@@ -24862,18 +24867,30 @@ if (cbQuality) newSubroles.push('quality_aud');
                     app.ui.showPrompt("Nhập lý do từ chối yêu cầu này (Tùy chọn):", "", async (reason) => {
                         btn.innerText = "Đang xử lý..."; btn.disabled = true; btn.classList.add('btn-loading');
                         try {
-                            const { data: req } = await window.sb.from('edit_requests').select('requester_id, license_plate, new_data').eq('id', reqId).single();
-                            await window.sb.from('edit_requests').update({ status: 'denied', admin_note: reason || null }).eq('id', reqId);
+                            const { data: req, error: reqErr } = await window.sb.from('edit_requests').select('id, requester_id, license_plate, new_data').eq('id', reqId).single();
+                            if (reqErr) throw reqErr;
+                            const currentNewData = (req && req.new_data && typeof req.new_data === 'object') ? req.new_data : {};
+                            const updatedNewData = {
+                                ...currentNewData,
+                                admin_note: reason || null
+                            };
+                            const { error: updErr } = await window.sb.from('edit_requests').update({
+                                status: 'denied',
+                                new_data: updatedNewData
+                            }).eq('id', reqId);
+                            if (updErr) throw updErr;
+
                             let actionName = req?.new_data?.request_type === 'delete_photo' ? 'xóa ảnh' : 'chỉnh sửa';
-                            let reasonMsg = reason ? ` Lý do: ${reason}` : '';
+                            app.toast.show('success', 'Thành công', `Đã từ chối yêu cầu ${actionName}!`);
+                            app.admin.logAction('deny_edit_req', reqId, { req_type: req?.new_data?.request_type, plate: req?.license_plate });
                             if (document.activeElement) document.activeElement.blur();
-                            if (req.new_data.request_type === 'delete_photo') app.admin.loadTab('delete', false, true);
+                            if (req?.new_data?.request_type === 'delete_photo') app.admin.loadTab('delete', false, true);
                             else app.admin.loadTab('requests', false, true);
                         } catch (err) {
                             app.ui.showAlert("Lỗi: " + err.message);
                             btn.innerText = "TỪ CHỐI"; btn.disabled = false; btn.classList.remove('btn-loading');
                         }
-                    });
+                    }, { allowEmpty: true, title: "Từ chối yêu cầu" });
                 }
             },
 

@@ -1612,10 +1612,10 @@ if (app.admin._activeLoadToken !== currentLoadToken || app.adminTab !== tab) ret
                                         <div class="flex gap-2 mt-3">
                                         ${app.role === 'manager' ? `
                                             <button onclick="app.admin.approveDeleteReq('${req.id}', '${req.new_data.photo_id}', '${req.requester_id}', '${userReason}', this)" class="flex-1 bg-red-600 text-white py-1.5 font-bold rounded hover:bg-red-700">DUYỆT XÓA</button>
-                                            <button onclick="app.admin.denyReq('${req.id}', this)" class="flex-1 bg-gray-600 text-white py-1.5 font-bold rounded hover:bg-gray-700">TỪ CHỐI</button>
                                         ` : `
-                                            <div class="flex-1 bg-gray-100 text-gray-400 py-1.5 font-bold rounded text-center border border-gray-200 cursor-not-allowed">Chỉ Manager được duyệt</div>
+                                            <div class="flex-1 bg-gray-100 text-gray-400 py-1.5 font-bold rounded text-center border border-gray-200 cursor-not-allowed text-[11px] flex items-center justify-center">Chỉ Manager duyệt xóa</div>
                                         `}
+                                            <button onclick="app.admin.denyReq('${req.id}', this)" class="flex-1 bg-gray-600 text-white py-1.5 font-bold rounded hover:bg-gray-700">TỪ CHỐI</button>
                                         </div>
                                     </div>
                                 </div>`
@@ -4774,18 +4774,30 @@ if (cbQuality) newSubroles.push('quality_aud');
                     app.ui.showPrompt("Nhập lý do từ chối yêu cầu này (Tùy chọn):", "", async (reason) => {
                         btn.innerText = "Đang xử lý..."; btn.disabled = true; btn.classList.add('btn-loading');
                         try {
-                            const { data: req } = await window.sb.from('edit_requests').select('requester_id, license_plate, new_data').eq('id', reqId).single();
-                            await window.sb.from('edit_requests').update({ status: 'denied', admin_note: reason || null }).eq('id', reqId);
+                            const { data: req, error: reqErr } = await window.sb.from('edit_requests').select('id, requester_id, license_plate, new_data').eq('id', reqId).single();
+                            if (reqErr) throw reqErr;
+                            const currentNewData = (req && req.new_data && typeof req.new_data === 'object') ? req.new_data : {};
+                            const updatedNewData = {
+                                ...currentNewData,
+                                admin_note: reason || null
+                            };
+                            const { error: updErr } = await window.sb.from('edit_requests').update({
+                                status: 'denied',
+                                new_data: updatedNewData
+                            }).eq('id', reqId);
+                            if (updErr) throw updErr;
+
                             let actionName = req?.new_data?.request_type === 'delete_photo' ? 'xóa ảnh' : 'chỉnh sửa';
-                            let reasonMsg = reason ? ` Lý do: ${reason}` : '';
+                            app.toast.show('success', 'Thành công', `Đã từ chối yêu cầu ${actionName}!`);
+                            app.admin.logAction('deny_edit_req', reqId, { req_type: req?.new_data?.request_type, plate: req?.license_plate });
                             if (document.activeElement) document.activeElement.blur();
-                            if (req.new_data.request_type === 'delete_photo') app.admin.loadTab('delete', false, true);
+                            if (req?.new_data?.request_type === 'delete_photo') app.admin.loadTab('delete', false, true);
                             else app.admin.loadTab('requests', false, true);
                         } catch (err) {
                             app.ui.showAlert("Lỗi: " + err.message);
                             btn.innerText = "TỪ CHỐI"; btn.disabled = false; btn.classList.remove('btn-loading');
                         }
-                    });
+                    }, { allowEmpty: true, title: "Từ chối yêu cầu" });
                 }
             },
 

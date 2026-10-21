@@ -1261,12 +1261,13 @@ Object.assign(window.app, {
                             </div>
                         `;
                     }
-                    if (req.admin_note) {
+                    const adminNoteText = req.new_data?.admin_note || req.admin_note;
+                    if (adminNoteText) {
                         detailsHtml += `
                             <div class="mt-4 text-left">
                                 <span class="text-gray-500 font-medium block mb-1">Ghi chú của Admin:</span>
                                 <div class="bg-gray-50 p-2.5 rounded border border-gray-100 text-gray-700 italic text-sm">
-                                    ${app.utils.cleanText(req.admin_note)}
+                                    ${app.utils.cleanText(adminNoteText)}
                                 </div>
                             </div>
                         `;
