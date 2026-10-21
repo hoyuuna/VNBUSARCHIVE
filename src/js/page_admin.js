@@ -4318,6 +4318,13 @@ if (cbQuality) newSubroles.push('quality_aud');
                             }
                             if (app.route) app.route.cachedRoutes = null;
                             
+                            // Nếu đổi tên tuyến hoặc đổi tỉnh thành, di chuyển dữ liệu ảnh & lịch sử từ tuyến cũ sang tuyến mới và xóa tuyến cũ
+                            if (req.new_data.old_route_name && req.new_data.old_route_name !== req.new_data.route_name) {
+                                if (app.route && app.route.migrateRouteData) {
+                                    await app.route.migrateRouteData(req.new_data.old_route_name, req.new_data.route_name, expectedRouteNo, targetProvince);
+                                }
+                            }
+                            
                             // (Bỏ cập nhật ảnh/xe vá tuyến)
                         }
                         else if (reqType === 'create_route_info' || req.new_data?.request_type === 'create_route_info') {

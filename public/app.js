@@ -12782,6 +12782,83 @@ if (!decodedProvince || decodedProvince.trim() === '') {
                      app.loadingBar.finish();
                  },
                 specialRoutes: ['Dừng hoạt động', 'Ngoài giờ hoạt động', 'Chưa hoạt động', 'Hợp đồng'],
+                                migrateRouteData: async (oldRouteName, newRouteName, newRouteNo, newProvince) => {
+                    if (!oldRouteName || !newRouteName || oldRouteName === newRouteName) return;
+
+                    if ((!app.utils.provinceData || !app.utils.provinceData.length) && app.utils.loadProvinceData) {
+                        await app.utils.loadProvinceData();
+                    }
+
+                    const isOldCoach = oldRouteName.includes(' - ') ? false : true;
+                    const oldNo = (!isOldCoach && oldRouteName.includes(' - ')) ? oldRouteName.split(' - ')[0].trim() : oldRouteName;
+                    const oldProv = (!isOldCoach && oldRouteName.includes(' - ')) ? oldRouteName.split(' - ').slice(1).join(' - ').trim() : '';
+
+                    const destRouteNo = newRouteNo || ((newProvince && newRouteName.includes(' - ')) ? newRouteName.split(' - ')[0].trim() : newRouteName);
+                    const destRouteName = newRouteName;
+                    const isNewCoach = !newProvince && !destRouteName.includes(' - ');
+                    const newBorrowed = (isNewCoach || destRouteName === destRouteNo) ? null : destRouteName;
+
+                    const provMatch = oldProv && app.utils.provinceData ? app.utils.provinceData.find(p => p.ten.toLowerCase() === oldProv.toLowerCase()) : null;
+                    const provPrefixes = provMatch ? (Array.isArray(provMatch.ky_hieu) ? provMatch.ky_hieu : String(provMatch.ky_hieu).split(',').map(s => s.trim())) : [];
+
+                    // 1. Chuyển tất cả ảnh thuộc tuyến cũ sang tuyến mới
+                    const { data: candPhotos } = await window.sb.from('photos')
+                        .select('id, license_plate, route_no, borrowed_route')
+                        .or(`route_no.eq."${oldNo}",borrowed_route.eq."${oldRouteName}"`);
+
+                    const isPhotoMatch = (p) => {
+                        if (p.borrowed_route === oldRouteName) return true;
+                        if (p.route_no === oldNo && (!p.borrowed_route || p.borrowed_route === '')) {
+                            if (provMatch) {
+                                if (provPrefixes.some(pref => (p.license_plate || '').startsWith(pref))) return true;
+                                if (app.utils.getProvinceFromPlate && app.utils.getProvinceFromPlate(p.license_plate) === provMatch.ten) return true;
+                                return false;
+                            }
+                            return p.borrowed_route === oldRouteName || p.route_no === oldRouteName;
+                        }
+                        return false;
+                    };
+
+                    const targetPhotoIds = (candPhotos || []).filter(isPhotoMatch).map(p => p.id);
+                    for (let i = 0; i < targetPhotoIds.length; i += 100) {
+                        const chunk = targetPhotoIds.slice(i, i + 100);
+                        await window.sb.from('photos').update({ route_no: destRouteNo, borrowed_route: newBorrowed }).in('id', chunk);
+                    }
+
+                    // 2. Chuyển tất cả lịch sử phương tiện (vehicle_history) sang tuyến mới
+                    const { data: candHist } = await window.sb.from('vehicle_history')
+                        .select('id, license_plate, route')
+                        .or(`route.eq."${oldNo}",route.eq."${oldRouteName}"`);
+
+                    const isHistMatch = (h) => {
+                        if (h.route === oldRouteName) return true;
+                        if (h.route === oldNo) {
+                            const vehiclePhotos = (candPhotos || []).filter(p => (p.license_plate || '').toUpperCase() === (h.license_plate || '').toUpperCase());
+                            const hasThisBorrowed = vehiclePhotos.some(p => p.borrowed_route === oldRouteName);
+                            if (hasThisBorrowed) return true;
+                            const hasOtherBorrowed = vehiclePhotos.some(p => p.borrowed_route && p.borrowed_route !== oldRouteName && p.route_no === oldNo);
+                            if (hasOtherBorrowed) return false;
+
+                            if (provMatch) {
+                                if (provPrefixes.some(pref => (h.license_plate || '').startsWith(pref))) return true;
+                                if (app.utils.getProvinceFromPlate && app.utils.getProvinceFromPlate(h.license_plate) === provMatch.ten) return true;
+                                return false;
+                            }
+                            return h.route === oldRouteName;
+                        }
+                        return false;
+                    };
+
+                    const targetHistIds = (candHist || []).filter(isHistMatch).map(h => h.id);
+                    for (let i = 0; i < targetHistIds.length; i += 100) {
+                        const chunk = targetHistIds.slice(i, i + 100);
+                        await window.sb.from('vehicle_history').update({ route: destRouteNo }).in('id', chunk);
+                    }
+
+                    // 3. Xóa hồ sơ tuyến cũ khỏi bảng route_info
+                    await window.sb.from('route_info').delete().eq('route_name', oldRouteName);
+                    if (app.route) app.route.cachedRoutes = null;
+                },
                 compareRoutes: (a, b) => {
                     const noA = (a.route_no || a.route_name || '').trim();
                     const noB = (b.route_no || b.route_name || '').trim();
@@ -13841,10 +13918,9 @@ if (!decodedProvince || decodedProvince.trim() === '') {
                             }, { onConflict: 'route_name' });
                             if (upsertErr) throw upsertErr;
 
-                            // Nếu đổi tên tuyến từ trang chi tiết, dọn dẹp bản ghi cũ và di chuyển liên kết
+                            // Nếu đổi tên tuyến hoặc đổi tỉnh từ trang chi tiết, dọn dẹp bản ghi cũ và di chuyển liên kết
                             if (app.route.isEditingExisting && app.route.editingOriginalRouteName && app.route.editingOriginalRouteName !== routeName) {
-                                await window.sb.from('route_info').delete().eq('route_name', app.route.editingOriginalRouteName);
-                                await window.sb.from('photos').update({ borrowed_route: routeName }).eq('borrowed_route', app.route.editingOriginalRouteName);
+                                await app.route.migrateRouteData(app.route.editingOriginalRouteName, routeName, routeNo, finalProvince);
                             }
 
                             // (Bỏ xử lý cập nhật ID ảnh và biển số xe vá tuyến)
@@ -24358,6 +24434,13 @@ if (cbQuality) newSubroles.push('quality_aud');
                                 if (upsertErr) throw upsertErr;
                             }
                             if (app.route) app.route.cachedRoutes = null;
+                            
+                            // Nếu đổi tên tuyến hoặc đổi tỉnh thành, di chuyển dữ liệu ảnh & lịch sử từ tuyến cũ sang tuyến mới và xóa tuyến cũ
+                            if (req.new_data.old_route_name && req.new_data.old_route_name !== req.new_data.route_name) {
+                                if (app.route && app.route.migrateRouteData) {
+                                    await app.route.migrateRouteData(req.new_data.old_route_name, req.new_data.route_name, expectedRouteNo, targetProvince);
+                                }
+                            }
                             
                             // (Bỏ cập nhật ảnh/xe vá tuyến)
                         }
