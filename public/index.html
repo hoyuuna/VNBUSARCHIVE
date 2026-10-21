@@ -2188,7 +2188,7 @@ html.theme-dark .ct-icon {
             if (stored === 'system') {
                 theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
             }
-            document.write('<link rel="stylesheet" href="/css/' + theme + '.css?v=1792566181055" id="theme-css">');
+            document.write('<link rel="stylesheet" href="/css/' + theme + '.css?v=1792585705722" id="theme-css">');
             document.documentElement.classList.add('theme-' + theme);
             document.documentElement.style.backgroundColor = theme === 'dark' ? '#18181b' : '#fdfcf8';
         })();
@@ -5116,12 +5116,7 @@ html.theme-dark .ct-icon {
                                             onfocus="this.blur()"
                                             onclick="this.blur(); app.route.openSelector({ targetInputId: 'up-route', vehicleType: (document.getElementById('up-type')?.value || (app.upload && app.upload.selectedType) || 'bus'), selectedRoute: this.dataset.routeName || this.value, onSelect: (r) => { const rDisplay = (r.route_name && r.route_name !== r.route_no) ? r.route_name : r.route_no; document.getElementById('up-route').value = r.route_no; document.getElementById('up-route').dataset.routeName = rDisplay; document.getElementById('up-route').dataset.routeNo = r.route_no; app.utils.checkRouteStatus(r.route_no, 'up-operator', 'up-operator-wrapper'); if(app.upload && app.upload.autoFillOperatorByRoute) app.upload.autoFillOperatorByRoute(); } })"
                                             class="w-full border border-gray-300 p-2.5 text-sm rounded-md focus:ring-0 focus:outline-none outline-none transition cursor-pointer bg-white select-none caret-transparent">
-                                    </div>
-                                    <div id="up-route-quick" class="mt-2 flex flex-wrap gap-1.5">
-                                        <button type="button" onclick="app.upload.applySpecialRoute('Dừng hoạt động')" class="bg-white border border-black dark:border-white hover:bg-gray-100 dark:bg-[#18181b] dark:hover:bg-[#27272a] text-black dark:text-white text-[11px] font-bold px-2.5 py-1.5 rounded-md transition-all duration-200 ease-out active:scale-95 select-none">Dừng hoạt động</button>
-                                        <button type="button" onclick="app.upload.applySpecialRoute('Ngoài giờ hoạt động')" class="bg-white border border-black dark:border-white hover:bg-gray-100 dark:bg-[#18181b] dark:hover:bg-[#27272a] text-black dark:text-white text-[11px] font-bold px-2.5 py-1.5 rounded-md transition-all duration-200 ease-out active:scale-95 select-none">Ngoài giờ hoạt động</button>
-                                        <button type="button" onclick="app.upload.applySpecialRoute('Chưa hoạt động')" class="bg-white border border-black dark:border-white hover:bg-gray-100 dark:bg-[#18181b] dark:hover:bg-[#27272a] text-black dark:text-white text-[11px] font-bold px-2.5 py-1.5 rounded-md transition-all duration-200 ease-out active:scale-95 select-none">Chưa hoạt động</button>
-                                        <button type="button" onclick="app.upload.applySpecialRoute('Hợp đồng')" class="bg-white border border-black dark:border-white hover:bg-gray-100 dark:bg-[#18181b] dark:hover:bg-[#27272a] text-black dark:text-white text-[11px] font-bold px-2.5 py-1.5 rounded-md transition-all duration-200 ease-out active:scale-95 select-none">Hợp đồng</button>
+
                                     </div>
                                     <p id="err-up-route" class="upload-req-err hidden text-[11px] mt-1 text-red-600 font-bold"><i class="fa-solid fa-triangle-exclamation"></i> Vui lòng nhập Mã số tuyến / Lộ trình</p>
                                 </div>
@@ -7282,11 +7277,6 @@ html.theme-dark .ct-icon {
                         </div>
                     </div>
 
-                    <div>
-                        <label class="block text-xs font-bold text-gray-700 uppercase mb-1">ID ảnh / Xe vá tuyến</label>
-                        <input type="text" id="route-edit-borrowed" class="w-full bg-white border border-black rounded-md p-3 text-sm font-medium focus:ring-1 focus:ring-black outline-none transition-all text-black" placeholder="VD: 12345, 12A34567" oninput="this.value = this.value.toUpperCase()">
-                        <p class="text-[10px] text-gray-500 mt-1 font-medium">Nhập ID ảnh (VD: 123) hoặc Biển số xe (VD: 12A34567, 12A34567-1). Ngăn cách bằng dấu phẩy. Ảnh/Xe sẽ tự động được gán về tuyến này.</p>
-                    </div>
                 </div>
             </div>
             <div class="px-5 py-4 flex gap-3 shrink-0" style="flex-shrink: 0 !important;">
@@ -7518,7 +7508,7 @@ html.theme-dark .ct-icon {
 
     <!-- KHAY CHỨA TOAST Z-INDEX CAO NHẤT -->
     <div id="toast-container" class="fixed left-0 w-full flex flex-col items-center gap-2 pointer-events-none z-[99999]" style="z-index: 99999 !important;"></div>
-<script src="/app.83ea328f9ee3.js" onerror="if(!window.__app_fallback_loaded){window.__app_fallback_loaded=true;var s=document.createElement('script');s.src='/app.js?v=' + Date.now();document.head.appendChild(s);}"></script>
+<script src="/app.e26b62b85442.js" onerror="if(!window.__app_fallback_loaded){window.__app_fallback_loaded=true;var s=document.createElement('script');s.src='/app.js?v=' + Date.now();document.head.appendChild(s);}"></script>
 </body>
 </html>
 

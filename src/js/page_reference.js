@@ -975,6 +975,17 @@ if (!decodedProvince || decodedProvince.trim() === '') {
                      app.loadingBar.finish();
                  },
                 specialRoutes: ['Dừng hoạt động', 'Ngoài giờ hoạt động', 'Chưa hoạt động', 'Hợp đồng'],
+                compareRoutes: (a, b) => {
+                    const noA = (a.route_no || a.route_name || '').trim();
+                    const noB = (b.route_no || b.route_name || '').trim();
+                    const cmpNo = noA.localeCompare(noB, 'vi', { numeric: true, sensitivity: 'base' });
+                    if (cmpNo !== 0) return cmpNo;
+                    const cmpExactNo = noA.localeCompare(noB, 'vi');
+                    if (cmpExactNo !== 0) return cmpExactNo;
+                    const provA = (a.province || '').trim();
+                    const provB = (b.province || '').trim();
+                    return provA.localeCompare(provB, 'vi', { sensitivity: 'base' });
+                },
                 cachedRoutes: null,
                 selectorCallback: null,
                 selectorTargetInputId: null,
@@ -1280,6 +1291,7 @@ if (!decodedProvince || decodedProvince.trim() === '') {
                         return routes.some(other => other !== r && other.route_no === r.route_no && other.province);
                     };
                     routes = routes.filter(r => !hasProvWithSameNo(r));
+                    routes.sort(app.route.compareRoutes);
 
                     app.route.cachedRoutes = routes;
                     return routes;
@@ -1561,6 +1573,9 @@ if (!decodedProvince || decodedProvince.trim() === '') {
                         });
                     }
 
+                    // Sắp xếp tự nhiên số hiệu tuyến và tỉnh thành
+                    normalList.sort(app.route.compareRoutes);
+
                     // Đưa tuyến đang chọn lên đầu danh sách bình thường (ghim lên top)
                     const isNormalSelected = (r) => {
                         if (!curSelected) return false;
@@ -1773,7 +1788,6 @@ if (!decodedProvince || decodedProvince.trim() === '') {
                     document.getElementById('route-edit-ticket-price').value = '';
                     document.getElementById('route-edit-headway').value = '';
                     document.getElementById('route-edit-wheelchair').checked = false;
-                    document.getElementById('route-edit-borrowed').value = '';
                     document.getElementById('route-edit-icon').value = 'default';
                     document.getElementById('route-icon-label').innerText = 'Mặc định';
 
@@ -1872,7 +1886,6 @@ if (!decodedProvince || decodedProvince.trim() === '') {
                     document.getElementById('route-edit-ticket-price').value = '';
                     document.getElementById('route-edit-headway').value = '';
                     document.getElementById('route-edit-wheelchair').checked = false;
-                    document.getElementById('route-edit-borrowed').value = '';
                     document.getElementById('route-edit-icon').value = 'default';
                     document.getElementById('route-icon-label').innerText = 'Mặc định';
 
@@ -1908,22 +1921,7 @@ if (!decodedProvince || decodedProvince.trim() === '') {
                             app.route.setEditVehicleType(isTargetCoach ? 'coach' : 'bus');
                         }
 
-                        // Fetch borrowed photos
-                        const { data: bPhotos } = await window.sb.from('photos').select('id, license_plate').eq('borrowed_route', rName);
-                        let bList = [];
-                        let plates = [];
-                        if (exactInfo && exactInfo.metadata && exactInfo.metadata.borrowed_plates) {
-                            plates = exactInfo.metadata.borrowed_plates;
-                        }
-                        if (bPhotos && bPhotos.length > 0) {
-                            bPhotos.forEach(p => {
-                                if (!plates.some(pl => pl.toLowerCase() === p.license_plate.toLowerCase())) {
-                                    bList.push(p.id);
-                                }
-                            });
-                        }
-                        bList.push(...plates);
-                        document.getElementById('route-edit-borrowed').value = bList.join(', ');
+                        // (Bỏ trường ID ảnh / Xe vá tuyến theo yêu cầu)
                     } catch(e) {
                         console.error("Lỗi khi load dữ liệu sửa tuyến:", e);
                     }
@@ -1966,7 +1964,6 @@ if (!decodedProvince || decodedProvince.trim() === '') {
                     const ticketPrice = (document.getElementById('route-edit-ticket-price')?.value || '').trim();
                     const headway = (document.getElementById('route-edit-headway')?.value || '').trim();
                     const wheelchairSupport = document.getElementById('route-edit-wheelchair')?.checked || false;
-                    const borrowedPhotosStr = (document.getElementById('route-edit-borrowed')?.value || '').trim();
 
                     const vehicleType = document.getElementById('route-edit-vehicle-type')?.value || 'bus';
                     const isCoach = vehicleType === 'coach';
@@ -1998,9 +1995,6 @@ if (!decodedProvince || decodedProvince.trim() === '') {
                     metadata.vehicle_type = vehicleType;
 
                     let metadataObj = null;
-                    let rawInputList = [];
-                    let newBorrowedIds = [];
-                    let enteredPlates = [];
 
                     if (vehicleType === 'coach') {
                         metadataObj = { vehicle_type: 'coach' };
@@ -2019,15 +2013,6 @@ if (!decodedProvince || decodedProvince.trim() === '') {
                         }
 
                         metadataObj = Object.keys(metadata).length > 0 ? metadata : null;
-                        rawInputList = borrowedPhotosStr ? borrowedPhotosStr.split(',').map(s => s.trim()).filter(Boolean) : [];
-                        const enteredIdsStr = rawInputList.filter(s => /^\d+$/.test(s));
-                        enteredPlates = rawInputList.filter(s => !/^\d+$/.test(s));
-                        newBorrowedIds = enteredIdsStr.map(Number);
-
-                        if (enteredPlates.length > 0) {
-                            metadataObj = metadataObj || {};
-                            metadataObj.borrowed_plates = enteredPlates;
-                        }
                     }
 
                     const btn = document.getElementById('btn-save-route');
@@ -2055,43 +2040,7 @@ if (!decodedProvince || decodedProvince.trim() === '') {
                                 await window.sb.from('photos').update({ borrowed_route: routeName }).eq('borrowed_route', app.route.editingOriginalRouteName);
                             }
 
-                            // Xử lý cập nhật ID ảnh và biển số xe vá tuyến
-                            const { data: curBorrowed } = await window.sb.from('photos').select('id, license_plate').eq('borrowed_route', routeName);
-                            const curIds = curBorrowed ? curBorrowed.map(p => p.id) : [];
-                            const addedIdsRaw = newBorrowedIds.filter(id => !curIds.includes(id));
-                            const removedIds = curIds.filter(id => !newBorrowedIds.includes(id));
-
-                            if (enteredPlates.length > 0) {
-                                const { data: retroPhotos } = await window.sb.from('photos').select('id, route_no').in('license_plate', enteredPlates).eq('route_no', routeNo);
-                                if (retroPhotos && retroPhotos.length > 0) {
-                                    retroPhotos.forEach(p => {
-                                        if (!curIds.includes(p.id) && !addedIdsRaw.includes(p.id)) {
-                                            addedIdsRaw.push(p.id);
-                                        }
-                                    });
-                                }
-                            }
-
-                            if (addedIdsRaw.length > 0) {
-                                const { data: validPhotos } = await window.sb.from('photos').select('id, route_no').in('id', addedIdsRaw);
-                                const trulyAddedIds = (validPhotos || []).filter(p => p.route_no === routeNo).map(p => p.id);
-                                if (trulyAddedIds.length > 0) {
-                                    await window.sb.from('photos').update({ borrowed_route: routeName }).in('id', trulyAddedIds);
-                                }
-                            }
-
-                            let finalRemovedIds = removedIds;
-                            if (enteredPlates.length > 0 && curBorrowed) {
-                                finalRemovedIds = removedIds.filter(id => {
-                                    const photo = curBorrowed.find(p => p.id === id);
-                                    return !(photo && enteredPlates.some(plate => plate.toLowerCase() === photo.license_plate.toLowerCase()));
-                                });
-                            }
-                            if (finalRemovedIds.length > 0) {
-                                for (const id of finalRemovedIds) {
-                                    await window.sb.from('photos').update({ borrowed_route: null }).eq('id', id);
-                                }
-                            }
+                            // (Bỏ xử lý cập nhật ID ảnh và biển số xe vá tuyến)
 
                             app.route.cachedRoutes = null;
                             app.toast.show('success', 'Thành công', app.route.isEditingExisting ? 'Đã lưu thông tin Tuyến!' : 'Đã tạo tuyến mới thành công!');
@@ -2134,8 +2083,7 @@ if (!decodedProvince || decodedProvince.trim() === '') {
                                     short_path: isCoach ? null : (shortPath || null),
                                     description: isCoach ? null : (desc || null),
                                     is_inactive: isInactive,
-                                    metadata: metadataObj,
-                                    borrowed_photos_str: isCoach ? '' : borrowedPhotosStr
+                                    metadata: metadataObj
                                 },
                                 status: 'pending'
                             };
