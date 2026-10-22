@@ -55,6 +55,7 @@ Dữ liệu trên website phục vụ nhu cầu tra cứu phi thương mại c�
 * **Tính công cộng của phương tiện giao thông:** Phương tiện giao thông vận tải và biển kiểm soát khi tham gia lưu thông trên đường giao thông công cộng không thuộc phạm vi bí mật đời tư cá nhân.
 * **Trách nhiệm người dùng:** Người dùng tự chịu trách nhiệm về hình ảnh mình tải lên, bao gồm các vấn đề liên quan đến quyền riêng tư hoặc bản quyền với bên thứ ba.
 * **An toàn khi tác nghiệp:** VNBUSARCHIVE không tổ chức, xúi giục hay chịu trách nhiệm đối với hành vi của người dùng trong quá trình đi chụp ảnh ngoài đời thực. Người chụp tự chịu trách nhiệm về an toàn giao thông, tuân thủ an ninh trật tự và không xâm phạm khu vực cấm.
+* **Liên hệ và kết nối nhân sự:** Người dùng không có quyền yêu cầu và VNBUSARCHIVE không có trách nhiệm hay nghĩa vụ phải kết nối người dùng với bất kỳ cá nhân, nhân viên, quản trị viên hoặc người đảm nhiệm chức vụ cụ thể nào của hệ thống. Mọi phản hồi, khiếu nại hoặc đề nghị hỗ trợ chỉ được tiếp nhận và xử lý qua các kênh liên hệ chính thức do hệ thống công bố.
 * Trong trường hợp xảy ra sự cố kỹ thuật ngoài tầm kiểm soát hoặc tấn công mạng, VNBUSARCHIVE sẽ nỗ lực khắc phục, thông báo cho người dùng và được miễn trừ nghĩa vụ bồi thường tài chính.
 
 ### 8. Tiêu chuẩn về tên hiển thị và ảnh đại diện
