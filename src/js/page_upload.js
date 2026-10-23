@@ -2845,7 +2845,8 @@ Object.assign(window.app, {
                         }
                         
                         let baseLimit = 15;
-                        if (score <= 0) baseLimit = 5;
+                        if (score < -50) baseLimit = 1;
+                        else if (score <= 0) baseLimit = 5;
                         else if (score <= 49) baseLimit = 8;
                         else if (score <= 99) baseLimit = 12;
                         else if (score === 100) baseLimit = 15;
