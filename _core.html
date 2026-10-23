@@ -6416,9 +6416,9 @@ html.theme-dark .ct-icon {
             <h3 class="font-bold text-lg text-black uppercase tracking-tight mb-1">Đăng nhập nhanh</h3>
             <p class="text-xs text-gray-500 mb-5 font-medium px-2">Sử dụng điện thoại đã đăng nhập quét mã QR này để truy cập ngay.</p>
 
-            <div class="bg-white p-3 border border-gray-200 shadow-sm rounded-xl mb-4 relative min-h-[224px] min-w-[224px] flex items-center justify-center">
-                <div id="qr-login-qrcode-container"></div>
-                <div id="qr-login-loading" class="absolute inset-0 flex flex-col items-center justify-center bg-white/90  rounded-xl z-10 hidden">
+            <div id="qr-login-box" class="qr-code-wrapper bg-white p-4 border border-gray-200 shadow-sm rounded-xl mb-4 relative min-h-[240px] min-w-[240px] flex items-center justify-center" style="background-color: #ffffff !important; color: #000000 !important;">
+                <div id="qr-login-qrcode-container" class="bg-white" style="background-color: #ffffff !important;"></div>
+                <div id="qr-login-loading" class="absolute inset-0 flex flex-col items-center justify-center bg-white/95 rounded-xl z-10 hidden" style="background-color: rgba(255, 255, 255, 0.95) !important;">
                     <i class="fa-solid fa-circle-notch fa-spin text-3xl text-black mb-2"></i>
                     <p class="text-sm font-bold text-gray-800" id="qr-login-status-text">Đang tải mã...</p>
                 </div>
@@ -6499,9 +6499,9 @@ html.theme-dark .ct-icon {
             <h3 class="font-bold text-lg text-black uppercase tracking-tight mb-1">Kết nối thiết bị</h3>
             <p class="text-xs text-gray-500 mb-5 font-medium px-2">Sử dụng thiết bị còn lại quét mã QR dưới đây để truyền ảnh trực tiếp vào hệ thống.</p>
 
-            <div class="bg-white p-3 border border-gray-200 shadow-sm rounded-xl mb-4 relative min-h-[224px] min-w-[224px] flex items-center justify-center">
-                <div id="webrtc-qrcode-container"></div>
-                <div id="webrtc-loading-qr" class="absolute inset-0 flex items-center justify-center bg-white rounded-xl z-10">
+            <div id="webrtc-qrcode-box" class="qr-code-wrapper bg-white p-4 border border-gray-200 shadow-sm rounded-xl mb-4 relative min-h-[240px] min-w-[240px] flex items-center justify-center" style="background-color: #ffffff !important; color: #000000 !important;">
+                <div id="webrtc-qrcode-container" class="bg-white" style="background-color: #ffffff !important;"></div>
+                <div id="webrtc-loading-qr" class="absolute inset-0 flex items-center justify-center bg-white/95 rounded-xl z-10" style="background-color: rgba(255, 255, 255, 0.95) !important;">
                     <i class="fa-solid fa-spinner fa-spin text-2xl text-black"></i>
                 </div>
             </div>

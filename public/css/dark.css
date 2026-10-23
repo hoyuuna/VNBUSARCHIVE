@@ -113,6 +113,32 @@ a:hover, button:hover, [role="button"]:hover { text-decoration: none !important;
 .stat-item { border-color: #ffffff !important; color: #ffffff !important; background-color: #000000 !important; }
 
 
+/* BẮT BUỘC NỀN KHUNG MÃ QR KỂ CẢ DARK MODE VẪN PHẢI LÀ NỀN TRẮNG TINH */
+.qr-code-wrapper,
+#qr-login-box,
+#webrtc-qrcode-box,
+#qr-login-qrcode-container,
+#webrtc-qrcode-container,
+#qr-login-qrcode-container canvas,
+#qr-login-qrcode-container img,
+#webrtc-qrcode-container canvas,
+#webrtc-qrcode-container img {
+    background-color: #ffffff !important;
+    background: #ffffff !important;
+    border-color: #e4e4e7 !important;
+}
+
+#qr-login-loading,
+#webrtc-loading-qr {
+    background-color: rgba(255, 255, 255, 0.95) !important;
+}
+
+#qr-login-loading p,
+#qr-login-loading i,
+#webrtc-loading-qr i {
+    color: #18181b !important;
+}
+
 /* 5. POPUP, DROPDOWN & KÍNH MỜ */
 #subrole-prompt-content, #onboarding-content, #crop-content, #custom-alert-content, #settings-content, #newsboard-content,
 #upload-info-content, #custom-prompt-content, #custom-role-content, #deny-prompt-content, #ban-prompt-content,

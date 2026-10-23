@@ -6305,7 +6305,9 @@ changePassword: async () => {
             peer: null,
             conn: null,
             timer: null,
+            clientTimer: null,
             timeLeft: 180,
+            isSuccess: false,
             startHost: () => {
                 const modal = document.getElementById('qr-login-host-modal');
                 const loading = document.getElementById('qr-login-loading');
@@ -6318,7 +6320,9 @@ changePassword: async () => {
                 statusText.innerText = "Đang tạo mã QR...";
                 countdownEl.innerText = "03:00";
                 app.ui.lockScroll();
-                if (app.qrLogin.peer) app.qrLogin.peer.destroy();
+                if (app.qrLogin.peer) {
+                    try { app.qrLogin.peer.destroy(); } catch(e){}
+                }
                 app.qrLogin.peer = new Peer();
                 app.qrLogin.peer.on('open', (id) => {
                     loading.classList.add('hidden');
@@ -6330,6 +6334,10 @@ changePassword: async () => {
                     });
                     app.qrLogin.startCountdown();
                 });
+                app.qrLogin.peer.on('error', (err) => {
+                    console.error("Host QR Peer error:", err);
+                    statusText.innerText = "Lỗi kết nối máy chủ QR. Đang thử lại...";
+                });
                 app.qrLogin.peer.on('connection', (conn) => {
                     app.qrLogin.conn = conn;
                     conn.on('open', () => {
@@ -6340,17 +6348,56 @@ changePassword: async () => {
                         conn.send({ type: 'host_info', userAgent: navigator.userAgent });
                     });
                     conn.on('data', async (data) => {
-                        if (data.type === 'login_link') {
+                        if (data.type === 'login_token') {
+                            statusText.innerText = "Đang đăng nhập hệ thống...";
+                            try {
+                                const { data: sessData, error: sessErr } = await window.sb.auth.setSession({
+                                    access_token: data.access_token,
+                                    refresh_token: data.refresh_token
+                                });
+                                if (sessErr) throw sessErr;
+
+                                conn.send({ type: 'success' });
+                                setTimeout(() => {
+                                    window.location.href = '/';
+                                }, 800);
+                            } catch (e) {
+                                console.error("setSession error:", e);
+                                try {
+                                    const projectUrl = window.sb?.supabaseUrl || '';
+                                    const ref = projectUrl.split('//')[1]?.split('.')[0] || 'auth';
+                                    const storageKey = 'sb-' + ref + '-auth-token';
+                                    localStorage.setItem(storageKey, JSON.stringify({
+                                        access_token: data.access_token,
+                                        refresh_token: data.refresh_token,
+                                        token_type: 'bearer',
+                                        user: data.user || null
+                                    }));
+                                    conn.send({ type: 'success' });
+                                    setTimeout(() => {
+                                        window.location.href = '/';
+                                    }, 800);
+                                    return;
+                                } catch(fbErr) {}
+                                app.ui.showAlert("Lỗi khi đăng nhập bằng QR: " + (e.message || e));
+                                app.qrLogin.cancelHost();
+                            }
+                        } else if (data.type === 'login_link' && data.url) {
                             statusText.innerText = "Đang chuyển hướng đăng nhập...";
                             conn.send({ type: 'success' });
-                            window.location.href = data.url;
+                            setTimeout(() => {
+                                window.location.href = data.url;
+                            }, 800);
                         } else if (data.type === 'cancel') {
                             app.ui.showAlert("Đăng nhập bị từ chối từ thiết bị quét.");
                             app.qrLogin.cancelHost();
                         }
                     });
                     conn.on('close', () => {
-                        app.qrLogin.cancelHost();
+                        const curText = statusText ? statusText.innerText : '';
+                        if (!curText.includes("Đang đăng nhập") && !curText.includes("Đang chuyển hướng")) {
+                            app.qrLogin.cancelHost();
+                        }
                     });
                 });
             },
@@ -6362,7 +6409,7 @@ changePassword: async () => {
                     app.qrLogin.timeLeft--;
                     const m = Math.floor(app.qrLogin.timeLeft / 60).toString().padStart(2, '0');
                     const s = (app.qrLogin.timeLeft % 60).toString().padStart(2, '0');
-                    timerEl.innerText = `${m}:${s}`;
+                    timerEl.innerText = m + ':' + s;
                     if (app.qrLogin.timeLeft <= 0) {
                         app.ui.showAlert("Mã QR đã hết hạn (3 phút). Vui lòng tạo lại.");
                         app.qrLogin.cancelHost();
@@ -6371,26 +6418,37 @@ changePassword: async () => {
             },
             cancelHost: () => {
                 if(app.qrLogin.timer) clearInterval(app.qrLogin.timer);
-                if(app.qrLogin.conn) app.qrLogin.conn.close();
-                if(app.qrLogin.peer) app.qrLogin.peer.destroy();
+                if(app.qrLogin.conn) {
+                    try { app.qrLogin.conn.close(); } catch(e){}
+                    app.qrLogin.conn = null;
+                }
+                if(app.qrLogin.peer) {
+                    try { app.qrLogin.peer.destroy(); } catch(e){}
+                    app.qrLogin.peer = null;
+                }
                 document.getElementById('qr-login-host-modal').classList.add('hidden');
                 app.ui.unlockScroll();
             },
             initClient: async (hostId) => {
+                app.qrLogin.isSuccess = false;
                 if (!app.user) {
                     app.ui.showAlert("Bạn chưa đăng nhập! Vui lòng đăng nhập trên điện thoại này trước khi quét mã QR.", () => {
                         app.utils.navigate('/auth');
                     });
                     return;
                 }
+                try {
+                    window.history.replaceState(null, null, '/');
+                } catch(e){}
+
                 const modal = document.getElementById('qr-login-confirm-modal');
                 const btnConfirm = document.getElementById('qr-confirm-btn');
                 const avatarImg = document.getElementById('qr-confirm-avatar');
                 const deviceText = document.getElementById('qr-confirm-device');
                 btnConfirm.disabled = true;
                 btnConfirm.classList.add('opacity-50', 'cursor-not-allowed');
-                let timeLeft = 10;
-                btnConfirm.innerText = `Đăng nhập (${timeLeft})`;
+                let timeLeft = 3;
+                btnConfirm.innerText = 'Đăng nhập (' + timeLeft + ')';
                 document.getElementById('qr-confirm-name').innerText = app.username;
                 try {
                     const { data: profile } = await window.sb.from('profiles').select('avatar_url').eq('id', app.user.id).single();
@@ -6408,38 +6466,58 @@ changePassword: async () => {
                 app.qrLogin.getIP();
                 modal.classList.remove('hidden');
                 app.ui.lockScroll();
-                const cTimer = setInterval(() => {
+
+                if (app.qrLogin.clientTimer) clearInterval(app.qrLogin.clientTimer);
+                app.qrLogin.clientTimer = setInterval(() => {
                     timeLeft--;
                     if (timeLeft <= 0) {
-                        clearInterval(cTimer);
+                        clearInterval(app.qrLogin.clientTimer);
                         btnConfirm.disabled = false;
                         btnConfirm.classList.remove('opacity-50', 'cursor-not-allowed');
                         btnConfirm.innerText = "Đăng nhập";
                     } else {
-                        btnConfirm.innerText = `Đăng nhập (${timeLeft})`;
+                        btnConfirm.innerText = 'Đăng nhập (' + timeLeft + ')';
                     }
                 }, 1000);
-                if (app.qrLogin.peer) app.qrLogin.peer.destroy();
+
+                if (app.qrLogin.peer) {
+                    try { app.qrLogin.peer.destroy(); } catch(e){}
+                }
                 app.qrLogin.peer = new Peer();
+                app.qrLogin.peer.on('error', (err) => {
+                    console.error("Client QR Peer error:", err);
+                    if (!app.qrLogin.isSuccess) {
+                        app.ui.showAlert("Không thể kết nối với thiết bị chờ đăng nhập. Vui lòng quét lại.");
+                        app.qrLogin.closeClient();
+                    }
+                });
                 app.qrLogin.peer.on('open', () => {
                     app.qrLogin.conn = app.qrLogin.peer.connect(hostId, { reliable: true });
+                    app.qrLogin.conn.on('error', (err) => {
+                        console.error("Client QR Conn error:", err);
+                        if (!app.qrLogin.isSuccess) {
+                            app.ui.showAlert("Lỗi kết nối với thiết bị chờ đăng nhập. Vui lòng quét lại.");
+                            app.qrLogin.closeClient();
+                        }
+                    });
                     app.qrLogin.conn.on('data', (data) => {
                         if (data.type === 'host_info') {
                             deviceText.innerText = data.userAgent || 'Trình duyệt không xác định';
                             deviceText.className = "text-[10px] font-mono text-gray-800 break-words leading-tight mt-0.5";
                         }
                         else if (data.type === 'success') {
+                            app.qrLogin.isSuccess = true;
                             app.ui.showAlert(
-                                `<div class="text-left">
-                                    <p class="text-sm font-bold text-green-600 mb-2"><i class="fa-solid fa-check-circle mr-1"></i> Đăng nhập thành công!</p>
-                                    <p class="text-xs text-gray-700 mb-2">Thiết bị yêu cầu đã được cấp quyền truy cập hệ thống.</p>
-                                    <div class="bg-gray-50 border border-gray-200 p-3 rounded-md mt-3 shadow-sm">
-                                        <p class="text-[10.5px] text-gray-600 font-medium leading-relaxed m-0">
-                                            <i class="fa-solid fa-triangle-exclamation text-amber-500 mr-1"></i>
-                                            Nếu bạn lỡ tay hoặc nghi ngờ rủi ro, hãy vào <a href="javascript:void(0)" onclick="app.ui.closeAlert(true); setTimeout(() => { app.settings.open(); app.settings.switchTab('security'); }, 300);" class="font-bold text-red-600 hover:text-red-800 transition underline">Cài đặt > Bảo mật > Đăng xuất tất cả</a> để vô hiệu hóa quyền truy cập ngay lập tức.
-                                        </p>
-                                    </div>
-                                </div>`,
+                                '<div class="text-left">' +
+                                    '<p class="text-sm font-bold text-green-600 mb-2"><i class="fa-solid fa-check-circle mr-1"></i> Đăng nhập thành công!</p>' +
+                                    '<p class="text-xs text-gray-700 mb-2">Thiết bị yêu cầu đã được cấp quyền truy cập hệ thống.</p>' +
+                                    '<div class="bg-gray-50 border border-gray-200 p-3 rounded-md mt-3 shadow-sm">' +
+                                        '<p class="text-[10.5px] text-gray-600 font-medium leading-relaxed m-0">' +
+                                            '<i class="fa-solid fa-triangle-exclamation text-amber-500 mr-1"></i>' +
+                                            'Nếu bạn nghi ngờ rủi ro, hãy vào <a href="javascript:void(0)" onclick="app.ui.closeAlert(true); setTimeout(() => { app.settings.open(); app.settings.switchTab(\'security\'); }, 300);" class="font-bold text-red-600 hover:text-red-800 transition underline">Cài đặt > Bảo mật > Đăng xuất tất cả</a> để vô hiệu hóa quyền truy cập ngay lập tức.' +
+                                        '</p>' +
+                                    '</div>' +
+                                '</div>',
                                 () => { app.utils.navigate('/'); },
                                 null,
                                 { title: "Xác thực QR hoàn tất", btnOkText: "Đã hiểu" }
@@ -6448,6 +6526,7 @@ changePassword: async () => {
                         }
                     });
                     app.qrLogin.conn.on('close', () => {
+                        if (app.qrLogin.isSuccess) return;
                         app.ui.showAlert("Mất kết nối với thiết bị chờ đăng nhập. Vui lòng quét lại.");
                         app.utils.navigate('/');
                         app.qrLogin.closeClient();
@@ -6469,23 +6548,17 @@ changePassword: async () => {
                 btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang xử lý...';
                 try {
                     const { data, error } = await window.sb.auth.getSession();
-                    if (error || !data.session) throw new Error("Lấy Token thất bại. Vui lòng tải lại trang.");
-                    if (!app.qrLogin.conn || !app.qrLogin.conn.open) {
-                        throw new Error("Không thể kết nối với máy chủ chờ. Vui lòng quét lại mã QR.");
+                    if (error || !data.session || !data.session.access_token) {
+                        throw new Error("Lấy phiên đăng nhập thất bại. Vui lòng tải lại trang.");
                     }
-                    const res = await fetch('/api/system', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${data.session.access_token}`
-                        },
-                        body: JSON.stringify({ action: 'qr-login' })
-                    });
-                    const apiData = await res.json();
-                    if (!res.ok) throw new Error(apiData.error || "Không thể tạo token đăng nhập mới từ máy chủ.");
+                    if (!app.qrLogin.conn || !app.qrLogin.conn.open) {
+                        throw new Error("Không thể kết nối với thiết bị chờ. Vui lòng quét lại mã QR.");
+                    }
                     app.qrLogin.conn.send({
-                        type: 'login_link',
-                        url: apiData.url
+                        type: 'login_token',
+                        access_token: data.session.access_token,
+                        refresh_token: data.session.refresh_token || data.session.access_token,
+                        user: data.session.user
                     });
                 } catch (e) {
                     app.ui.showAlert(e.message);
@@ -6494,8 +6567,9 @@ changePassword: async () => {
                 }
             },
             cancelClient: () => {
+                app.qrLogin.isSuccess = true;
                 if (app.qrLogin.conn && app.qrLogin.conn.open) {
-                    app.qrLogin.conn.send({ type: 'cancel' });
+                    try { app.qrLogin.conn.send({ type: 'cancel' }); } catch(e){}
                 }
                 app.ui.showAlert("Đã hủy quá trình đăng nhập qua QR.", () => {
                     app.utils.navigate('/');
@@ -6503,8 +6577,18 @@ changePassword: async () => {
                 app.qrLogin.closeClient();
             },
             closeClient: () => {
-                if(app.qrLogin.conn) app.qrLogin.conn.close();
-                if(app.qrLogin.peer) app.qrLogin.peer.destroy();
+                if (app.qrLogin.clientTimer) clearInterval(app.qrLogin.clientTimer);
+                if (app.qrLogin.conn) {
+                    try {
+                        app.qrLogin.conn.removeAllListeners?.();
+                        app.qrLogin.conn.close();
+                    } catch(e){}
+                    app.qrLogin.conn = null;
+                }
+                if (app.qrLogin.peer) {
+                    try { app.qrLogin.peer.destroy(); } catch(e){}
+                    app.qrLogin.peer = null;
+                }
                 document.getElementById('qr-login-confirm-modal').classList.add('hidden');
                 app.ui.unlockScroll();
             }
