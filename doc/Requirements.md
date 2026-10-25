@@ -59,7 +59,11 @@ VNBUSARCHIVE là kho tư liệu chung cho cộng đồng, các tiêu chuẩn duy
 ### B3. Thông số kỹ thuật và hậu kỳ
 * **B3.1. Độ nét và ánh sáng:** 
   * Ảnh cần rõ nét, đủ sáng, không bị mờ nhòe do rung tay hoặc nhiễu hạt quá nặng do thiếu sáng.
-  * Do tiêu chuẩn áp dụng chung, ban quản trị không thể châm chước cho ảnh quá mờ nhòe vì lý do thiết bị chụp đời cũ.
+  * Không chấp nhận ảnh bị ngược sáng hoàn toàn. Phương tiện phải có ít nhất một mặt chính được chiếu sáng đúng mức và rõ chi tiết:
+    * Đối với góc chụp kết hợp (thấy cả đầu/đuôi và thân xe): Bắt buộc ít nhất một trong hai mặt phải đúng sáng. Nếu một mặt đúng sáng nhưng mặt còn lại bị quá tối (mất hoàn toàn chi tiết), ảnh vẫn sẽ bị từ chối duyệt.
+    * Đối với góc chụp chính diện hoặc ngang thân: Toàn bộ mặt xuất hiện trong khung hình bắt buộc phải đủ sáng và rõ nét.
+  * Do tiêu chuẩn áp dụng chung, ban quản trị không thể châm chước cho ảnh quá mờ nhòe hoặc sai lệch ánh sáng vì lý do thiết bị chụp đời cũ.
+  
 * **B3.2. Chỉnh sửa và giữ tính chân thực:** 
   * Không lạm dụng chỉnh sửa như tăng nét giả, màu quá rực, tương phản gắt làm viền giả quanh xe hoặc làm sai lệch màu sơn thực tế của nhà xe.
   * Không dùng công cụ xóa vật thể hoặc AI để vẽ lại biển số, logo hay chi tiết xe bị mất. Dữ liệu cần giữ nguyên tính chân thực lịch sử.
