@@ -9158,6 +9158,7 @@ let currentRouteProvName = null;
                                                 <div id="veh-sug-hist-new-op" class="suggestion-box"></div>
                                             </div>
                                         </div>
+                                        <div class="flex flex-col sm:flex-1 min-w-0">
                                             <span class="sm:hidden font-bold text-gray-500 mb-1">Tuyến</span>
                                             <input type="text" id="veh-hist-new-route" readonly placeholder="Chọn tuyến..." onfocus="this.blur()" class="hist-input cursor-pointer bg-white select-none caret-transparent" onclick="this.blur(); app.route.openSelector({ targetInputId: 'veh-hist-new-route', isHistory: true, onSelect: (r) => { const plate = document.getElementById('veh-hist-new-plate')?.value.trim() || app.currentPlate || ''; const vehProv = plate ? app.utils.getProvinceFromPlate(plate) : ''; const routeProv = r.route_name && r.route_name.includes(' - ') ? r.route_name.split(' - ').slice(1).join(' - ').trim() : ''; const routeVal = (routeProv && vehProv && routeProv.toLowerCase() !== vehProv.toLowerCase()) ? r.route_name : r.route_no; const el = document.getElementById('veh-hist-new-route'); if (el) { el.value = routeVal; el.dataset.routeName = r.route_name || routeVal; } app.utils.checkRouteStatus(r.route_no, 'veh-hist-new-op', 'veh-hist-new-op-wrapper'); } })">
                                         </div>

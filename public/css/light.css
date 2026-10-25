@@ -681,6 +681,7 @@ input:disabled, select:disabled, textarea:disabled {
 #up-route,
 #info-route,
 #hist-new-route,
+#veh-hist-new-route,
 #vehicle-edit-route,
 #del-route-dest-display,
 [id^="adm-p-route-"],
