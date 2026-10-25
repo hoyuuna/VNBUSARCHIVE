@@ -71,10 +71,10 @@ a:hover, button:hover, [role="button"]:hover { text-decoration: none !important;
 
 
 /* Các nút Header (nav-link) */
-.nav-link {
+.nav-link, #nav-admin, #nav-admin * {
     color: #ffffff !important;
 }
-.nav-link:hover {
+.nav-link:hover, #nav-admin:hover, #nav-admin:hover * {
     background-color: transparent !important;
     color: #a1a1aa !important; /* light gray hover */
 }
@@ -323,7 +323,7 @@ body.theme-dark input[type="date"]::-webkit-calendar-picker-indicator {
 .bg-red-50, .bg-red-100 { background-color: #450a0a !important; border: 1px solid #ffffff !important; color: #fca5a5 !important; }
 
 .bg-red-50 *, .bg-red-100 * { color: #fca5a5 !important; }
-.text-red-600, .text-red-500 { color: #f87171 !important; }
+.text-red-600:not(#nav-admin):not(#nav-admin *), .text-red-500:not(#nav-admin):not(#nav-admin *) { color: #f87171 !important; }
 
 .bg-yellow-50, .bg-yellow-100, .bg-orange-50, .bg-orange-100, .bg-amber-50, .bg-amber-100 { background-color: #422006 !important; border: 1px solid #ffffff !important; color: #fde047 !important; }
 .bg-yellow-50 *, .bg-yellow-100 *, .bg-orange-50 *, .bg-orange-100 *, .bg-amber-50 *, .bg-amber-100 * { color: #fde047 !important; }

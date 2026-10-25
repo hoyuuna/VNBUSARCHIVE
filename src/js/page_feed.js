@@ -1184,7 +1184,7 @@ Object.assign(window.app, {
                                 <div class="flex-1 min-w-0 flex flex-col justify-center">
                                     <span class="truncate font-bold text-gray-900 text-sm leading-tight mb-0.5">Yêu cầu ${typeText}</span>
                                     ${contextText ? `<span class="block text-gray-500 text-xs tracking-wide w-full truncate">${app.utils.cleanText(contextText)}</span>` : '<span class="block text-gray-400 text-xs tracking-wide w-full truncate">Hệ thống</span>'}
-                                    ${(isDenied && adminNoteText) ? `<span class="block text-xs text-red-600 font-medium tracking-wide w-full truncate mt-1"><i class="fa-solid fa-circle-xmark mr-1"></i>Lý do từ chối: ${app.utils.cleanText(adminNoteText)}</span>` : ''}
+                                    ${isDenied ? `<span class="block text-xs text-red-600 font-medium tracking-wide w-full truncate mt-1 italic">Lý do từ chối: ${adminNoteText ? app.utils.cleanText(adminNoteText) : 'Yêu cầu đã bị từ chối bởi người kiểm duyệt.'}</span>` : ''}
                                 </div>
                             </div>
                         `;
@@ -1266,24 +1266,19 @@ Object.assign(window.app, {
                     }
                     const adminNoteText = req.new_data?.admin_note || req.admin_note;
                     const isDenied = req.status === 'denied' || req.status === 'rejected';
-                    if (adminNoteText) {
+                    if (isDenied) {
+                        const reasonDisplay = adminNoteText ? app.utils.cleanText(adminNoteText) : 'Yêu cầu đã bị từ chối bởi người kiểm duyệt.';
                         detailsHtml += `
-                            <div class="mt-4 text-left">
-                                <span class="${isDenied ? 'text-red-600 font-bold' : 'text-gray-500 font-medium'} block mb-1">
-                                    ${isDenied ? '<i class="fa-solid fa-circle-xmark mr-1"></i>Lý do từ chối:' : 'Ghi chú của Admin:'}
-                                </span>
-                                <div class="${isDenied ? 'bg-red-50 text-red-700 border-red-200' : 'bg-gray-50 text-gray-700 border-gray-100'} p-2.5 rounded-lg border text-sm break-words whitespace-pre-wrap font-medium">
-                                    ${app.utils.cleanText(adminNoteText)}
-                                </div>
+                            <div class="mt-4 p-3 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 rounded-md text-left">
+                                <span class="font-bold text-red-700 dark:text-red-400 block mb-1 italic">Lý do từ chối:</span>
+                                <span class="text-red-600 dark:text-red-300 italic text-sm break-words whitespace-pre-wrap">${reasonDisplay}</span>
                             </div>
                         `;
-                    } else if (isDenied) {
+                    } else if (adminNoteText) {
                         detailsHtml += `
-                            <div class="mt-4 text-left">
-                                <span class="text-red-600 font-bold block mb-1"><i class="fa-solid fa-circle-xmark mr-1"></i>Lý do từ chối:</span>
-                                <div class="bg-red-50 text-red-700 border-red-200 p-2.5 rounded-lg border text-sm italic">
-                                    Yêu cầu đã bị từ chối bởi người kiểm duyệt.
-                                </div>
+                            <div class="mt-4 p-3 bg-gray-50 border border-gray-100 rounded-md text-left">
+                                <span class="text-gray-500 font-medium block mb-1 italic">Ghi chú của Admin:</span>
+                                <span class="text-gray-700 italic text-sm break-words whitespace-pre-wrap font-medium">${app.utils.cleanText(adminNoteText)}</span>
                             </div>
                         `;
                     }
