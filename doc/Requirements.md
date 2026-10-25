@@ -53,6 +53,9 @@ VNBUSARCHIVE là kho tư liệu chung cho cộng đồng, các tiêu chuẩn duy
   * Ảnh cần được căn thẳng, tránh bị nghiêng lệch góc máy:
     * **Chụp ngang tầm mắt:** Lấy các đường thẳng đứng ở hậu cảnh như cột điện, biển báo, mép tòa nhà làm chuẩn, căn song song với lề dọc của ảnh hoặc đường lưới.
     * **Chụp từ trên cao (góc nhìn hướng xuống):** Lấy thân xe làm chuẩn, căn hai cạnh ngoài của xe song song với lề dọc của ảnh.
+    * Trong trường hợp mặt đường hoặc nền địa hình thực tế quá dốc/nghiêng khiến các đường chuẩn thông thường bị sai lệch, người chụp được phép căn thẳng theo cột B của xe; tuy nhiên, phương án này chỉ được xem là giải pháp cuối cùng.
+  * Lưu ý: Dù căn theo bất kỳ cột dọc nào, người chụp bắt buộc phải đảm bảo bản thân cột đó thẳng đứng so với phương trọng lực, không bị nghiêng đổ.
+
 * **B2.4. Góc chụp:** Khuyến khích góc chụp 3/4 thấy rõ 2 phía của xe (đầu và hông hoặc đuôi và hông). Chấp nhận góc chụp toàn bộ một bên hông xe. Từ chối ảnh chỉ chụp thẳng một phía đầu hoặc đuôi xe, trừ trường hợp khung hình có từ 2 xe trở lên.
 * **B2.5. Vật cản:** Xe không bị che khuất bởi phương tiện khác, người đi đường hoặc cảnh quan như cây cối, cột điện.
 
@@ -62,6 +65,7 @@ VNBUSARCHIVE là kho tư liệu chung cho cộng đồng, các tiêu chuẩn duy
   * Không chấp nhận ảnh bị ngược sáng hoàn toàn. Phương tiện phải có ít nhất một mặt chính được chiếu sáng đúng mức và rõ chi tiết:
     * Đối với góc chụp kết hợp (thấy cả đầu/đuôi và thân xe): Bắt buộc ít nhất một trong hai mặt phải đúng sáng. Nếu một mặt đúng sáng nhưng mặt còn lại bị quá tối (mất hoàn toàn chi tiết), ảnh vẫn sẽ bị từ chối duyệt.
     * Đối với góc chụp chính diện hoặc ngang thân: Toàn bộ mặt xuất hiện trong khung hình bắt buộc phải đủ sáng và rõ nét.
+  * Đối với trường hợp chụp trong điều kiện không có ánh sáng mặt trời: Ban quản trị sẽ linh hoạt đánh giá, ảnh vẫn được chấp thuận nếu tổng thể phương tiện không quá tối và vẫn giữ được các chi tiết nhận diện cơ bản.
   * Do tiêu chuẩn áp dụng chung, ban quản trị không thể châm chước cho ảnh quá mờ nhòe hoặc sai lệch ánh sáng vì lý do thiết bị chụp đời cũ.
   
 * **B3.2. Chỉnh sửa và giữ tính chân thực:** 
