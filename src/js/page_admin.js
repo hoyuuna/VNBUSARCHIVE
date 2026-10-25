@@ -4677,7 +4677,12 @@ if (cbQuality) newSubroles.push('quality_aud');
                     if (app.isRealtimeConnected === false) {
                         return app.ui.showAlert("Mất kết nối Realtime với máy chủ! Đã tạm khóa chức năng từ chối yêu cầu để tránh lệch dữ liệu.");
                     }
-                    app.ui.showPrompt("Nhập lý do từ chối yêu cầu này (Tùy chọn):", "", async (reason) => {
+                    app.ui.showPrompt("Nhập lý do từ chối yêu cầu này (Bắt buộc):", "", async (reason) => {
+                        const cleanReason = (reason || '').trim();
+                        if (!cleanReason) {
+                            app.ui.showAlert("Vui lòng nhập lý do từ chối, không được để trống!");
+                            return;
+                        }
                         btn.innerText = "Đang xử lý..."; btn.disabled = true; btn.classList.add('btn-loading');
                         try {
                             const { data: req, error: reqErr } = await window.sb.from('edit_requests').select('id, requester_id, license_plate, new_data').eq('id', reqId).single();
@@ -4685,7 +4690,7 @@ if (cbQuality) newSubroles.push('quality_aud');
                             const currentNewData = (req && req.new_data && typeof req.new_data === 'object') ? req.new_data : {};
                             const updatedNewData = {
                                 ...currentNewData,
-                                admin_note: reason || null
+                                admin_note: cleanReason
                             };
                             const { error: updErr } = await window.sb.from('edit_requests').update({
                                 status: 'denied',
@@ -4695,7 +4700,7 @@ if (cbQuality) newSubroles.push('quality_aud');
 
                             let actionName = req?.new_data?.request_type === 'delete_photo' ? 'xóa ảnh' : 'chỉnh sửa';
                             app.toast.show('success', 'Thành công', `Đã từ chối yêu cầu ${actionName}!`);
-                            app.admin.logAction('deny_edit_req', reqId, { req_type: req?.new_data?.request_type, plate: req?.license_plate });
+                            app.admin.logAction('deny_edit_req', reqId, { req_type: req?.new_data?.request_type, plate: req?.license_plate, reason: cleanReason });
                             if (document.activeElement) document.activeElement.blur();
                             if (req?.new_data?.request_type === 'delete_photo') app.admin.loadTab('delete', false, true);
                             else app.admin.loadTab('requests', false, true);
@@ -4703,7 +4708,7 @@ if (cbQuality) newSubroles.push('quality_aud');
                             app.ui.showAlert("Lỗi: " + err.message);
                             btn.innerText = "TỪ CHỐI"; btn.disabled = false; btn.classList.remove('btn-loading');
                         }
-                    }, { allowEmpty: true, title: "Từ chối yêu cầu" });
+                    }, { allowEmpty: false, title: "Từ chối yêu cầu" });
                 }
             },
 
