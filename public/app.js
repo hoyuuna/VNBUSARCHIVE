@@ -4675,6 +4675,14 @@ Object.assign(window.app, {
                                 }, 500);
                             }
                         }
+                        else if (event === 'TOKEN_REFRESHED') {
+                            if (session && session.user) {
+                                await app.setUser(session.user);
+                            }
+                        }
+                        else if (event === 'SIGNED_OUT') {
+                            await app.setUser(null);
+                        }
                     });
                 } catch (e) {
                     if (app.dismissInitialLoadingScreen) app.dismissInitialLoadingScreen();
