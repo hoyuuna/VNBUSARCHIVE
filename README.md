@@ -37,5 +37,3 @@ Dự án luôn hoan nghênh các đóng góp về hình ảnh, thông tin phươ
 
 ### Ủng hộ dự án
 https://www.vnbusarchive.io.vn/support-us
-
-<img src="https://img.vietqr.io/image/vietcombank-1054750225-compact2.png?addInfo=Donate%20VNBUSARCHIVE" width="300"/>
