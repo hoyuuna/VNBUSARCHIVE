@@ -51,6 +51,7 @@
 - **Why:** Because `functions/api/upload.js` inserts new vehicle records with `pending` status upon initial photo upload. If queries do not filter by approved photo status, `pending` or `denied` license plates will prematurely exist in `approvedPlateSet`, causing the `XE MỚI` (New Car) badge logic (`!approvedPlateSet.has(plateKey)`) to fail.
 
 ## Strict UI & Component Rules
+- **Rule (Không tự ý chế thêm UI/tính năng):** Hệ thống không cấm chế thêm hoặc đề xuất cải tiến UI/tính năng mới, nhưng **TUYỆT ĐỐI KHÔNG ĐƯỢC TỰ Ý CHẾ THÊM KHI CHƯA HỎI**. Nếu muốn bổ sung bất kỳ thành phần, chi tiết hiển thị hay tính năng nào nằm ngoài yêu cầu trực tiếp của user thì **BẮT BUỘC PHẢI HỎI Ý KIẾN USER TRƯỚC**.
 - **Rule:** ONLY design a new component or custom style for the web WHEN EXPLICITLY REQUESTED by the user.
 - **Rule:** If not explicitly requested, you MUST reuse the existing custom components already available in the web app. If a new component is truly necessary to function, you MUST ask the user for permission before creating it.
 - **Rule:** UNDER NO CIRCUMSTANCES are you allowed to design a custom style/component without notifying or asking the user first.

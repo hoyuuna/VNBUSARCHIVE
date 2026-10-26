@@ -1176,15 +1176,12 @@ Object.assign(window.app, {
                         }
                         if (!app.views._requestsCache) app.views._requestsCache = {};
                         app.views._requestsCache[req.id] = req;
-                        const adminNoteText = req.new_data?.admin_note || req.admin_note;
-                        const isDenied = req.status === 'denied' || req.status === 'rejected';
                         return `
                             <div class="${cardStyleClasses}" onclick="app.views.showRequestDetails('${req.id}')">
                                 ${dotHtml}
                                 <div class="flex-1 min-w-0 flex flex-col justify-center">
                                     <span class="truncate font-bold text-gray-900 text-sm leading-tight mb-0.5">Yêu cầu ${typeText}</span>
                                     ${contextText ? `<span class="block text-gray-500 text-xs tracking-wide w-full truncate">${app.utils.cleanText(contextText)}</span>` : '<span class="block text-gray-400 text-xs tracking-wide w-full truncate">Hệ thống</span>'}
-                                    ${isDenied ? `<span class="block text-xs text-red-600 font-medium tracking-wide w-full truncate mt-1 italic">Lý do từ chối: ${adminNoteText ? app.utils.cleanText(adminNoteText) : 'Yêu cầu đã bị từ chối bởi người kiểm duyệt.'}</span>` : ''}
                                 </div>
                             </div>
                         `;
