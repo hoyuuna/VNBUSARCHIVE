@@ -4466,6 +4466,7 @@ cleanupState: () => {
                         app.role = 'user';
                     }
                     document.getElementById('nav-username').innerText = app.username;
+                    app.avatarUrl = currentAvatar;
                     if (currentAvatar) {
                         const hImg = document.getElementById('nav-user-avatar');
                         if (hImg) {
@@ -4509,6 +4510,7 @@ dropdown.innerHTML = `
                     if (hIcon) hIcon.classList.remove('hidden');
                     document.getElementById('nav-admin').classList.add('hidden');
                     app.username = 'Guest';
+                    app.avatarUrl = null;
                     app.role = 'user';
 dropdown.innerHTML = `
                          <a href="/auth" class="w-full text-left block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 border-b border-gray-100 font-bold"><i class="fa-solid fa-arrow-right-to-bracket w-5 text-center mr-1"></i> Đăng nhập</a>

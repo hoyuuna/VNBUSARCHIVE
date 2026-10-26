@@ -875,35 +875,36 @@ Object.assign(window.app, {
             const avatarEl = document.getElementById('donate-user-avatar');
             const iconEl = document.getElementById('donate-user-icon');
             const nameEl = document.getElementById('donate-user-name');
-            const badgeEl = document.getElementById('donate-user-badge');
             const descEl = document.getElementById('donate-user-desc');
 
             if (isUser) {
                 const displayName = app.username || app.user.email?.split('@')[0] || 'Thành viên VNBUSARCHIVE';
                 if (nameEl) nameEl.innerText = displayName;
-                if (badgeEl) {
-                    badgeEl.innerText = 'Thành viên';
-                    badgeEl.className = 'px-2 py-0.5 text-[10px] font-bold rounded bg-black text-white';
-                }
                 if (descEl) descEl.innerText = 'Khoản ủng hộ sẽ được ghi nhận và lưu lại trong hồ sơ cá nhân của bạn.';
 
-                if (avatarEl && iconEl) {
-                    const userAvatar = app.avatarUrl || null;
-                    if (userAvatar) {
-                        avatarEl.src = app.utils.getProxiedUrl(userAvatar, 'avatar.jpg', 'avatar');
-                        avatarEl.classList.remove('hidden');
-                        iconEl.classList.add('hidden');
-                    } else {
-                        avatarEl.classList.add('hidden');
-                        iconEl.classList.remove('hidden');
+                let userAvatar = app.avatarUrl || null;
+                if (!userAvatar) {
+                    const navAvatar = document.getElementById('nav-user-avatar');
+                    if (navAvatar && navAvatar.src && !navAvatar.classList.contains('hidden')) {
+                        userAvatar = navAvatar.src;
                     }
+                }
+                if (!userAvatar && app.user) {
+                    userAvatar = app.user.user_metadata?.avatar_url || app.user.user_metadata?.picture || null;
+                }
+
+                if (avatarEl && iconEl) {
+                    const defaultAv = (typeof DEFAULT_AVATAR !== 'undefined') ? DEFAULT_AVATAR : '/media/default-avatar.png';
+                    const finalAvatar = userAvatar
+                        ? (userAvatar.startsWith('http') && !userAvatar.includes('/avatar.jpg') ? app.utils.getProxiedUrl(userAvatar.replace(/"/g, ''), 'avatar.jpg', 'avatar') : userAvatar)
+                        : defaultAv;
+                    avatarEl.src = finalAvatar;
+                    avatarEl.onerror = () => { avatarEl.src = defaultAv; };
+                    avatarEl.classList.remove('hidden');
+                    iconEl.classList.add('hidden');
                 }
             } else {
                 if (nameEl) nameEl.innerText = 'Ẩn danh (Khách vãng lai)';
-                if (badgeEl) {
-                    badgeEl.innerText = 'Chưa đăng nhập';
-                    badgeEl.className = 'px-2 py-0.5 text-[10px] font-bold rounded bg-gray-200 text-gray-700';
-                }
                 if (descEl) descEl.innerText = 'Bạn đang ủng hộ với tư cách ẩn danh. Đăng nhập nếu bạn muốn lưu vào hồ sơ cá nhân.';
                 if (avatarEl && iconEl) {
                     avatarEl.classList.add('hidden');
@@ -997,10 +998,10 @@ Object.assign(window.app, {
             const message = msgInput ? msgInput.value.trim() : '';
 
             const btn = document.getElementById('btn-donate-submit');
-            const origHTML = btn ? btn.innerHTML : '';
+            const origHTML = btn ? btn.innerHTML : 'Ủng hộ ngay';
             if (btn) {
                 btn.disabled = true;
-                btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> Đang tạo mã VietQR...';
+                btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> Đang tạo mã...';
             }
 
             try {
@@ -1031,7 +1032,7 @@ Object.assign(window.app, {
             } finally {
                 if (btn) {
                     btn.disabled = false;
-                    btn.innerHTML = origHTML;
+                    btn.innerHTML = 'Ủng hộ ngay';
                 }
             }
         },

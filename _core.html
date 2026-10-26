@@ -4273,10 +4273,7 @@ html.theme-dark .ct-icon {
                                 <img id="donate-user-avatar" src="" alt="Avatar" class="hidden w-full h-full object-cover">
                             </div>
                             <div class="min-w-0">
-                                <div class="flex items-center gap-2">
-                                    <h3 id="donate-user-name" class="font-extrabold text-sm md:text-base text-black truncate">...</h3>
-                                    <span id="donate-user-badge" class="px-2 py-0.5 text-[10px] font-bold rounded bg-gray-100 text-gray-600">Đang tải...</span>
-                                </div>
+                                <h3 id="donate-user-name" class="font-extrabold text-sm md:text-base text-black truncate">...</h3>
                                 <p id="donate-user-desc" class="text-xs text-gray-500 truncate mt-0.5">...</p>
                             </div>
                         </div>
@@ -4292,7 +4289,7 @@ html.theme-dark .ct-icon {
                             </div>
                             <h2 class="text-2xl font-black text-black uppercase tracking-tight mb-2">Ủng Hộ Dự Án</h2>
                             <p class="text-[13px] text-gray-500 font-medium leading-relaxed max-w-md mx-auto">
-                                VNBUSARCHIVE phi lợi nhuận lưu trữ hình ảnh xe buýt Việt Nam miễn phí cho cộng đồng. Mọi đóng góp của bạn đều giúp duy trì chi phí máy chủ và CDN!
+                                VNBUSARCHIVE là dự án phi lợi nhuận lưu trữ hình ảnh xe buýt Việt Nam miễn phí cho cộng đồng. Mọi đóng góp của bạn đều giúp duy trì chi phí máy chủ!
                             </p>
                         </div>
 
@@ -4311,7 +4308,7 @@ html.theme-dark .ct-icon {
 
                             <!-- Custom Amount Input -->
                             <div class="mb-4">
-                                <label class="block text-[11px] font-bold text-gray-500 uppercase tracking-widest mb-1.5">Số tiền ủng hộ tùy ý (VNĐ) <span class="text-red-500">*</span></label>
+                                <label class="block text-[11px] font-bold text-gray-500 uppercase tracking-widest mb-1.5">Số tiền ủng hộ tùy ý <span class="text-red-500">*</span></label>
                                 <div class="relative flex items-center">
                                     <input type="text" id="donate-amount-input" oninput="app.donate.handleAmountInput(event)" placeholder="20,000" class="w-full bg-white border border-gray-300 focus:border-black rounded-lg p-3 text-base md:text-lg font-extrabold text-black outline-none transition shadow-sm pr-12">
                                     <span class="absolute right-3.5 text-sm font-bold text-gray-400">VNĐ</span>
@@ -4321,12 +4318,12 @@ html.theme-dark .ct-icon {
 
                             <!-- Lời nhắn -->
                             <div class="mb-6">
-                                <label class="block text-[11px] font-bold text-gray-500 uppercase tracking-widest mb-1.5">Lời nhắn gửi đến VNBUSARCHIVE (Tùy chọn)</label>
+                                <label class="block text-[11px] font-bold text-gray-500 uppercase tracking-widest mb-1.5">Lời nhắn gửi đến VNBUSARCHIVE</label>
                                 <textarea id="donate-message" rows="2" maxlength="200" placeholder="Cảm ơn đội ngũ phát triển, chúc dự án ngày càng phát triển..." class="w-full bg-white border border-gray-300 focus:border-black rounded-lg p-3 text-xs md:text-sm font-medium text-black outline-none transition shadow-sm resize-none"></textarea>
                             </div>
 
                             <button type="button" id="btn-donate-submit" onclick="app.donate.createPayment()" class="w-full py-3.5 bg-black hover:bg-gray-800 text-white rounded-lg text-sm font-extrabold tracking-wide uppercase transition shadow-sm flex items-center justify-center gap-2">
-                                <i class="fa-solid fa-qrcode"></i> Tạo mã VietQR ủng hộ
+                                Ủng hộ ngay
                             </button>
                         </div>
 
@@ -4364,7 +4361,7 @@ html.theme-dark .ct-icon {
                                 <!-- Live polling indicator -->
                                 <div class="flex items-center justify-center gap-2 text-xs text-gray-600 font-medium mb-6">
                                     <i class="fa-solid fa-spinner fa-spin text-black"></i>
-                                    <span>Đang chờ thanh toán (Hệ thống tự nhận diện tự động)...</span>
+                                    <span>Đang chờ thanh toán...</span>
                                 </div>
 
                                 <div class="flex flex-col sm:flex-row gap-2 max-w-sm mx-auto">
@@ -4372,7 +4369,7 @@ html.theme-dark .ct-icon {
                                         <i class="fa-solid fa-arrow-up-right-from-square"></i> Mở cổng payOS
                                     </a>
                                     <button type="button" onclick="app.donate.cancelPayment()" class="py-2.5 px-4 bg-white border border-gray-300 hover:border-black text-gray-700 hover:text-black rounded-lg text-xs font-bold transition">
-                                        Đổi số tiền
+                                        Tôi đổi ý rồi
                                     </button>
                                 </div>
                             </div>
