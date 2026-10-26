@@ -12094,14 +12094,14 @@ Object.assign(window.app, {
 
                 const data = await res.json();
                 if (!res.ok || !data.success) {
-                    throw new Error(data.error || 'Không thể tạo mã thanh toán payOS.');
+                    throw new Error(data.error || 'Không thể tạo mã thanh toán.');
                 }
 
                 app.donate.currentOrder = data;
                 app.donate.renderQrStep(data);
 
             } catch (err) {
-                app.ui.showAlert("Lỗi tạo thanh toán: " + err.message);
+                app.ui.showAlert("Không thể khởi tạo mã thanh toán: " + err.message);
             } finally {
                 if (btn) {
                     btn.disabled = false;
@@ -12126,7 +12126,7 @@ Object.assign(window.app, {
                         correctLevel: QRCode.CorrectLevel.M
                     });
                 } else if (data.checkoutUrl) {
-                    qrContainer.innerHTML = `<div class="p-4 text-center text-xs text-gray-500">Mã QR không khả dụng. Vui lòng mở cổng thanh toán bên dưới.</div>`;
+                    qrContainer.innerHTML = `<div class="p-4 text-center text-xs text-gray-500">Mã QR tạm thời chưa tải được, bạn vui lòng thử lại sau.</div>`;
                 }
             }
 
@@ -12158,7 +12158,7 @@ Object.assign(window.app, {
                     } else if (chk.success && (chk.status === 'CANCELLED' || chk.status === 'EXPIRED')) {
                         clearInterval(app.donate._pollTimer);
                         app.donate._pollTimer = null;
-                        app.ui.showAlert('Đơn ủng hộ này đã hết hạn hoặc bị hủy.', () => {
+                        app.ui.showAlert('Đơn ủng hộ đã hết hiệu lực hoặc bị hủy.', () => {
                             app.donate.showStep('form');
                             if (app.user && typeof app.donate.fetchProfileDonations === 'function') {
                                 app.donate.fetchProfileDonations();
@@ -12191,7 +12191,7 @@ Object.assign(window.app, {
                     toggle.disabled = true;
                 }
                 if (hintEl) {
-                    hintEl.innerText = 'Khách vãng lai luôn được hiển thị ẩn danh để bảo vệ quyền riêng tư.';
+                    hintEl.innerText = 'Khách vãng lai mặc định được ẩn danh để bảo đảm quyền riêng tư.';
                 }
             } else {
                 if (toggle) {
@@ -12211,7 +12211,7 @@ Object.assign(window.app, {
                     };
                 }
                 if (hintEl) {
-                    hintEl.innerText = 'Bật công tắc nếu bạn muốn giấu tên trên danh sách cảm ơn ở trang chủ.';
+                    hintEl.innerText = 'Bật nếu bạn muốn giấu tên trên danh sách cảm ơn ở trang chủ.';
                 }
             }
         },
@@ -12295,7 +12295,7 @@ Object.assign(window.app, {
                 app.loadingBar.finish();
 
                 if (!checkData || !checkData.success) {
-                    app.ui.showAlert('Không tìm thấy thông tin đơn ủng hộ này.');
+                    app.ui.showAlert('Không tìm thấy thông tin đơn ủng hộ.');
                     return;
                 }
 
@@ -12305,7 +12305,7 @@ Object.assign(window.app, {
                 }
 
                 if (checkData.status === 'CANCELLED' || checkData.status === 'EXPIRED') {
-                    app.ui.showAlert('Đơn ủng hộ này đã hết hạn hoặc bị hủy.', () => {
+                    app.ui.showAlert('Đơn ủng hộ đã hết hiệu lực hoặc bị hủy.', () => {
                         app.donate.showStep('form');
                         if (app.user && typeof app.donate.fetchProfileDonations === 'function') {
                             app.donate.fetchProfileDonations();
@@ -12315,7 +12315,7 @@ Object.assign(window.app, {
                 }
 
                 if (!checkData.qrCode) {
-                    app.ui.showAlert('Đơn ủng hộ này đã cũ và không thể tải lại mã QR. Vui lòng tạo một khoản ủng hộ mới nhé!', () => {
+                    app.ui.showAlert('Đơn ủng hộ không còn mã QR khả dụng. Bạn hãy tạo một khoản ủng hộ mới nhé!', () => {
                         app.donate.showStep('form');
                         if (app.user && typeof app.donate.fetchProfileDonations === 'function') {
                             app.donate.fetchProfileDonations();
@@ -12330,7 +12330,7 @@ Object.assign(window.app, {
             } catch (err) {
                 app.loadingBar.finish();
                 console.error('Error resuming donation:', err);
-                app.ui.showAlert('Lỗi khi mở lại đơn ủng hộ: ' + err.message);
+                app.ui.showAlert('Không thể mở lại đơn ủng hộ: ' + err.message);
             }
         },
 
@@ -12529,20 +12529,22 @@ Object.assign(window.app, {
                     </div>` : ''}
 
                     <div class="mt-4 pt-2">
-                        <div class="flex items-center justify-between gap-3 p-3 bg-gray-50 rounded-lg border border-black">
+                        <label class="flex items-center justify-between gap-3 p-3 bg-gray-50 rounded-lg border border-black cursor-pointer select-none">
                             <div class="min-w-0 pr-2">
                                 <div class="text-xs font-bold text-black">
                                     Ẩn danh trên trang chủ
                                 </div>
                                 <p id="donation-modal-anon-desc" class="text-[11px] text-gray-500 mt-0.5 leading-normal">
-                                    ${item.is_anonymous ? 'Khoản này đang được giấu tên trên bảng tri ân.' : 'Khoản này đang được công khai tên trên bảng tri ân.'}
+                                    ${item.is_anonymous ? 'Khoản này đang được giấu tên trên danh sách tri ân.' : 'Khoản này đang được công khai tên trên danh sách tri ân.'}
                                 </p>
                             </div>
-                            <label class="relative inline-flex items-center cursor-pointer shrink-0">
-                                <input type="checkbox" id="donation-item-anon-toggle" ${item.is_anonymous ? 'checked' : ''} onchange="app.donate.toggleItemAnonymous('${item.order_code}', this.checked)" class="sr-only peer">
-                                <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-black"></div>
-                            </label>
-                        </div>
+                            <div class="relative shrink-0 flex items-center">
+                                <input type="checkbox" id="donation-item-anon-toggle" class="custom-cb-input sr-only" ${item.is_anonymous ? 'checked' : ''} onchange="app.donate.toggleItemAnonymous('${item.order_code}', this.checked)">
+                                <div class="custom-cb-box shrink-0 shadow-sm" style="margin: 0 !important;">
+                                    <i class="fa-solid fa-check"></i>
+                                </div>
+                            </div>
+                        </label>
                     </div>
                 </div>
             `;
@@ -12561,8 +12563,8 @@ Object.assign(window.app, {
             const descEl = document.getElementById('donation-modal-anon-desc');
             if (descEl) {
                 descEl.innerText = isChecked 
-                    ? 'Khoản này đang được giấu tên trên bảng tri ân.' 
-                    : 'Khoản này đang được công khai tên trên bảng tri ân.';
+                    ? 'Khoản này đang được giấu tên trên danh sách tri ân.' 
+                    : 'Khoản này đang được công khai tên trên danh sách tri ân.';
             }
 
             try {

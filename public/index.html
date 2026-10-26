@@ -1788,6 +1788,10 @@ html.theme-dark .ct-icon {
             transform: scale(1) !important;
             color: #ffffff !important;
         }
+        .custom-cb-input:disabled ~ .custom-cb-box {
+            opacity: 0.5 !important;
+            cursor: not-allowed !important;
+        }
 
         /* Dark Mode fallback for custom-cb-box in head */
         html.theme-dark .custom-cb-box,
@@ -1817,6 +1821,11 @@ html.theme-dark .ct-icon {
             opacity: 1 !important;
             transform: scale(1) !important;
             color: #000000 !important;
+        }
+        html.theme-dark .custom-cb-input:disabled ~ .custom-cb-box,
+        body.theme-dark .custom-cb-input:disabled ~ .custom-cb-box {
+            opacity: 0.5 !important;
+            cursor: not-allowed !important;
         }
 
         /* Làm trong suốt các nút bấm bên trong để không che mất kính */
@@ -2188,7 +2197,7 @@ html.theme-dark .ct-icon {
             if (stored === 'system') {
                 theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
             }
-            document.write('<link rel="stylesheet" href="/css/' + theme + '.css?v=1793002303804" id="theme-css">');
+            document.write('<link rel="stylesheet" href="/css/' + theme + '.css?v=1793004451802" id="theme-css">');
             document.documentElement.classList.add('theme-' + theme);
             document.documentElement.style.backgroundColor = theme === 'dark' ? '#18181b' : '#fdfcf8';
         })();
@@ -4290,6 +4299,9 @@ html.theme-dark .ct-icon {
                             <button type="button" id="btn-donate-submit" onclick="app.donate.createPayment()" class="w-full py-3.5 bg-black hover:bg-gray-800 text-white rounded-lg text-sm font-extrabold tracking-wide uppercase transition shadow-sm flex items-center justify-center gap-2">
                                 Ủng hộ ngay
                             </button>
+                            <p class="text-center text-[12px] text-gray-500 mt-3 leading-normal">
+                                Nếu có yêu cầu chưa hoàn thành hoặc muốn xem lại lịch sử, bạn hãy vào <a href="javascript:void(0)" onclick="app.utils.navigate('/profile')" class="text-black font-bold hover:underline">Hồ sơ của tôi</a>.
+                            </p>
                         </div>
 
                         <!-- STEP 2: HIỂN THỊ MÃ VIETQR QUA PAYOS -->
@@ -4359,20 +4371,22 @@ html.theme-dark .ct-icon {
 
                             <!-- CÔNG TẮC ẨN DANH TRÊN NÚT HOÀN THÀNH -->
                             <div class="bg-white border border-black rounded-xl p-4 max-w-sm mx-auto mb-6 text-left shadow-sm">
-                                <div class="flex items-center justify-between gap-3">
+                                <label class="flex items-center justify-between gap-3 cursor-pointer select-none">
                                     <div class="min-w-0 pr-2">
                                         <div class="text-xs sm:text-[13px] font-bold text-black leading-snug">
-                                            "Mình muốn sống ẩn danh, đừng công khai tên nhé!"
+                                            Ẩn danh trên trang chủ
                                         </div>
                                         <p id="donate-anonymous-hint" class="text-[11px] text-gray-500 mt-1 leading-normal">
-                                            Bật công tắc nếu bạn muốn giấu tên trên danh sách cảm ơn ở trang chủ.
+                                            Bật nếu bạn muốn giấu tên trên danh sách cảm ơn ở trang chủ.
                                         </p>
                                     </div>
-                                    <label class="relative inline-flex items-center cursor-pointer shrink-0">
-                                        <input type="checkbox" id="donate-anonymous-toggle" class="sr-only peer">
-                                        <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-black peer-disabled:opacity-50 peer-disabled:cursor-not-allowed"></div>
-                                    </label>
-                                </div>
+                                    <div class="relative shrink-0 flex items-center">
+                                        <input type="checkbox" id="donate-anonymous-toggle" class="custom-cb-input sr-only">
+                                        <div class="custom-cb-box shrink-0 shadow-sm" style="margin: 0 !important;">
+                                            <i class="fa-solid fa-check"></i>
+                                        </div>
+                                    </div>
+                                </label>
                             </div>
 
                             <!-- NÚT HOÀN THÀNH -->
@@ -7696,7 +7710,7 @@ html.theme-dark .ct-icon {
 
     <!-- KHAY CHỨA TOAST Z-INDEX CAO NHẤT -->
     <div id="toast-container" class="fixed left-0 w-full flex flex-col items-center gap-2 pointer-events-none z-[99999]" style="z-index: 99999 !important;"></div>
-<script src="/app.542a174b770b.js" onerror="if(!window.__app_fallback_loaded){window.__app_fallback_loaded=true;var s=document.createElement('script');s.src='/app.js?v=' + Date.now();document.head.appendChild(s);}"></script>
+<script src="/app.0259238fcd41.js" onerror="if(!window.__app_fallback_loaded){window.__app_fallback_loaded=true;var s=document.createElement('script');s.src='/app.js?v=' + Date.now();document.head.appendChild(s);}"></script>
 </body>
 </html>
 

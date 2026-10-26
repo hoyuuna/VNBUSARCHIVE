@@ -597,6 +597,12 @@ html.theme-dark .custom-cb-input:checked ~ .custom-cb-box i {
     transform: scale(1) !important;
     color: #000000 !important;
 }
+.custom-cb-input:disabled ~ .custom-cb-box,
+body.theme-dark .custom-cb-input:disabled ~ .custom-cb-box,
+html.theme-dark .custom-cb-input:disabled ~ .custom-cb-box {
+    opacity: 0.5 !important;
+    cursor: not-allowed !important;
+}
 
 #top-loading-bar,
 body.theme-dark #top-loading-bar,
