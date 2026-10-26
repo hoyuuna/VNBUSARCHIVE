@@ -815,11 +815,7 @@ Object.assign(window.app, {
                             if (isBannedUser) manageCommentBtn.classList.add('hidden');
                             else manageCommentBtn.classList.remove('hidden');
                         }
-                        const donationHistoryBtn = document.getElementById('btn-donation-history');
-                        if (donationHistoryBtn) {
-                            if (isBannedUser) donationHistoryBtn.classList.add('hidden');
-                            else donationHistoryBtn.classList.remove('hidden');
-                        }
+
                         document.getElementById('profile-stats-title').innerText = "THỐNG KÊ HOẠT ĐỘNG";
                         document.getElementById('profile-photos-title').innerText = "Ảnh của bạn";
                     } else {
@@ -828,8 +824,7 @@ Object.assign(window.app, {
                         if (editProfileBtn) { editProfileBtn.classList.add('hidden'); editProfileBtn.classList.remove('flex'); }
                         if (document.getElementById('btn-detailed-stats')) document.getElementById('btn-detailed-stats').classList.add('hidden');
                         if (manageCommentBtn) manageCommentBtn.classList.add('hidden');
-                        const donationHistoryBtnElse = document.getElementById('btn-donation-history');
-                        if (donationHistoryBtnElse) donationHistoryBtnElse.classList.add('hidden');
+
                         document.getElementById('profile-stats-title').innerText = "THỐNG KÊ CỦA " + displayUsername.toUpperCase();
                         document.getElementById('profile-photos-title').innerText = "Ảnh đã đăng";
                     }
@@ -942,11 +937,16 @@ Object.assign(window.app, {
                     if (isOwnProfile) {
                         app.views.fetchLikedPhotosPage(app.likedPage || 1);
                         app.views.fetchProfileRequests(1);
+                        if (app.donate && typeof app.donate.fetchProfileDonations === 'function') {
+                            app.donate.fetchProfileDonations();
+                        }
                     } else {
                         const reqSec = document.getElementById('my-requests-section');
                         if (reqSec) reqSec.classList.add('hidden');
                         const likedSec = document.getElementById('acc-liked-section');
                         if (likedSec) likedSec.classList.add('hidden');
+                        const donSec = document.getElementById('my-donations-section');
+                        if (donSec) donSec.classList.add('hidden');
                     }
                     
                     app.lastLoadedUsername = targetUsername;

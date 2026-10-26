@@ -2814,37 +2814,7 @@ html.theme-dark .ct-icon {
             </div>
         </div>
 
-        <!-- MODAL LỊCH SỬ ỦNG HỘ -->
-        <div id="modal-donation-history" class="hidden fixed inset-0 z-[5000] flex items-center justify-center p-4 backdrop-blur-md">
-            <div class="bg-white border border-black rounded-xl max-w-md w-full p-5 md:p-6 shadow-2xl relative">
-                <div class="flex items-center justify-between mb-4">
-                    <div class="flex items-center gap-2">
-                        <div class="w-8 h-8 rounded-full bg-red-50 text-red-500 flex items-center justify-center border border-red-100">
-                            <i class="fa-solid fa-heart text-xs"></i>
-                        </div>
-                        <h3 class="font-black text-base uppercase text-black">Lịch Sử Ủng Hộ</h3>
-                    </div>
-                    <button type="button" onclick="app.donate.closeHistoryModal()" class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 text-gray-500 hover:text-black transition">
-                        <i class="fa-solid fa-xmark text-sm"></i>
-                    </button>
-                </div>
 
-                <div class="bg-gray-50 border border-gray-200 rounded-lg p-3 mb-4 flex items-center justify-between text-xs">
-                    <span class="text-gray-500 font-medium">Tổng đóng góp của bạn:</span>
-                    <span id="donation-history-total" class="font-black text-base text-black">0 đ</span>
-                </div>
-
-                <div id="donation-history-list" class="max-h-[340px] overflow-y-auto space-y-2 pr-1">
-                    <!-- Rendered by JS -->
-                </div>
-
-                <div class="mt-4 flex justify-end">
-                    <button type="button" onclick="app.donate.closeHistoryModal()" class="px-5 py-2.5 bg-black hover:bg-gray-800 text-white text-xs font-bold rounded-lg transition">
-                        Đóng
-                    </button>
-                </div>
-            </div>
-        </div>
 
         <div id="deny-prompt-modal"
             class="hidden fixed inset-0 z-[5000] flex items-center justify-center p-4 backdrop-blur-md">
@@ -3728,19 +3698,14 @@ html.theme-dark .ct-icon {
 
                 <!-- KHỐI TRI ÂN & CẢM ƠN CÁC NHÀ HẢO TÂM -->
                 <div id="home-supporters-section" class="mt-4 bg-white border border-gray-200 p-5 rounded-lg shadow-sm">
-                    <div class="flex items-center justify-between mb-3">
-                        <div class="flex items-center gap-2">
-                            <i class="fa-solid fa-heart text-red-500 text-sm"></i>
-                            <h3 class="font-bold text-sm md:text-base text-black uppercase tracking-wide">CẢM ƠN CÁC NHÀ HẢO TÂM</h3>
-                        </div>
-                        <button onclick="app.utils.navigate('/support-us')" class="text-xs font-bold text-gray-600 hover:text-black flex items-center gap-1 transition">
-                            Ủng hộ ngay <i class="fa-solid fa-chevron-right text-[10px]"></i>
-                        </button>
+                    <div class="flex items-center gap-2 mb-3">
+                        <i class="fa-solid fa-heart text-red-500 text-sm"></i>
+                        <h3 class="font-bold text-sm md:text-base text-black uppercase tracking-wide">CẢM ƠN CÁC NHÀ HẢO TÂM</h3>
                     </div>
                     <p class="text-xs text-gray-500 mb-4 leading-relaxed">
                         Trân trọng cảm ơn những người bạn đã đồng hành và đóng góp kinh phí duy trì máy chủ, database lưu trữ xe buýt Việt Nam hoàn toàn miễn phí:
                     </p>
-                    <div id="home-supporters-list" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                    <div id="home-supporters-list" class="grid grid-cols-2 md:grid-cols-4 gap-3">
                         <div class="col-span-full py-6 text-center text-xs text-gray-400">
                             <i class="fa-solid fa-spinner fa-spin mr-2"></i> Đang tải danh sách tri ân...
                         </div>
@@ -5618,12 +5583,8 @@ html.theme-dark .ct-icon {
                                 <i class="fa-solid fa-chart-pie text-gray-500 group-hover:text-white transition-colors"></i> Chỉ số chi tiết
                             </button>
 
-                            <button id="btn-manage-comments" onclick="app.utils.navigate('/profile/comments')" class="w-full mb-2 py-3 bg-white border border-[#e4e4e7] rounded-lg text-sm font-bold text-gray-700 hover:bg-black hover:text-white hover:border-black transition shadow-[0_1px_2px_0_rgba(0,0,0,0.05)] flex items-center justify-center gap-2 group">
+                            <button id="btn-manage-comments" onclick="app.utils.navigate('/profile/comments')" class="w-full mb-6 py-3 bg-white border border-[#e4e4e7] rounded-lg text-sm font-bold text-gray-700 hover:bg-black hover:text-white hover:border-black transition shadow-[0_1px_2px_0_rgba(0,0,0,0.05)] flex items-center justify-center gap-2 group">
                                 <i class="fa-solid fa-comments text-gray-500 group-hover:text-white transition-colors"></i> Quản lý bình luận
-                            </button>
-
-                            <button id="btn-donation-history" onclick="app.donate.openHistoryModal()" class="w-full mb-6 py-3 bg-white border border-[#e4e4e7] rounded-lg text-sm font-bold text-gray-700 hover:bg-black hover:text-white hover:border-black transition shadow-[0_1px_2px_0_rgba(0,0,0,0.05)] flex items-center justify-center gap-2 group">
-                                <i class="fa-solid fa-heart text-red-500 group-hover:text-white transition-colors"></i> Lịch sử ủng hộ
                             </button>
 
                             <!-- ĐOẠN CODE THÊM MỚI: PHẦN GIỚI THIỆU -->
@@ -5746,6 +5707,12 @@ html.theme-dark .ct-icon {
                             
                             <div id="profile-load-more-container" class="mt-6 flex justify-center hidden">
                                 <!-- Existing pagination logic will inject into this or create it if not exist, wait, the pagination in profile is dynamically injected into my-photos-grid's parent? Let's check that later. Actually I will just insert my-requests-section below it. -->
+                            </div>
+
+                            <div id="my-donations-section" class="hidden mt-10">
+                                <h4 class="font-bold text-sm uppercase mb-3 text-gray-800">Lịch sử ủng hộ</h4>
+                                <div id="my-donations-grid" class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                                </div>
                             </div>
 
                             <div id="my-requests-section" class="hidden mt-10">
@@ -6263,7 +6230,6 @@ html.theme-dark .ct-icon {
                         <button onclick="app.utils.navigate('/tos')" class="text-sm text-gray-600 hover:text-black transition-colors text-left bg-transparent border-0 p-0 cursor-pointer">Chính sách &amp; điều khoản</button>
                         <button onclick="app.utils.navigate('/contact')" class="text-sm text-gray-600 hover:text-black transition-colors text-left bg-transparent border-0 p-0 cursor-pointer">Liên hệ hỗ trợ</button>
                         <button onclick="app.utils.navigate('/help')" class="text-sm text-gray-600 hover:text-black transition-colors text-left bg-transparent border-0 p-0 cursor-pointer">Trung tâm hỗ trợ</button>
-                        <button onclick="app.utils.navigate('/support-us')" class="text-sm font-bold text-black hover:text-red-600 transition-colors text-left bg-transparent border-0 p-0 cursor-pointer flex items-center gap-1"><i class="fa-solid fa-heart text-red-500 text-xs"></i> Ủng hộ chúng tôi</button>
                     </div>
 
                     <!-- Col 3: Kết nối -->
