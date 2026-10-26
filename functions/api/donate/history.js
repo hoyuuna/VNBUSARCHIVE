@@ -40,31 +40,57 @@ export async function onRequestGet(context) {
             });
         }
 
-        const now = Date.now();
         const validList = [];
-        const expiredIds = [];
 
         for (const item of (history || [])) {
-            if (item.status === 'PENDING') {
-                const createdTime = new Date(item.created_at).getTime();
-                // If pending order is older than 15 minutes, collect for permanent deletion from DB
-                if (now - createdTime > 15 * 60 * 1000) {
-                    expiredIds.push(item.id);
-                    continue;
+            // If an order is still marked PENDING, proactively check with payOS to catch any delayed webhooks or closed tabs
+            if (item.status === 'PENDING' && env.PAYOS_CLIENT_ID && env.PAYOS_API_KEY) {
+                try {
+                    const payosRes = await fetch(`https://api-merchant.payos.vn/v2/payment-requests/${item.order_code}`, {
+                        headers: {
+                            'x-client-id': env.PAYOS_CLIENT_ID,
+                            'x-api-key': env.PAYOS_API_KEY
+                        }
+                    });
+                    if (payosRes.ok) {
+                        const payosJson = await payosRes.json();
+                        if (payosJson.data && payosJson.data.status === 'PAID') {
+                            // User paid! Update record to PAID immediately so user sees it right away
+                            item.status = 'PAID';
+                            await sbAdmin
+                                .from('donations')
+                                .update({ status: 'PAID', updated_at: new Date().toISOString() })
+                                .eq('id', item.id);
+                        } else if (payosJson.data && (payosJson.data.status === 'CANCELLED' || payosJson.data.status === 'EXPIRED')) {
+                            // Mark cancelled/expired
+                            item.status = payosJson.data.status;
+                            await sbAdmin
+                                .from('donations')
+                                .update({ status: payosJson.data.status, updated_at: new Date().toISOString() })
+                                .eq('id', item.id)
+                                .neq('status', 'PAID');
+                            continue; // Skip expired/cancelled from active list
+                        }
+                    }
+                } catch (pErr) {
+                    console.warn(`Failed to verify pending order ${item.order_code} via payOS in history:`, pErr);
                 }
             }
-            validList.push(item);
+
+            if (item.status === 'PAID' || item.status === 'PENDING') {
+                validList.push(item);
+            }
         }
 
-        // Permanently delete expired pending rows from DB to save database storage
-        if (expiredIds.length > 0) {
-            sbAdmin.from('donations').delete().in('id', expiredIds).then(() => {}).catch(() => {});
-        }
-
-        // Also clean up any lingering cancelled donations older than 20 minutes across the system
-        const expiryCutoff = new Date(now - 20 * 60 * 1000).toISOString();
-        sbAdmin.from('donations').delete().eq('status', 'PENDING').lt('created_at', expiryCutoff).then(() => {}).catch(() => {});
-        sbAdmin.from('donations').delete().eq('status', 'CANCELLED').then(() => {}).catch(() => {});
+        // Safe cleanup: only remove confirmed cancelled/expired donations older than 48 hours to preserve audit records
+        const safeCleanupCutoff = new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString();
+        sbAdmin
+            .from('donations')
+            .delete()
+            .in('status', ['CANCELLED', 'EXPIRED'])
+            .lt('created_at', safeCleanupCutoff)
+            .then(() => {})
+            .catch(() => {});
 
         return new Response(JSON.stringify({
             success: true,

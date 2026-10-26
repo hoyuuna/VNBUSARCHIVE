@@ -33,17 +33,10 @@ export async function onRequestGet(context) {
 
     try {
         const url = new URL(request.url);
-        const orderCodeStr = url.searchParams.get('orderCode');
-        if (!orderCodeStr) {
-            return new Response(JSON.stringify({ success: false, error: 'Thiếu orderCode' }), {
-                status: 400,
-                headers: { 'Content-Type': 'application/json' }
-            });
-        }
+        const orderCode = url.searchParams.get('orderCode');
 
-        const orderCode = Number(orderCodeStr);
-        if (isNaN(orderCode)) {
-            return new Response(JSON.stringify({ success: false, error: 'orderCode không hợp lệ' }), {
+        if (!orderCode) {
+            return new Response(JSON.stringify({ success: false, error: 'Thiếu orderCode' }), {
                 status: 400,
                 headers: { 'Content-Type': 'application/json' }
             });
@@ -54,19 +47,16 @@ export async function onRequestGet(context) {
 
         const { data: donation, error: dbErr } = await sbAdmin
             .from('donations')
-            .select('order_code, status, amount, is_anonymous, donor_name, user_id, payos_payment_link_id, created_at')
-            .eq('order_code', orderCode)
+            .select('id, order_code, user_id, donor_name, amount, status, is_anonymous, payos_payment_link_id, created_at')
+            .eq('order_code', Number(orderCode))
             .maybeSingle();
 
-        if (dbErr || !donation) {
-            return new Response(JSON.stringify({ success: false, error: 'Không tìm thấy thông tin ủng hộ' }), {
-                status: 404,
-                headers: { 'Content-Type': 'application/json' }
-            });
+        if (dbErr) {
+            console.error('Error fetching donation:', dbErr);
         }
 
         let meta = {};
-        if (donation.payos_payment_link_id) {
+        if (donation?.payos_payment_link_id) {
             try {
                 if (donation.payos_payment_link_id.startsWith('{')) {
                     meta = JSON.parse(donation.payos_payment_link_id);
@@ -79,7 +69,7 @@ export async function onRequestGet(context) {
         let payosData = null;
 
         // If status is PENDING and payOS credentials exist, verify with payOS directly
-        if (donation.status === 'PENDING' && env.PAYOS_CLIENT_ID && env.PAYOS_API_KEY) {
+        if ((!donation || donation.status === 'PENDING') && env.PAYOS_CLIENT_ID && env.PAYOS_API_KEY) {
             try {
                 const payosRes = await fetch(`https://api-merchant.payos.vn/v2/payment-requests/${orderCode}`, {
                     method: 'GET',
@@ -93,20 +83,34 @@ export async function onRequestGet(context) {
                     const payosJson = await payosRes.json();
                     if ((payosJson.code === '00' || payosJson.code === 0) && payosJson.data) {
                         payosData = payosJson.data;
+
                         if (payosData.status === 'PAID') {
+                            if (donation) {
+                                await sbAdmin
+                                    .from('donations')
+                                    .update({ status: 'PAID', updated_at: new Date().toISOString() })
+                                    .eq('order_code', Number(orderCode));
+                                donation.status = 'PAID';
+                            } else {
+                                // Auto-insert if missing
+                                await sbAdmin.from('donations').insert({
+                                    order_code: Number(orderCode),
+                                    amount: payosData.amount || 0,
+                                    donor_name: 'Nhà hảo tâm',
+                                    status: 'PAID',
+                                    is_anonymous: false,
+                                    message: 'Khoản ủng hộ ghi nhận tự động',
+                                    created_at: new Date().toISOString(),
+                                    updated_at: new Date().toISOString()
+                                });
+                            }
+                        } else if (donation && (payosData.status === 'CANCELLED' || payosData.status === 'EXPIRED')) {
                             await sbAdmin
                                 .from('donations')
-                                .update({ status: 'PAID', updated_at: new Date().toISOString() })
-                                .eq('order_code', orderCode);
-                            donation.status = 'PAID';
-                        } else if (payosData.status === 'CANCELLED' || payosData.status === 'EXPIRED') {
-                            // Permanently delete cancelled/expired uncompleted donation to save DB space
-                            await sbAdmin
-                                .from('donations')
-                                .delete()
-                                .eq('order_code', orderCode)
+                                .update({ status: payosData.status, updated_at: new Date().toISOString() })
+                                .eq('order_code', Number(orderCode))
                                 .neq('status', 'PAID');
-                            donation.status = 'CANCELLED';
+                            donation.status = payosData.status;
                         }
                     }
                 }
@@ -115,18 +119,29 @@ export async function onRequestGet(context) {
             }
         }
 
+        if (!donation && !payosData) {
+            return new Response(JSON.stringify({ success: false, error: 'Không tìm thấy thông tin ủng hộ' }), {
+                status: 404,
+                headers: { 'Content-Type': 'application/json' }
+            });
+        }
+
+        const currentStatus = donation?.status || payosData?.status || 'PENDING';
+        const currentAmount = donation?.amount || payosData?.amount || 0;
+        const currentOrderCode = donation?.order_code || Number(orderCode);
+
         return new Response(JSON.stringify({
             success: true,
-            orderCode: donation.order_code,
-            status: donation.status,
-            amount: donation.amount,
-            is_anonymous: donation.is_anonymous,
-            donor_name: donation.donor_name,
-            is_logged_in: !!donation.user_id,
+            orderCode: currentOrderCode,
+            status: currentStatus,
+            amount: currentAmount,
+            is_anonymous: donation ? donation.is_anonymous : false,
+            donor_name: donation?.donor_name || 'Nhà hảo tâm',
+            is_logged_in: !!donation?.user_id,
             qrCode: meta.qrCode || payosData?.qrCode || null,
             accountNumber: meta.accountNumber || payosData?.accountNumber || null,
             accountName: meta.accountName || payosData?.accountName || null,
-            description: meta.description || payosData?.description || `VNBA ${donation.order_code}`,
+            description: meta.description || payosData?.description || `VNBA ${currentOrderCode}`,
             checkoutUrl: meta.checkoutUrl || payosData?.checkoutUrl || null
         }), {
             status: 200,

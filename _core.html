@@ -4327,11 +4327,21 @@ html.theme-dark .ct-icon {
                                     </div>
                                     <div class="flex justify-between items-center">
                                         <span class="text-gray-500">Số tài khoản:</span>
-                                        <span id="donate-qr-accnum" class="font-bold font-mono text-black">---</span>
+                                        <div class="flex items-center gap-1.5">
+                                            <span id="donate-qr-accnum" class="font-bold font-mono text-black">---</span>
+                                            <button type="button" onclick="app.donate.copyText('donate-qr-accnum', 'số tài khoản')" class="text-gray-400 hover:text-black p-0.5 transition" title="Sao chép số tài khoản">
+                                                <i class="fa-regular fa-copy"></i>
+                                            </button>
+                                        </div>
                                     </div>
                                     <div class="flex justify-between items-center">
                                         <span class="text-gray-500">Nội dung CK:</span>
-                                        <span id="donate-qr-desc" class="font-bold font-mono text-black">---</span>
+                                        <div class="flex items-center gap-1.5">
+                                            <span id="donate-qr-desc" class="font-bold font-mono text-black">---</span>
+                                            <button type="button" onclick="app.donate.copyText('donate-qr-desc', 'nội dung chuyển khoản')" class="text-gray-400 hover:text-black p-0.5 transition" title="Sao chép nội dung chuyển khoản">
+                                                <i class="fa-regular fa-copy"></i>
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
 

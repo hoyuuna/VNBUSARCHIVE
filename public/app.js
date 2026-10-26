@@ -12244,6 +12244,18 @@ Object.assign(window.app, {
             }
         },
 
+        copyText: (elementId, label) => {
+            const el = document.getElementById(elementId);
+            if (!el) return;
+            const val = el.innerText.trim();
+            if (!val || val === '---') return;
+            navigator.clipboard.writeText(val).then(() => {
+                if (app.toast && app.toast.show) {
+                    app.toast.show('success', 'Đã sao chép', `Đã sao chép ${label} vào bộ nhớ tạm.`);
+                }
+            }).catch(() => {});
+        },
+
         downloadQr: () => {
             const container = document.getElementById('donate-qr-box');
             if (!container) return;
@@ -12283,11 +12295,18 @@ Object.assign(window.app, {
 
             if (order && order.orderCode) {
                 try {
-                    await fetch('/api/donate/cancel', {
+                    const res = await fetch('/api/donate/cancel', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ orderCode: order.orderCode })
                     });
+                    const resJson = await res.json().catch(() => ({}));
+                    if (resJson && resJson.paid) {
+                        app.ui.showAlert('Ngân hàng đã ghi nhận khoản chuyển thành công của bạn!', () => {
+                            app.donate.renderThankYou(order.orderCode, order.amount, app.donate.isGuest, false);
+                        });
+                        return;
+                    }
                     if (app.user && typeof app.donate.fetchProfileDonations === 'function') {
                         app.donate.fetchProfileDonations();
                     }

@@ -47,7 +47,36 @@ export async function onRequestPost(context) {
 
         const codeNum = Number(orderCode);
 
-        // Cancel on payOS if keys are configured
+        // 1. Double check with payOS: Did the user ALREADY transfer the money right before clicking cancel?
+        if (env.PAYOS_CLIENT_ID && env.PAYOS_API_KEY) {
+            try {
+                const payosRes = await fetch(`https://api-merchant.payos.vn/v2/payment-requests/${codeNum}`, {
+                    headers: {
+                        'x-client-id': env.PAYOS_CLIENT_ID,
+                        'x-api-key': env.PAYOS_API_KEY
+                    }
+                });
+                if (payosRes.ok) {
+                    const payosJson = await payosRes.json();
+                    if (payosJson.data && payosJson.data.status === 'PAID') {
+                        // User ALREADY paid! DO NOT CANCEL OR DELETE!
+                        await sbAdmin
+                            .from('donations')
+                            .update({ status: 'PAID', updated_at: new Date().toISOString() })
+                            .eq('order_code', codeNum);
+
+                        return new Response(JSON.stringify({ success: true, paid: true }), {
+                            status: 200,
+                            headers: { 'Content-Type': 'application/json' }
+                        });
+                    }
+                }
+            } catch (pErr) {
+                console.warn('payOS check before cancel failed:', pErr);
+            }
+        }
+
+        // 2. If definitely not paid, cancel on payOS
         if (env.PAYOS_CLIENT_ID && env.PAYOS_API_KEY) {
             try {
                 await fetch(`https://api-merchant.payos.vn/v2/payment-requests/${codeNum}/cancel`, {
@@ -64,10 +93,13 @@ export async function onRequestPost(context) {
             }
         }
 
-        // Permanently delete pending/cancelled donation from DB to save storage
+        // 3. Soft mark as CANCELLED instead of hard deleting immediately, so late webhooks can still recover the record
         await sbAdmin
             .from('donations')
-            .delete()
+            .update({
+                status: 'CANCELLED',
+                updated_at: new Date().toISOString()
+            })
             .eq('order_code', codeNum)
             .neq('status', 'PAID');
 
