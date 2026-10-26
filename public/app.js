@@ -12011,10 +12011,12 @@ Object.assign(window.app, {
             const stepForm = document.getElementById('donate-step-form');
             const stepQr = document.getElementById('donate-step-qr');
             const stepThankYou = document.getElementById('donate-step-thankyou');
+            const headerTitle = document.getElementById('donate-header-title');
 
             if (stepForm) stepForm.classList.toggle('hidden', step !== 'form');
             if (stepQr) stepQr.classList.toggle('hidden', step !== 'qr');
             if (stepThankYou) stepThankYou.classList.toggle('hidden', step !== 'thankyou');
+            if (headerTitle) headerTitle.classList.toggle('hidden', step === 'thankyou');
         },
 
         selectPreset: (val) => {
@@ -12258,21 +12260,44 @@ Object.assign(window.app, {
                     if (item) {
                         const amtStr = new Intl.NumberFormat('vi-VN').format(item.amount) + 'đ';
                         const safeName = app.utils.escapeHtml(item.donor_name);
-                        const safeMsg = item.message ? `"${app.utils.escapeHtml(item.message)}"` : (item.created_at ? new Date(item.created_at).toLocaleDateString('vi-VN') : 'Đồng hành cùng dự án');
-                        const icon = item.is_anonymous ? 'fa-user-secret' : 'fa-heart';
-                        const iconColor = item.is_anonymous ? 'text-gray-400' : 'text-red-500';
+                        const dateStr = item.created_at ? new Date(item.created_at).toLocaleDateString('vi-VN') : '';
+                        const defaultAv = (typeof DEFAULT_AVATAR !== 'undefined') ? DEFAULT_AVATAR : '/media/default-avatar.png';
+
+                        let iconOrAvatarHtml = '';
+                        let clickAttr = '';
+                        let cursorClass = 'cursor-default';
+
+                        if (!item.is_anonymous && item.username) {
+                            const rawAv = item.avatar_url;
+                            const finalAv = rawAv 
+                                ? (rawAv.startsWith('http') && !rawAv.includes('/avatar.jpg') ? app.utils.getProxiedUrl(rawAv.replace(/"/g, ''), 'avatar.jpg', 'avatar') : rawAv)
+                                : defaultAv;
+                            iconOrAvatarHtml = `
+                                <div class="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center shrink-0 border border-gray-200 mr-3 overflow-hidden">
+                                    <img src="${finalAv}" alt="${safeName}" onerror="this.src='${defaultAv}'" class="w-full h-full object-cover">
+                                </div>
+                            `;
+                            clickAttr = `onclick="app.utils.navigate('/user/${encodeURIComponent(item.username)}')"` ;
+                            cursorClass = 'cursor-pointer hover:border-black';
+                        } else {
+                            iconOrAvatarHtml = `
+                                <div class="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center shrink-0 border border-gray-200 mr-3">
+                                    <i class="fa-solid fa-heart text-black text-xs"></i>
+                                </div>
+                            `;
+                        }
+
+                        const tooltipAttr = item.message ? `title="${app.utils.escapeHtml(item.message)}"` : '';
 
                         cards.push(`
-                            <div class="transition-all duration-300 relative flex flex-row items-center p-3 text-left bg-white rounded-xl border border-gray-200 shadow-md hover:-translate-y-1 hover:shadow-xl" ${item.message ? `title="${app.utils.escapeHtml(item.message)}"` : ''}>
-                                <div class="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center shrink-0 border border-gray-200 mr-3">
-                                    <i class="fa-solid ${icon} ${iconColor} text-xs"></i>
-                                </div>
+                            <div class="${cursorClass} transition-all duration-300 relative flex flex-row items-center p-3 text-left bg-white rounded-xl border border-gray-200 shadow-md hover:-translate-y-1 hover:shadow-xl" ${clickAttr} ${tooltipAttr}>
+                                ${iconOrAvatarHtml}
                                 <div class="flex-1 min-w-0 flex flex-col justify-center">
                                     <div class="flex items-center justify-between gap-1 mb-0.5">
                                         <span class="truncate font-bold text-gray-900 text-sm leading-tight">${safeName}</span>
                                         <span class="text-xs font-extrabold text-black shrink-0">+${amtStr}</span>
                                     </div>
-                                    <span class="block text-gray-500 text-xs tracking-wide w-full truncate">${safeMsg}</span>
+                                    <span class="block text-gray-500 text-xs tracking-wide w-full truncate">${dateStr}</span>
                                 </div>
                             </div>
                         `);
@@ -12280,7 +12305,7 @@ Object.assign(window.app, {
                         cards.push(`
                             <div class="transition-all duration-300 relative flex flex-row items-center p-3 text-left bg-white rounded-xl border border-gray-200 shadow-md opacity-60">
                                 <div class="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center shrink-0 border border-gray-200 mr-3">
-                                    <i class="fa-regular fa-heart text-gray-400 text-xs"></i>
+                                    <i class="fa-solid fa-heart text-black text-xs"></i>
                                 </div>
                                 <div class="flex-1 min-w-0 flex flex-col justify-center">
                                     <span class="truncate font-bold text-gray-500 text-sm leading-tight mb-0.5">Vị trí chờ bạn</span>
@@ -12295,7 +12320,7 @@ Object.assign(window.app, {
                 cards.push(`
                     <div onclick="app.utils.navigate('/support-us')" class="cursor-pointer transition-all duration-300 relative flex flex-row items-center p-3 text-left bg-white rounded-xl border border-gray-200 shadow-md hover:-translate-y-1 hover:shadow-xl group">
                         <div class="w-8 h-8 rounded-full bg-gray-100 group-hover:bg-black group-hover:text-white flex items-center justify-center shrink-0 border border-gray-200 transition mr-3">
-                            <i class="fa-solid fa-heart text-red-500 group-hover:text-white text-xs"></i>
+                            <i class="fa-solid fa-heart text-black group-hover:text-white text-xs"></i>
                         </div>
                         <div class="flex-1 min-w-0 flex flex-col justify-center">
                             <span class="truncate font-bold text-gray-900 text-sm leading-tight mb-0.5">Tôi cũng muốn ủng hộ!</span>

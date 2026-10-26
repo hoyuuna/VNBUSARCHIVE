@@ -2188,7 +2188,7 @@ html.theme-dark .ct-icon {
             if (stored === 'system') {
                 theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
             }
-            document.write('<link rel="stylesheet" href="/css/' + theme + '.css?v=1792996734030" id="theme-css">');
+            document.write('<link rel="stylesheet" href="/css/' + theme + '.css?v=1792997366414" id="theme-css">');
             document.documentElement.classList.add('theme-' + theme);
             document.documentElement.style.backgroundColor = theme === 'dark' ? '#18181b' : '#fdfcf8';
         })();
@@ -3667,7 +3667,23 @@ html.theme-dark .ct-icon {
 
 
 
-                <div id="db-stats-section" class="mt-6 bg-white border border-gray-200 p-6 rounded-lg shadow-sm">
+                <!-- KHỐI TRI ÂN & CẢM ƠN CÁC NHÀ HẢO TÂM -->
+                <div id="home-supporters-section" class="mt-6 bg-white border border-gray-200 p-5 rounded-lg shadow-sm">
+                    <div class="flex items-center gap-2 mb-3">
+                        <i class="fa-solid fa-heart text-black text-sm"></i>
+                        <h3 class="font-bold text-sm md:text-base text-black uppercase tracking-wide">CẢM ƠN CÁC NHÀ HẢO TÂM</h3>
+                    </div>
+                    <p class="text-xs text-gray-500 mb-4 leading-relaxed">
+                        Trân trọng cảm ơn những người bạn đã đồng hành và đóng góp kinh phí duy trì máy chủ, database lưu trữ xe buýt Việt Nam hoàn toàn miễn phí:
+                    </p>
+                    <div id="home-supporters-list" class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                        <div class="col-span-full py-6 text-center text-xs text-gray-400">
+                            <i class="fa-solid fa-spinner fa-spin mr-2"></i> Đang tải danh sách tri ân...
+                        </div>
+                    </div>
+                </div>
+
+                <div id="db-stats-section" class="mt-4 bg-white border border-gray-200 p-6 rounded-lg shadow-sm">
                     <h3
                         class="font-bold text-lg mb-4 tracking-tight uppercase text-center text-gray-800">
                         THỐNG KÊ DATABASE</h3>
@@ -3694,22 +3710,6 @@ html.theme-dark .ct-icon {
                     <p class="text-[13px] md:text-sm font-bold text-black dark:text-white uppercase tracking-wide">
                         ĐÃ LƯU TRỮ ẢNH XE BUÝT/KHÁCH HOÀN TOÀN MIỄN PHÍ <span id="uptime-timer" class="text-black dark:text-white">ĐANG TÍNH TOÁN...</span>
                     </p>
-                </div>
-
-                <!-- KHỐI TRI ÂN & CẢM ƠN CÁC NHÀ HẢO TÂM -->
-                <div id="home-supporters-section" class="mt-4 bg-white border border-gray-200 p-5 rounded-lg shadow-sm">
-                    <div class="flex items-center gap-2 mb-3">
-                        <i class="fa-solid fa-heart text-red-500 text-sm"></i>
-                        <h3 class="font-bold text-sm md:text-base text-black uppercase tracking-wide">CẢM ƠN CÁC NHÀ HẢO TÂM</h3>
-                    </div>
-                    <p class="text-xs text-gray-500 mb-4 leading-relaxed">
-                        Trân trọng cảm ơn những người bạn đã đồng hành và đóng góp kinh phí duy trì máy chủ, database lưu trữ xe buýt Việt Nam hoàn toàn miễn phí:
-                    </p>
-                    <div id="home-supporters-list" class="grid grid-cols-2 md:grid-cols-4 gap-3">
-                        <div class="col-span-full py-6 text-center text-xs text-gray-400">
-                            <i class="fa-solid fa-spinner fa-spin mr-2"></i> Đang tải danh sách tri ân...
-                        </div>
-                    </div>
                 </div>
             </div>
 
@@ -4248,8 +4248,8 @@ html.theme-dark .ct-icon {
                     <div class="bg-white border border-vbs-border rounded-2xl shadow-sm p-5 md:p-8 mb-8">
                         
                         <!-- Header Title & Subtitle -->
-                        <div class="text-center mb-6">
-                            <div class="w-12 h-12 bg-red-50 text-red-500 rounded-full flex items-center justify-center text-xl mb-3 border border-red-100 shadow-sm mx-auto">
+                        <div id="donate-header-title" class="text-center mb-6">
+                            <div class="w-12 h-12 bg-gray-100 text-black rounded-full flex items-center justify-center text-xl mb-3 border border-gray-200 shadow-sm mx-auto">
                                 <i class="fa-solid fa-heart"></i>
                             </div>
                             <h2 class="text-2xl font-black text-black uppercase tracking-tight mb-2">Ủng Hộ Dự Án</h2>
@@ -4342,7 +4342,7 @@ html.theme-dark .ct-icon {
 
                         <!-- STEP 3: MÀN HÌNH CẢM ƠN VÌ ĐÓNG GÓP -->
                         <div id="donate-step-thankyou" class="hidden text-center py-4">
-                            <div class="w-16 h-16 bg-red-50 text-red-500 rounded-full flex items-center justify-center text-3xl mb-4 border border-red-100 shadow-sm mx-auto animate-bounce">
+                            <div class="w-16 h-16 bg-gray-100 text-black rounded-full flex items-center justify-center text-3xl mb-4 border border-gray-200 shadow-sm mx-auto">
                                 <i class="fa-solid fa-heart"></i>
                             </div>
 
@@ -5709,18 +5709,18 @@ html.theme-dark .ct-icon {
                                 <!-- Existing pagination logic will inject into this or create it if not exist, wait, the pagination in profile is dynamically injected into my-photos-grid's parent? Let's check that later. Actually I will just insert my-requests-section below it. -->
                             </div>
 
-                            <div id="my-donations-section" class="hidden mt-10">
-                                <h4 class="font-bold text-sm uppercase mb-3 text-gray-800">Lịch sử ủng hộ</h4>
-                                <div id="my-donations-grid" class="grid grid-cols-2 md:grid-cols-4 gap-3">
-                                </div>
-                            </div>
-
                             <div id="my-requests-section" class="hidden mt-10">
                                 <h4 class="font-bold text-sm uppercase mb-3 text-gray-800">Yêu cầu của bạn</h4>
                                 <div id="my-requests-grid" class="grid grid-cols-2 md:grid-cols-4 gap-3">
                                     <p class="text-xs text-gray-500 col-span-full">Đang tải...</p>
                                 </div>
 
+                            </div>
+
+                            <div id="my-donations-section" class="hidden mt-10">
+                                <h4 class="font-bold text-sm uppercase mb-3 text-gray-800">Ủng hộ của bạn</h4>
+                                <div id="my-donations-grid" class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                                </div>
                             </div>
 
                             <div id="acc-liked-section" class="hidden">
@@ -7696,7 +7696,7 @@ html.theme-dark .ct-icon {
 
     <!-- KHAY CHỨA TOAST Z-INDEX CAO NHẤT -->
     <div id="toast-container" class="fixed left-0 w-full flex flex-col items-center gap-2 pointer-events-none z-[99999]" style="z-index: 99999 !important;"></div>
-<script src="/app.d59d8eb149c4.js" onerror="if(!window.__app_fallback_loaded){window.__app_fallback_loaded=true;var s=document.createElement('script');s.src='/app.js?v=' + Date.now();document.head.appendChild(s);}"></script>
+<script src="/app.060878de448b.js" onerror="if(!window.__app_fallback_loaded){window.__app_fallback_loaded=true;var s=document.createElement('script');s.src='/app.js?v=' + Date.now();document.head.appendChild(s);}"></script>
 </body>
 </html>
 
