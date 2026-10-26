@@ -100,10 +100,12 @@ export async function onRequestGet(context) {
                                 .eq('order_code', orderCode);
                             donation.status = 'PAID';
                         } else if (payosData.status === 'CANCELLED' || payosData.status === 'EXPIRED') {
+                            // Permanently delete cancelled/expired uncompleted donation to save DB space
                             await sbAdmin
                                 .from('donations')
-                                .update({ status: 'CANCELLED', updated_at: new Date().toISOString() })
-                                .eq('order_code', orderCode);
+                                .delete()
+                                .eq('order_code', orderCode)
+                                .neq('status', 'PAID');
                             donation.status = 'CANCELLED';
                         }
                     }

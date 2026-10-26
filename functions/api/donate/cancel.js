@@ -47,16 +47,6 @@ export async function onRequestPost(context) {
 
         const codeNum = Number(orderCode);
 
-        // Update DB status to CANCELLED
-        await sbAdmin
-            .from('donations')
-            .update({
-                status: 'CANCELLED',
-                updated_at: new Date().toISOString()
-            })
-            .eq('order_code', codeNum)
-            .eq('status', 'PENDING');
-
         // Cancel on payOS if keys are configured
         if (env.PAYOS_CLIENT_ID && env.PAYOS_API_KEY) {
             try {
@@ -73,6 +63,13 @@ export async function onRequestPost(context) {
                 console.warn('payOS cancel request failed:', pErr);
             }
         }
+
+        // Permanently delete pending/cancelled donation from DB to save storage
+        await sbAdmin
+            .from('donations')
+            .delete()
+            .eq('order_code', codeNum)
+            .neq('status', 'PAID');
 
         return new Response(JSON.stringify({ success: true }), {
             status: 200,

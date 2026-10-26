@@ -42,18 +42,29 @@ export async function onRequestGet(context) {
 
         const now = Date.now();
         const validList = [];
+        const expiredIds = [];
 
         for (const item of (history || [])) {
             if (item.status === 'PENDING') {
                 const createdTime = new Date(item.created_at).getTime();
-                // If pending order is older than 15 minutes, mark cancelled in DB and don't return
+                // If pending order is older than 15 minutes, collect for permanent deletion from DB
                 if (now - createdTime > 15 * 60 * 1000) {
-                    sbAdmin.from('donations').update({ status: 'CANCELLED' }).eq('id', item.id);
+                    expiredIds.push(item.id);
                     continue;
                 }
             }
             validList.push(item);
         }
+
+        // Permanently delete expired pending rows from DB to save database storage
+        if (expiredIds.length > 0) {
+            sbAdmin.from('donations').delete().in('id', expiredIds).then(() => {}).catch(() => {});
+        }
+
+        // Also clean up any lingering cancelled donations older than 20 minutes across the system
+        const expiryCutoff = new Date(now - 20 * 60 * 1000).toISOString();
+        sbAdmin.from('donations').delete().eq('status', 'PENDING').lt('created_at', expiryCutoff).then(() => {}).catch(() => {});
+        sbAdmin.from('donations').delete().eq('status', 'CANCELLED').then(() => {}).catch(() => {});
 
         return new Response(JSON.stringify({
             success: true,
