@@ -56,6 +56,9 @@ Object.assign(window.app, {
                     if (id === 'leaderboard' && window.location.pathname !== '/leaderboard') {
                         app.utils.navigate('/leaderboard'); return;
                     }
+                    if (id === 'support-us' && window.location.pathname !== '/support-us') {
+                        app.utils.navigate('/support-us'); return;
+                    }
                     if (id === 'admin') {
                         if (!app.user) { app.utils.navigate('/auth'); return; }
                         const { data: securityCheck } = await window.sb.from('profiles').select('role').eq('id', app.user.id).single();
@@ -103,7 +106,7 @@ Object.assign(window.app, {
                             }
                         }
                         
-                        if (['upload', 'search', 'mobile-upload', 'map'].includes(id)) {
+                        if (['upload', 'search', 'mobile-upload', 'map', 'support-us'].includes(id)) {
                             if (searchBox) searchBox.classList.add('hidden');
                             if (headerSpacer) {
                                 headerSpacer.classList.remove('h-28');
@@ -132,7 +135,7 @@ Object.assign(window.app, {
                     }
                     const depths = {
                         'home': 0,
-                        'search': 1, 'account': 1, 'upload': 1, 'mobile-upload': 1, 'admin': 1, 'contact': 1, 'help-list': 1, 'comment-dashboard': 1, 'leaderboard': 1,
+                        'search': 1, 'account': 1, 'upload': 1, 'mobile-upload': 1, 'admin': 1, 'contact': 1, 'help-list': 1, 'comment-dashboard': 1, 'leaderboard': 1, 'support-us': 1,
                         'detail': 2, 'vehicle': 2, 'operator-view': 2, 'model-view': 2, 'route-view': 2, 'help-detail': 2, 'policy-detail': 2
                     };
                     const currentId = document.querySelector('.view-section.active')?.id || 'home';
@@ -199,6 +202,9 @@ Object.assign(window.app, {
                     document.getElementById('load-more-cards-container')?.classList.add('hidden');
                     app.search.setFilter('all', false);
                     app.loadedCount = 0;
+                    if (app.donate && typeof app.donate.loadHomeSupporters === 'function') {
+                        app.donate.loadHomeSupporters();
+                    }
                     const heroMainEl = document.getElementById('hero-main');
                     const heroSubEl = document.getElementById('hero-sub');
                     if (heroMainEl && heroSubEl) {
@@ -809,6 +815,11 @@ Object.assign(window.app, {
                             if (isBannedUser) manageCommentBtn.classList.add('hidden');
                             else manageCommentBtn.classList.remove('hidden');
                         }
+                        const donationHistoryBtn = document.getElementById('btn-donation-history');
+                        if (donationHistoryBtn) {
+                            if (isBannedUser) donationHistoryBtn.classList.add('hidden');
+                            else donationHistoryBtn.classList.remove('hidden');
+                        }
                         document.getElementById('profile-stats-title').innerText = "THỐNG KÊ HOẠT ĐỘNG";
                         document.getElementById('profile-photos-title').innerText = "Ảnh của bạn";
                     } else {
@@ -817,6 +828,8 @@ Object.assign(window.app, {
                         if (editProfileBtn) { editProfileBtn.classList.add('hidden'); editProfileBtn.classList.remove('flex'); }
                         if (document.getElementById('btn-detailed-stats')) document.getElementById('btn-detailed-stats').classList.add('hidden');
                         if (manageCommentBtn) manageCommentBtn.classList.add('hidden');
+                        const donationHistoryBtnElse = document.getElementById('btn-donation-history');
+                        if (donationHistoryBtnElse) donationHistoryBtnElse.classList.add('hidden');
                         document.getElementById('profile-stats-title').innerText = "THỐNG KÊ CỦA " + displayUsername.toUpperCase();
                         document.getElementById('profile-photos-title').innerText = "Ảnh đã đăng";
                     }

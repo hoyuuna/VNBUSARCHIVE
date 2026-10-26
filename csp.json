@@ -1,5 +1,7 @@
 {
-  "default-src": ["'self'"],
+  "default-src": [
+    "'self'"
+  ],
   "script-src": [
     "'self'",
     "'unsafe-inline'",
@@ -60,14 +62,19 @@
     "https://mt3.google.com",
     "https://*.trustpilot.com",
     "https://images.trustpilot.com",
-    "https://widget.trustpilot.com"
+    "https://widget.trustpilot.com",
+    "https://*.payos.vn",
+    "https://payos.vn",
+    "https://img.vietqr.io",
+    "https://*.vietqr.io"
   ],
   "font-src": [
     "'self'",
     "https://fonts.gstatic.com",
     "https://cdnjs.cloudflare.com"
   ],
-  "connect-src": ["https://*.vnbusarchive.io.vn", 
+  "connect-src": [
+    "https://*.vnbusarchive.io.vn",
     "'self'",
     "blob:",
     "data:",
@@ -110,7 +117,11 @@
     "https://docs.opencv.org",
     "https://*.opencv.org",
     "https://widget.trustpilot.com",
-    "https://*.trustpilot.com"
+    "https://*.trustpilot.com",
+    "https://*.payos.vn",
+    "https://payos.vn",
+    "https://img.vietqr.io",
+    "https://*.vietqr.io"
   ],
   "frame-src": [
     "'self'",

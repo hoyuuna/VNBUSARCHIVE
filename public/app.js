@@ -3540,6 +3540,12 @@ cleanupState: () => {
                     app.views.switch('admin', false);
                     app.admin.refreshCounts();
                     app.admin.loadTab(app.adminTab);
+                } else if (path === '/support-us') {
+                    document.title = 'Ủng hộ chúng tôi | VNBUSARCHIVE';
+                    app.views.switch('support-us', false);
+                    if (app.donate && typeof app.donate.init === 'function') {
+                        app.donate.init();
+                    }
                 } else if (path === '/contact') {
                     app.views.loadContact();
                 } else if (path === '/leaderboard') {
@@ -4479,6 +4485,7 @@ cleanupState: () => {
                     }
 dropdown.innerHTML = `
                          <a href="/profile" class="block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 border-b border-gray-100 font-bold"><i class="fa-solid fa-address-card w-5 text-center mr-1"></i> Hồ sơ của tôi</a>
+                         <a href="/support-us" class="block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 border-b border-gray-100 font-bold"><i class="fa-solid fa-heart w-5 text-center mr-1 text-red-500"></i> Ủng hộ chúng tôi</a>
                          <button onclick="app.settings.open()" class="w-full text-left block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 border-b border-gray-100 font-bold"><i class="fa-solid fa-gear w-5 text-center mr-1"></i> Cài đặt</button>
                          <a href="/help" class="block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 border-b border-gray-100 font-bold"><i class="fa-solid fa-book-open w-5 text-center mr-1"></i> Trung tâm hỗ trợ</a>
                          <a href="/contact" class="w-full text-left block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 border-b border-gray-100 font-bold"><i class="fa-solid fa-headset w-5 text-center mr-1"></i> Liên hệ hỗ trợ</a>
@@ -4509,6 +4516,7 @@ dropdown.innerHTML = `
                          <a href="/auth" class="w-full text-left block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 border-b border-gray-100 font-bold"><i class="fa-solid fa-arrow-right-to-bracket w-5 text-center mr-1"></i> Đăng nhập</a>
                          <a href="/auth" class="w-full text-left block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 border-b border-gray-100 font-bold"><i class="fa-solid fa-user-plus w-5 text-center mr-1"></i> Tạo tài khoản</a>
                          <button onclick="app.settings.open()" class="w-full text-left block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 border-b border-gray-100 font-bold"><i class="fa-solid fa-gear w-5 text-center mr-1"></i> Cài đặt</button>
+                         <a href="/support-us" class="block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 border-b border-gray-100 font-bold"><i class="fa-solid fa-heart w-5 text-center mr-1 text-red-500"></i> Ủng hộ chúng tôi</a>
                          <a href="/help" class="block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 border-b border-gray-100 font-bold"><i class="fa-solid fa-book-open w-5 text-center mr-1"></i> Trung tâm hỗ trợ</a>
                          <a href="/contact" class="w-full text-left block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 font-bold"><i class="fa-solid fa-headset w-5 text-center mr-1"></i> Liên hệ hỗ trợ</a>
                      `;
@@ -6942,6 +6950,9 @@ Object.assign(window.app, {
                     if (id === 'leaderboard' && window.location.pathname !== '/leaderboard') {
                         app.utils.navigate('/leaderboard'); return;
                     }
+                    if (id === 'support-us' && window.location.pathname !== '/support-us') {
+                        app.utils.navigate('/support-us'); return;
+                    }
                     if (id === 'admin') {
                         if (!app.user) { app.utils.navigate('/auth'); return; }
                         const { data: securityCheck } = await window.sb.from('profiles').select('role').eq('id', app.user.id).single();
@@ -6989,7 +7000,7 @@ Object.assign(window.app, {
                             }
                         }
                         
-                        if (['upload', 'search', 'mobile-upload', 'map'].includes(id)) {
+                        if (['upload', 'search', 'mobile-upload', 'map', 'support-us'].includes(id)) {
                             if (searchBox) searchBox.classList.add('hidden');
                             if (headerSpacer) {
                                 headerSpacer.classList.remove('h-28');
@@ -7018,7 +7029,7 @@ Object.assign(window.app, {
                     }
                     const depths = {
                         'home': 0,
-                        'search': 1, 'account': 1, 'upload': 1, 'mobile-upload': 1, 'admin': 1, 'contact': 1, 'help-list': 1, 'comment-dashboard': 1, 'leaderboard': 1,
+                        'search': 1, 'account': 1, 'upload': 1, 'mobile-upload': 1, 'admin': 1, 'contact': 1, 'help-list': 1, 'comment-dashboard': 1, 'leaderboard': 1, 'support-us': 1,
                         'detail': 2, 'vehicle': 2, 'operator-view': 2, 'model-view': 2, 'route-view': 2, 'help-detail': 2, 'policy-detail': 2
                     };
                     const currentId = document.querySelector('.view-section.active')?.id || 'home';
@@ -7085,6 +7096,9 @@ Object.assign(window.app, {
                     document.getElementById('load-more-cards-container')?.classList.add('hidden');
                     app.search.setFilter('all', false);
                     app.loadedCount = 0;
+                    if (app.donate && typeof app.donate.loadHomeSupporters === 'function') {
+                        app.donate.loadHomeSupporters();
+                    }
                     const heroMainEl = document.getElementById('hero-main');
                     const heroSubEl = document.getElementById('hero-sub');
                     if (heroMainEl && heroSubEl) {
@@ -7695,6 +7709,11 @@ Object.assign(window.app, {
                             if (isBannedUser) manageCommentBtn.classList.add('hidden');
                             else manageCommentBtn.classList.remove('hidden');
                         }
+                        const donationHistoryBtn = document.getElementById('btn-donation-history');
+                        if (donationHistoryBtn) {
+                            if (isBannedUser) donationHistoryBtn.classList.add('hidden');
+                            else donationHistoryBtn.classList.remove('hidden');
+                        }
                         document.getElementById('profile-stats-title').innerText = "THỐNG KÊ HOẠT ĐỘNG";
                         document.getElementById('profile-photos-title').innerText = "Ảnh của bạn";
                     } else {
@@ -7703,6 +7722,8 @@ Object.assign(window.app, {
                         if (editProfileBtn) { editProfileBtn.classList.add('hidden'); editProfileBtn.classList.remove('flex'); }
                         if (document.getElementById('btn-detailed-stats')) document.getElementById('btn-detailed-stats').classList.add('hidden');
                         if (manageCommentBtn) manageCommentBtn.classList.add('hidden');
+                        const donationHistoryBtnElse = document.getElementById('btn-donation-history');
+                        if (donationHistoryBtnElse) donationHistoryBtnElse.classList.add('hidden');
                         document.getElementById('profile-stats-title').innerText = "THỐNG KÊ CỦA " + displayUsername.toUpperCase();
                         document.getElementById('profile-photos-title').innerText = "Ảnh đã đăng";
                     }
@@ -11900,6 +11921,442 @@ Object.assign(window.app, {
                 btn.innerHTML = origHTML;
                 btn.disabled = false;
             }
+        }
+    },
+    donate: {
+        currentOrder: null,
+        _pollTimer: null,
+        selectedAmount: 20000,
+        isGuest: true,
+
+        init: async () => {
+            if (app.donate._pollTimer) {
+                clearInterval(app.donate._pollTimer);
+                app.donate._pollTimer = null;
+            }
+            app.donate.currentOrder = null;
+
+            const isUser = !!app.user;
+            app.donate.isGuest = !isUser;
+
+            const avatarEl = document.getElementById('donate-user-avatar');
+            const iconEl = document.getElementById('donate-user-icon');
+            const nameEl = document.getElementById('donate-user-name');
+            const badgeEl = document.getElementById('donate-user-badge');
+            const descEl = document.getElementById('donate-user-desc');
+
+            if (isUser) {
+                const displayName = app.username || app.user.email?.split('@')[0] || 'Thành viên VNBUSARCHIVE';
+                if (nameEl) nameEl.innerText = displayName;
+                if (badgeEl) {
+                    badgeEl.innerText = 'Thành viên';
+                    badgeEl.className = 'px-2 py-0.5 text-[10px] font-bold rounded bg-black text-white';
+                }
+                if (descEl) descEl.innerText = 'Khoản ủng hộ sẽ được ghi nhận và lưu lại trong hồ sơ cá nhân của bạn.';
+
+                if (avatarEl && iconEl) {
+                    const userAvatar = app.avatarUrl || null;
+                    if (userAvatar) {
+                        avatarEl.src = app.utils.getProxiedUrl(userAvatar, 'avatar.jpg', 'avatar');
+                        avatarEl.classList.remove('hidden');
+                        iconEl.classList.add('hidden');
+                    } else {
+                        avatarEl.classList.add('hidden');
+                        iconEl.classList.remove('hidden');
+                    }
+                }
+            } else {
+                if (nameEl) nameEl.innerText = 'Ẩn danh (Khách vãng lai)';
+                if (badgeEl) {
+                    badgeEl.innerText = 'Chưa đăng nhập';
+                    badgeEl.className = 'px-2 py-0.5 text-[10px] font-bold rounded bg-gray-200 text-gray-700';
+                }
+                if (descEl) descEl.innerText = 'Bạn đang ủng hộ với tư cách ẩn danh. Đăng nhập nếu bạn muốn lưu vào hồ sơ cá nhân.';
+                if (avatarEl && iconEl) {
+                    avatarEl.classList.add('hidden');
+                    iconEl.classList.remove('hidden');
+                }
+            }
+
+            const searchParams = new URLSearchParams(window.location.search);
+            const orderCodeParam = searchParams.get('orderCode');
+            const statusParam = searchParams.get('status');
+
+            if (orderCodeParam && statusParam !== 'cancelled') {
+                app.loadingBar.start();
+                try {
+                    const res = await fetch(`/api/donate/check?orderCode=${encodeURIComponent(orderCodeParam)}`);
+                    const checkData = await res.json();
+                    if (checkData.success && checkData.status === 'PAID') {
+                        app.loadingBar.finish();
+                        app.donate.renderThankYou(checkData.orderCode, checkData.amount, !checkData.is_logged_in, checkData.is_anonymous);
+                        return;
+                    }
+                } catch(e) {}
+                app.loadingBar.finish();
+            }
+
+            app.donate.showStep('form');
+            app.donate.selectPreset(20000);
+            const msgInput = document.getElementById('donate-message');
+            if (msgInput) msgInput.value = '';
+        },
+
+        showStep: (step) => {
+            const stepForm = document.getElementById('donate-step-form');
+            const stepQr = document.getElementById('donate-step-qr');
+            const stepThankYou = document.getElementById('donate-step-thankyou');
+
+            if (stepForm) stepForm.classList.toggle('hidden', step !== 'form');
+            if (stepQr) stepQr.classList.toggle('hidden', step !== 'qr');
+            if (stepThankYou) stepThankYou.classList.toggle('hidden', step !== 'thankyou');
+        },
+
+        selectPreset: (val) => {
+            app.donate.selectedAmount = val;
+            const input = document.getElementById('donate-amount-input');
+            if (input) {
+                input.value = new Intl.NumberFormat('vi-VN').format(val);
+            }
+            document.querySelectorAll('.donate-preset-btn').forEach(btn => {
+                const bVal = parseInt(btn.dataset.amount, 10);
+                if (bVal === val) {
+                    btn.className = 'donate-preset-btn px-4 py-2.5 text-xs sm:text-sm font-bold rounded-lg border border-black bg-black text-white transition';
+                } else {
+                    btn.className = 'donate-preset-btn px-4 py-2.5 text-xs sm:text-sm font-bold rounded-lg border border-gray-300 hover:border-black bg-white text-gray-800 transition';
+                }
+            });
+        },
+
+        handleAmountInput: (e) => {
+            let raw = e.target.value.replace(/[^0-9]/g, '');
+            if (!raw) {
+                e.target.value = '';
+                app.donate.selectedAmount = 0;
+                return;
+            }
+            const num = parseInt(raw, 10);
+            app.donate.selectedAmount = num;
+            e.target.value = new Intl.NumberFormat('vi-VN').format(num);
+
+            document.querySelectorAll('.donate-preset-btn').forEach(btn => {
+                const bVal = parseInt(btn.dataset.amount, 10);
+                if (bVal === num) {
+                    btn.className = 'donate-preset-btn px-4 py-2.5 text-xs sm:text-sm font-bold rounded-lg border border-black bg-black text-white transition';
+                } else {
+                    btn.className = 'donate-preset-btn px-4 py-2.5 text-xs sm:text-sm font-bold rounded-lg border border-gray-300 hover:border-black bg-white text-gray-800 transition';
+                }
+            });
+        },
+
+        createPayment: async () => {
+            const amt = app.donate.selectedAmount;
+            if (!amt || amt < 2000) {
+                app.ui.showAlert("Số tiền ủng hộ tối thiểu là 2.000 VNĐ.");
+                return;
+            }
+            if (amt > 100000000) {
+                app.ui.showAlert("Số tiền ủng hộ vượt quá giới hạn cho phép.");
+                return;
+            }
+
+            const msgInput = document.getElementById('donate-message');
+            const message = msgInput ? msgInput.value.trim() : '';
+
+            const btn = document.getElementById('btn-donate-submit');
+            const origHTML = btn ? btn.innerHTML : '';
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> Đang tạo mã VietQR...';
+            }
+
+            try {
+                const headers = { 'Content-Type': 'application/json' };
+                if (app.user) {
+                    const { data: { session } } = await window.sb.auth.getSession();
+                    if (session?.access_token) {
+                        headers['Authorization'] = `Bearer ${session.access_token}`;
+                    }
+                }
+
+                const res = await fetch('/api/donate/create', {
+                    method: 'POST',
+                    headers,
+                    body: JSON.stringify({ amount: amt, message })
+                });
+
+                const data = await res.json();
+                if (!res.ok || !data.success) {
+                    throw new Error(data.error || 'Không thể tạo mã thanh toán payOS.');
+                }
+
+                app.donate.currentOrder = data;
+                app.donate.renderQrStep(data);
+
+            } catch (err) {
+                app.ui.showAlert("Lỗi tạo thanh toán: " + err.message);
+            } finally {
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = origHTML;
+                }
+            }
+        },
+
+        renderQrStep: (data) => {
+            app.donate.showStep('qr');
+
+            const qrContainer = document.getElementById('donate-qr-box');
+            if (qrContainer) {
+                qrContainer.innerHTML = '';
+                if (data.qrCode) {
+                    new QRCode(qrContainer, {
+                        text: data.qrCode,
+                        width: 210,
+                        height: 210,
+                        colorDark: '#000000',
+                        colorLight: '#ffffff',
+                        correctLevel: QRCode.CorrectLevel.M
+                    });
+                } else if (data.checkoutUrl) {
+                    qrContainer.innerHTML = `<div class="p-4 text-center text-xs text-gray-500">Mã QR không khả dụng. Vui lòng mở cổng thanh toán bên dưới.</div>`;
+                }
+            }
+
+            const amtText = new Intl.NumberFormat('vi-VN').format(data.amount) + ' đ';
+            const displayAmtEl = document.getElementById('donate-qr-amount');
+            if (displayAmtEl) displayAmtEl.innerText = amtText;
+
+            const orderCodeEl = document.getElementById('donate-qr-ordercode');
+            if (orderCodeEl) orderCodeEl.innerText = `#${data.orderCode}`;
+
+            const descEl = document.getElementById('donate-qr-desc');
+            if (descEl) descEl.innerText = data.description || `VNBA ${data.orderCode}`;
+
+            const accNumEl = document.getElementById('donate-qr-accnum');
+            if (accNumEl) accNumEl.innerText = data.accountNumber || '---';
+
+            const accNameEl = document.getElementById('donate-qr-accname');
+            if (accNameEl) accNameEl.innerText = data.accountName || '---';
+
+            const checkoutBtn = document.getElementById('donate-qr-checkout-btn');
+            if (checkoutBtn) {
+                if (data.checkoutUrl) {
+                    checkoutBtn.href = data.checkoutUrl;
+                    checkoutBtn.classList.remove('hidden');
+                } else {
+                    checkoutBtn.classList.add('hidden');
+                }
+            }
+
+            if (app.donate._pollTimer) clearInterval(app.donate._pollTimer);
+            app.donate._pollTimer = setInterval(async () => {
+                try {
+                    const res = await fetch(`/api/donate/check?orderCode=${data.orderCode}`);
+                    const chk = await res.json();
+                    if (chk.success && chk.status === 'PAID') {
+                        clearInterval(app.donate._pollTimer);
+                        app.donate._pollTimer = null;
+                        app.donate.renderThankYou(data.orderCode, data.amount, !chk.is_logged_in, chk.is_anonymous);
+                    }
+                } catch (e) {}
+            }, 2500);
+        },
+
+        renderThankYou: (orderCode, amount, isGuest, isAnonymousDefault) => {
+            if (app.donate._pollTimer) {
+                clearInterval(app.donate._pollTimer);
+                app.donate._pollTimer = null;
+            }
+            app.donate.showStep('thankyou');
+
+            const amtEl = document.getElementById('donate-thankyou-amount');
+            if (amtEl) amtEl.innerText = new Intl.NumberFormat('vi-VN').format(amount) + ' VNĐ';
+
+            const codeEl = document.getElementById('donate-thankyou-code');
+            if (codeEl) codeEl.innerText = `#VNBA-${orderCode}`;
+
+            const toggle = document.getElementById('donate-anonymous-toggle');
+            const hintEl = document.getElementById('donate-anonymous-hint');
+
+            if (isGuest) {
+                if (toggle) {
+                    toggle.checked = true;
+                    toggle.disabled = true;
+                }
+                if (hintEl) {
+                    hintEl.innerText = 'Khách vãng lai luôn được hiển thị ẩn danh để bảo vệ quyền riêng tư.';
+                }
+            } else {
+                if (toggle) {
+                    toggle.checked = !!isAnonymousDefault;
+                    toggle.disabled = false;
+                    toggle.onchange = async () => {
+                        try {
+                            await fetch('/api/donate/toggle-anonymous', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                    orderCode,
+                                    is_anonymous: toggle.checked
+                                })
+                            });
+                        } catch(e) {}
+                    };
+                }
+                if (hintEl) {
+                    hintEl.innerText = 'Bật công tắc nếu bạn muốn giấu tên trên danh sách cảm ơn ở trang chủ.';
+                }
+            }
+        },
+
+        finish: async () => {
+            if (app.donate._pollTimer) {
+                clearInterval(app.donate._pollTimer);
+                app.donate._pollTimer = null;
+            }
+            app.donate.currentOrder = null;
+
+            if (typeof app.donate.loadHomeSupporters === 'function') {
+                app.donate.loadHomeSupporters();
+            }
+
+            app.utils.navigate('/');
+            if (app.toast && app.toast.show) {
+                app.toast.show('success', 'Đóng góp thành công', 'Cảm ơn bạn rất nhiều vì đã đồng hành và ủng hộ VNBUSARCHIVE!');
+            }
+        },
+
+        cancelPayment: () => {
+            if (app.donate._pollTimer) {
+                clearInterval(app.donate._pollTimer);
+                app.donate._pollTimer = null;
+            }
+            app.donate.currentOrder = null;
+            app.donate.showStep('form');
+        },
+
+        loadHomeSupporters: async () => {
+            const container = document.getElementById('home-supporters-list');
+            if (!container) return;
+
+            try {
+                const res = await fetch('/api/donate/supporters');
+                const resData = await res.json();
+                const list = resData.data || [];
+
+                if (!list.length) {
+                    container.innerHTML = `
+                        <div class="col-span-full py-6 text-center text-xs text-gray-500 font-medium">
+                            Chưa có người ủng hộ nào trong danh sách. Hãy là người đầu tiên ủng hộ duy trì dự án nhé!
+                        </div>
+                    `;
+                    return;
+                }
+
+                container.innerHTML = list.slice(0, 12).map(item => {
+                    const amtStr = new Intl.NumberFormat('vi-VN').format(item.amount) + 'đ';
+                    const safeName = app.utils.escapeHtml(item.donor_name);
+                    const safeMsg = item.message ? `<p class="text-[11px] text-gray-500 truncate mt-0.5 italic">"${app.utils.escapeHtml(item.message)}"</p>` : '';
+                    const icon = item.is_anonymous ? 'fa-user-secret' : 'fa-heart';
+                    const iconColor = item.is_anonymous ? 'text-gray-400' : 'text-red-500';
+
+                    return `
+                        <div class="bg-white border border-gray-200 rounded-lg p-3 flex items-center gap-3 shadow-sm hover:border-black transition">
+                            <div class="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center shrink-0 border border-gray-200">
+                                <i class="fa-solid ${icon} ${iconColor} text-xs"></i>
+                            </div>
+                            <div class="min-w-0 flex-1">
+                                <div class="flex items-center justify-between gap-2">
+                                    <span class="text-xs font-bold text-gray-900 truncate">${safeName}</span>
+                                    <span class="text-[11px] font-extrabold text-black shrink-0">+${amtStr}</span>
+                                </div>
+                                ${safeMsg}
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+
+            } catch (e) {
+                console.error('Error loading supporters:', e);
+            }
+        },
+
+        openHistoryModal: async () => {
+            if (!app.user) {
+                app.ui.showAlert("Vui lòng đăng nhập để xem lịch sử ủng hộ của bạn.");
+                return;
+            }
+
+            const modal = document.getElementById('modal-donation-history');
+            const listEl = document.getElementById('donation-history-list');
+            const totalEl = document.getElementById('donation-history-total');
+
+            if (listEl) {
+                listEl.innerHTML = `<div class="py-8 text-center text-xs text-gray-400"><i class="fa-solid fa-spinner fa-spin mr-2"></i> Đang tải dữ liệu...</div>`;
+            }
+            if (totalEl) totalEl.innerText = '0 đ';
+
+            if (modal) modal.classList.remove('hidden');
+
+            try {
+                const { data: { session } } = await window.sb.auth.getSession();
+                const res = await fetch('/api/donate/history', {
+                    headers: { 'Authorization': `Bearer ${session?.access_token || ''}` }
+                });
+                const resData = await res.json();
+                const list = resData.data || [];
+
+                if (!list.length) {
+                    if (listEl) {
+                        listEl.innerHTML = `
+                            <div class="py-10 text-center">
+                                <i class="fa-solid fa-heart-crack text-3xl text-gray-300 mb-2"></i>
+                                <p class="text-xs font-bold text-gray-500">Bạn chưa có lượt ủng hộ nào.</p>
+                                <button onclick="document.getElementById('modal-donation-history').classList.add('hidden'); app.utils.navigate('/support-us');" class="mt-3 px-4 py-2 bg-black text-white text-xs font-bold rounded-lg hover:bg-gray-800 transition">Ủng hộ ngay</button>
+                            </div>
+                        `;
+                    }
+                    return;
+                }
+
+                const total = list.reduce((sum, item) => sum + (parseInt(item.amount, 10) || 0), 0);
+                if (totalEl) totalEl.innerText = new Intl.NumberFormat('vi-VN').format(total) + ' đ';
+
+                if (listEl) {
+                    listEl.innerHTML = list.map(item => {
+                        const dateStr = item.created_at ? new Date(item.created_at).toLocaleDateString('vi-VN') : '---';
+                        const amtStr = new Intl.NumberFormat('vi-VN').format(item.amount) + ' đ';
+                        const isAnon = item.is_anonymous ? 'Ẩn danh' : 'Công khai';
+                        const anonClass = item.is_anonymous ? 'bg-gray-100 text-gray-600' : 'bg-green-50 text-green-700';
+                        const safeMsg = item.message ? `<div class="text-[11px] text-gray-500 italic mt-1">"${app.utils.escapeHtml(item.message)}"</div>` : '';
+
+                        return `
+                            <div class="p-3 border border-gray-200 rounded-lg bg-white mb-2 shadow-sm">
+                                <div class="flex items-center justify-between text-xs font-bold">
+                                    <span class="text-black font-extrabold text-sm">+${amtStr}</span>
+                                    <span class="px-2 py-0.5 rounded text-[10px] ${anonClass}">${isAnon}</span>
+                                </div>
+                                <div class="text-[11px] text-gray-400 mt-1 flex items-center justify-between">
+                                    <span>Mã: #${item.order_code}</span>
+                                    <span>${dateStr}</span>
+                                </div>
+                                ${safeMsg}
+                            </div>
+                        `;
+                    }).join('');
+                }
+
+            } catch (e) {
+                if (listEl) {
+                    listEl.innerHTML = `<div class="py-8 text-center text-xs text-red-500">Lỗi khi tải lịch sử ủng hộ: ${e.message}</div>`;
+                }
+            }
+        },
+
+        closeHistoryModal: () => {
+            const modal = document.getElementById('modal-donation-history');
+            if (modal) modal.classList.add('hidden');
         }
     }
 });

@@ -2814,6 +2814,38 @@ html.theme-dark .ct-icon {
             </div>
         </div>
 
+        <!-- MODAL LỊCH SỬ ỦNG HỘ -->
+        <div id="modal-donation-history" class="hidden fixed inset-0 z-[5000] flex items-center justify-center p-4 backdrop-blur-md">
+            <div class="bg-white border border-black rounded-xl max-w-md w-full p-5 md:p-6 shadow-2xl relative">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="flex items-center gap-2">
+                        <div class="w-8 h-8 rounded-full bg-red-50 text-red-500 flex items-center justify-center border border-red-100">
+                            <i class="fa-solid fa-heart text-xs"></i>
+                        </div>
+                        <h3 class="font-black text-base uppercase text-black">Lịch Sử Ủng Hộ</h3>
+                    </div>
+                    <button type="button" onclick="app.donate.closeHistoryModal()" class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 text-gray-500 hover:text-black transition">
+                        <i class="fa-solid fa-xmark text-sm"></i>
+                    </button>
+                </div>
+
+                <div class="bg-gray-50 border border-gray-200 rounded-lg p-3 mb-4 flex items-center justify-between text-xs">
+                    <span class="text-gray-500 font-medium">Tổng đóng góp của bạn:</span>
+                    <span id="donation-history-total" class="font-black text-base text-black">0 đ</span>
+                </div>
+
+                <div id="donation-history-list" class="max-h-[340px] overflow-y-auto space-y-2 pr-1">
+                    <!-- Rendered by JS -->
+                </div>
+
+                <div class="mt-4 flex justify-end">
+                    <button type="button" onclick="app.donate.closeHistoryModal()" class="px-5 py-2.5 bg-black hover:bg-gray-800 text-white text-xs font-bold rounded-lg transition">
+                        Đóng
+                    </button>
+                </div>
+            </div>
+        </div>
+
         <div id="deny-prompt-modal"
             class="hidden fixed inset-0 z-[5000] flex items-center justify-center p-4 backdrop-blur-md">
 
@@ -3693,6 +3725,27 @@ html.theme-dark .ct-icon {
                         ĐÃ LƯU TRỮ ẢNH XE BUÝT/KHÁCH HOÀN TOÀN MIỄN PHÍ <span id="uptime-timer" class="text-black dark:text-white">ĐANG TÍNH TOÁN...</span>
                     </p>
                 </div>
+
+                <!-- KHỐI TRI ÂN & CẢM ƠN CÁC NHÀ HẢO TÂM -->
+                <div id="home-supporters-section" class="mt-4 bg-white border border-gray-200 p-5 rounded-lg shadow-sm">
+                    <div class="flex items-center justify-between mb-3">
+                        <div class="flex items-center gap-2">
+                            <i class="fa-solid fa-heart text-red-500 text-sm"></i>
+                            <h3 class="font-bold text-sm md:text-base text-black uppercase tracking-wide">CẢM ƠN CÁC NHÀ HẢO TÂM</h3>
+                        </div>
+                        <button onclick="app.utils.navigate('/support-us')" class="text-xs font-bold text-gray-600 hover:text-black flex items-center gap-1 transition">
+                            Ủng hộ ngay <i class="fa-solid fa-chevron-right text-[10px]"></i>
+                        </button>
+                    </div>
+                    <p class="text-xs text-gray-500 mb-4 leading-relaxed">
+                        Trân trọng cảm ơn những người bạn đã đồng hành và đóng góp kinh phí duy trì máy chủ, database lưu trữ xe buýt Việt Nam hoàn toàn miễn phí:
+                    </p>
+                    <div id="home-supporters-list" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                        <div class="col-span-full py-6 text-center text-xs text-gray-400">
+                            <i class="fa-solid fa-spinner fa-spin mr-2"></i> Đang tải danh sách tri ân...
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <!-- CHÈN THÊM ĐOẠN NÀY NGAY DƯỚI THẺ ĐÓNG CỦA <div id="home"> -->
@@ -4200,6 +4253,173 @@ html.theme-dark .ct-icon {
 
                 <div id="dashboard-content" class="space-y-6">
                     <!-- Nội dung đổ từ JS -->
+                </div>
+            </div>
+
+            <div id="support-us" class="view-section">
+                <div class="max-w-2xl mx-auto">
+                    <!-- Breadcrumb -->
+                    <div class="text-[11px] sm:text-xs text-gray-500 mb-4 bg-white px-3 py-2 border border-vbs-border rounded-md shadow-sm flex items-center gap-1.5 w-max max-w-full">
+                        <span onclick="app.utils.navigate('/')" class="crumb-back cursor-pointer hover:text-black font-medium transition-colors truncate shrink min-w-0">Trang chủ</span>
+                        <i class="fa-solid fa-chevron-right text-[8px] sm:text-[10px] shrink-0 text-gray-400"></i>
+                        <span class="font-bold text-black truncate shrink min-w-0">Ủng hộ chúng tôi</span>
+                    </div>
+
+                    <!-- User Identity Card on Top -->
+                    <div class="bg-white border border-vbs-border rounded-xl p-4 md:p-5 mb-4 shadow-sm flex items-center justify-between gap-4">
+                        <div class="flex items-center gap-3.5 min-w-0">
+                            <div class="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center shrink-0 border border-gray-200 overflow-hidden">
+                                <i id="donate-user-icon" class="fa-solid fa-user-secret text-gray-400 text-lg"></i>
+                                <img id="donate-user-avatar" src="" alt="Avatar" class="hidden w-full h-full object-cover">
+                            </div>
+                            <div class="min-w-0">
+                                <div class="flex items-center gap-2">
+                                    <h3 id="donate-user-name" class="font-extrabold text-sm md:text-base text-black truncate">...</h3>
+                                    <span id="donate-user-badge" class="px-2 py-0.5 text-[10px] font-bold rounded bg-gray-100 text-gray-600">Đang tải...</span>
+                                </div>
+                                <p id="donate-user-desc" class="text-xs text-gray-500 truncate mt-0.5">...</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Main Container Card -->
+                    <div class="bg-white border border-vbs-border rounded-2xl shadow-sm p-5 md:p-8 mb-8">
+                        
+                        <!-- Header Title & Subtitle -->
+                        <div class="text-center mb-6">
+                            <div class="w-12 h-12 bg-red-50 text-red-500 rounded-full flex items-center justify-center text-xl mb-3 border border-red-100 shadow-sm mx-auto">
+                                <i class="fa-solid fa-heart"></i>
+                            </div>
+                            <h2 class="text-2xl font-black text-black uppercase tracking-tight mb-2">Ủng Hộ Dự Án</h2>
+                            <p class="text-[13px] text-gray-500 font-medium leading-relaxed max-w-md mx-auto">
+                                VNBUSARCHIVE phi lợi nhuận lưu trữ hình ảnh xe buýt Việt Nam miễn phí cho cộng đồng. Mọi đóng góp của bạn đều giúp duy trì chi phí máy chủ và CDN!
+                            </p>
+                        </div>
+
+                        <!-- STEP 1: FORM CHỌN/NHẬP SỐ TIỀN & LỜI NHẮN -->
+                        <div id="donate-step-form">
+                            <!-- Presets -->
+                            <div class="mb-4">
+                                <label class="block text-[11px] font-bold text-gray-500 uppercase tracking-widest mb-2">Chọn nhanh số tiền</label>
+                                <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                                    <button type="button" data-amount="10000" onclick="app.donate.selectPreset(10000)" class="donate-preset-btn px-4 py-2.5 text-xs sm:text-sm font-bold rounded-lg border border-gray-300 hover:border-black bg-white text-gray-800 transition">10.000 đ</button>
+                                    <button type="button" data-amount="20000" onclick="app.donate.selectPreset(20000)" class="donate-preset-btn px-4 py-2.5 text-xs sm:text-sm font-bold rounded-lg border border-black bg-black text-white transition">20.000 đ</button>
+                                    <button type="button" data-amount="50000" onclick="app.donate.selectPreset(50000)" class="donate-preset-btn px-4 py-2.5 text-xs sm:text-sm font-bold rounded-lg border border-gray-300 hover:border-black bg-white text-gray-800 transition">50.000 đ</button>
+                                    <button type="button" data-amount="100000" onclick="app.donate.selectPreset(100000)" class="donate-preset-btn px-4 py-2.5 text-xs sm:text-sm font-bold rounded-lg border border-gray-300 hover:border-black bg-white text-gray-800 transition">100.000 đ</button>
+                                </div>
+                            </div>
+
+                            <!-- Custom Amount Input -->
+                            <div class="mb-4">
+                                <label class="block text-[11px] font-bold text-gray-500 uppercase tracking-widest mb-1.5">Số tiền ủng hộ tùy ý (VNĐ) <span class="text-red-500">*</span></label>
+                                <div class="relative flex items-center">
+                                    <input type="text" id="donate-amount-input" oninput="app.donate.handleAmountInput(event)" placeholder="20,000" class="w-full bg-white border border-gray-300 focus:border-black rounded-lg p-3 text-base md:text-lg font-extrabold text-black outline-none transition shadow-sm pr-12">
+                                    <span class="absolute right-3.5 text-sm font-bold text-gray-400">VNĐ</span>
+                                </div>
+                                <p class="text-[11px] text-gray-400 mt-1">Tối thiểu: 2.000 VNĐ</p>
+                            </div>
+
+                            <!-- Lời nhắn -->
+                            <div class="mb-6">
+                                <label class="block text-[11px] font-bold text-gray-500 uppercase tracking-widest mb-1.5">Lời nhắn gửi đến VNBUSARCHIVE (Tùy chọn)</label>
+                                <textarea id="donate-message" rows="2" maxlength="200" placeholder="Cảm ơn đội ngũ phát triển, chúc dự án ngày càng phát triển..." class="w-full bg-white border border-gray-300 focus:border-black rounded-lg p-3 text-xs md:text-sm font-medium text-black outline-none transition shadow-sm resize-none"></textarea>
+                            </div>
+
+                            <button type="button" id="btn-donate-submit" onclick="app.donate.createPayment()" class="w-full py-3.5 bg-black hover:bg-gray-800 text-white rounded-lg text-sm font-extrabold tracking-wide uppercase transition shadow-sm flex items-center justify-center gap-2">
+                                <i class="fa-solid fa-qrcode"></i> Tạo mã VietQR ủng hộ
+                            </button>
+                        </div>
+
+                        <!-- STEP 2: HIỂN THỊ MÃ VIETQR QUA PAYOS -->
+                        <div id="donate-step-qr" class="hidden">
+                            <div class="text-center">
+                                <p class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">Quét mã bằng bất kỳ ứng dụng ngân hàng</p>
+                                
+                                <!-- QR Frame: White box with border -->
+                                <div class="inline-block p-4 bg-white border border-black rounded-xl shadow-sm mb-4" style="background-color: #ffffff !important; color: #000000 !important;">
+                                    <div id="donate-qr-box" class="flex items-center justify-center min-w-[210px] min-h-[210px]"></div>
+                                </div>
+
+                                <div class="mb-4">
+                                    <div class="text-2xl font-black text-black" id="donate-qr-amount">0 đ</div>
+                                    <div class="text-xs text-gray-500 mt-1">Mã đơn: <span id="donate-qr-ordercode" class="font-bold text-black">---</span></div>
+                                </div>
+
+                                <!-- Transaction details card -->
+                                <div class="bg-gray-50 border border-gray-200 rounded-lg p-4 text-left max-w-sm mx-auto mb-4 text-xs space-y-2">
+                                    <div class="flex justify-between items-center">
+                                        <span class="text-gray-500">Chủ tài khoản:</span>
+                                        <span id="donate-qr-accname" class="font-bold text-black">---</span>
+                                    </div>
+                                    <div class="flex justify-between items-center">
+                                        <span class="text-gray-500">Số tài khoản:</span>
+                                        <span id="donate-qr-accnum" class="font-bold font-mono text-black">---</span>
+                                    </div>
+                                    <div class="flex justify-between items-center">
+                                        <span class="text-gray-500">Nội dung CK:</span>
+                                        <span id="donate-qr-desc" class="font-bold font-mono text-black">---</span>
+                                    </div>
+                                </div>
+
+                                <!-- Live polling indicator -->
+                                <div class="flex items-center justify-center gap-2 text-xs text-gray-600 font-medium mb-6">
+                                    <i class="fa-solid fa-spinner fa-spin text-black"></i>
+                                    <span>Đang chờ thanh toán (Hệ thống tự nhận diện tự động)...</span>
+                                </div>
+
+                                <div class="flex flex-col sm:flex-row gap-2 max-w-sm mx-auto">
+                                    <a id="donate-qr-checkout-btn" href="#" target="_blank" rel="noopener" class="flex-1 py-2.5 px-4 bg-black hover:bg-gray-800 text-white rounded-lg text-xs font-bold transition flex items-center justify-center gap-1.5">
+                                        <i class="fa-solid fa-arrow-up-right-from-square"></i> Mở cổng payOS
+                                    </a>
+                                    <button type="button" onclick="app.donate.cancelPayment()" class="py-2.5 px-4 bg-white border border-gray-300 hover:border-black text-gray-700 hover:text-black rounded-lg text-xs font-bold transition">
+                                        Đổi số tiền
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- STEP 3: MÀN HÌNH CẢM ƠN VÌ ĐÓNG GÓP -->
+                        <div id="donate-step-thankyou" class="hidden text-center py-4">
+                            <div class="w-16 h-16 bg-red-50 text-red-500 rounded-full flex items-center justify-center text-3xl mb-4 border border-red-100 shadow-sm mx-auto animate-bounce">
+                                <i class="fa-solid fa-heart"></i>
+                            </div>
+
+                            <h3 class="text-2xl font-black text-black uppercase tracking-tight mb-2">CẢM ƠN BẠN ĐÃ ỦNG HỘ!</h3>
+                            <p class="text-xs sm:text-sm text-gray-600 max-w-md mx-auto leading-relaxed mb-6 font-medium">
+                                Khoản đóng góp của bạn đã được ghi nhận thành công. VNBUSARCHIVE xin chân thành cảm ơn sự đồng hành quý báu của bạn trong việc gìn giữ tư liệu xe buýt Việt Nam!
+                            </p>
+
+                            <div class="bg-gray-50 border border-gray-200 rounded-xl p-4 max-w-sm mx-auto mb-6 text-center">
+                                <div class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Số tiền đã ủng hộ</div>
+                                <div id="donate-thankyou-amount" class="text-2xl font-black text-black">0 VNĐ</div>
+                                <div id="donate-thankyou-code" class="text-xs font-mono text-gray-500 mt-1">#VNBA-0000</div>
+                            </div>
+
+                            <!-- CÔNG TẮC ẨN DANH TRÊN NÚT HOÀN THÀNH -->
+                            <div class="bg-white border border-black rounded-xl p-4 max-w-sm mx-auto mb-6 text-left shadow-sm">
+                                <div class="flex items-center justify-between gap-3">
+                                    <div class="min-w-0 pr-2">
+                                        <div class="text-xs sm:text-[13px] font-bold text-black leading-snug">
+                                            "Mình muốn sống ẩn danh, đừng công khai tên nhé!"
+                                        </div>
+                                        <p id="donate-anonymous-hint" class="text-[11px] text-gray-500 mt-1 leading-normal">
+                                            Bật công tắc nếu bạn muốn giấu tên trên danh sách cảm ơn ở trang chủ.
+                                        </p>
+                                    </div>
+                                    <label class="relative inline-flex items-center cursor-pointer shrink-0">
+                                        <input type="checkbox" id="donate-anonymous-toggle" class="sr-only peer">
+                                        <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-black peer-disabled:opacity-50 peer-disabled:cursor-not-allowed"></div>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <!-- NÚT HOÀN THÀNH -->
+                            <button type="button" onclick="app.donate.finish()" class="w-full max-w-sm mx-auto py-3.5 bg-black hover:bg-gray-800 text-white rounded-lg text-sm font-extrabold tracking-wide uppercase transition shadow-sm flex items-center justify-center gap-2">
+                                <i class="fa-solid fa-check"></i> Hoàn thành
+                            </button>
+                        </div>
+
+                    </div>
                 </div>
             </div>
 
@@ -5401,8 +5621,12 @@ html.theme-dark .ct-icon {
                                 <i class="fa-solid fa-chart-pie text-gray-500 group-hover:text-white transition-colors"></i> Chỉ số chi tiết
                             </button>
 
-                            <button id="btn-manage-comments" onclick="app.utils.navigate('/profile/comments')" class="w-full mb-6 py-3 bg-white border border-[#e4e4e7] rounded-lg text-sm font-bold text-gray-700 hover:bg-black hover:text-white hover:border-black transition shadow-[0_1px_2px_0_rgba(0,0,0,0.05)] flex items-center justify-center gap-2 group">
+                            <button id="btn-manage-comments" onclick="app.utils.navigate('/profile/comments')" class="w-full mb-2 py-3 bg-white border border-[#e4e4e7] rounded-lg text-sm font-bold text-gray-700 hover:bg-black hover:text-white hover:border-black transition shadow-[0_1px_2px_0_rgba(0,0,0,0.05)] flex items-center justify-center gap-2 group">
                                 <i class="fa-solid fa-comments text-gray-500 group-hover:text-white transition-colors"></i> Quản lý bình luận
+                            </button>
+
+                            <button id="btn-donation-history" onclick="app.donate.openHistoryModal()" class="w-full mb-6 py-3 bg-white border border-[#e4e4e7] rounded-lg text-sm font-bold text-gray-700 hover:bg-black hover:text-white hover:border-black transition shadow-[0_1px_2px_0_rgba(0,0,0,0.05)] flex items-center justify-center gap-2 group">
+                                <i class="fa-solid fa-heart text-red-500 group-hover:text-white transition-colors"></i> Lịch sử ủng hộ
                             </button>
 
                             <!-- ĐOẠN CODE THÊM MỚI: PHẦN GIỚI THIỆU -->
@@ -6042,6 +6266,7 @@ html.theme-dark .ct-icon {
                         <button onclick="app.utils.navigate('/tos')" class="text-sm text-gray-600 hover:text-black transition-colors text-left bg-transparent border-0 p-0 cursor-pointer">Chính sách &amp; điều khoản</button>
                         <button onclick="app.utils.navigate('/contact')" class="text-sm text-gray-600 hover:text-black transition-colors text-left bg-transparent border-0 p-0 cursor-pointer">Liên hệ hỗ trợ</button>
                         <button onclick="app.utils.navigate('/help')" class="text-sm text-gray-600 hover:text-black transition-colors text-left bg-transparent border-0 p-0 cursor-pointer">Trung tâm hỗ trợ</button>
+                        <button onclick="app.utils.navigate('/support-us')" class="text-sm font-bold text-black hover:text-red-600 transition-colors text-left bg-transparent border-0 p-0 cursor-pointer flex items-center gap-1"><i class="fa-solid fa-heart text-red-500 text-xs"></i> Ủng hộ chúng tôi</button>
                     </div>
 
                     <!-- Col 3: Kết nối -->

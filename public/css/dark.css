@@ -794,3 +794,33 @@ body.theme-dark [id^="req-h-route-"] {
 
 
 
+
+/* ==========================================
+   SUPPORT US / DONATE (DARK THEME)
+========================================== */
+#donate-step-qr .inline-block,
+#donate-qr-box,
+#donate-qr-box canvas,
+#donate-qr-box img {
+    background-color: #ffffff !important;
+    color: #000000 !important;
+}
+
+#donate-anonymous-toggle:checked + div {
+    background-color: #ffffff !important;
+}
+
+#donate-anonymous-toggle:checked + div::after {
+    background-color: #000000 !important;
+}
+
+body.theme-dark .donate-preset-btn.border-black {
+    background-color: #ffffff !important;
+    color: #000000 !important;
+    border-color: #ffffff !important;
+}
+
+body.theme-dark #modal-donation-history > div {
+    background-color: #000000 !important;
+    border: 1px solid #ffffff !important;
+}
