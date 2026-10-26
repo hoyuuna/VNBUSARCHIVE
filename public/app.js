@@ -12672,7 +12672,16 @@ Object.assign(window.app, {
         _activeDetailOrderCode: null,
         _activeDetailInitialAnon: false,
         _activeDetailCurrentAnon: false,
+        _detailHasChanged: false,
         _modalAnimTimeout: null,
+
+        onMainBtnClick: () => {
+            if (app.donate._detailHasChanged) {
+                app.donate.saveDetailChanges();
+            } else {
+                app.ui.closeAlert();
+            }
+        },
 
         showDetailAlert: (orderCode) => {
             const item = app.donate._profileCache?.[orderCode];
@@ -12682,6 +12691,7 @@ Object.assign(window.app, {
             app.donate._activeDetailOrderCode = orderCode;
             app.donate._activeDetailInitialAnon = isAnon;
             app.donate._activeDetailCurrentAnon = isAnon;
+            app.donate._detailHasChanged = false;
 
             const amtStr = new Intl.NumberFormat('vi-VN').format(item.amount) + ' VNĐ';
             const dateStr = item.created_at ? new Date(item.created_at).toLocaleString('vi-VN') : '---';
@@ -12736,21 +12746,19 @@ Object.assign(window.app, {
                         Cảm ơn bạn đã đồng hành cùng VNBUSARCHIVE! Khoản ủng hộ không được hoàn lại, chỉ dùng để duy trì dự án và không đi kèm đặc quyền nào so với người không ủng hộ.
                     </p>
 
-                    <div class="mt-4 pt-1 relative">
-                        <!-- State 1: Chưa thay đổi -> Nút Đóng -->
-                        <div id="donation-modal-btn-close" class="transition-all duration-300 ease-in-out">
-                            <button type="button" onclick="app.ui.closeAlert()" class="w-full py-2.5 px-4 bg-black hover:bg-gray-800 text-white rounded-lg text-xs font-bold transition shadow-sm">
-                                Đóng
+                    <!-- Morphing Action Buttons Bar -->
+                    <div class="mt-4 pt-1 flex items-center w-full relative" id="donation-modal-button-group">
+                        <!-- Nút Hủy (Trái) -->
+                        <div id="donation-modal-cancel-wrapper" class="overflow-hidden transition-all duration-300 ease-out shrink-0" style="width: 0px; opacity: 0; pointer-events: none; margin-right: 0px;">
+                            <button type="button" onclick="app.donate.cancelDetailChanges()" class="w-full py-2.5 px-4 bg-white border border-black hover:bg-gray-100 text-black rounded-lg text-xs font-bold transition shadow-sm whitespace-nowrap">
+                                Hủy
                             </button>
                         </div>
 
-                        <!-- State 2: Có thay đổi -> 2 nút Hủy và Lưu (Có Animation) -->
-                        <div id="donation-modal-btn-actions" class="hidden opacity-0 translate-y-1 transition-all duration-300 ease-in-out flex items-center gap-2">
-                            <button type="button" onclick="app.donate.cancelDetailChanges()" class="flex-1 py-2.5 px-4 bg-white border border-black hover:bg-gray-100 text-black rounded-lg text-xs font-bold transition shadow-sm">
-                                Hủy
-                            </button>
-                            <button type="button" id="donation-modal-save-btn" onclick="app.donate.saveDetailChanges()" class="flex-1 py-2.5 px-4 bg-black hover:bg-gray-800 text-white rounded-lg text-xs font-bold transition shadow-sm flex items-center justify-center gap-1.5">
-                                Lưu
+                        <!-- Nút Đóng / Lưu (Phải) -->
+                        <div id="donation-modal-main-wrapper" class="flex-1 min-w-0 transition-all duration-300 ease-out">
+                            <button type="button" id="donation-modal-main-btn" onclick="app.donate.onMainBtnClick()" class="w-full py-2.5 px-4 bg-black hover:bg-gray-800 text-white rounded-lg text-xs font-bold transition shadow-sm flex items-center justify-center gap-1.5 overflow-hidden">
+                                <span id="donation-modal-main-label" class="inline-block transition-opacity duration-150">Đóng</span>
                             </button>
                         </div>
                     </div>
@@ -12779,6 +12787,7 @@ Object.assign(window.app, {
         onDetailAnonChange: (isChecked) => {
             app.donate._activeDetailCurrentAnon = isChecked;
             const hasChanged = app.donate._activeDetailCurrentAnon !== app.donate._activeDetailInitialAnon;
+            app.donate._detailHasChanged = hasChanged;
 
             const descEl = document.getElementById('donation-modal-anon-desc');
             if (descEl) {
@@ -12787,37 +12796,42 @@ Object.assign(window.app, {
                     : 'Khoản này đang được công khai tên trên danh sách tri ân.';
             }
 
-            const closeBox = document.getElementById('donation-modal-btn-close');
-            const actionsBox = document.getElementById('donation-modal-btn-actions');
-            if (!closeBox || !actionsBox) return;
+            const cancelWrap = document.getElementById('donation-modal-cancel-wrapper');
+            const mainLabel = document.getElementById('donation-modal-main-label');
+            if (!cancelWrap || !mainLabel) return;
 
             if (app.donate._modalAnimTimeout) {
                 clearTimeout(app.donate._modalAnimTimeout);
             }
 
             if (hasChanged) {
-                // Animate Close out, Actions in
-                closeBox.classList.add('opacity-0', '-translate-y-1');
+                // Thu nút chính về bên phải (chiếm 1 nửa), hiện nút Hủy bên trái
+                cancelWrap.style.width = 'calc(50% - 4px)';
+                cancelWrap.style.marginRight = '8px';
+                cancelWrap.style.opacity = '1';
+                cancelWrap.style.pointerEvents = 'auto';
+
+                // Fade chữ "Đóng" thành "Lưu"
+                mainLabel.style.opacity = '0';
                 app.donate._modalAnimTimeout = setTimeout(() => {
-                    if (app.donate._activeDetailCurrentAnon !== app.donate._activeDetailInitialAnon) {
-                        closeBox.classList.add('hidden');
-                        actionsBox.classList.remove('hidden');
-                        void actionsBox.offsetWidth; // Trigger reflow for CSS transition
-                        actionsBox.classList.remove('opacity-0', 'translate-y-1');
-                        actionsBox.classList.add('opacity-100', 'translate-y-0');
+                    if (app.donate._detailHasChanged) {
+                        mainLabel.innerHTML = 'Lưu';
+                        mainLabel.style.opacity = '1';
                     }
                 }, 150);
             } else {
-                // Reverted back to initial state -> Animate Actions out, Close in
-                actionsBox.classList.remove('opacity-100', 'translate-y-0');
-                actionsBox.classList.add('opacity-0', 'translate-y-1');
+                // Thu gọn nút Hủy về 0, mở rộng nút chính thành full width về bên trái
+                cancelWrap.style.width = '0px';
+                cancelWrap.style.marginRight = '0px';
+                cancelWrap.style.opacity = '0';
+                cancelWrap.style.pointerEvents = 'none';
+
+                // Fade chữ "Lưu" trở lại "Đóng"
+                mainLabel.style.opacity = '0';
                 app.donate._modalAnimTimeout = setTimeout(() => {
-                    if (app.donate._activeDetailCurrentAnon === app.donate._activeDetailInitialAnon) {
-                        actionsBox.classList.add('hidden');
-                        closeBox.classList.remove('hidden');
-                        void closeBox.offsetWidth; // Trigger reflow for CSS transition
-                        closeBox.classList.remove('opacity-0', '-translate-y-1');
-                        closeBox.classList.add('opacity-100', 'translate-y-0');
+                    if (!app.donate._detailHasChanged) {
+                        mainLabel.innerHTML = 'Đóng';
+                        mainLabel.style.opacity = '1';
                     }
                 }, 150);
             }
@@ -12834,11 +12848,12 @@ Object.assign(window.app, {
         saveDetailChanges: async () => {
             const orderCode = app.donate._activeDetailOrderCode;
             const targetAnon = app.donate._activeDetailCurrentAnon;
-            const saveBtn = document.getElementById('donation-modal-save-btn');
+            const mainBtn = document.getElementById('donation-modal-main-btn');
+            const mainLabel = document.getElementById('donation-modal-main-label');
 
-            if (saveBtn) {
-                saveBtn.disabled = true;
-                saveBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1.5"></i> Đang lưu...';
+            if (mainBtn && mainLabel) {
+                mainBtn.disabled = true;
+                mainLabel.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1.5"></i> Đang lưu...';
             }
 
             try {
@@ -12869,18 +12884,20 @@ Object.assign(window.app, {
                 const item = app.donate._profileCache?.[orderCode];
                 if (item) item.is_anonymous = targetAnon;
 
-                // Animate actions out, close button back in
-                const closeBox = document.getElementById('donation-modal-btn-close');
-                const actionsBox = document.getElementById('donation-modal-btn-actions');
-                if (actionsBox && closeBox) {
-                    actionsBox.classList.remove('opacity-100', 'translate-y-0');
-                    actionsBox.classList.add('opacity-0', 'translate-y-1');
+                // Morph back to single full-width "Đóng" button
+                app.donate._detailHasChanged = false;
+                const cancelWrap = document.getElementById('donation-modal-cancel-wrapper');
+                if (cancelWrap) {
+                    cancelWrap.style.width = '0px';
+                    cancelWrap.style.marginRight = '0px';
+                    cancelWrap.style.opacity = '0';
+                    cancelWrap.style.pointerEvents = 'none';
+                }
+                if (mainLabel) {
+                    mainLabel.style.opacity = '0';
                     setTimeout(() => {
-                        actionsBox.classList.add('hidden');
-                        closeBox.classList.remove('hidden');
-                        void closeBox.offsetWidth;
-                        closeBox.classList.remove('opacity-0', '-translate-y-1');
-                        closeBox.classList.add('opacity-100', 'translate-y-0');
+                        mainLabel.innerHTML = 'Đóng';
+                        mainLabel.style.opacity = '1';
                     }, 150);
                 }
 
@@ -12897,9 +12914,8 @@ Object.assign(window.app, {
                 console.error('Error saving anonymity setting:', err);
                 app.ui.showAlert('Không thể lưu thay đổi: ' + err.message);
             } finally {
-                if (saveBtn) {
-                    saveBtn.disabled = false;
-                    saveBtn.innerHTML = 'Lưu';
+                if (mainBtn) {
+                    mainBtn.disabled = false;
                 }
             }
         }
