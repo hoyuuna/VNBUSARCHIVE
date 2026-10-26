@@ -1649,7 +1649,7 @@ Object.assign(window.app, {
                         <label class="flex items-center justify-between gap-3 p-3 bg-gray-50 rounded-lg border border-black cursor-pointer select-none">
                             <div class="min-w-0 pr-2">
                                 <div class="text-xs font-bold text-black">
-                                    Ẩn danh trên trang chủ
+                                    Ủng hộ ẩn danh
                                 </div>
                                 <p id="donation-modal-anon-desc" class="text-[11px] text-gray-500 mt-0.5 leading-normal">
                                     ${isAnon ? 'Khoản này đang được giấu tên trên danh sách tri ân.' : 'Khoản này đang được công khai tên trên danh sách tri ân.'}
