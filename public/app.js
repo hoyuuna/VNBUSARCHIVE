@@ -12686,7 +12686,7 @@ Object.assign(window.app, {
                     </div>
 
                     <p class="text-[11px] text-gray-500 text-center leading-normal mt-3">
-                        Khoản ủng hộ chỉ dùng để duy trì dự án và không đi kèm đặc quyền nào so với người không ủng hộ.
+                        Khoản ủng hộ không được hoàn lại, chỉ dùng để duy trì dự án và không đi kèm đặc quyền nào so với người không ủng hộ.
                     </p>
 
                     <div class="mt-4 pt-1 relative">
