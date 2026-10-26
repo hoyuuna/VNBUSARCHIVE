@@ -844,3 +844,32 @@ body.theme-dark #modal-donation-history > div {
     background-color: #000000 !important;
     border: 1px solid #ffffff !important;
 }
+
+/* Inverted Supporters Action Card (Dark Mode: White background with black text) */
+html.theme-dark #home-supporters-action-card,
+body.theme-dark #home-supporters-action-card {
+    background-color: #ffffff !important;
+    border-color: #ffffff !important;
+    color: #000000 !important;
+}
+
+html.theme-dark #home-supporters-action-card *,
+body.theme-dark #home-supporters-action-card * {
+    color: #000000 !important;
+}
+
+html.theme-dark #home-supporters-action-card:hover,
+body.theme-dark #home-supporters-action-card:hover {
+    background-color: #e4e4e7 !important;
+}
+
+html.theme-dark #home-supporters-action-card .supporter-action-icon,
+body.theme-dark #home-supporters-action-card .supporter-action-icon {
+    background-color: #f4f4f5 !important;
+    border-color: #d4d4d8 !important;
+}
+
+html.theme-dark #home-supporters-action-card .supporter-action-icon i,
+body.theme-dark #home-supporters-action-card .supporter-action-icon i {
+    color: #000000 !important;
+}

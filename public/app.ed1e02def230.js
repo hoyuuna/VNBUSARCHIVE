@@ -204,6 +204,9 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
     });
+    if (window.app && window.app.ui && window.app.ui.initSliderEditableBadges) {
+        window.app.ui.initSliderEditableBadges();
+    }
 });
 
 Object.assign(window.app, {
@@ -606,6 +609,210 @@ Object.assign(window.app, {
             },
 
     ui: {
+                initSliderEditableBadges: () => {
+                    if (window._sliderEditableBadgesInit) return;
+                    window._sliderEditableBadgesInit = true;
+
+                    const sliderMap = {
+                        'crop-rotate-val': { slider: 'crop-rotate-slider', unit: '°' },
+                        'val-brightness': { slider: 'adj-brightness', unit: '%' },
+                        'val-contrast': { slider: 'adj-contrast', unit: '%' },
+                        'val-saturation': { slider: 'adj-saturation', unit: '%' },
+                        'val-denoise': { slider: 'adj-denoise', unit: '%' },
+                        'wm-rotate-val': { slider: 'wm-rotate-slider', unit: '°' },
+                        'wm-scale-val': { slider: 'wm-scale-slider', unit: '%' },
+                        'wm-bar-scale-val': { slider: 'wm-bar-scale-slider', unit: '%' },
+                        'mgr-wm-scale-val': { slider: 'mgr-wm-scale', unit: '%' },
+                        'mgr-wm-dx-val': { slider: 'mgr-wm-dx', unit: ' px' },
+                        'mgr-wm-dy-val': { slider: 'mgr-wm-dy', unit: ' px' }
+                    };
+
+                    document.addEventListener('click', (e) => {
+                        const badge = e.target.closest('[data-slider], #crop-rotate-val, #val-brightness, #val-contrast, #val-saturation, #val-denoise, #wm-rotate-val, #wm-scale-val, #wm-bar-scale-val, #mgr-wm-scale-val, #mgr-wm-dx-val, #mgr-wm-dy-val');
+                        if (!badge) return;
+
+                        if (badge.dataset.isEditing === 'true') return;
+
+                        let sliderId = badge.getAttribute('data-slider');
+                        let unit = badge.getAttribute('data-unit');
+                        if (!sliderId && sliderMap[badge.id]) {
+                            sliderId = sliderMap[badge.id].slider;
+                            unit = sliderMap[badge.id].unit;
+                        }
+
+                        const slider = sliderId ? document.getElementById(sliderId) : null;
+                        if (!slider) return;
+
+                        e.preventDefault();
+                        e.stopPropagation();
+
+                        if (!unit) {
+                            const text = badge.textContent || '';
+                            if (text.includes('°')) unit = '°';
+                            else if (text.includes('%')) unit = '%';
+                            else if (text.includes('px')) unit = ' px';
+                            else unit = '';
+                        }
+
+                        const min = slider.min !== '' ? parseFloat(slider.min) : -Infinity;
+                        const max = slider.max !== '' ? parseFloat(slider.max) : Infinity;
+                        const step = (slider.step !== '' && slider.step !== 'any') ? parseFloat(slider.step) : 1;
+
+                        const currentVal = slider.value !== undefined ? slider.value : '';
+                        const oldVal = currentVal;
+
+                        badge.dataset.isEditing = 'true';
+
+                        const wrapper = document.createElement('span');
+                        wrapper.className = 'inline-flex items-center justify-center p-0 m-0';
+
+                        const input = document.createElement('input');
+                        input.type = 'text';
+                        input.inputMode = (min < 0 || step < 1) ? 'text' : 'numeric';
+                        input.value = currentVal;
+                        input.className = 'bg-transparent text-center font-mono font-bold text-[10px] text-black dark:text-white outline-none p-0 m-0 border-none';
+                        input.style.width = Math.max(22, (String(currentVal).length + 0.5) * 7.5) + 'px';
+                        input.style.lineHeight = '1';
+
+                        const unitSpan = document.createElement('span');
+                        unitSpan.className = 'font-mono font-bold text-[10px] text-gray-500 dark:text-gray-400 select-none pointer-events-none';
+                        unitSpan.style.lineHeight = '1';
+                        unitSpan.innerText = unit;
+
+                        wrapper.appendChild(input);
+                        if (unit) wrapper.appendChild(unitSpan);
+
+                        badge.innerHTML = '';
+                        badge.appendChild(wrapper);
+
+                        badge.classList.add('ring-1', 'ring-black', 'dark:ring-white', 'border-black', 'dark:border-white', 'bg-white', 'dark:bg-black');
+
+                        setTimeout(() => {
+                            input.focus();
+                            input.select();
+                        }, 20);
+
+                        let finished = false;
+
+                        const cleanup = () => {
+                            badge.dataset.isEditing = 'false';
+                            badge.classList.remove('ring-1', 'ring-black', 'dark:ring-white', 'border-black', 'dark:border-white', 'bg-white', 'dark:bg-black');
+                        };
+
+                        const revert = () => {
+                            if (finished) return;
+                            finished = true;
+                            cleanup();
+                            badge.innerText = oldVal + unit;
+                        };
+
+                        const commit = () => {
+                            if (finished) return;
+                            finished = true;
+                            cleanup();
+
+                            let raw = input.value.trim();
+                            if (unit) {
+                                const escapedUnit = unit.trim().replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+                                if (escapedUnit) {
+                                    raw = raw.replace(new RegExp('[\\s' + escapedUnit + ']', 'g'), '');
+                                }
+                            }
+
+                            if (raw === '' || isNaN(Number(raw)) || raw === '-' || raw === '+') {
+                                badge.innerText = oldVal + unit;
+                                return;
+                            }
+
+                            let num = parseFloat(raw);
+                            if (isNaN(num)) {
+                                badge.innerText = oldVal + unit;
+                                return;
+                            }
+
+                            if (num < min) num = min;
+                            if (num > max) num = max;
+
+                            if (step && step > 0) {
+                                const base = min !== -Infinity ? min : 0;
+                                num = Math.round((num - base) / step) * step + base;
+                                if (step < 1) num = parseFloat(num.toFixed(4));
+                            }
+
+                            slider.value = num;
+
+                            if (typeof slider.oninput === 'function') {
+                                try { slider.oninput.call(slider); } catch(err) {}
+                            }
+                            slider.dispatchEvent(new Event('input', { bubbles: true }));
+                            if (typeof slider.onchange === 'function') {
+                                try { slider.onchange.call(slider); } catch(err) {}
+                            }
+                            slider.dispatchEvent(new Event('change', { bubbles: true }));
+
+                            badge.innerText = num + unit;
+                        };
+
+                        input.addEventListener('input', () => {
+                            let v = input.value;
+                            if (min >= 0) v = v.replace(/-/g, '');
+                            if (step >= 1) v = v.replace(/\./g, '');
+                            v = v.replace(/[^0-9\.\-]/g, '');
+                            if (v !== input.value) input.value = v;
+                            input.style.width = Math.max(22, (input.value.length + 0.5) * 7.5) + 'px';
+                        });
+
+                        input.addEventListener('keydown', (ke) => {
+                            if (ke.key === 'Enter') {
+                                ke.preventDefault();
+                                commit();
+                            } else if (ke.key === 'Escape') {
+                                ke.preventDefault();
+                                revert();
+                            } else if (ke.key === 'ArrowUp') {
+                                ke.preventDefault();
+                                let cur = parseFloat(input.value) || 0;
+                                cur = Math.min(max, cur + step);
+                                if (step < 1) cur = parseFloat(cur.toFixed(4));
+                                input.value = cur;
+                                input.dispatchEvent(new Event('input'));
+                            } else if (ke.key === 'ArrowDown') {
+                                ke.preventDefault();
+                                let cur = parseFloat(input.value) || 0;
+                                cur = Math.max(min, cur - step);
+                                if (step < 1) cur = parseFloat(cur.toFixed(4));
+                                input.value = cur;
+                                input.dispatchEvent(new Event('input'));
+                            } else {
+                                const allowedControlKeys = [
+                                    'Backspace', 'Delete', 'Tab', 'Escape', 'Enter',
+                                    'ArrowLeft', 'ArrowRight', 'Home', 'End'
+                                ];
+                                if (allowedControlKeys.includes(ke.key) || ke.ctrlKey || ke.metaKey) {
+                                    return;
+                                }
+                                if (ke.key === '-' && min < 0) {
+                                    if (input.selectionStart === 0 && (!input.value.includes('-') || input.selectionEnd > 0)) {
+                                        return;
+                                    }
+                                }
+                                if (ke.key === '.' && step < 1) {
+                                    if (!input.value.includes('.')) {
+                                        return;
+                                    }
+                                }
+                                if (/^[0-9]$/.test(ke.key)) {
+                                    return;
+                                }
+                                ke.preventDefault();
+                            }
+                        });
+
+                        input.addEventListener('blur', () => {
+                            commit();
+                        });
+                    });
+                },
                 alertInterval: null,
                 showAlert: (msg, okCallback = null, cancelCallback = null, options = {}) => {
                     const cleanMsg = (msg || '').toLowerCase();
@@ -630,6 +837,7 @@ Object.assign(window.app, {
                         iconBox.innerHTML = options.iconHtml || '<i class="fa-solid fa-bell text-xl text-black"></i>';
                     }
                     if (okBtn) {
+                        if (okBtn.parentElement) okBtn.parentElement.style.display = '';
                         let defaultText = options.btnOkText || "Đồng ý";
                         okBtn.style.display = options.hideButtons ? 'none' : 'inline-flex';
                         if (options.isDestructive) {
@@ -770,14 +978,14 @@ Object.assign(window.app, {
                         null, null, { title: "Chính sách giới hạn đăng tải", btnOkText: "Đã hiểu" }
                     );
                 },
-                showPrompt: (msg, defaultValue = '', callback) => {
+                showPrompt: (msg, defaultValue = '', callback, options = {}) => {
                     const modal = document.getElementById('custom-prompt-modal');
                     const content = document.getElementById('custom-prompt-content');
                     const titleEl = document.getElementById('custom-prompt-title');
                     const msgEl = document.getElementById('custom-prompt-msg');
                     const inputEl = document.getElementById('custom-prompt-input');
                     const okBtn = document.getElementById('custom-prompt-ok-btn');
-                    titleEl.innerText = "Nhập thông tin";
+                    titleEl.innerText = options.title || "Nhập thông tin";
                     msgEl.innerText = msg;
                     inputEl.value = defaultValue;
                     if (app.ui.promptCloseTimeout) clearTimeout(app.ui.promptCloseTimeout);
@@ -792,11 +1000,15 @@ Object.assign(window.app, {
                     }, 200);
                     inputEl.onkeydown = (e) => {
                         if (e.key === 'Enter') {
+                            if (!options.allowEmpty && !inputEl.value.trim()) {
+                                app.ui.showAlert("Vui lòng nhập nội dung, không được để trống!");
+                                return;
+                            }
                             app.ui.closePrompt(true);
                         }
                     };
                     okBtn.onclick = () => {
-                        if (!inputEl.value.trim()) {
+                        if (!options.allowEmpty && !inputEl.value.trim()) {
                             app.ui.showAlert("Vui lòng nhập nội dung, không được để trống!");
                             return;
                         }
@@ -1146,8 +1358,14 @@ closeCustomRolePrompt: () => {
                     modal.classList.add('hidden');
                     app.ui.unlockScroll();
                 },
-                lockScroll: () => document.body.classList.add('no-scroll'),
-                unlockScroll: () => document.body.classList.remove('no-scroll'),
+                lockScroll: () => {
+                    document.documentElement.classList.add('no-scroll');
+                    document.body.classList.add('no-scroll');
+                },
+                unlockScroll: () => {
+                    document.documentElement.classList.remove('no-scroll');
+                    document.body.classList.remove('no-scroll');
+                },
                 toggleUserMenu: (forceOpen = null) => {
                     const menu = document.getElementById('user-dropdown');
                     if (!menu) return;
@@ -1493,6 +1711,259 @@ closeCustomRolePrompt: () => {
                     return new Promise((resolve) => {
                         canvas.toBlob((blob) => resolve(blob), targetMime, quality);
                     });
+                },
+                computeHistogramData: (img, filterString = 'none') => {
+                    const sw = 256;
+                    const sh = Math.max(1, Math.round(sw * ((img.naturalHeight || img.height || 150) / (img.naturalWidth || img.width || 256))));
+                    const offCanvas = document.createElement('canvas');
+                    offCanvas.width = sw;
+                    offCanvas.height = sh;
+                    const ctx = offCanvas.getContext('2d', { willReadFrequently: true });
+                    if (filterString && filterString !== 'none') {
+                        ctx.filter = filterString;
+                    }
+                    ctx.drawImage(img, 0, 0, sw, sh);
+                    const data = ctx.getImageData(0, 0, sw, sh).data;
+                    
+                    const lumaBins = new Uint32Array(256);
+                    const rBins = new Uint32Array(256);
+                    const gBins = new Uint32Array(256);
+                    const bBins = new Uint32Array(256);
+                    let totalLuma = 0;
+                    let totalR = 0, totalG = 0, totalB = 0;
+                    let totalSat = 0;
+                    const totalPixels = data.length / 4;
+                    let shadowCount = 0;
+                    let highlightCount = 0;
+                    
+                    let centerLumaTotal = 0;
+                    let centerPixels = 0;
+                    let centerShadowCount = 0;
+                    let centerHighlightCount = 0;
+                    
+                    let topLumaTotal = 0;
+                    let topPixels = 0;
+                    
+                    let neutralRTotal = 0, neutralGTotal = 0, neutralBTotal = 0;
+                    let neutralPixels = 0;
+                    
+                    let rClipCount = 0, gClipCount = 0, bClipCount = 0;
+                    
+                    const minCenterX = sw * 0.12;
+                    const maxCenterX = sw * 0.88;
+                    const minCenterY = sh * 0.15;
+                    const maxCenterY = sh * 0.85;
+                    const maxTopY = sh * 0.25;
+                    
+                    for (let i = 0; i < data.length; i += 4) {
+                        const r = data[i];
+                        const g = data[i + 1];
+                        const b = data[i + 2];
+                        const luma = Math.round(0.299 * r + 0.587 * g + 0.114 * b);
+                        
+                        rBins[r]++;
+                        gBins[g]++;
+                        bBins[b]++;
+                        lumaBins[luma]++;
+                        
+                        totalLuma += luma;
+                        totalR += r;
+                        totalG += g;
+                        totalB += b;
+                        
+                        const maxVal = Math.max(r, g, b);
+                        const minVal = Math.min(r, g, b);
+                        let sat = 0;
+                        if (maxVal > 0) {
+                            sat = (maxVal - minVal) / maxVal;
+                            totalSat += sat;
+                        }
+                        
+                        if (luma <= 5) shadowCount++;
+                        if (luma >= 250) highlightCount++;
+                        
+                        if (r >= 252) rClipCount++;
+                        if (g >= 252) gClipCount++;
+                        if (b >= 252) bClipCount++;
+                        
+                        const pixelIdx = i / 4;
+                        const px = pixelIdx % sw;
+                        const py = (pixelIdx / sw) | 0;
+                        
+                        // Center zone (Vehicle body)
+                        if (px >= minCenterX && px <= maxCenterX && py >= minCenterY && py <= maxCenterY) {
+                            centerPixels++;
+                            centerLumaTotal += luma;
+                            if (luma <= 8) centerShadowCount++;
+                            if (luma >= 248) centerHighlightCount++;
+                        }
+                        
+                        // Top zone (Sky / Background)
+                        if (py <= maxTopY) {
+                            topPixels++;
+                            topLumaTotal += luma;
+                        }
+                        
+                        // Neutral surfaces (Asphalt road, curb, gray decals, concrete, neutral background)
+                        if (sat < 0.26 && luma >= 40 && luma <= 220) {
+                            neutralPixels++;
+                            neutralRTotal += r;
+                            neutralGTotal += g;
+                            neutralBTotal += b;
+                        }
+                    }
+                    
+                    let shadowZoneCount = 0;
+                    let deepShadowCount = 0;
+                    let midZoneCount = 0;
+                    let highlightZoneCount = 0;
+                    let count = 0;
+                    let p10 = 0, p50 = 128, p90 = 255;
+                    const t10 = totalPixels * 0.1;
+                    const t50 = totalPixels * 0.5;
+                    const t90 = totalPixels * 0.9;
+                    
+                    for (let i = 0; i < 256; i++) {
+                        const bin = lumaBins[i];
+                        if (i < 50) deepShadowCount += bin;
+                        if (i < 85) shadowZoneCount += bin;
+                        else if (i <= 175) midZoneCount += bin;
+                        else highlightZoneCount += bin;
+                        
+                        count += bin;
+                        if (p10 === 0 && count >= t10) p10 = i;
+                        if (p50 === 128 && count >= t50) p50 = i;
+                        if (count >= t90 && p90 === 255) p90 = i;
+                    }
+                    
+                    const avgNeutralR = neutralPixels > 0 ? (neutralRTotal / neutralPixels) : 128;
+                    const avgNeutralG = neutralPixels > 0 ? (neutralGTotal / neutralPixels) : 128;
+                    const avgNeutralB = neutralPixels > 0 ? (neutralBTotal / neutralPixels) : 128;
+                    
+                    return {
+                        totalPixels,
+                        lumaBins,
+                        rBins,
+                        gBins,
+                        bBins,
+                        avgLuma: totalPixels > 0 ? (totalLuma / totalPixels) : 128,
+                        avgR: totalPixels > 0 ? (totalR / totalPixels) : 128,
+                        avgG: totalPixels > 0 ? (totalG / totalPixels) : 128,
+                        avgB: totalPixels > 0 ? (totalB / totalPixels) : 128,
+                        avgSat: totalPixels > 0 ? ((totalSat / totalPixels) * 100) : 0,
+                        shadowPercent: totalPixels > 0 ? ((shadowCount / totalPixels) * 100) : 0,
+                        highlightPercent: totalPixels > 0 ? ((highlightCount / totalPixels) * 100) : 0,
+                        shadowZonePct: totalPixels > 0 ? ((shadowZoneCount / totalPixels) * 100) : 0,
+                        deepShadowPct: totalPixels > 0 ? ((deepShadowCount / totalPixels) * 100) : 0,
+                        midZonePct: totalPixels > 0 ? ((midZoneCount / totalPixels) * 100) : 0,
+                        highlightZonePct: totalPixels > 0 ? ((highlightZoneCount / totalPixels) * 100) : 0,
+                        p50,
+                        dynamicSpan: p90 - p10,
+                        centerLuma: centerPixels > 0 ? (centerLumaTotal / centerPixels) : (totalLuma / totalPixels),
+                        centerShadowPct: centerPixels > 0 ? ((centerShadowCount / centerPixels) * 100) : 0,
+                        centerHighlightPct: centerPixels > 0 ? ((centerHighlightCount / centerPixels) * 100) : 0,
+                        topLuma: topPixels > 0 ? (topLumaTotal / topPixels) : (totalLuma / totalPixels),
+                        neutralPixels,
+                        avgNeutralR,
+                        avgNeutralG,
+                        avgNeutralB,
+                        neutralDiffRB: avgNeutralR - avgNeutralB,
+                        neutralDiffGB: avgNeutralG - avgNeutralB,
+                        neutralDiffRG: avgNeutralR - avgNeutralG,
+                        neutralDiffGR: avgNeutralG - avgNeutralR,
+                        neutralDiffBR: avgNeutralB - avgNeutralR,
+                        channelClipR: totalPixels > 0 ? ((rClipCount / totalPixels) * 100) : 0,
+                        channelClipG: totalPixels > 0 ? ((gClipCount / totalPixels) * 100) : 0,
+                        channelClipB: totalPixels > 0 ? ((bClipCount / totalPixels) * 100) : 0
+                    };
+                },
+                drawHistogramCanvas: (canvas, data, mode = 'luma') => {
+                    if (!canvas || !data) return;
+                    const ctx = canvas.getContext('2d');
+                    if (!ctx) return;
+                    const w = canvas.width;
+                    const h = canvas.height;
+                    ctx.clearRect(0, 0, w, h);
+                    
+                    const smoothBins = (bins) => {
+                        const res = new Float32Array(256);
+                        for (let i = 0; i < 256; i++) {
+                            let sum = 0, count = 0;
+                            for (let j = Math.max(0, i - 2); j <= Math.min(255, i + 2); j++) {
+                                sum += bins[j];
+                                count++;
+                            }
+                            res[i] = sum / count;
+                        }
+                        return res;
+                    };
+                    
+                    const drawCurve = (bins, fillColor, strokeColor, compositeOp = 'source-over') => {
+                        let maxVal = 1;
+                        for (let i = 1; i < 255; i++) {
+                            if (bins[i] > maxVal) maxVal = bins[i];
+                        }
+                        
+                        ctx.save();
+                        ctx.globalCompositeOperation = compositeOp;
+                        ctx.beginPath();
+                        ctx.moveTo(0, h);
+                        
+                        for (let i = 0; i < 256; i++) {
+                            const x = (i / 255) * w;
+                            const normVal = Math.min(1.05, bins[i] / maxVal);
+                            const y = h - (normVal * (h - 8));
+                            ctx.lineTo(x, y);
+                        }
+                        
+                        ctx.lineTo(w, h);
+                        ctx.closePath();
+                        
+                        if (fillColor) {
+                            ctx.fillStyle = fillColor;
+                            ctx.fill();
+                        }
+                        if (strokeColor) {
+                            ctx.strokeStyle = strokeColor;
+                            ctx.lineWidth = 2;
+                            ctx.stroke();
+                        }
+                        ctx.restore();
+                    };
+                    
+                    const isDark = document.documentElement.classList.contains('theme-dark') || 
+                                   document.body.classList.contains('theme-dark');
+                    
+                    if (mode === 'luma') {
+                        const smoothed = smoothBins(data.lumaBins);
+                        if (isDark) {
+                            const grad = ctx.createLinearGradient(0, 0, 0, h);
+                            grad.addColorStop(0, 'rgba(255, 255, 255, 0.7)');
+                            grad.addColorStop(0.6, 'rgba(210, 210, 210, 0.35)');
+                            grad.addColorStop(1, 'rgba(160, 160, 160, 0.08)');
+                            drawCurve(smoothed, grad, '#ffffff');
+                        } else {
+                            const grad = ctx.createLinearGradient(0, 0, 0, h);
+                            grad.addColorStop(0, 'rgba(24, 24, 27, 0.75)');
+                            grad.addColorStop(0.6, 'rgba(63, 63, 70, 0.35)');
+                            grad.addColorStop(1, 'rgba(161, 161, 170, 0.08)');
+                            drawCurve(smoothed, grad, '#18181b');
+                        }
+                    } else {
+                        const rSmooth = smoothBins(data.rBins);
+                        const gSmooth = smoothBins(data.gBins);
+                        const bSmooth = smoothBins(data.bBins);
+                        
+                        if (isDark) {
+                            drawCurve(rSmooth, 'rgba(239, 68, 68, 0.4)', '#ef4444', 'screen');
+                            drawCurve(gSmooth, 'rgba(34, 197, 94, 0.4)', '#22c55e', 'screen');
+                            drawCurve(bSmooth, 'rgba(59, 130, 246, 0.4)', '#3b82f6', 'screen');
+                        } else {
+                            drawCurve(rSmooth, 'rgba(220, 38, 38, 0.35)', '#dc2626', 'multiply');
+                            drawCurve(gSmooth, 'rgba(22, 163, 74, 0.35)', '#16a34a', 'multiply');
+                            drawCurve(bSmooth, 'rgba(37, 99, 235, 0.35)', '#2563eb', 'multiply');
+                        }
+                    }
                 },
                 handleImgLoad: (img) => {
                     img.style.opacity = '1';
@@ -2309,7 +2780,7 @@ cleanupState: () => {
                                 const scale = (pos && typeof pos.scale === 'number') ? pos.scale : 1.0;
                                 const wmFontSize = height * 0.096 * scale;
                                 const rotate = (pos && typeof pos.rotate === 'number') ? pos.rotate : 0;
-                                const fontFace = '"Montserrat", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif';
+                                const fontFace = 'Montserrat, sans-serif';
                                 try {
                                     if (document.fonts && document.fonts.load) {
                                         await Promise.all([
@@ -2335,8 +2806,6 @@ cleanupState: () => {
                                 ctx.drawImage(tempCanvas, 0, safeBarY);
                                 ctx.fillStyle = 'rgba(0, 0, 0, 0.25)';
                                 ctx.fillRect(0, safeBarY, width, safeBarHeight);
-                                ctx.fillStyle = "rgba(255, 255, 255, 0.15)";
-                                ctx.fillRect(0, barY, width, Math.max(1, 1.5 * barScale));
                                 ctx.fillStyle = "white";
                                 ctx.textBaseline = 'alphabetic';
                                 ctx.textAlign = 'left';
@@ -2346,11 +2815,11 @@ cleanupState: () => {
                                 const vnbusWidth = ctx.measureText("VNBUSARCHIVE").width;
                                 ctx.font = `italic 700 ${fontSize * 0.8}px ${fontFace}`;
                                 ctx.fillText(".io.vn", (barHeight / 2) + vnbusWidth, textY);
-                                ctx.textBaseline = 'middle'; 
+                                ctx.textAlign = 'right';
+                                ctx.textBaseline = 'alphabetic'; 
                                 ctx.font = `700 ${fontSize}px ${fontFace}`;
                                 const rightText = `Bản quyền bởi ${username}`;
-                                const rightWidth = ctx.measureText(rightText).width;
-                                ctx.fillText(rightText, width - rightWidth - (barHeight / 2), height - barHeight / 2);
+                                ctx.fillText(rightText, width - (barHeight / 2), textY);
                                 const currentMode = pos.mode || (app.wmState && app.wmState.mode) || (typeof localStorage !== 'undefined' && localStorage.getItem('vnbus_wm_mode')) || 'basic';
                                 if (currentMode !== 'standard') {
                                     ctx.save();
@@ -2370,8 +2839,22 @@ cleanupState: () => {
                                     const hHalf = (textW * sin + textH * cos) / 2;
                                     let posX = width * (pos.x !== undefined ? pos.x : 0.5);
                                     let posY = height * (pos.y !== undefined ? pos.y : 0.5);
-                                    posX = Math.max(wHalf, Math.min(posX, width - wHalf));
-                                    posY = Math.max(hHalf, Math.min(posY, height - barHeight - hHalf));
+                                    let minX = wHalf;
+                                    let maxX = width - wHalf;
+                                    if (minX > maxX) {
+                                        minX = width / 2;
+                                        maxX = width / 2;
+                                    }
+
+                                    let minY = hHalf;
+                                    let maxY = height - barHeight - hHalf;
+                                    if (minY > maxY) {
+                                        minY = (height - barHeight) / 2;
+                                        maxY = (height - barHeight) / 2;
+                                    }
+
+                                    posX = Math.max(minX, Math.min(posX, maxX));
+                                    posY = Math.max(minY, Math.min(posY, maxY));
                                     ctx.translate(posX, posY);
                                     if (rotate) {
                                         ctx.rotate((rotate * Math.PI) / 180);
@@ -2728,54 +3211,14 @@ cleanupState: () => {
                 },
                 
                 triggerRouteSuggestion: async (inputId, suggestionId, query) => {
+                    // Đã loại bỏ hoàn toàn gợi ý tuyến cũ, hệ thống hiện dùng Popup Selector (app.route.openSelector)
                     const box = document.getElementById(suggestionId);
-                    if (!box) return;
-                    let currentType = '';
-                    if (inputId.startsWith('up-')) currentType = document.getElementById('up-type')?.value || '';
-                    else if (inputId.startsWith('info-')) currentType = document.getElementById('info-type')?.value || '';
-                    else if (inputId.startsWith('adm-p-')) currentType = document.getElementById(`adm-p-type-${inputId.split('-').pop()}`)?.value || '';
-                    else if (inputId.startsWith('req-') && !inputId.startsWith('req-v-')) currentType = document.getElementById(`req-type-${inputId.split('-').pop()}`)?.value || '';
-                    else if (app.currentVehicle) currentType = app.currentVehicle.type || '';
-                    let staticList = ['Dừng hoạt động', 'Ngoài giờ hoạt động', 'Chưa hoạt động'];
-                    if (currentType === 'coach' || currentType === '') {
-                        staticList.unshift('Hợp đồng');
+                    if (box) {
+                        box.classList.remove('active');
+                        box.innerHTML = '';
+                        box.style.display = 'none';
                     }
-                    let dbRoutes = [];
-                    try {
-                        let rQuery = window.sb.rpc('get_unique_routes');
-                        if (query.trim().length > 0) {
-                            const routeWords = query.trim().split(/\s+/).filter(w => w.length > 0);
-                            const { data } = await rQuery;
-                            if (data) {
-                                dbRoutes = data.map(item => item.route_no).filter(Boolean);
-                            }
-                        } else {
-                            const { data } = await rQuery;
-                            if (data) {
-                                dbRoutes = data.map(item => item.route_no).filter(Boolean);
-                            }
-                        }
-                    } catch (e) { console.log("Route suggestion error:", e.message); }
-                    const allRoutes = [...new Set([...staticList, ...dbRoutes])];
-                    const filtered = query.length === 0 ? allRoutes : allRoutes.filter(v => v.toLowerCase().includes(query.toLowerCase()));
-                    
-                    // GỌI HÀM SẮP XẾP
-                    if (query.length > 0) app.utils.sortMatchesByRelevance(filtered, query);
-
-                    if (filtered.length > 0) {
-                        box.innerHTML = filtered.map(v => {
-                            const safeHTML = app.utils.cleanText(v);
-                            const safeJS = v.replace(/'/g, "\\'").replace(/"/g, '&quot;');
-                            let displayHTML = safeHTML;
-                            if (query) {
-                                const escapedQuery = query.replace(/[.*+?^${}()|[\\]\\]/g, '\\$&');
-                                const regex = new RegExp(`(${escapedQuery})`, 'gi');
-                                displayHTML = safeHTML.replace(regex, '<strong class="font-extrabold">$1</strong>');
-                            }
-                            return `<div class="suggestion-item" onmousedown="event.preventDefault(); document.getElementById('${inputId}').value = '${safeJS}'; document.getElementById('${suggestionId}').classList.remove('active'); if('${inputId}' === 'up-route'){ app.upload.autoFillOperatorByRoute(); } if('${inputId}' === 'up-model' && app.upload && app.upload.checkModelPreview){ app.upload.checkModelPreview('${safeJS}'); }">${displayHTML}</div>`;
-                        }).join('');
-                        box.classList.add('active');
-                    } else { box.classList.remove('active'); }
+                    return;
                 },
                 triggerSuggestion: async (inputId, suggestionId, query, field = 'model') => {
                     const box = document.getElementById(suggestionId);
@@ -3098,6 +3541,12 @@ cleanupState: () => {
                     app.views.switch('admin', false);
                     app.admin.refreshCounts();
                     app.admin.loadTab(app.adminTab);
+                } else if (path === '/support-us') {
+                    document.title = 'Ủng hộ chúng tôi | VNBUSARCHIVE';
+                    app.views.switch('support-us', false);
+                    if (app.donate && typeof app.donate.init === 'function') {
+                        app.donate.init();
+                    }
                 } else if (path === '/contact') {
                     app.views.loadContact();
                 } else if (path === '/leaderboard') {
@@ -4020,6 +4469,7 @@ cleanupState: () => {
                         app.role = 'user';
                     }
                     document.getElementById('nav-username').innerText = app.username;
+                    app.avatarUrl = currentAvatar;
                     if (currentAvatar) {
                         const hImg = document.getElementById('nav-user-avatar');
                         if (hImg) {
@@ -4040,7 +4490,7 @@ dropdown.innerHTML = `
                          <button onclick="app.settings.open()" class="w-full text-left block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 border-b border-gray-100 font-bold"><i class="fa-solid fa-gear w-5 text-center mr-1"></i> Cài đặt</button>
                          <a href="/help" class="block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 border-b border-gray-100 font-bold"><i class="fa-solid fa-book-open w-5 text-center mr-1"></i> Trung tâm hỗ trợ</a>
                          <a href="/contact" class="w-full text-left block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 border-b border-gray-100 font-bold"><i class="fa-solid fa-headset w-5 text-center mr-1"></i> Liên hệ hỗ trợ</a>
-                         <button onclick="app.auth.logout()" class="w-full text-left block px-4 py-3 text-sm text-red-600 hover:bg-red-50 font-bold"><i class="fa-solid fa-right-from-bracket w-5 text-center mr-1"></i> Đăng xuất</button>
+                         <button onclick="app.auth.logout()" class="w-full text-left block px-4 py-3 text-sm text-black hover:bg-gray-100 font-bold"><i class="fa-solid fa-right-from-bracket w-5 text-center mr-1"></i> Đăng xuất</button>
                      `;
                     app.auth.close();
                     if (app.role === 'admin' || app.role === 'manager') {
@@ -4062,6 +4512,7 @@ dropdown.innerHTML = `
                     if (hIcon) hIcon.classList.remove('hidden');
                     document.getElementById('nav-admin').classList.add('hidden');
                     app.username = 'Guest';
+                    app.avatarUrl = null;
                     app.role = 'user';
 dropdown.innerHTML = `
                          <a href="/auth" class="w-full text-left block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 border-b border-gray-100 font-bold"><i class="fa-solid fa-arrow-right-to-bracket w-5 text-center mr-1"></i> Đăng nhập</a>
@@ -4115,6 +4566,10 @@ app.utils.updateUptime = function() {
 };
 setInterval(app.utils.updateUptime, 60000);
 setTimeout(app.utils.updateUptime, 500);
+if (window.app && window.app.ui && window.app.ui.initSliderEditableBadges) {
+    window.app.ui.initSliderEditableBadges();
+}
+
 
 /* --- MODULE: 01_router.js --- */
 // Capture URL params BEFORE Supabase SDK clears them (PKCE flow removes token_hash after exchange)
@@ -4228,6 +4683,14 @@ Object.assign(window.app, {
                                     window.history.replaceState(null, null, window.location.pathname);
                                 }, 500);
                             }
+                        }
+                        else if (event === 'TOKEN_REFRESHED') {
+                            if (session && session.user) {
+                                await app.setUser(session.user);
+                            }
+                        }
+                        else if (event === 'SIGNED_OUT') {
+                            await app.setUser(null);
                         }
                     });
                 } catch (e) {
@@ -4388,6 +4851,23 @@ Object.assign(window.app, {
                     const el = document.getElementById(id);
                     if(!el) return;
                     el.addEventListener('click', function () {
+                        if (id === 'info-route' && app.edit && app.edit.isEditing) {
+                            this.blur();
+                            const curType = document.getElementById('info-type')?.value || app.currentPhoto?.type || app.currentVehicle?.type;
+                            app.route.openSelector({
+                                targetInputId: 'info-route',
+                                vehicleType: curType,
+                                selectedRoute: this.dataset.routeName || this.value,
+                                onSelect: (r) => {
+                                    const rDisplay = (r.route_name && r.route_name !== r.route_no) ? r.route_name : r.route_no;
+                                    document.getElementById('info-route').value = r.route_no;
+                                    document.getElementById('info-route').dataset.routeName = rDisplay;
+                                    document.getElementById('info-route').dataset.routeNo = r.route_no;
+                                    app.utils.checkRouteStatus(r.route_no, 'info-operator', 'info-operator-row');
+                                }
+                            });
+                            return;
+                        }
                         if (this.readOnly && this.value && this.value !== '---' && this.value !== 'N/A') {
                             if (id === 'info-plate') {
                                 app.utils.navigate(`/vehicle/${encodeURIComponent(this.value)}`);
@@ -4397,14 +4877,16 @@ Object.assign(window.app, {
                             }
                             else if (id === 'info-route') {
                                 const typeVal = document.getElementById('info-type')?.value;
-                                const specialRoutes = ['Dừng hoạt động', 'Ngoài giờ hoạt động', 'Chưa hoạt động'];
+                                const specialRoutes = ['Dừng hoạt động', 'Ngoài giờ hoạt động', 'Chưa hoạt động', 'Hợp đồng'];
                                 // Gộp chung điều kiện Xe khách (coach) và Các tuyến đặc biệt
                                 if (typeVal === 'coach' || specialRoutes.includes(this.value.trim())) {
                                     app.searchRedirect(this.value, fieldMap[id]);
                                 } else {
                                     let provName = '';
-                                    if (el.dataset.borrowed) {
+                                    if (el.dataset.borrowed && el.dataset.borrowed.includes(' - ')) {
                                         provName = el.dataset.borrowed.split(' - ')[1];
+                                    } else if (el.dataset.routeName && el.dataset.routeName.includes(' - ')) {
+                                        provName = el.dataset.routeName.split(' - ')[1];
                                     } else {
                                         const plateValue = document.getElementById('info-plate')?.value;
                                         if (plateValue) provName = app.utils.getProvinceFromPlate(plateValue);
@@ -5299,7 +5781,7 @@ Object.assign(window.app, {
                             }
                         },
                         () => {},
-                        { btnOkText: "Đăng xuất", btnCancelText: "Đóng", title: "Xác nhận", isDestructive: true }
+                        { btnOkText: "Đăng xuất", btnCancelText: "Đóng", title: "Xác nhận" }
                     );
                 },
                 logoutAll: async () => {
@@ -5840,7 +6322,9 @@ changePassword: async () => {
             peer: null,
             conn: null,
             timer: null,
+            clientTimer: null,
             timeLeft: 180,
+            isSuccess: false,
             startHost: () => {
                 const modal = document.getElementById('qr-login-host-modal');
                 const loading = document.getElementById('qr-login-loading');
@@ -5853,7 +6337,9 @@ changePassword: async () => {
                 statusText.innerText = "Đang tạo mã QR...";
                 countdownEl.innerText = "03:00";
                 app.ui.lockScroll();
-                if (app.qrLogin.peer) app.qrLogin.peer.destroy();
+                if (app.qrLogin.peer) {
+                    try { app.qrLogin.peer.destroy(); } catch(e){}
+                }
                 app.qrLogin.peer = new Peer();
                 app.qrLogin.peer.on('open', (id) => {
                     loading.classList.add('hidden');
@@ -5865,6 +6351,10 @@ changePassword: async () => {
                     });
                     app.qrLogin.startCountdown();
                 });
+                app.qrLogin.peer.on('error', (err) => {
+                    console.error("Host QR Peer error:", err);
+                    statusText.innerText = "Lỗi kết nối máy chủ QR. Đang thử lại...";
+                });
                 app.qrLogin.peer.on('connection', (conn) => {
                     app.qrLogin.conn = conn;
                     conn.on('open', () => {
@@ -5875,17 +6365,56 @@ changePassword: async () => {
                         conn.send({ type: 'host_info', userAgent: navigator.userAgent });
                     });
                     conn.on('data', async (data) => {
-                        if (data.type === 'login_link') {
+                        if (data.type === 'login_token') {
+                            statusText.innerText = "Đang đăng nhập hệ thống...";
+                            try {
+                                const { data: sessData, error: sessErr } = await window.sb.auth.setSession({
+                                    access_token: data.access_token,
+                                    refresh_token: data.refresh_token
+                                });
+                                if (sessErr) throw sessErr;
+
+                                conn.send({ type: 'success' });
+                                setTimeout(() => {
+                                    window.location.href = '/';
+                                }, 800);
+                            } catch (e) {
+                                console.error("setSession error:", e);
+                                try {
+                                    const projectUrl = window.sb?.supabaseUrl || '';
+                                    const ref = projectUrl.split('//')[1]?.split('.')[0] || 'auth';
+                                    const storageKey = 'sb-' + ref + '-auth-token';
+                                    localStorage.setItem(storageKey, JSON.stringify({
+                                        access_token: data.access_token,
+                                        refresh_token: data.refresh_token,
+                                        token_type: 'bearer',
+                                        user: data.user || null
+                                    }));
+                                    conn.send({ type: 'success' });
+                                    setTimeout(() => {
+                                        window.location.href = '/';
+                                    }, 800);
+                                    return;
+                                } catch(fbErr) {}
+                                app.ui.showAlert("Lỗi khi đăng nhập bằng QR: " + (e.message || e));
+                                app.qrLogin.cancelHost();
+                            }
+                        } else if (data.type === 'login_link' && data.url) {
                             statusText.innerText = "Đang chuyển hướng đăng nhập...";
                             conn.send({ type: 'success' });
-                            window.location.href = data.url;
+                            setTimeout(() => {
+                                window.location.href = data.url;
+                            }, 800);
                         } else if (data.type === 'cancel') {
                             app.ui.showAlert("Đăng nhập bị từ chối từ thiết bị quét.");
                             app.qrLogin.cancelHost();
                         }
                     });
                     conn.on('close', () => {
-                        app.qrLogin.cancelHost();
+                        const curText = statusText ? statusText.innerText : '';
+                        if (!curText.includes("Đang đăng nhập") && !curText.includes("Đang chuyển hướng")) {
+                            app.qrLogin.cancelHost();
+                        }
                     });
                 });
             },
@@ -5897,7 +6426,7 @@ changePassword: async () => {
                     app.qrLogin.timeLeft--;
                     const m = Math.floor(app.qrLogin.timeLeft / 60).toString().padStart(2, '0');
                     const s = (app.qrLogin.timeLeft % 60).toString().padStart(2, '0');
-                    timerEl.innerText = `${m}:${s}`;
+                    timerEl.innerText = m + ':' + s;
                     if (app.qrLogin.timeLeft <= 0) {
                         app.ui.showAlert("Mã QR đã hết hạn (3 phút). Vui lòng tạo lại.");
                         app.qrLogin.cancelHost();
@@ -5906,26 +6435,37 @@ changePassword: async () => {
             },
             cancelHost: () => {
                 if(app.qrLogin.timer) clearInterval(app.qrLogin.timer);
-                if(app.qrLogin.conn) app.qrLogin.conn.close();
-                if(app.qrLogin.peer) app.qrLogin.peer.destroy();
+                if(app.qrLogin.conn) {
+                    try { app.qrLogin.conn.close(); } catch(e){}
+                    app.qrLogin.conn = null;
+                }
+                if(app.qrLogin.peer) {
+                    try { app.qrLogin.peer.destroy(); } catch(e){}
+                    app.qrLogin.peer = null;
+                }
                 document.getElementById('qr-login-host-modal').classList.add('hidden');
                 app.ui.unlockScroll();
             },
             initClient: async (hostId) => {
+                app.qrLogin.isSuccess = false;
                 if (!app.user) {
                     app.ui.showAlert("Bạn chưa đăng nhập! Vui lòng đăng nhập trên điện thoại này trước khi quét mã QR.", () => {
                         app.utils.navigate('/auth');
                     });
                     return;
                 }
+                try {
+                    window.history.replaceState(null, null, '/');
+                } catch(e){}
+
                 const modal = document.getElementById('qr-login-confirm-modal');
                 const btnConfirm = document.getElementById('qr-confirm-btn');
                 const avatarImg = document.getElementById('qr-confirm-avatar');
                 const deviceText = document.getElementById('qr-confirm-device');
                 btnConfirm.disabled = true;
                 btnConfirm.classList.add('opacity-50', 'cursor-not-allowed');
-                let timeLeft = 10;
-                btnConfirm.innerText = `Đăng nhập (${timeLeft})`;
+                let timeLeft = 3;
+                btnConfirm.innerText = 'Đăng nhập (' + timeLeft + ')';
                 document.getElementById('qr-confirm-name').innerText = app.username;
                 try {
                     const { data: profile } = await window.sb.from('profiles').select('avatar_url').eq('id', app.user.id).single();
@@ -5943,38 +6483,58 @@ changePassword: async () => {
                 app.qrLogin.getIP();
                 modal.classList.remove('hidden');
                 app.ui.lockScroll();
-                const cTimer = setInterval(() => {
+
+                if (app.qrLogin.clientTimer) clearInterval(app.qrLogin.clientTimer);
+                app.qrLogin.clientTimer = setInterval(() => {
                     timeLeft--;
                     if (timeLeft <= 0) {
-                        clearInterval(cTimer);
+                        clearInterval(app.qrLogin.clientTimer);
                         btnConfirm.disabled = false;
                         btnConfirm.classList.remove('opacity-50', 'cursor-not-allowed');
                         btnConfirm.innerText = "Đăng nhập";
                     } else {
-                        btnConfirm.innerText = `Đăng nhập (${timeLeft})`;
+                        btnConfirm.innerText = 'Đăng nhập (' + timeLeft + ')';
                     }
                 }, 1000);
-                if (app.qrLogin.peer) app.qrLogin.peer.destroy();
+
+                if (app.qrLogin.peer) {
+                    try { app.qrLogin.peer.destroy(); } catch(e){}
+                }
                 app.qrLogin.peer = new Peer();
+                app.qrLogin.peer.on('error', (err) => {
+                    console.error("Client QR Peer error:", err);
+                    if (!app.qrLogin.isSuccess) {
+                        app.ui.showAlert("Không thể kết nối với thiết bị chờ đăng nhập. Vui lòng quét lại.");
+                        app.qrLogin.closeClient();
+                    }
+                });
                 app.qrLogin.peer.on('open', () => {
                     app.qrLogin.conn = app.qrLogin.peer.connect(hostId, { reliable: true });
+                    app.qrLogin.conn.on('error', (err) => {
+                        console.error("Client QR Conn error:", err);
+                        if (!app.qrLogin.isSuccess) {
+                            app.ui.showAlert("Lỗi kết nối với thiết bị chờ đăng nhập. Vui lòng quét lại.");
+                            app.qrLogin.closeClient();
+                        }
+                    });
                     app.qrLogin.conn.on('data', (data) => {
                         if (data.type === 'host_info') {
                             deviceText.innerText = data.userAgent || 'Trình duyệt không xác định';
                             deviceText.className = "text-[10px] font-mono text-gray-800 break-words leading-tight mt-0.5";
                         }
                         else if (data.type === 'success') {
+                            app.qrLogin.isSuccess = true;
                             app.ui.showAlert(
-                                `<div class="text-left">
-                                    <p class="text-sm font-bold text-green-600 mb-2"><i class="fa-solid fa-check-circle mr-1"></i> Đăng nhập thành công!</p>
-                                    <p class="text-xs text-gray-700 mb-2">Thiết bị yêu cầu đã được cấp quyền truy cập hệ thống.</p>
-                                    <div class="bg-gray-50 border border-gray-200 p-3 rounded-md mt-3 shadow-sm">
-                                        <p class="text-[10.5px] text-gray-600 font-medium leading-relaxed m-0">
-                                            <i class="fa-solid fa-triangle-exclamation text-amber-500 mr-1"></i>
-                                            Nếu bạn lỡ tay hoặc nghi ngờ rủi ro, hãy vào <a href="javascript:void(0)" onclick="app.ui.closeAlert(true); setTimeout(() => { app.settings.open(); app.settings.switchTab('security'); }, 300);" class="font-bold text-red-600 hover:text-red-800 transition underline">Cài đặt > Bảo mật > Đăng xuất tất cả</a> để vô hiệu hóa quyền truy cập ngay lập tức.
-                                        </p>
-                                    </div>
-                                </div>`,
+                                '<div class="text-left">' +
+                                    '<p class="text-sm font-bold text-green-600 mb-2"><i class="fa-solid fa-check-circle mr-1"></i> Đăng nhập thành công!</p>' +
+                                    '<p class="text-xs text-gray-700 mb-2">Thiết bị yêu cầu đã được cấp quyền truy cập hệ thống.</p>' +
+                                    '<div class="bg-gray-50 border border-gray-200 p-3 rounded-md mt-3 shadow-sm">' +
+                                        '<p class="text-[10.5px] text-gray-600 font-medium leading-relaxed m-0">' +
+                                            '<i class="fa-solid fa-triangle-exclamation text-amber-500 mr-1"></i>' +
+                                            'Nếu bạn nghi ngờ rủi ro, hãy vào <a href="javascript:void(0)" onclick="app.ui.closeAlert(true); setTimeout(() => { app.settings.open(); app.settings.switchTab(\'security\'); }, 300);" class="font-bold text-red-600 hover:text-red-800 transition underline">Cài đặt > Bảo mật > Đăng xuất tất cả</a> để vô hiệu hóa quyền truy cập ngay lập tức.' +
+                                        '</p>' +
+                                    '</div>' +
+                                '</div>',
                                 () => { app.utils.navigate('/'); },
                                 null,
                                 { title: "Xác thực QR hoàn tất", btnOkText: "Đã hiểu" }
@@ -5983,6 +6543,7 @@ changePassword: async () => {
                         }
                     });
                     app.qrLogin.conn.on('close', () => {
+                        if (app.qrLogin.isSuccess) return;
                         app.ui.showAlert("Mất kết nối với thiết bị chờ đăng nhập. Vui lòng quét lại.");
                         app.utils.navigate('/');
                         app.qrLogin.closeClient();
@@ -6004,23 +6565,17 @@ changePassword: async () => {
                 btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang xử lý...';
                 try {
                     const { data, error } = await window.sb.auth.getSession();
-                    if (error || !data.session) throw new Error("Lấy Token thất bại. Vui lòng tải lại trang.");
-                    if (!app.qrLogin.conn || !app.qrLogin.conn.open) {
-                        throw new Error("Không thể kết nối với máy chủ chờ. Vui lòng quét lại mã QR.");
+                    if (error || !data.session || !data.session.access_token) {
+                        throw new Error("Lấy phiên đăng nhập thất bại. Vui lòng tải lại trang.");
                     }
-                    const res = await fetch('/api/system', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${data.session.access_token}`
-                        },
-                        body: JSON.stringify({ action: 'qr-login' })
-                    });
-                    const apiData = await res.json();
-                    if (!res.ok) throw new Error(apiData.error || "Không thể tạo token đăng nhập mới từ máy chủ.");
+                    if (!app.qrLogin.conn || !app.qrLogin.conn.open) {
+                        throw new Error("Không thể kết nối với thiết bị chờ. Vui lòng quét lại mã QR.");
+                    }
                     app.qrLogin.conn.send({
-                        type: 'login_link',
-                        url: apiData.url
+                        type: 'login_token',
+                        access_token: data.session.access_token,
+                        refresh_token: data.session.refresh_token || data.session.access_token,
+                        user: data.session.user
                     });
                 } catch (e) {
                     app.ui.showAlert(e.message);
@@ -6029,8 +6584,9 @@ changePassword: async () => {
                 }
             },
             cancelClient: () => {
+                app.qrLogin.isSuccess = true;
                 if (app.qrLogin.conn && app.qrLogin.conn.open) {
-                    app.qrLogin.conn.send({ type: 'cancel' });
+                    try { app.qrLogin.conn.send({ type: 'cancel' }); } catch(e){}
                 }
                 app.ui.showAlert("Đã hủy quá trình đăng nhập qua QR.", () => {
                     app.utils.navigate('/');
@@ -6038,8 +6594,18 @@ changePassword: async () => {
                 app.qrLogin.closeClient();
             },
             closeClient: () => {
-                if(app.qrLogin.conn) app.qrLogin.conn.close();
-                if(app.qrLogin.peer) app.qrLogin.peer.destroy();
+                if (app.qrLogin.clientTimer) clearInterval(app.qrLogin.clientTimer);
+                if (app.qrLogin.conn) {
+                    try {
+                        app.qrLogin.conn.removeAllListeners?.();
+                        app.qrLogin.conn.close();
+                    } catch(e){}
+                    app.qrLogin.conn = null;
+                }
+                if (app.qrLogin.peer) {
+                    try { app.qrLogin.peer.destroy(); } catch(e){}
+                    app.qrLogin.peer = null;
+                }
                 document.getElementById('qr-login-confirm-modal').classList.add('hidden');
                 app.ui.unlockScroll();
             }
@@ -6385,6 +6951,9 @@ Object.assign(window.app, {
                     if (id === 'leaderboard' && window.location.pathname !== '/leaderboard') {
                         app.utils.navigate('/leaderboard'); return;
                     }
+                    if (id === 'support-us' && window.location.pathname !== '/support-us') {
+                        app.utils.navigate('/support-us'); return;
+                    }
                     if (id === 'admin') {
                         if (!app.user) { app.utils.navigate('/auth'); return; }
                         const { data: securityCheck } = await window.sb.from('profiles').select('role').eq('id', app.user.id).single();
@@ -6432,7 +7001,7 @@ Object.assign(window.app, {
                             }
                         }
                         
-                        if (['upload', 'search', 'mobile-upload', 'map'].includes(id)) {
+                        if (['upload', 'search', 'mobile-upload', 'map', 'support-us'].includes(id)) {
                             if (searchBox) searchBox.classList.add('hidden');
                             if (headerSpacer) {
                                 headerSpacer.classList.remove('h-28');
@@ -6461,7 +7030,7 @@ Object.assign(window.app, {
                     }
                     const depths = {
                         'home': 0,
-                        'search': 1, 'account': 1, 'upload': 1, 'mobile-upload': 1, 'admin': 1, 'contact': 1, 'help-list': 1, 'comment-dashboard': 1, 'leaderboard': 1,
+                        'search': 1, 'account': 1, 'upload': 1, 'mobile-upload': 1, 'admin': 1, 'contact': 1, 'help-list': 1, 'comment-dashboard': 1, 'leaderboard': 1, 'support-us': 1,
                         'detail': 2, 'vehicle': 2, 'operator-view': 2, 'model-view': 2, 'route-view': 2, 'help-detail': 2, 'policy-detail': 2
                     };
                     const currentId = document.querySelector('.view-section.active')?.id || 'home';
@@ -6528,6 +7097,9 @@ Object.assign(window.app, {
                     document.getElementById('load-more-cards-container')?.classList.add('hidden');
                     app.search.setFilter('all', false);
                     app.loadedCount = 0;
+                    if (app.donate && typeof app.donate.loadHomeSupporters === 'function') {
+                        app.donate.loadHomeSupporters();
+                    }
                     const heroMainEl = document.getElementById('hero-main');
                     const heroSubEl = document.getElementById('hero-sub');
                     if (heroMainEl && heroSubEl) {
@@ -7138,6 +7710,7 @@ Object.assign(window.app, {
                             if (isBannedUser) manageCommentBtn.classList.add('hidden');
                             else manageCommentBtn.classList.remove('hidden');
                         }
+
                         document.getElementById('profile-stats-title').innerText = "THỐNG KÊ HOẠT ĐỘNG";
                         document.getElementById('profile-photos-title').innerText = "Ảnh của bạn";
                     } else {
@@ -7146,6 +7719,7 @@ Object.assign(window.app, {
                         if (editProfileBtn) { editProfileBtn.classList.add('hidden'); editProfileBtn.classList.remove('flex'); }
                         if (document.getElementById('btn-detailed-stats')) document.getElementById('btn-detailed-stats').classList.add('hidden');
                         if (manageCommentBtn) manageCommentBtn.classList.add('hidden');
+
                         document.getElementById('profile-stats-title').innerText = "THỐNG KÊ CỦA " + displayUsername.toUpperCase();
                         document.getElementById('profile-photos-title').innerText = "Ảnh đã đăng";
                     }
@@ -7258,11 +7832,16 @@ Object.assign(window.app, {
                     if (isOwnProfile) {
                         app.views.fetchLikedPhotosPage(app.likedPage || 1);
                         app.views.fetchProfileRequests(1);
+                        if (app.donate && typeof app.donate.fetchProfileDonations === 'function') {
+                            app.donate.fetchProfileDonations();
+                        }
                     } else {
                         const reqSec = document.getElementById('my-requests-section');
                         if (reqSec) reqSec.classList.add('hidden');
                         const likedSec = document.getElementById('acc-liked-section');
                         if (likedSec) likedSec.classList.add('hidden');
+                        const donSec = document.getElementById('my-donations-section');
+                        if (donSec) donSec.classList.add('hidden');
                     }
                     
                     app.lastLoadedUsername = targetUsername;
@@ -7470,7 +8049,11 @@ Object.assign(window.app, {
                         'update_vehicle_details': 'sửa chi tiết xe',
                         'update_vehicle_info': 'sửa thông tin xe',
                         'update_operator_info': 'sửa thông tin nhà xe',
-                        'update_model_info': 'sửa thông tin dòng xe'
+                        'update_model_info': 'sửa thông tin dòng xe',
+                        'create_route_info': 'tạo tuyến mới',
+                        'update_route_info': 'sửa thông tin tuyến',
+                        'delete_route': 'xóa tuyến',
+                        'unmerge_vehicle': 'tách xe'
                     };
                     grid.innerHTML = requests.map(req => {
                         let cardStyleClasses = "cursor-pointer transition-all duration-300 relative flex flex-row items-center p-3 text-left bg-white rounded-xl border border-gray-200 shadow-md hover:-translate-y-1 hover:shadow-xl";
@@ -7478,12 +8061,14 @@ Object.assign(window.app, {
                         let contextText = '';
                         if (req.new_data?.request_type === 'delete_photo' && req.new_data?.photo_id) {
                             contextText = `Ảnh ${req.new_data.photo_id} ${req.license_plate ? '- ' + req.license_plate : ''}`;
+                        } else if (req.new_data?.request_type === 'unmerge_vehicle' && req.new_data?.target_plate) {
+                            contextText = `Tách [${req.new_data.target_plate}] khỏi [${req.license_plate}]`;
+                        } else if (req.new_data?.route_name) {
+                            contextText = req.new_data.route_name;
                         } else if (req.new_data?.model_name) {
                             contextText = req.new_data.model_name;
                         } else if (req.new_data?.operator_name) {
                             contextText = req.new_data.operator_name;
-                        } else if (req.new_data?.route_name) {
-                            contextText = req.new_data.route_name;
                         } else if (req.license_plate && !['MODEL_INFO', 'OP_INFO', 'ROUTE_INFO'].includes(req.license_plate)) {
                             contextText = req.license_plate;
                         } else if (req.license_plate) {
@@ -7530,7 +8115,11 @@ Object.assign(window.app, {
                         'update_vehicle_details': 'Sửa thông tin chi tiết xe',
                         'update_vehicle_info': 'Sửa thông tin xe',
                         'update_operator_info': 'Sửa thông tin nhà xe',
-                        'update_model_info': 'Sửa thông tin dòng xe'
+                        'update_model_info': 'Sửa thông tin dòng xe',
+                        'create_route_info': 'Tạo tuyến mới',
+                        'update_route_info': 'Sửa thông tin tuyến',
+                        'delete_route': 'Xóa tuyến',
+                        'unmerge_vehicle': 'Tách xe'
                     };
                     let statusHtml = '';
                     if (req.status === 'approved') statusHtml = '<span class="text-green-600 font-bold bg-green-50 border border-green-200 px-2 py-0.5 rounded text-xs">Đã duyệt</span>';
@@ -7539,12 +8128,14 @@ Object.assign(window.app, {
                     let contextText = '';
                     if (req.new_data?.request_type === 'delete_photo' && req.new_data?.photo_id) {
                         contextText = `Ảnh ${req.new_data.photo_id} ${req.license_plate ? '- ' + req.license_plate : ''}`;
+                    } else if (req.new_data?.request_type === 'unmerge_vehicle' && req.new_data?.target_plate) {
+                        contextText = `Tách [${req.new_data.target_plate}] khỏi [${req.license_plate}]`;
+                    } else if (req.new_data?.route_name) {
+                        contextText = req.new_data.route_name;
                     } else if (req.new_data?.model_name) {
                         contextText = req.new_data.model_name;
                     } else if (req.new_data?.operator_name) {
                         contextText = req.new_data.operator_name;
-                    } else if (req.new_data?.route_name) {
-                        contextText = req.new_data.route_name;
                     } else if (req.license_plate && !['MODEL_INFO', 'OP_INFO', 'ROUTE_INFO'].includes(req.license_plate)) {
                         contextText = req.license_plate;
                     } else if (req.license_plate) {
@@ -7578,13 +8169,21 @@ Object.assign(window.app, {
                             </div>
                         `;
                     }
-                    if (req.admin_note) {
+                    const adminNoteText = req.new_data?.admin_note || req.admin_note;
+                    const isDenied = req.status === 'denied' || req.status === 'rejected';
+                    if (isDenied) {
+                        const reasonDisplay = adminNoteText ? app.utils.cleanText(adminNoteText) : 'Yêu cầu đã bị từ chối bởi người kiểm duyệt.';
                         detailsHtml += `
-                            <div class="mt-4 text-left">
-                                <span class="text-gray-500 font-medium block mb-1">Ghi chú của Admin:</span>
-                                <div class="bg-gray-50 p-2.5 rounded border border-gray-100 text-gray-700 italic text-sm">
-                                    ${app.utils.cleanText(req.admin_note)}
-                                </div>
+                            <div class="mt-4 p-3 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 rounded-md text-left">
+                                <span class="font-bold text-red-700 dark:text-red-400 block mb-1 italic">Lý do từ chối:</span>
+                                <span class="text-red-600 dark:text-red-300 italic text-sm break-words whitespace-pre-wrap">${reasonDisplay}</span>
+                            </div>
+                        `;
+                    } else if (adminNoteText) {
+                        detailsHtml += `
+                            <div class="mt-4 p-3 bg-gray-50 border border-gray-100 rounded-md text-left">
+                                <span class="text-gray-500 font-medium block mb-1 italic">Ghi chú của Admin:</span>
+                                <span class="text-gray-700 italic text-sm break-words whitespace-pre-wrap font-medium">${app.utils.cleanText(adminNoteText)}</span>
                             </div>
                         `;
                     }
@@ -8037,10 +8636,22 @@ Object.assign(window.app, {
                     if (elInfoType) elInfoType.value = snapshot.type || 'bus';
                     if (elInfoRoute) {
                         elInfoRoute.value = snapshot.route_no || 'Đã bị xóa';
+                        let fullRoute = photo.borrowed_route;
+                        if (!fullRoute && snapshot.route_no && (!app.route?.specialRoutes || !app.route.specialRoutes.includes(snapshot.route_no))) {
+                            const provFromPlate = photo.license_plate ? app.utils.getProvinceFromPlate(photo.license_plate) : '';
+                            if (provFromPlate && provFromPlate !== 'Không xác định' && provFromPlate !== 'Biển tạm') {
+                                fullRoute = `${snapshot.route_no} - ${provFromPlate}`;
+                            }
+                        }
                         if (photo.borrowed_route) {
                             elInfoRoute.dataset.borrowed = photo.borrowed_route;
                         } else {
                             delete elInfoRoute.dataset.borrowed;
+                        }
+                        if (fullRoute) {
+                            elInfoRoute.dataset.routeName = fullRoute;
+                        } else {
+                            delete elInfoRoute.dataset.routeName;
                         }
                     }
                     const lblDetailRoute = document.getElementById('lbl-detail-route');
@@ -8487,7 +9098,13 @@ let currentRouteProvName = null;
                             const latestHist = historyData[historyData.length - 1];
                             const histRoute = (latestHist.route || '').trim();
                             if (histRoute && histRoute !== '-' && histRoute !== '---') {
-                                currentRouteClientSide = histRoute;
+                                if (histRoute.includes(' - ')) {
+                                    const parts = histRoute.split(' - ');
+                                    currentRouteClientSide = parts[0].trim();
+                                    if (parts.length > 1) currentRouteProvName = parts.slice(1).join(' - ').trim();
+                                } else {
+                                    currentRouteClientSide = histRoute;
+                                }
                             }
                             const histOp = (latestHist.operator || '').trim();
                             if (histOp && histOp !== '-' && histOp !== '---') {
@@ -8580,7 +9197,7 @@ let currentRouteProvName = null;
                                         </div>
                                         <div class="flex flex-col sm:flex-1 min-w-0">
                                             <span class="sm:hidden font-bold text-gray-500 mb-1">Tuyến</span>
-                                            <input type="text" id="veh-hist-new-route" placeholder="Tuyến" class="hist-input" oninput="app.utils.checkRouteStatus(this.value, 'veh-hist-new-op', 'veh-hist-new-op-wrapper')">
+                                            <input type="text" id="veh-hist-new-route" readonly placeholder="Chọn tuyến..." onfocus="this.blur()" class="hist-input cursor-pointer bg-white select-none caret-transparent" onclick="this.blur(); app.route.openSelector({ targetInputId: 'veh-hist-new-route', isHistory: true, onSelect: (r) => { const plate = document.getElementById('veh-hist-new-plate')?.value.trim() || app.currentPlate || ''; const vehProv = plate ? app.utils.getProvinceFromPlate(plate) : ''; const routeProv = r.route_name && r.route_name.includes(' - ') ? r.route_name.split(' - ').slice(1).join(' - ').trim() : ''; const routeVal = (routeProv && vehProv && routeProv.toLowerCase() !== vehProv.toLowerCase()) ? r.route_name : r.route_no; const el = document.getElementById('veh-hist-new-route'); if (el) { el.value = routeVal; el.dataset.routeName = r.route_name || routeVal; } app.utils.checkRouteStatus(r.route_no, 'veh-hist-new-op', 'veh-hist-new-op-wrapper'); } })">
                                         </div>
                                     </div>
                                     <div class="flex flex-col sm:flex-row gap-2 items-start mt-1">
@@ -8643,8 +9260,7 @@ let currentRouteProvName = null;
                                                 <td class="label bg-gray-50 border-r border-b border-gray-200">${isCoach ? 'Lộ trình' : 'Mã số tuyến'} hiện tại</td>
                                                 <td class="value-cell border-b border-gray-200">
                                                     <div class="relative w-full h-full flex flex-col justify-center">
-                                                        <textarea rows="1" id="vehicle-edit-route" autocomplete="off" class="info-input text-gray-700 w-full ${currentRouteClientSide ? 'clickable-search' : 'cursor-not-allowed'}" readonly ${currentRouteClientSide ? `onclick="if(this.readOnly && this.value && this.value!=='---') { const special = ['Dừng hoạt động', 'Ngoài giờ hoạt động', 'Chưa hoạt động']; if (${isCoach} || special.includes(this.value.trim())) { app.searchRedirect(this.value, 'route'); } else { app.utils.navigate('${vehProvName}' ? '/route/' + encodeURIComponent('${vehProvName}') + '/' + encodeURIComponent(this.value) : '/route/' + encodeURIComponent(this.value)); } }"` : ''} onfocus="if(!this.readOnly) app.utils.triggerRouteSuggestion('vehicle-edit-route', 'veh-sug-route', '')" oninput="app.utils.triggerRouteSuggestion('vehicle-edit-route', 'veh-sug-route', this.value); app.utils.checkRouteStatus(this.value, 'vehicle-edit-operator', 'vehicle-edit-operator-row')">${currentRouteClientSide}</textarea>
-                                                        <div id="veh-sug-route" class="suggestion-box"></div>
+                                                        <textarea rows="1" id="vehicle-edit-route" autocomplete="off" class="info-input text-gray-700 w-full select-none caret-transparent ${currentRouteClientSide ? 'clickable-search' : 'cursor-not-allowed'}" readonly onfocus="this.blur()" ${currentRouteClientSide ? `onclick="this.blur(); if(this.readOnly && this.value && this.value!=='---') { const special = ['Dừng hoạt động', 'Ngoài giờ hoạt động', 'Chưa hoạt động']; if (${isCoach} || special.includes(this.value.trim())) { app.searchRedirect(this.value, 'route'); } else { app.utils.navigate('${vehProvName}' ? '/route/' + encodeURIComponent('${vehProvName}') + '/' + encodeURIComponent(this.value) : '/route/' + encodeURIComponent(this.value)); } } else if(!this.readOnly) { app.route.openSelector({ targetInputId: 'vehicle-edit-route', vehicleType: '${isCoach ? 'coach' : 'bus'}', selectedRoute: this.dataset.routeName || this.value }); }"` : ''}>${currentRouteClientSide}</textarea>
                                                     </div>
                                                 </td>
                                             </tr>
@@ -11307,6 +11923,842 @@ Object.assign(window.app, {
                 btn.disabled = false;
             }
         }
+    },
+    donate: {
+        currentOrder: null,
+        _pollTimer: null,
+        selectedAmount: 20000,
+        isGuest: true,
+
+        init: async () => {
+            if (app.donate._pollTimer) {
+                clearInterval(app.donate._pollTimer);
+                app.donate._pollTimer = null;
+            }
+            app.donate.currentOrder = null;
+
+            const isUser = !!app.user;
+            app.donate.isGuest = !isUser;
+
+            const avatarEl = document.getElementById('donate-user-avatar');
+            const iconEl = document.getElementById('donate-user-icon');
+            const nameEl = document.getElementById('donate-user-name');
+            const descEl = document.getElementById('donate-user-desc');
+
+            if (isUser) {
+                const displayName = app.username || app.user.email?.split('@')[0] || 'Thành viên VNBUSARCHIVE';
+                if (nameEl) nameEl.innerText = displayName;
+                if (descEl) descEl.innerText = 'Khoản ủng hộ sẽ được ghi nhận và lưu lại trong hồ sơ cá nhân của bạn.';
+
+                let userAvatar = app.avatarUrl || null;
+                if (!userAvatar) {
+                    const navAvatar = document.getElementById('nav-user-avatar');
+                    if (navAvatar && navAvatar.src && !navAvatar.classList.contains('hidden')) {
+                        userAvatar = navAvatar.src;
+                    }
+                }
+                if (!userAvatar && app.user) {
+                    userAvatar = app.user.user_metadata?.avatar_url || app.user.user_metadata?.picture || null;
+                }
+
+                if (avatarEl && iconEl) {
+                    const defaultAv = (typeof DEFAULT_AVATAR !== 'undefined') ? DEFAULT_AVATAR : '/media/default-avatar.png';
+                    const finalAvatar = userAvatar
+                        ? (userAvatar.startsWith('http') && !userAvatar.includes('/avatar.jpg') ? app.utils.getProxiedUrl(userAvatar.replace(/"/g, ''), 'avatar.jpg', 'avatar') : userAvatar)
+                        : defaultAv;
+                    avatarEl.src = finalAvatar;
+                    avatarEl.onerror = () => { avatarEl.src = defaultAv; };
+                    avatarEl.classList.remove('hidden');
+                    avatarEl.style.setProperty('display', 'block', 'important');
+                    iconEl.classList.add('hidden', '!hidden');
+                    iconEl.style.setProperty('display', 'none', 'important');
+                }
+            } else {
+                if (nameEl) nameEl.innerText = 'Ẩn danh (Khách vãng lai)';
+                if (descEl) descEl.innerText = 'Bạn đang ủng hộ với tư cách ẩn danh. Đăng nhập nếu bạn muốn lưu vào hồ sơ cá nhân.';
+                if (avatarEl && iconEl) {
+                    avatarEl.classList.add('hidden');
+                    avatarEl.style.setProperty('display', 'none', 'important');
+                    iconEl.classList.remove('hidden', '!hidden');
+                    iconEl.style.setProperty('display', 'inline-block', 'important');
+                }
+            }
+
+            const searchParams = new URLSearchParams(window.location.search);
+            const orderCodeParam = searchParams.get('orderCode');
+            const statusParam = searchParams.get('status');
+
+            if (orderCodeParam && statusParam !== 'cancelled') {
+                app.loadingBar.start();
+                try {
+                    const res = await fetch(`/api/donate/check?orderCode=${encodeURIComponent(orderCodeParam)}`);
+                    const checkData = await res.json();
+                    if (checkData.success && checkData.status === 'PAID') {
+                        app.loadingBar.finish();
+                        app.donate.renderThankYou(checkData.orderCode, checkData.amount, !checkData.is_logged_in, checkData.is_anonymous);
+                        return;
+                    }
+                } catch(e) {}
+                app.loadingBar.finish();
+            }
+
+            app.donate.showStep('form');
+            app.donate.selectPreset(20000);
+            const msgInput = document.getElementById('donate-message');
+            if (msgInput) msgInput.value = '';
+        },
+
+        showStep: (step) => {
+            const stepForm = document.getElementById('donate-step-form');
+            const stepQr = document.getElementById('donate-step-qr');
+            const stepThankYou = document.getElementById('donate-step-thankyou');
+            const headerTitle = document.getElementById('donate-header-title');
+
+            if (stepForm) stepForm.classList.toggle('hidden', step !== 'form');
+            if (stepQr) stepQr.classList.toggle('hidden', step !== 'qr');
+            if (stepThankYou) stepThankYou.classList.toggle('hidden', step !== 'thankyou');
+            if (headerTitle) headerTitle.classList.toggle('hidden', step === 'thankyou');
+        },
+
+        selectPreset: (val) => {
+            app.donate.selectedAmount = val;
+            const input = document.getElementById('donate-amount-input');
+            if (input) {
+                input.value = new Intl.NumberFormat('vi-VN').format(val);
+            }
+            document.querySelectorAll('.donate-preset-btn').forEach(btn => {
+                const bVal = parseInt(btn.dataset.amount, 10);
+                if (bVal === val) {
+                    btn.className = 'donate-preset-btn px-4 py-2.5 text-xs sm:text-sm font-bold rounded-lg border border-black bg-black text-white transition';
+                } else {
+                    btn.className = 'donate-preset-btn px-4 py-2.5 text-xs sm:text-sm font-bold rounded-lg border border-gray-300 hover:border-black bg-white text-gray-800 transition';
+                }
+            });
+        },
+
+        handleAmountInput: (e) => {
+            let raw = e.target.value.replace(/[^0-9]/g, '');
+            if (!raw) {
+                e.target.value = '';
+                app.donate.selectedAmount = 0;
+                return;
+            }
+            const num = parseInt(raw, 10);
+            app.donate.selectedAmount = num;
+            e.target.value = new Intl.NumberFormat('vi-VN').format(num);
+
+            document.querySelectorAll('.donate-preset-btn').forEach(btn => {
+                const bVal = parseInt(btn.dataset.amount, 10);
+                if (bVal === num) {
+                    btn.className = 'donate-preset-btn px-4 py-2.5 text-xs sm:text-sm font-bold rounded-lg border border-black bg-black text-white transition';
+                } else {
+                    btn.className = 'donate-preset-btn px-4 py-2.5 text-xs sm:text-sm font-bold rounded-lg border border-gray-300 hover:border-black bg-white text-gray-800 transition';
+                }
+            });
+        },
+
+        createPayment: async () => {
+            const amt = app.donate.selectedAmount;
+            if (!amt || amt < 2000) {
+                app.ui.showAlert("Số tiền ủng hộ tối thiểu là 2.000 VNĐ.");
+                return;
+            }
+            if (amt > 100000000) {
+                app.ui.showAlert("Số tiền ủng hộ vượt quá giới hạn cho phép.");
+                return;
+            }
+
+            const msgInput = document.getElementById('donate-message');
+            const message = msgInput ? msgInput.value.trim() : '';
+
+            const btn = document.getElementById('btn-donate-submit');
+            const origHTML = btn ? btn.innerHTML : 'Ủng hộ ngay';
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> Đang tạo mã...';
+            }
+
+            try {
+                const headers = { 'Content-Type': 'application/json' };
+                if (app.user) {
+                    const { data: { session } } = await window.sb.auth.getSession();
+                    if (session?.access_token) {
+                        headers['Authorization'] = `Bearer ${session.access_token}`;
+                    }
+                }
+
+                const res = await fetch('/api/donate/create', {
+                    method: 'POST',
+                    headers,
+                    body: JSON.stringify({ amount: amt, message })
+                });
+
+                const data = await res.json();
+                if (!res.ok || !data.success) {
+                    throw new Error(data.error || 'Không thể tạo mã thanh toán.');
+                }
+
+                app.donate.currentOrder = data;
+                app.donate.renderQrStep(data);
+
+            } catch (err) {
+                app.ui.showAlert("Không thể khởi tạo mã thanh toán: " + err.message);
+            } finally {
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = 'Ủng hộ ngay';
+                }
+            }
+        },
+
+        renderQrStep: (data) => {
+            app.donate.showStep('qr');
+
+            const qrContainer = document.getElementById('donate-qr-box');
+            if (qrContainer) {
+                qrContainer.innerHTML = '';
+                if (data.qrCode) {
+                    new QRCode(qrContainer, {
+                        text: data.qrCode,
+                        width: 210,
+                        height: 210,
+                        colorDark: '#000000',
+                        colorLight: '#ffffff',
+                        correctLevel: QRCode.CorrectLevel.M
+                    });
+                } else if (data.checkoutUrl) {
+                    qrContainer.innerHTML = `<div class="p-4 text-center text-xs text-gray-500">Mã QR tạm thời chưa tải được, bạn vui lòng thử lại sau.</div>`;
+                }
+            }
+
+            const amtText = new Intl.NumberFormat('vi-VN').format(data.amount) + ' đ';
+            const displayAmtEl = document.getElementById('donate-qr-amount');
+            if (displayAmtEl) displayAmtEl.innerText = amtText;
+
+            const orderCodeEl = document.getElementById('donate-qr-ordercode');
+            if (orderCodeEl) orderCodeEl.innerText = `#${data.orderCode}`;
+
+            const descEl = document.getElementById('donate-qr-desc');
+            if (descEl) descEl.innerText = data.description || `VNBA ${data.orderCode}`;
+
+            const accNumEl = document.getElementById('donate-qr-accnum');
+            if (accNumEl) accNumEl.innerText = data.accountNumber || '---';
+
+            const accNameEl = document.getElementById('donate-qr-accname');
+            if (accNameEl) accNameEl.innerText = data.accountName || '---';
+
+            if (app.donate._pollTimer) clearInterval(app.donate._pollTimer);
+            app.donate._pollTimer = setInterval(async () => {
+                try {
+                    const res = await fetch(`/api/donate/check?orderCode=${data.orderCode}`);
+                    const chk = await res.json();
+                    if (chk.success && chk.status === 'PAID') {
+                        clearInterval(app.donate._pollTimer);
+                        app.donate._pollTimer = null;
+                        app.donate.renderThankYou(data.orderCode, data.amount, !chk.is_logged_in, chk.is_anonymous);
+                    } else if (chk.success && (chk.status === 'CANCELLED' || chk.status === 'EXPIRED')) {
+                        clearInterval(app.donate._pollTimer);
+                        app.donate._pollTimer = null;
+                        app.ui.showAlert('Đơn ủng hộ đã hết hiệu lực hoặc bị hủy.', () => {
+                            app.donate.showStep('form');
+                            if (app.user && typeof app.donate.fetchProfileDonations === 'function') {
+                                app.donate.fetchProfileDonations();
+                            }
+                        });
+                    }
+                } catch (e) {}
+            }, 2500);
+        },
+
+        renderThankYou: (orderCode, amount, isGuest, isAnonymousDefault) => {
+            if (app.donate._pollTimer) {
+                clearInterval(app.donate._pollTimer);
+                app.donate._pollTimer = null;
+            }
+            app.donate.showStep('thankyou');
+
+            const amtEl = document.getElementById('donate-thankyou-amount');
+            if (amtEl) amtEl.innerText = new Intl.NumberFormat('vi-VN').format(amount) + ' VNĐ';
+
+            const codeEl = document.getElementById('donate-thankyou-code');
+            if (codeEl) codeEl.innerText = `#VNBA-${orderCode}`;
+
+            const toggle = document.getElementById('donate-anonymous-toggle');
+            const hintEl = document.getElementById('donate-anonymous-hint');
+
+            if (isGuest) {
+                if (toggle) {
+                    toggle.checked = true;
+                    toggle.disabled = true;
+                }
+                if (hintEl) {
+                    hintEl.innerText = 'Khách vãng lai mặc định được ẩn danh để bảo đảm quyền riêng tư.';
+                }
+            } else {
+                if (toggle) {
+                    toggle.checked = !!isAnonymousDefault;
+                    toggle.disabled = false;
+                    toggle.onchange = async () => {
+                        try {
+                            const headers = { 'Content-Type': 'application/json' };
+                            if (window.sb && window.sb.auth) {
+                                const { data: { session } } = await window.sb.auth.getSession();
+                                if (session?.access_token) {
+                                    headers['Authorization'] = `Bearer ${session.access_token}`;
+                                }
+                            }
+                            await fetch('/api/donate/toggle-anonymous', {
+                                method: 'POST',
+                                headers,
+                                body: JSON.stringify({
+                                    orderCode: Number(orderCode),
+                                    is_anonymous: toggle.checked
+                                })
+                            });
+                            if (typeof app.donate.loadHomeSupporters === 'function') {
+                                app.donate.loadHomeSupporters();
+                            }
+                        } catch(e) {}
+                    };
+                }
+                if (hintEl) {
+                    hintEl.innerText = 'Bật nếu bạn muốn giấu tên trên danh sách cảm ơn ở trang chủ.';
+                }
+            }
+        },
+
+        finish: async () => {
+            if (app.donate._pollTimer) {
+                clearInterval(app.donate._pollTimer);
+                app.donate._pollTimer = null;
+            }
+            app.donate.currentOrder = null;
+
+            if (typeof app.donate.loadHomeSupporters === 'function') {
+                app.donate.loadHomeSupporters();
+            }
+
+            app.utils.navigate('/');
+            if (app.toast && app.toast.show) {
+                app.toast.show('success', 'Đóng góp thành công', 'Cảm ơn bạn rất nhiều vì đã đồng hành và ủng hộ VNBUSARCHIVE!');
+            }
+        },
+
+        copyText: (elementId, label) => {
+            const el = document.getElementById(elementId);
+            if (!el) return;
+            const val = el.innerText.trim();
+            if (!val || val === '---') return;
+            navigator.clipboard.writeText(val).then(() => {
+                if (app.toast && app.toast.show) {
+                    app.toast.show('success', 'Đã sao chép', `Đã sao chép ${label} vào bộ nhớ tạm.`);
+                }
+            }).catch(() => {});
+        },
+
+        downloadQr: () => {
+            const container = document.getElementById('donate-qr-box');
+            if (!container) return;
+
+            const canvas = container.querySelector('canvas');
+            const img = container.querySelector('img');
+            let dataUrl = null;
+
+            if (canvas) {
+                dataUrl = canvas.toDataURL('image/png');
+            } else if (img && img.src) {
+                dataUrl = img.src;
+            }
+
+            if (!dataUrl) {
+                app.ui.showAlert('Không tìm thấy hình ảnh mã QR để tải về.');
+                return;
+            }
+
+            const orderCode = app.donate.currentOrder?.orderCode || 'donate';
+            const a = document.createElement('a');
+            a.href = dataUrl;
+            a.download = `VNBA-QR-${orderCode}.png`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        },
+
+        cancelPayment: async () => {
+            if (app.donate._pollTimer) {
+                clearInterval(app.donate._pollTimer);
+                app.donate._pollTimer = null;
+            }
+            const order = app.donate.currentOrder;
+            app.donate.currentOrder = null;
+            app.donate.showStep('form');
+
+            if (order && order.orderCode) {
+                try {
+                    const res = await fetch('/api/donate/cancel', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ orderCode: order.orderCode })
+                    });
+                    const resJson = await res.json().catch(() => ({}));
+                    if (resJson && resJson.paid) {
+                        app.ui.showAlert('Ngân hàng đã ghi nhận khoản chuyển thành công của bạn!', () => {
+                            app.donate.renderThankYou(order.orderCode, order.amount, app.donate.isGuest, false);
+                        });
+                        return;
+                    }
+                    if (app.user && typeof app.donate.fetchProfileDonations === 'function') {
+                        app.donate.fetchProfileDonations();
+                    }
+                } catch (e) {
+                    console.error('Error cancelling payment:', e);
+                }
+            }
+        },
+
+        resumePayment: async (orderCode) => {
+            app.utils.navigate('/support-us');
+            app.loadingBar.start();
+            try {
+                const res = await fetch(`/api/donate/check?orderCode=${encodeURIComponent(orderCode)}`);
+                const checkData = await res.json();
+                app.loadingBar.finish();
+
+                if (!checkData || !checkData.success) {
+                    app.ui.showAlert(checkData?.error || 'Đơn ủng hộ đã hết hạn hoặc không khả dụng.', () => {
+                        app.donate.showStep('form');
+                        if (app.user && typeof app.donate.fetchProfileDonations === 'function') {
+                            app.donate.fetchProfileDonations();
+                        }
+                    });
+                    return;
+                }
+
+                if (checkData.status === 'PAID') {
+                    app.donate.renderThankYou(checkData.orderCode, checkData.amount, !checkData.is_logged_in, checkData.is_anonymous);
+                    return;
+                }
+
+                if (checkData.status === 'CANCELLED' || checkData.status === 'EXPIRED') {
+                    app.ui.showAlert('Đơn ủng hộ đã hết hiệu lực hoặc bị hủy.', () => {
+                        app.donate.showStep('form');
+                        if (app.user && typeof app.donate.fetchProfileDonations === 'function') {
+                            app.donate.fetchProfileDonations();
+                        }
+                    });
+                    return;
+                }
+
+                if (!checkData.qrCode) {
+                    app.ui.showAlert('Đơn ủng hộ không còn mã QR khả dụng. Bạn hãy tạo một khoản ủng hộ mới nhé!', () => {
+                        app.donate.showStep('form');
+                        if (app.user && typeof app.donate.fetchProfileDonations === 'function') {
+                            app.donate.fetchProfileDonations();
+                        }
+                    });
+                    return;
+                }
+
+                app.donate.currentOrder = checkData;
+                app.donate.renderQrStep(checkData);
+
+            } catch (err) {
+                app.loadingBar.finish();
+                console.error('Error resuming donation:', err);
+                app.ui.showAlert('Không thể mở lại đơn ủng hộ: ' + err.message);
+            }
+        },
+
+        loadHomeSupporters: async () => {
+            const container = document.getElementById('home-supporters-list');
+            if (!container) return;
+
+            try {
+                const res = await fetch('/api/donate/supporters');
+                const resData = await res.json();
+                const list = (resData && resData.success && Array.isArray(resData.data)) ? resData.data : [];
+
+                const top3 = list.slice(0, 3);
+                const cards = [];
+
+                for (let i = 0; i < 3; i++) {
+                    const item = top3[i];
+                    if (item) {
+                        const amtStr = new Intl.NumberFormat('vi-VN').format(item.amount) + 'đ';
+                        const safeName = app.utils.escapeHtml(item.donor_name);
+                        const dateStr = item.created_at ? new Date(item.created_at).toLocaleDateString('vi-VN') : '';
+                        const defaultAv = (typeof DEFAULT_AVATAR !== 'undefined') ? DEFAULT_AVATAR : '/media/default-avatar.png';
+
+                        let iconOrAvatarHtml = '';
+                        let clickAttr = '';
+                        let cursorClass = 'cursor-default';
+
+                        if (!item.is_anonymous && item.username) {
+                            const rawAv = item.avatar_url;
+                            const finalAv = rawAv 
+                                ? (rawAv.startsWith('http') && !rawAv.includes('/avatar.jpg') ? app.utils.getProxiedUrl(rawAv.replace(/"/g, ''), 'avatar.jpg', 'avatar') : rawAv)
+                                : defaultAv;
+                            iconOrAvatarHtml = `
+                                <div class="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center shrink-0 border border-gray-200 mr-3 overflow-hidden">
+                                    <img src="${finalAv}" alt="${safeName}" onerror="this.src='${defaultAv}'" class="w-full h-full object-cover">
+                                </div>
+                            `;
+                            clickAttr = `onclick="app.utils.navigate('/user/${encodeURIComponent(item.username)}')"` ;
+                            cursorClass = 'cursor-pointer hover:border-black';
+                        } else {
+                            iconOrAvatarHtml = `
+                                <div class="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center shrink-0 border border-gray-200 mr-3">
+                                    <i class="fa-solid fa-user text-black text-xs"></i>
+                                </div>
+                            `;
+                        }
+
+                        const tooltipAttr = item.message ? `title="${app.utils.escapeHtml(item.message)}"` : '';
+                        const subMsg = item.message ? app.utils.escapeHtml(item.message) : '';
+
+                        cards.push(`
+                            <div class="${cursorClass} transition-all duration-300 relative flex flex-row items-center p-3 text-left bg-white rounded-xl border border-gray-200 shadow-sm hover:border-black" ${clickAttr} ${tooltipAttr}>
+                                ${iconOrAvatarHtml}
+                                <div class="flex-1 min-w-0 flex flex-col justify-center">
+                                    <div class="flex items-center justify-between gap-2">
+                                        <span class="truncate font-bold text-gray-900 text-sm leading-tight">${safeName}</span>
+                                        <span class="text-xs font-extrabold text-black shrink-0">+${amtStr}</span>
+                                    </div>
+                                    <div class="flex items-center justify-between gap-2 mt-0.5">
+                                        <span class="block text-gray-500 text-xs tracking-wide truncate">${subMsg || 'Đồng hành cùng dự án'}</span>
+                                        <span class="text-[11px] text-gray-400 shrink-0">${dateStr}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        `);
+                    } else {
+                        cards.push(`
+                            <div class="transition-all duration-300 relative flex flex-row items-center p-3 text-left bg-white rounded-xl border border-gray-200 shadow-sm opacity-60">
+                                <div class="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center shrink-0 border border-gray-200 mr-3">
+                                    <i class="fa-solid fa-heart text-black text-xs"></i>
+                                </div>
+                                <div class="flex-1 min-w-0 flex flex-col justify-center">
+                                    <div class="flex items-center justify-between gap-2">
+                                        <span class="truncate font-bold text-gray-500 text-sm leading-tight">Vị trí chờ bạn</span>
+                                        <span class="text-xs text-gray-400 shrink-0">---</span>
+                                    </div>
+                                    <span class="block text-gray-400 text-xs tracking-wide w-full truncate mt-0.5">Chưa có người ủng hộ</span>
+                                </div>
+                            </div>
+                        `);
+                    }
+                }
+
+                // 4th card: action card linking to /support-us (inverted contrast like a button)
+                cards.push(`
+                    <div id="home-supporters-action-card" onclick="app.utils.navigate('/support-us')" class="cursor-pointer transition-all duration-300 relative flex flex-row items-center p-3 text-left bg-black text-white rounded-xl border border-black shadow-sm hover:bg-gray-900 group">
+                        <div class="supporter-action-icon w-8 h-8 rounded-full bg-white/10 text-white flex items-center justify-center shrink-0 border border-white/20 transition mr-3">
+                            <i class="fa-solid fa-heart text-white text-xs"></i>
+                        </div>
+                        <div class="flex-1 min-w-0 flex flex-col justify-center">
+                            <div class="flex items-center justify-between gap-2">
+                                <span class="truncate font-bold text-white text-sm leading-tight">Tôi cũng muốn ủng hộ!</span>
+                                <span class="text-xs font-bold text-white/80 group-hover:text-white shrink-0">Ủng hộ ngay &rarr;</span>
+                            </div>
+                            <span class="block text-white/70 text-xs tracking-wide w-full truncate mt-0.5">Tiếp sức cùng dự án duy trì máy chủ</span>
+                        </div>
+                    </div>
+                `);
+
+                container.innerHTML = cards.join('');
+
+            } catch (e) {
+                console.error('Error loading supporters:', e);
+            }
+        },
+
+        _profileCache: {},
+
+        fetchProfileDonations: async () => {
+            const section = document.getElementById('my-donations-section');
+            const grid = document.getElementById('my-donations-grid');
+            if (!grid || !app.user) {
+                if (section) section.classList.add('hidden');
+                return;
+            }
+
+            try {
+                const { data: { session } } = await window.sb.auth.getSession();
+                const res = await fetch('/api/donate/history', {
+                    headers: { 'Authorization': `Bearer ${session?.access_token || ''}` }
+                });
+                const resData = await res.json();
+                const list = (resData && resData.success && Array.isArray(resData.data)) ? resData.data : [];
+
+                if (!list.length) {
+                    if (section) section.classList.add('hidden');
+                    grid.innerHTML = '';
+                    return;
+                }
+
+                if (section) section.classList.remove('hidden');
+                app.donate._profileCache = {};
+
+                const cardStyleClasses = "cursor-pointer transition-all duration-300 relative flex flex-row items-center p-3 text-left bg-white rounded-xl border border-gray-200 shadow-md hover:-translate-y-1 hover:shadow-xl";
+
+                grid.innerHTML = list.map(item => {
+                    app.donate._profileCache[item.order_code] = item;
+                    const amtStr = new Intl.NumberFormat('vi-VN').format(item.amount) + ' đ';
+                    const dateStr = item.created_at ? new Date(item.created_at).toLocaleDateString('vi-VN') : '';
+                    const isPending = item.status === 'PENDING';
+                    const dotColor = isPending ? 'bg-[#f58e27]' : 'bg-green-500';
+                    const statusText = isPending ? 'Chờ thanh toán' : (dateStr || 'Đã ghi nhận');
+                    const clickHandler = isPending 
+                        ? `app.donate.resumePayment(${item.order_code})` 
+                        : `app.donate.showDetailAlert('${item.order_code}')`;
+
+                    return `
+                        <div class="${cardStyleClasses}" onclick="${clickHandler}">
+                            <span class="w-2 h-2 rounded-full ${dotColor} shrink-0 block mr-3"></span>
+                            <div class="flex-1 min-w-0 flex flex-col justify-center">
+                                <span class="truncate font-bold text-gray-900 text-sm leading-tight mb-0.5">+${amtStr}</span>
+                                <span class="block text-gray-500 text-xs tracking-wide w-full truncate">#${item.order_code} · ${statusText}</span>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+
+            } catch (err) {
+                console.error('Error fetching profile donations:', err);
+                if (section) section.classList.add('hidden');
+            }
+        },
+
+        _activeDetailOrderCode: null,
+        _activeDetailInitialAnon: false,
+        _activeDetailCurrentAnon: false,
+        _modalAnimTimeout: null,
+
+        showDetailAlert: (orderCode) => {
+            const item = app.donate._profileCache?.[orderCode];
+            if (!item) return;
+
+            const isAnon = Boolean(item.is_anonymous === true || item.is_anonymous === 'true' || item.is_anonymous === 1 || item.is_anonymous === '1');
+            app.donate._activeDetailOrderCode = orderCode;
+            app.donate._activeDetailInitialAnon = isAnon;
+            app.donate._activeDetailCurrentAnon = isAnon;
+
+            const amtStr = new Intl.NumberFormat('vi-VN').format(item.amount) + ' VNĐ';
+            const dateStr = item.created_at ? new Date(item.created_at).toLocaleString('vi-VN') : '---';
+            const safeMsg = item.message ? app.utils.escapeHtml(item.message) : '';
+
+            const contentHtml = `
+                <div class="text-left text-xs space-y-2.5 py-1">
+                    <div class="flex justify-between items-center">
+                        <span class="text-gray-500 font-medium">Mã ủng hộ:</span>
+                        <span class="font-bold text-black font-mono">#${item.order_code}</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-gray-500 font-medium">Số tiền:</span>
+                        <span class="font-extrabold text-sm text-black">+${amtStr}</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-gray-500 font-medium">Trạng thái:</span>
+                        <span class="font-bold text-black">Đã ghi nhận</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-gray-500 font-medium">Thời gian:</span>
+                        <span class="text-gray-700">${dateStr}</span>
+                    </div>
+                    ${safeMsg ? `
+                    <div class="mt-2 text-left">
+                        <span class="text-gray-500 font-medium block mb-1">Lời nhắn:</span>
+                        <div class="bg-gray-50 p-2.5 rounded border border-gray-200 text-black italic text-xs">
+                            "${safeMsg}"
+                        </div>
+                    </div>` : ''}
+
+                    <div class="mt-4 pt-2">
+                        <label class="flex items-center justify-between gap-3 p-3 bg-gray-50 rounded-lg border border-black cursor-pointer select-none">
+                            <div class="min-w-0 pr-2">
+                                <div class="text-xs font-bold text-black">
+                                    Ẩn danh trên trang chủ
+                                </div>
+                                <p id="donation-modal-anon-desc" class="text-[11px] text-gray-500 mt-0.5 leading-normal">
+                                    ${isAnon ? 'Khoản này đang được giấu tên trên danh sách tri ân.' : 'Khoản này đang được công khai tên trên danh sách tri ân.'}
+                                </p>
+                            </div>
+                            <div class="relative shrink-0 flex items-center">
+                                <input type="checkbox" id="donation-item-anon-toggle" class="custom-cb-input sr-only" ${isAnon ? 'checked' : ''} onchange="app.donate.onDetailAnonChange(this.checked)">
+                                <div class="custom-cb-box shrink-0 shadow-sm" style="margin: 0 !important;">
+                                    <i class="fa-solid fa-check"></i>
+                                </div>
+                            </div>
+                        </label>
+                    </div>
+
+                    <div class="mt-5 pt-1 relative">
+                        <!-- State 1: Chưa thay đổi -> Nút Đóng -->
+                        <div id="donation-modal-btn-close" class="transition-all duration-300 ease-in-out">
+                            <button type="button" onclick="app.ui.closeAlert()" class="w-full py-2.5 px-4 bg-black hover:bg-gray-800 text-white rounded-lg text-xs font-bold transition shadow-sm">
+                                Đóng
+                            </button>
+                        </div>
+
+                        <!-- State 2: Có thay đổi -> 2 nút Hủy và Lưu (Có Animation) -->
+                        <div id="donation-modal-btn-actions" class="hidden opacity-0 translate-y-1 transition-all duration-300 ease-in-out flex items-center gap-2">
+                            <button type="button" onclick="app.donate.cancelDetailChanges()" class="flex-1 py-2.5 px-4 bg-white border border-black hover:bg-gray-100 text-black rounded-lg text-xs font-bold transition shadow-sm">
+                                Hủy
+                            </button>
+                            <button type="button" id="donation-modal-save-btn" onclick="app.donate.saveDetailChanges()" class="flex-1 py-2.5 px-4 bg-black hover:bg-gray-800 text-white rounded-lg text-xs font-bold transition shadow-sm flex items-center justify-center gap-1.5">
+                                Lưu
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            app.ui.showAlert(contentHtml, () => {}, null, { 
+                title: 'Chi tiết khoản ủng hộ',
+                iconHtml: '<i class="fa-solid fa-heart text-xl text-black"></i>',
+                btnOkText: 'Đóng'
+            });
+
+            // Hide the default modal footer container so our custom animated buttons handle everything
+            const okBtn = document.getElementById('custom-alert-ok-btn');
+            if (okBtn && okBtn.parentElement) {
+                okBtn.parentElement.style.display = 'none';
+            }
+
+            // Explicitly sync the checkbox DOM checked state
+            const toggleEl = document.getElementById('donation-item-anon-toggle');
+            if (toggleEl) {
+                toggleEl.checked = isAnon;
+            }
+        },
+
+        onDetailAnonChange: (isChecked) => {
+            app.donate._activeDetailCurrentAnon = isChecked;
+            const hasChanged = app.donate._activeDetailCurrentAnon !== app.donate._activeDetailInitialAnon;
+
+            const descEl = document.getElementById('donation-modal-anon-desc');
+            if (descEl) {
+                descEl.innerText = isChecked 
+                    ? 'Khoản này đang được giấu tên trên danh sách tri ân.' 
+                    : 'Khoản này đang được công khai tên trên danh sách tri ân.';
+            }
+
+            const closeBox = document.getElementById('donation-modal-btn-close');
+            const actionsBox = document.getElementById('donation-modal-btn-actions');
+            if (!closeBox || !actionsBox) return;
+
+            if (app.donate._modalAnimTimeout) {
+                clearTimeout(app.donate._modalAnimTimeout);
+            }
+
+            if (hasChanged) {
+                // Animate Close out, Actions in
+                closeBox.classList.add('opacity-0', '-translate-y-1');
+                app.donate._modalAnimTimeout = setTimeout(() => {
+                    if (app.donate._activeDetailCurrentAnon !== app.donate._activeDetailInitialAnon) {
+                        closeBox.classList.add('hidden');
+                        actionsBox.classList.remove('hidden');
+                        void actionsBox.offsetWidth; // Trigger reflow for CSS transition
+                        actionsBox.classList.remove('opacity-0', 'translate-y-1');
+                        actionsBox.classList.add('opacity-100', 'translate-y-0');
+                    }
+                }, 150);
+            } else {
+                // Reverted back to initial state -> Animate Actions out, Close in
+                actionsBox.classList.remove('opacity-100', 'translate-y-0');
+                actionsBox.classList.add('opacity-0', 'translate-y-1');
+                app.donate._modalAnimTimeout = setTimeout(() => {
+                    if (app.donate._activeDetailCurrentAnon === app.donate._activeDetailInitialAnon) {
+                        actionsBox.classList.add('hidden');
+                        closeBox.classList.remove('hidden');
+                        void closeBox.offsetWidth; // Trigger reflow for CSS transition
+                        closeBox.classList.remove('opacity-0', '-translate-y-1');
+                        closeBox.classList.add('opacity-100', 'translate-y-0');
+                    }
+                }, 150);
+            }
+        },
+
+        cancelDetailChanges: () => {
+            const toggle = document.getElementById('donation-item-anon-toggle');
+            if (toggle) {
+                toggle.checked = app.donate._activeDetailInitialAnon;
+            }
+            app.donate.onDetailAnonChange(app.donate._activeDetailInitialAnon);
+        },
+
+        saveDetailChanges: async () => {
+            const orderCode = app.donate._activeDetailOrderCode;
+            const targetAnon = app.donate._activeDetailCurrentAnon;
+            const saveBtn = document.getElementById('donation-modal-save-btn');
+
+            if (saveBtn) {
+                saveBtn.disabled = true;
+                saveBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1.5"></i> Đang lưu...';
+            }
+
+            try {
+                const headers = { 'Content-Type': 'application/json' };
+                if (window.sb && window.sb.auth) {
+                    const { data: { session } } = await window.sb.auth.getSession();
+                    if (session?.access_token) {
+                        headers['Authorization'] = `Bearer ${session.access_token}`;
+                    }
+                }
+
+                const res = await fetch('/api/donate/toggle-anonymous', {
+                    method: 'POST',
+                    headers,
+                    body: JSON.stringify({
+                        orderCode: Number(orderCode),
+                        is_anonymous: targetAnon
+                    })
+                });
+
+                const resData = await res.json();
+                if (!res.ok || !resData.success) {
+                    throw new Error(resData.error || 'Lỗi khi cập nhật trạng thái');
+                }
+
+                // Update caches
+                app.donate._activeDetailInitialAnon = targetAnon;
+                const item = app.donate._profileCache?.[orderCode];
+                if (item) item.is_anonymous = targetAnon;
+
+                // Animate actions out, close button back in
+                const closeBox = document.getElementById('donation-modal-btn-close');
+                const actionsBox = document.getElementById('donation-modal-btn-actions');
+                if (actionsBox && closeBox) {
+                    actionsBox.classList.remove('opacity-100', 'translate-y-0');
+                    actionsBox.classList.add('opacity-0', 'translate-y-1');
+                    setTimeout(() => {
+                        actionsBox.classList.add('hidden');
+                        closeBox.classList.remove('hidden');
+                        void closeBox.offsetWidth;
+                        closeBox.classList.remove('opacity-0', '-translate-y-1');
+                        closeBox.classList.add('opacity-100', 'translate-y-0');
+                    }, 150);
+                }
+
+                // Refresh home supporters list in real-time
+                if (typeof app.donate.loadHomeSupporters === 'function') {
+                    app.donate.loadHomeSupporters();
+                }
+
+                if (app.toast && app.toast.show) {
+                    app.toast.show('success', 'Đã lưu', 'Cập nhật trạng thái hiển thị thành công.');
+                }
+
+            } catch (err) {
+                console.error('Error saving anonymity setting:', err);
+                app.ui.showAlert('Không thể lưu thay đổi: ' + err.message);
+            } finally {
+                if (saveBtn) {
+                    saveBtn.disabled = false;
+                    saveBtn.innerHTML = 'Lưu';
+                }
+            }
+        }
     }
 });
 
@@ -12287,49 +13739,1008 @@ if (!decodedProvince || decodedProvince.trim() === '') {
                      }
                      app.loadingBar.finish();
                  },
-                 openEditPrompt: async () => {
-                     // Check for special routes that don't have profiles
-                     const specialRoutes = ['Dừng hoạt động', 'Ngoài giờ hoạt động', 'Chưa hoạt động'];
-                     if (specialRoutes.includes(app.route.currentRoute)) {
-                         app.toast.show('error', 'Tuyến không có hồ sơ', `Tuyến "${app.route.currentRoute}" không có thông tin hồ sơ để chỉnh sửa.`);
-                         return;
-                     }
-                     
-                     if (!app.user) return app.auth.check();
+                specialRoutes: ['Dừng hoạt động', 'Ngoài giờ hoạt động', 'Chưa hoạt động', 'Hợp đồng'],
+                                migrateRouteData: async (oldRouteName, newRouteName, newRouteNo, newProvince) => {
+                    if (!oldRouteName || !newRouteName || oldRouteName === newRouteName) return;
+
+                    if ((!app.utils.provinceData || !app.utils.provinceData.length) && app.utils.loadProvinceData) {
+                        await app.utils.loadProvinceData();
+                    }
+
+                    const isOldCoach = oldRouteName.includes(' - ') ? false : true;
+                    const oldNo = (!isOldCoach && oldRouteName.includes(' - ')) ? oldRouteName.split(' - ')[0].trim() : oldRouteName;
+                    const oldProv = (!isOldCoach && oldRouteName.includes(' - ')) ? oldRouteName.split(' - ').slice(1).join(' - ').trim() : '';
+
+                    const destRouteNo = newRouteNo || ((newProvince && newRouteName.includes(' - ')) ? newRouteName.split(' - ')[0].trim() : newRouteName);
+                    const destRouteName = newRouteName;
+                    const isNewCoach = !newProvince && !destRouteName.includes(' - ');
+                    const newBorrowed = (isNewCoach || destRouteName === destRouteNo) ? null : destRouteName;
+
+                    const provMatch = oldProv && app.utils.provinceData ? app.utils.provinceData.find(p => p.ten.toLowerCase() === oldProv.toLowerCase()) : null;
+                    const provPrefixes = provMatch ? (Array.isArray(provMatch.ky_hieu) ? provMatch.ky_hieu : String(provMatch.ky_hieu).split(',').map(s => s.trim())) : [];
+
+                    // 1. Chuyển tất cả ảnh thuộc tuyến cũ sang tuyến mới
+                    const { data: candPhotos } = await window.sb.from('photos')
+                        .select('id, license_plate, route_no, borrowed_route')
+                        .or(`route_no.eq."${oldNo}",borrowed_route.eq."${oldRouteName}"`);
+
+                    const isPhotoMatch = (p) => {
+                        if (p.borrowed_route === oldRouteName) return true;
+                        if (p.route_no === oldNo && (!p.borrowed_route || p.borrowed_route === '')) {
+                            if (provMatch) {
+                                if (provPrefixes.some(pref => (p.license_plate || '').startsWith(pref))) return true;
+                                if (app.utils.getProvinceFromPlate && app.utils.getProvinceFromPlate(p.license_plate) === provMatch.ten) return true;
+                                return false;
+                            }
+                            return p.borrowed_route === oldRouteName || p.route_no === oldRouteName;
+                        }
+                        return false;
+                    };
+
+                    const targetPhotoIds = (candPhotos || []).filter(isPhotoMatch).map(p => p.id);
+                    for (let i = 0; i < targetPhotoIds.length; i += 100) {
+                        const chunk = targetPhotoIds.slice(i, i + 100);
+                        await window.sb.from('photos').update({ route_no: destRouteNo, borrowed_route: newBorrowed }).in('id', chunk);
+                    }
+
+                    // 2. Chuyển tất cả lịch sử phương tiện (vehicle_history) sang tuyến mới
+                    const { data: candHist } = await window.sb.from('vehicle_history')
+                        .select('id, license_plate, route')
+                        .or(`route.eq."${oldNo}",route.eq."${oldRouteName}"`);
+
+                    const isHistMatch = (h) => {
+                        if (h.route === oldRouteName) return true;
+                        if (h.route === oldNo) {
+                            const vehiclePhotos = (candPhotos || []).filter(p => (p.license_plate || '').toUpperCase() === (h.license_plate || '').toUpperCase());
+                            const hasThisBorrowed = vehiclePhotos.some(p => p.borrowed_route === oldRouteName);
+                            if (hasThisBorrowed) return true;
+                            const hasOtherBorrowed = vehiclePhotos.some(p => p.borrowed_route && p.borrowed_route !== oldRouteName && p.route_no === oldNo);
+                            if (hasOtherBorrowed) return false;
+
+                            if (provMatch) {
+                                if (provPrefixes.some(pref => (h.license_plate || '').startsWith(pref))) return true;
+                                if (app.utils.getProvinceFromPlate && app.utils.getProvinceFromPlate(h.license_plate) === provMatch.ten) return true;
+                                return false;
+                            }
+                            return h.route === oldRouteName;
+                        }
+                        return false;
+                    };
+
+                    const targetHistIds = (candHist || []).filter(isHistMatch).map(h => h.id);
+                    for (let i = 0; i < targetHistIds.length; i += 100) {
+                        const chunk = targetHistIds.slice(i, i + 100);
+                        await window.sb.from('vehicle_history').update({ route: destRouteNo }).in('id', chunk);
+                    }
+
+                    // 3. Xóa hồ sơ tuyến cũ khỏi bảng route_info
+                    await window.sb.from('route_info').delete().eq('route_name', oldRouteName);
+                    if (app.route) app.route.cachedRoutes = null;
+                },
+                compareRoutes: (a, b) => {
+                    const noA = (a.route_no || a.route_name || '').trim();
+                    const noB = (b.route_no || b.route_name || '').trim();
+                    const cmpNo = noA.localeCompare(noB, 'vi', { numeric: true, sensitivity: 'base' });
+                    if (cmpNo !== 0) return cmpNo;
+                    const cmpExactNo = noA.localeCompare(noB, 'vi');
+                    if (cmpExactNo !== 0) return cmpExactNo;
+                    const provA = (a.province || '').trim();
+                    const provB = (b.province || '').trim();
+                    return provA.localeCompare(provB, 'vi', { sensitivity: 'base' });
+                },
+                cachedRoutes: null,
+                selectorCallback: null,
+                selectorTargetInputId: null,
+                selectorExcludeRoute: null,
+                selectorCurrentSelected: '',
+                selectorTypeFilter: 'all',
+                selectorLockedType: null,
+                selectorContextProvince: '',
+                pendingSelectedRoute: null,
+                selectorDisplayLimit: 40,
+                isEditingExisting: false,
+                editingOriginalRouteName: '',
+                deletingRouteName: '',
+
+                updateSelectorTypeButtons: () => {
+                    const filter = app.route.selectorTypeFilter || 'all';
+                    const locked = app.route.selectorLockedType;
+                    const btnAll = document.getElementById('btn-sel-type-all');
+                    const btnBus = document.getElementById('btn-sel-type-bus');
+                    const btnCoach = document.getElementById('btn-sel-type-coach');
+                    const provContainer = document.getElementById('route-selector-prov-container');
+                    if (provContainer) {
+                        if (filter === 'coach' || locked === 'coach') {
+                            provContainer.classList.add('hidden');
+                        } else {
+                            provContainer.classList.remove('hidden');
+                        }
+                    }
+                    if (!btnAll || !btnBus || !btnCoach) return;
+                    
+                    const activeCls = 'px-2.5 py-1 rounded-md text-[11px] font-bold border border-black bg-black text-white transition';
+                    const inactiveCls = 'px-2.5 py-1 rounded-md text-[11px] font-bold border border-black bg-white text-black hover:bg-gray-100 transition';
+                    
+                    if (locked === 'bus') {
+                        btnAll.classList.add('hidden');
+                        btnCoach.classList.add('hidden');
+                        btnBus.classList.remove('hidden');
+                        btnBus.className = activeCls + ' cursor-default';
+                        btnBus.innerHTML = '<i class="fa-solid fa-bus mr-1"></i>Xe buýt';
+                    } else if (locked === 'coach') {
+                        btnAll.classList.add('hidden');
+                        btnBus.classList.add('hidden');
+                        btnCoach.classList.remove('hidden');
+                        btnCoach.className = activeCls + ' cursor-default';
+                        btnCoach.innerHTML = '<i class="fa-solid fa-van-shuttle mr-1"></i>Xe khách';
+                    } else {
+                        btnAll.classList.remove('hidden');
+                        btnBus.classList.remove('hidden');
+                        btnCoach.classList.remove('hidden');
+                        btnAll.innerHTML = 'Tất cả';
+                        btnBus.innerHTML = '<i class="fa-solid fa-bus mr-1"></i>Xe buýt';
+                        btnCoach.innerHTML = '<i class="fa-solid fa-van-shuttle mr-1"></i>Xe khách';
+                        btnAll.className = filter === 'all' ? activeCls : inactiveCls;
+                        btnBus.className = filter === 'bus' ? activeCls : inactiveCls;
+                        btnCoach.className = filter === 'coach' ? activeCls : inactiveCls;
+                    }
+                },
+
+                setSelectorTypeFilter: (type) => {
+                    if (app.route.selectorLockedType && type !== app.route.selectorLockedType) {
+                        return;
+                    }
+                    app.route.selectorDisplayLimit = 40;
+                    app.route.selectorTypeFilter = type;
+                    app.route.updateSelectorTypeButtons();
+                    app.route.filterSelector();
+                },
+
+                toggleSelectorProvMenu: (e) => {
+                    if (e) e.stopPropagation();
+                    const menu = document.getElementById('route-selector-prov-menu');
+                    if (menu) menu.classList.toggle('active');
+                },
+
+                renderSelectorProvMenu: () => {
+                    const listContainer = document.getElementById('route-selector-prov-list');
+                    if (!listContainer) return;
+                    const curVal = (document.getElementById('route-selector-prov-filter')?.value || '').trim().toLowerCase();
+                    const pData = app.utils.provinceData || [];
+                    
+                    let html = `
+                        <div class="filter-item ${!curVal ? 'selected' : ''}" onclick="app.route.selectSelectorProvince('')">
+                            <span class="font-bold">Tất cả tỉnh thành</span>
+                            ${!curVal ? '<i class="fa-solid fa-check text-xs ml-auto"></i>' : ''}
+                        </div>
+                    `;
+                    
+                    pData.forEach(p => {
+                        const isSel = curVal && curVal === p.ten.toLowerCase();
+                        html += `
+                            <div class="filter-item ${isSel ? 'selected' : ''}" data-prov="${app.utils.escapeAttr(p.ten)}" onclick="app.route.selectSelectorProvince('${app.utils.escapeAttr(p.ten)}')">
+                                <span>${app.utils.escapeHtml(p.ten)}</span>
+                                ${isSel ? '<i class="fa-solid fa-check text-xs ml-auto"></i>' : ''}
+                            </div>
+                        `;
+                    });
+                    listContainer.innerHTML = html;
+                },
+
+                selectSelectorProvince: (provName) => {
+                    const input = document.getElementById('route-selector-prov-filter');
+                    const label = document.getElementById('route-selector-prov-label');
+                    if (input) input.value = provName || '';
+                    if (label) label.innerText = provName || 'Tất cả tỉnh thành';
+                    const menu = document.getElementById('route-selector-prov-menu');
+                    if (menu) menu.classList.remove('active');
+                    app.route.selectorDisplayLimit = 40;
+                    app.route.renderSelectorProvMenu();
+                    app.route.filterSelector();
+                },
+
+                filterSelectorProvSearch: (q) => {
+                    const query = (q || '').trim().toLowerCase();
+                    const items = document.querySelectorAll('#route-selector-prov-list .filter-item');
+                    items.forEach(item => {
+                        const prov = item.dataset.prov;
+                        if (!prov) {
+                            item.style.display = query ? 'none' : 'flex';
+                        } else {
+                            item.style.display = prov.toLowerCase().includes(query) ? 'flex' : 'none';
+                        }
+                    });
+                },
+
+                toggleEditProvMenu: (e) => {
+                    const btn = document.getElementById('btn-route-edit-province');
+                    if (btn && btn.disabled) return;
+                    if (e) e.stopPropagation();
+                    const menu = document.getElementById('route-edit-prov-menu');
+                    if (menu) menu.classList.toggle('active');
+                },
+
+                renderEditProvMenu: (selectedProv = '') => {
+                    const listContainer = document.getElementById('route-edit-prov-list');
+                    if (!listContainer) return;
+                    const curVal = (selectedProv || document.getElementById('route-edit-province')?.value || '').trim().toLowerCase();
+                    const pData = app.utils.provinceData || [];
+                    
+                    let html = '';
+                    pData.forEach(p => {
+                        const isSel = curVal && curVal === p.ten.toLowerCase();
+                        html += `
+                            <div class="filter-item ${isSel ? 'selected' : ''}" data-prov="${app.utils.escapeAttr(p.ten)}" onclick="app.route.selectEditProvince('${app.utils.escapeAttr(p.ten)}')">
+                                <span>${app.utils.escapeHtml(p.ten)}</span>
+                                ${isSel ? '<i class="fa-solid fa-check text-xs ml-auto"></i>' : ''}
+                            </div>
+                        `;
+                    });
+                    listContainer.innerHTML = html;
+                },
+
+                selectEditProvince: (provName) => {
+                    const input = document.getElementById('route-edit-province');
+                    const label = document.getElementById('route-edit-prov-label');
+                    if (input) input.value = provName || '';
+                    if (label) label.innerText = provName || '-- Chọn Tỉnh / Thành phố --';
+                    const menu = document.getElementById('route-edit-prov-menu');
+                    if (menu) menu.classList.remove('active');
+                    app.route.renderEditProvMenu(provName);
+                },
+
+                filterEditProvinceSearch: (q) => {
+                    const query = (q || '').trim().toLowerCase();
+                    const items = document.querySelectorAll('#route-edit-prov-list .filter-item');
+                    items.forEach(item => {
+                        const prov = item.dataset.prov || '';
+                        item.style.display = prov.toLowerCase().includes(query) ? 'flex' : 'none';
+                    });
+                },
+
+                setEditVehicleType: (type = 'bus') => {
+                    const val = type === 'coach' ? 'coach' : 'bus';
+                    const hiddenInput = document.getElementById('route-edit-vehicle-type');
+                    if (hiddenInput) hiddenInput.value = val;
+                    const btnBus = document.getElementById('btn-route-type-bus');
+                    const btnCoach = document.getElementById('btn-route-type-coach');
+                    
+                    const activeCls = 'py-2.5 px-3 rounded-md border border-black text-xs font-bold bg-black text-white transition flex items-center justify-center gap-1.5';
+                    const inactiveCls = 'py-2.5 px-3 rounded-md border border-black text-xs font-bold bg-white text-black hover:bg-gray-50 transition flex items-center justify-center gap-1.5';
+                    
+                    if (btnBus) btnBus.className = val === 'bus' ? activeCls : inactiveCls;
+                    if (btnCoach) btnCoach.className = val === 'coach' ? activeCls : inactiveCls;
+
+                    const busFields = document.getElementById('route-edit-bus-profile-fields');
+                    const provContainer = document.getElementById('route-edit-province-container');
+                    const nameLabel = document.getElementById('route-edit-name-label');
+                    const nameInput = document.getElementById('route-edit-name');
+
+                    if (val === 'coach') {
+                        if (busFields) busFields.classList.add('hidden');
+                        if (provContainer) provContainer.classList.add('hidden');
+                        if (nameLabel) nameLabel.innerHTML = 'Tên tuyến / Lộ trình <span class="text-red-500">*</span>';
+                        if (nameInput) nameInput.placeholder = 'VD: Hà Nội - Hải Phòng, Sài Gòn - Vũng Tàu...';
+                    } else {
+                        if (busFields) busFields.classList.remove('hidden');
+                        if (provContainer) provContainer.classList.remove('hidden');
+                        if (nameLabel) nameLabel.innerHTML = 'Số hiệu tuyến <span class="text-red-500">*</span>';
+                        if (nameInput) nameInput.placeholder = 'VD: 01, 20B, BRT01...';
+                    }
+                },
+
+                fetchRoutes: async (force = false) => {
+                    if (app.route.cachedRoutes && !force) return app.route.cachedRoutes;
+                    let routes = [];
+                    try {
+                        const { data, error } = await window.sb
+                            .from('route_info')
+                            .select('route_name, short_path, is_inactive, metadata')
+                            .order('route_name', { ascending: true });
+                        if (!error && data) {
+                            routes = data.map(r => {
+                                const rName = r.route_name || '';
+                                let meta = r.metadata;
+                                if (typeof meta === 'string') {
+                                    try { meta = JSON.parse(meta); } catch (e) { meta = {}; }
+                                }
+                                meta = meta || {};
+                                const isCoach = meta.vehicle_type === 'coach';
+                                let rNo = meta.route_no;
+                                let prov = meta.province;
+                                if (isCoach) {
+                                    rNo = rName;
+                                    prov = null;
+                                } else {
+                                    if (!rNo) {
+                                        rNo = rName.includes(' - ') ? rName.split(' - ')[0].trim() : rName;
+                                    }
+                                    if (!prov && rName.includes(' - ')) {
+                                        prov = rName.split(' - ').slice(1).join(' - ').trim();
+                                    }
+                                }
+                                const isSpecial = app.route.specialRoutes.includes(rNo) || app.route.specialRoutes.includes(rName);
+                                return {
+                                    ...r,
+                                    metadata: meta,
+                                    route_no: rNo,
+                                    province: (isSpecial || isCoach) ? null : (prov || null),
+                                    is_special: isSpecial
+                                };
+                            });
+                        }
+                    } catch (e) {
+                        console.warn("Lỗi tải danh sách tuyến:", e);
+                    }
+
+                    // Tải thêm danh sách tuyến xe khách từ các ảnh xe khách đã được duyệt
+                    try {
+                        const { data: coachPhotos, error: coachErr } = await window.sb
+                            .from('photos')
+                            .select('route_no, borrowed_route, license_plate')
+                            .eq('type', 'coach')
+                            .eq('status', 'approved');
+                        if (!coachErr && coachPhotos && coachPhotos.length > 0) {
+                            const seenCoachRoutes = new Set();
+                            routes.forEach(r => {
+                                if (r.metadata?.vehicle_type === 'coach') {
+                                    seenCoachRoutes.add((r.route_name || '').toLowerCase());
+                                    seenCoachRoutes.add((r.route_no || '').toLowerCase());
+                                }
+                            });
+
+                            coachPhotos.forEach(p => {
+                                const raw = (p.borrowed_route || p.route_no || '').trim();
+                                if (!raw) return;
+                                if (app.route.specialRoutes.includes(raw)) return;
+                                const key = raw.toLowerCase();
+                                if (seenCoachRoutes.has(key)) return;
+                                seenCoachRoutes.add(key);
+
+                                routes.push({
+                                    route_name: raw,
+                                    route_no: raw,
+                                    province: null,
+                                    short_path: null,
+                                    is_special: false,
+                                    is_inactive: false,
+                                    metadata: {
+                                        vehicle_type: 'coach'
+                                    }
+                                });
+                            });
+                        }
+                    } catch (e) {
+                        console.warn("Lỗi tải tuyến xe khách từ ảnh:", e);
+                    }
+                    
+                    // Đảm bảo 4 trường hợp đặc biệt luôn tồn tại trong danh sách
+                    app.route.specialRoutes.forEach(spec => {
+                        if (!routes.some(r => r.route_no === spec || r.route_name === spec)) {
+                            routes.unshift({
+                                route_name: spec,
+                                route_no: spec,
+                                province: null,
+                                is_special: true,
+                                is_inactive: false
+                            });
+                        }
+                    });
+
+                    // Khử các tuyến rác trùng số hiệu không có tỉnh nếu đã có tuyến cùng số hiệu có tỉnh
+                    const hasProvWithSameNo = (r) => {
+                        if (r.province || r.is_special || r.metadata?.vehicle_type === 'coach') return false;
+                        return routes.some(other => other !== r && other.route_no === r.route_no && other.province);
+                    };
+                    routes = routes.filter(r => !hasProvWithSameNo(r));
+                    routes.sort(app.route.compareRoutes);
+
+                    app.route.cachedRoutes = routes;
+                    return routes;
+                },
+
+                openSelector: async (options = {}) => {
+                    app.route.selectorCallback = options.onSelect || null;
+                    app.route.selectorTargetInputId = options.targetInputId || null;
+                    app.route.selectorExcludeRoute = options.excludeRoute || null;
+                    app.route.selectorIsHistory = !!(options.isHistory || (options.targetInputId && (options.targetInputId.includes('hist') || options.targetInputId.includes('req-h-'))));
+                    
+                    let curSelected = '';
+                    if (options.selectedRoute) {
+                        curSelected = options.selectedRoute;
+                    } else if (options.targetInputId) {
+                        const el = document.getElementById(options.targetInputId);
+                        if (el) {
+                            curSelected = el.dataset.routeName || el.value || '';
+                        }
+                    }
+                    app.route.selectorCurrentSelected = (curSelected || '').trim();
+                    app.route.pendingSelectedRoute = null;
+                    app.route.selectorDisplayLimit = 40;
+                    let targetProv = options.province || '';
+                    if (!targetProv && options.targetInputId) {
+                        const targetEl = document.getElementById(options.targetInputId);
+                        if (targetEl?.dataset?.routeName && targetEl.dataset.routeName.includes(' - ')) {
+                            targetProv = targetEl.dataset.routeName.split(' - ').slice(1).join(' - ').trim();
+                        } else if (targetEl?.dataset?.borrowed && targetEl.dataset.borrowed.includes(' - ')) {
+                            targetProv = targetEl.dataset.borrowed.split(' - ').slice(1).join(' - ').trim();
+                        }
+                    }
+                    if (!targetProv) {
+                        targetProv = document.getElementById('up-province')?.value 
+                            || document.getElementById('info-province')?.value 
+                            || (app.currentPhoto?.license_plate ? app.utils.getProvinceFromPlate(app.currentPhoto.license_plate) : '')
+                            || (app.currentVehicle?.license_plate ? app.utils.getProvinceFromPlate(app.currentVehicle.license_plate) : '')
+                            || '';
+                    }
+                    if (targetProv === 'Không xác định' || targetProv === 'Biển tạm') targetProv = '';
+                    app.route.selectorContextProvince = targetProv;
+
+                    // Xác định bộ lọc loại xe ban đầu và khóa chặt nếu là xe buýt hoặc xe khách
+                    let vType = options.vehicleType;
+                    if (!vType) {
+                        if (options.targetInputId === 'up-route') {
+                            vType = document.getElementById('up-type')?.value || (app.upload && app.upload.selectedType) || '';
+                        } else if (options.targetInputId === 'info-route') {
+                            vType = document.getElementById('info-type')?.value || '';
+                        } else if (app.currentVehicle && app.currentVehicle.type) {
+                            vType = app.currentVehicle.type;
+                        } else if (app.currentPhoto && app.currentPhoto.type) {
+                            vType = app.currentPhoto.type;
+                        }
+                    }
+                    
+                    if (vType === 'bus' || vType === 'coach') {
+                        app.route.selectorLockedType = vType;
+                        app.route.selectorTypeFilter = vType;
+                    } else {
+                        app.route.selectorLockedType = null;
+                        app.route.selectorTypeFilter = 'all';
+                    }
+                    app.route.updateSelectorTypeButtons();
+
+                    const modal = document.getElementById('route-selector-modal');
+                    const content = document.getElementById('route-selector-content');
+                    if (!modal || !content) return;
+
+                    // Khởi tạo menu dropdown tỉnh thành
+                    const searchInput = document.getElementById('route-selector-search');
+                    if (searchInput) searchInput.value = '';
+                    const provFilter = document.getElementById('route-selector-prov-filter');
+                    if (provFilter) provFilter.value = '';
+                    const provLabel = document.getElementById('route-selector-prov-label');
+                    if (provLabel) provLabel.innerText = 'Tất cả tỉnh thành';
+                    const provSearch = document.getElementById('route-selector-prov-search');
+                    if (provSearch) provSearch.value = '';
+                    app.route.renderSelectorProvMenu();
+
+                    modal.classList.remove('hidden');
+                    app.ui.lockScroll();
+                    setTimeout(() => {
+                        content.classList.remove('opacity-0', 'scale-95');
+                        content.classList.add('opacity-100', 'scale-100');
+                    }, 10);
+
+                    await app.route.fetchRoutes();
+                    app.route.filterSelector();
+                },
+
+                closeSelector: () => {
+                    const modal = document.getElementById('route-selector-modal');
+                    const content = document.getElementById('route-selector-content');
+                    if (!modal || !content) return;
+                    content.classList.remove('opacity-100', 'scale-100');
+                    content.classList.add('opacity-0', 'scale-95');
+                    setTimeout(() => {
+                        modal.classList.add('hidden');
+                        const delModal = document.getElementById('route-delete-modal');
+                        if (delModal && app.route.deletingRouteName && delModal.classList.contains('hidden') && !app.route._wasFromSelector) {
+                            delModal.classList.remove('hidden');
+                            app.ui.lockScroll();
+                        } else if (!app.route._wasFromSelector && (!document.getElementById('route-edit-modal') || document.getElementById('route-edit-modal').classList.contains('hidden'))) {
+                            app.ui.unlockScroll();
+                        }
+                    }, 200);
+                },
+
+                highlightSelectorRoute: (routeNo, routeName) => {
+                    const selName = routeName || routeNo;
+                    if (app.route.selectorCurrentSelected === selName) return;
+
+                    const container = document.getElementById('route-selector-items');
+                    
+                    // FLIP: Ghi nhận vị trí (First) trước khi sắp xếp lại DOM
+                    const firstTops = new Map();
+                    if (container) {
+                        const oldCards = container.querySelectorAll('.route-card-item');
+                        oldCards.forEach(card => {
+                            const key = card.dataset.routeItemKey;
+                            if (key) {
+                                firstTops.set(key, card.getBoundingClientRect().top);
+                            }
+                        });
+                    }
+
+                    app.route.selectorCurrentSelected = selName;
+                    app.route.pendingSelectedRoute = {
+                        route_no: routeNo,
+                        route_name: selName
+                    };
+
+                    const scrollPos = container ? container.scrollTop : 0;
+                    app.route.filterSelector(true);
+                    if (container) container.scrollTop = scrollPos;
+
+                    // FLIP: Đo vị trí mới (Last) và đảo ngược (Invert)
+                    if (container && firstTops.size > 0) {
+                        const newCards = container.querySelectorAll('.route-card-item');
+                        const animatedCards = [];
+                        newCards.forEach(card => {
+                            const key = card.dataset.routeItemKey;
+                            const firstTop = firstTops.get(key);
+                            if (firstTop !== undefined) {
+                                const lastTop = card.getBoundingClientRect().top;
+                                const deltaY = firstTop - lastTop;
+                                if (Math.abs(deltaY) > 0.5) {
+                                    card.style.transform = `translateY(${deltaY}px)`;
+                                    card.style.transition = 'none';
+                                    animatedCards.push(card);
+                                }
+                            }
+                        });
+
+                        // FLIP: Kích hoạt chuyển động mượt mà (Play)
+                        if (animatedCards.length > 0) {
+                            requestAnimationFrame(() => {
+                                animatedCards.forEach(card => {
+                                    card.style.transition = 'transform 360ms cubic-bezier(0.16, 1, 0.3, 1)';
+                                    card.style.transform = '';
+                                });
+                                setTimeout(() => {
+                                    animatedCards.forEach(card => {
+                                        card.style.transition = '';
+                                        card.style.transform = '';
+                                    });
+                                }, 380);
+                            });
+                        }
+                    }
+                },
+
+                confirmSelector: () => {
+                    if (!app.route.pendingSelectedRoute && !app.route.selectorCurrentSelected) {
+                        app.ui.showAlert("Vui lòng chọn một tuyến xe từ danh sách trước khi xác nhận lưu.");
+                        return;
+                    }
+                    const sel = app.route.pendingSelectedRoute || {
+                        route_no: (app.route.selectorCurrentSelected.includes(' - ')) ? app.route.selectorCurrentSelected.split(' - ')[0].trim() : app.route.selectorCurrentSelected,
+                        route_name: app.route.selectorCurrentSelected
+                    };
+                    app.route.selectRoute(sel.route_no, sel.route_name);
+                },
+
+                loadMoreSelectorItems: () => {
+                    app.route.selectorDisplayLimit = (app.route.selectorDisplayLimit || 40) + 40;
+                    const container = document.getElementById('route-selector-items');
+                    const scrollPos = container ? container.scrollTop : 0;
+                    app.route.filterSelector(true);
+                    if (container) container.scrollTop = scrollPos;
+                },
+
+                filterSelector: (preserveScroll = false) => {
+                    const searchInput = document.getElementById('route-selector-search');
+                    const provFilter = document.getElementById('route-selector-prov-filter');
+                    const container = document.getElementById('route-selector-items');
+                    if (!container) return;
+
+                    const scrollPos = (preserveScroll && container) ? container.scrollTop : 0;
+
+                    const q = (searchInput ? searchInput.value : '').trim().toLowerCase();
+                    const prov = (provFilter ? provFilter.value : '').trim();
+                    const typeFilter = app.route.selectorTypeFilter || 'all';
+                    let curSelected = (app.route.selectorCurrentSelected || '').trim().toLowerCase();
+
+                    const routes = app.route.cachedRoutes || [];
+                    const exclude = app.route.selectorExcludeRoute || '';
+
+                    // Tự động đối chiếu chuẩn hóa nếu curSelected chỉ là số hiệu tuyến (ví dụ "59")
+                    if (curSelected) {
+                        let matchedRoute = routes.find(r => (r.route_name || '').toLowerCase() === curSelected);
+                        if (!matchedRoute) {
+                            const targetProv = (app.route.selectorContextProvince || '').trim().toLowerCase();
+                            const candidates = routes.filter(r => (r.route_no || '').toLowerCase() === curSelected);
+                            if (candidates.length === 1) {
+                                matchedRoute = candidates[0];
+                            } else if (candidates.length > 1) {
+                                if (targetProv) {
+                                    matchedRoute = candidates.find(r => (r.province || '').toLowerCase() === targetProv) || candidates[0];
+                                } else {
+                                    matchedRoute = candidates[0];
+                                }
+                            }
+                        }
+                        if (matchedRoute) {
+                            app.route.selectorCurrentSelected = matchedRoute.route_name;
+                            curSelected = matchedRoute.route_name.toLowerCase();
+                            if (!app.route.pendingSelectedRoute) {
+                                app.route.pendingSelectedRoute = {
+                                    route_no: matchedRoute.route_no,
+                                    route_name: matchedRoute.route_name
+                                };
+                            }
+                        }
+                    }
+
+                    // 1. Tuyến trạng thái đặc biệt
+                    let specialList = routes.filter(r => r.is_special || app.route.specialRoutes.includes(r.route_no));
+                    if (app.route.selectorIsHistory) {
+                        // Lịch sử xe: CHỈ CÓ DỪNG HOẠT ĐỘNG ĐƯỢC GHI VÀO LỊCH SỬ
+                        specialList = specialList.filter(r => r.route_no === 'Dừng hoạt động' || r.route_name === 'Dừng hoạt động');
+                    } else if (typeFilter === 'bus') {
+                        // Xe buýt: Loại bỏ "Hợp đồng"
+                        specialList = specialList.filter(r => r.route_no !== 'Hợp đồng' && r.route_name !== 'Hợp đồng');
+                    } else if (typeFilter === 'coach') {
+                        // Xe khách: Tuyến Hợp đồng lên đầu
+                        specialList.sort((a, b) => {
+                            if (a.route_no === 'Hợp đồng') return -1;
+                            if (b.route_no === 'Hợp đồng') return 1;
+                            return 0;
+                        });
+                    }
+
+                    // 2. Tuyến thông thường
+                    let normalList = routes.filter(r => !r.is_special && !app.route.specialRoutes.includes(r.route_no));
+
+                    if (exclude) {
+                        normalList = normalList.filter(r => r.route_name !== exclude && r.route_no !== exclude);
+                    }
+
+                    if (prov && typeFilter !== 'coach') {
+                        normalList = normalList.filter(r => r.province && r.province.toLowerCase() === prov.toLowerCase());
+                    }
+
+                    if (typeFilter === 'bus') {
+                        normalList = normalList.filter(r => (r.metadata?.vehicle_type || 'bus') === 'bus');
+                    } else if (typeFilter === 'coach') {
+                        normalList = normalList.filter(r => r.metadata?.vehicle_type === 'coach');
+                    }
+
+                    if (q) {
+                        normalList = normalList.filter(r => {
+                            const noMatch = (r.route_no || '').toLowerCase().includes(q);
+                            const nameMatch = (r.route_name || '').toLowerCase().includes(q);
+                            const pathMatch = (r.short_path || '').toLowerCase().includes(q);
+                            const provMatch = (r.province || '').toLowerCase().includes(q);
+                            return noMatch || nameMatch || pathMatch || provMatch;
+                        });
+                    }
+
+                    // Sắp xếp tự nhiên số hiệu tuyến và tỉnh thành
+                    normalList.sort(app.route.compareRoutes);
+
+                    // Đưa tuyến đang chọn lên đầu danh sách bình thường (ghim lên top)
+                    const isNormalSelected = (r) => {
+                        if (!curSelected) return false;
+                        const rName = (r.route_name || '').toLowerCase();
+                        const rNo = (r.route_no || '').toLowerCase();
+                        if (rName === curSelected) return true;
+                        if (rNo === curSelected) {
+                            if (!app.route.selectorContextProvince) return true;
+                            if (r.province && r.province.toLowerCase() === app.route.selectorContextProvince.toLowerCase()) return true;
+                        }
+                        return false;
+                    };
+                    const selectedNormal = normalList.filter(r => isNormalSelected(r));
+                    const unselectedNormal = normalList.filter(r => !isNormalSelected(r));
+                    normalList = [...selectedNormal, ...unselectedNormal];
+
+                    let html = '';
+
+                    // Khối 1: Các trường hợp đặc biệt (nếu không chọn lọc theo một tỉnh cụ thể)
+                    if (!prov) {
+                        const matchedSpecials = q
+                            ? specialList.filter(r => (r.route_no || '').toLowerCase().includes(q))
+                            : specialList;
+
+                        if (matchedSpecials.length > 0) {
+                            html += `
+                                <div class="mb-3">
+                                    <p class="text-[10px] font-bold uppercase tracking-wider text-gray-500 mb-1.5 px-1">Tuyến trạng thái đặc biệt</p>
+                                    <div class="grid grid-cols-2 gap-1.5">
+                                        ${matchedSpecials.map(r => {
+                                            const isSel = curSelected && ((r.route_no || '').toLowerCase() === curSelected || (r.route_name || '').toLowerCase() === curSelected);
+                                            const cardCls = isSel ? 'selected-route-card' : 'bg-white hover:bg-gray-100';
+                                            return `
+                                                <div onclick="app.route.highlightSelectorRoute('${app.utils.escapeAttr(r.route_no)}', '${app.utils.escapeAttr(r.route_name)}')"
+                                                     ondblclick="app.route.selectRoute('${app.utils.escapeAttr(r.route_no)}', '${app.utils.escapeAttr(r.route_name)}')"
+                                                     class="cursor-pointer border border-black rounded-md p-2.5 flex items-center gap-2 transition active:scale-98 select-none ${cardCls}">
+                                                    <i class="fa-solid fa-tag text-xs ${isSel ? '' : 'text-black'}"></i>
+                                                    <span class="text-xs font-bold truncate ${isSel ? '' : 'text-black'}">${app.utils.escapeHtml(r.route_no)}</span>
+                                                </div>
+                                            `;
+                                        }).join('')}
+                                    </div>
+                                </div>
+                            `;
+                        }
+                    }
+
+                    // Khối 2: Danh sách các tuyến thông thường (Hỗ trợ lazyload phân trang 40 tuyến/trang)
+                    const displayLimit = app.route.selectorDisplayLimit || 40;
+                    const displayedItems = normalList.slice(0, displayLimit);
+
+                    html += `<div class="mb-2"><p class="text-[10px] font-bold uppercase tracking-wider text-gray-500 mb-1.5 px-1">Danh sách tuyến xe (${normalList.length})</p>`;
+
+                    if (normalList.length === 0) {
+                        html += `
+                            <div class="text-center py-8 text-gray-500 text-xs">
+                                <i class="fa-solid fa-route text-gray-300 text-2xl block mb-2"></i>
+                                Không tìm thấy tuyến phù hợp. Bạn có thể nhấn <strong>"+ Tạo tuyến mới"</strong> ở trên để thêm tuyến này.
+                            </div>
+                        `;
+                    } else {
+                        html += '<div class="space-y-1.5">';
+                        displayedItems.forEach(r => {
+                            const isSel = isNormalSelected(r);
+                            const cardCls = isSel ? 'selected-route-card' : 'bg-white hover:bg-gray-50';
+                            const badge = r.is_inactive 
+                                ? `<span class="route-status-badge text-[9px] px-1.5 py-0.5 rounded font-bold shrink-0 ${isSel ? '' : 'bg-black text-white dark:bg-white dark:text-black'}">Dừng HĐ</span>` 
+                                : '';
+                            const isCoach = r.metadata?.vehicle_type === 'coach';
+                            const provLabel = r.province ? `<span class="text-[11px] ${isSel ? 'text-gray-200' : 'text-gray-500'} font-medium">(${app.utils.escapeHtml(r.province)})</span>` : '';
+                            const pathLabel = r.short_path ? `<p class="route-path-label text-[11px] ${isSel ? 'text-gray-300' : 'text-gray-500'} truncate mt-0.5">${app.utils.escapeHtml(r.short_path)}</p>` : '';
+
+                            html += `
+                                <div onclick="app.route.highlightSelectorRoute('${app.utils.escapeAttr(r.route_no)}', '${app.utils.escapeAttr(r.route_name)}')"
+                                     ondblclick="app.route.selectRoute('${app.utils.escapeAttr(r.route_no)}', '${app.utils.escapeAttr(r.route_name)}')"
+                                     data-route-item-key="${app.utils.escapeAttr(r.route_name || r.route_no)}"
+                                     class="route-card-item cursor-pointer border border-black rounded-md p-2.5 flex items-center justify-between gap-3 active:scale-[0.99] select-none group ${cardCls}">
+                                    <div class="min-w-0 flex-1">
+                                        <div class="flex items-center gap-2 flex-wrap">
+                                            <span class="font-extrabold text-xs tracking-wide ${isSel ? '' : 'text-black'}">${app.utils.escapeHtml(r.route_no)}</span>
+                                            ${provLabel}
+                                            ${badge}
+                                        </div>
+                                        ${pathLabel}
+                                    </div>
+                                    <div class="flex items-center gap-1.5 shrink-0" onclick="event.stopPropagation()">
+                                        <button type="button" title="Chỉnh sửa thông tin tuyến" onclick="app.route.openEditPrompt('${app.utils.escapeAttr(r.route_name)}', '${app.utils.escapeAttr(r.province || '')}', true)"
+                                                class="w-7 h-7 flex items-center justify-center rounded-md border border-black ${isSel ? 'border-white text-white' : 'text-black hover:bg-black hover:text-white'} transition text-xs">
+                                            <i class="fa-solid fa-pen"></i>
+                                        </button>
+                                        ${!isCoach ? `
+                                        <a href="/route/${r.province ? encodeURIComponent(r.province) + '/' : ''}${encodeURIComponent(r.route_no)}"
+                                           onclick="app.route.closeSelector()"
+                                           title="Xem hồ sơ tuyến"
+                                           class="w-7 h-7 flex items-center justify-center rounded-md border border-black ${isSel ? 'border-white text-white' : 'text-black hover:bg-black hover:text-white'} transition text-xs">
+                                            <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                                        </a>` : ''}
+                                    </div>
+                                </div>
+                            `;
+                        });
+                        html += '</div>';
+
+                        if (normalList.length > displayLimit) {
+                            html += `
+                                <div class="pt-2 text-center">
+                                    <button type="button" onclick="app.route.loadMoreSelectorItems()" class="w-full py-2.5 border border-black dark:border-white rounded-md text-xs font-bold bg-white dark:bg-[#18181b] text-black dark:text-white hover:bg-gray-100 dark:hover:bg-[#27272a] transition active:scale-[0.99]">
+                                        <i class="fa-solid fa-angles-down mr-1"></i> Xem thêm (${normalList.length - displayLimit} tuyến khác)
+                                    </button>
+                                </div>
+                            `;
+                        }
+                    }
+                    html += '</div>';
+
+                    container.innerHTML = html;
+                    if (preserveScroll) {
+                        container.scrollTop = scrollPos;
+                    }
+                },
+
+                selectRoute: (routeNo, routeName) => {
+                    const targetId = app.route.selectorTargetInputId;
+                    const selectedDisplayName = (routeName && routeName !== routeNo) ? routeName : routeNo;
+                    if (targetId) {
+                        const targetEl = document.getElementById(targetId);
+                        if (targetEl) {
+                            targetEl.value = routeNo;
+                            targetEl.dataset.routeName = selectedDisplayName;
+                            targetEl.dataset.routeNo = routeNo;
+                            targetEl.dispatchEvent(new Event('change', { bubbles: true }));
+                            targetEl.dispatchEvent(new Event('input', { bubbles: true }));
+                        }
+                    }
+
+                    if (typeof app.route.selectorCallback === 'function') {
+                        app.route.selectorCallback({
+                            route_no: routeNo,
+                            route_name: routeName || routeNo
+                        });
+                    }
+
+                    app.route.closeSelector();
+                },
+
+                openCreatePrompt: () => {
+                    if (!app.user) return app.auth.check();
+                    const selectorModal = document.getElementById('route-selector-modal');
+                    app.route._wasFromSelector = !!(selectorModal && !selectorModal.classList.contains('hidden'));
+                    if (app.route._wasFromSelector) {
+                        selectorModal.classList.add('hidden');
+                        const sc = document.getElementById('route-selector-content');
+                        if (sc) {
+                            sc.classList.remove('opacity-100', 'scale-100');
+                            sc.classList.add('opacity-0', 'scale-95');
+                        }
+                    }
+
+                    app.route.isEditingExisting = false;
+                    app.route.editingOriginalRouteName = '';
+
                     const modal = document.getElementById('route-edit-modal');
                     const content = document.getElementById('route-edit-content');
+                    const titleEl = document.getElementById('route-edit-modal-title');
                     const btnSave = document.getElementById('btn-save-route');
-                    const warningText = content.querySelector('p.text-xs');
+                    const btnDelete = document.getElementById('btn-delete-route');
+                    const warningText = document.getElementById('route-edit-warning-text');
+                    const provContainer = document.getElementById('route-edit-province-container');
+                    const btnProv = document.getElementById('btn-route-edit-province');
+
+                    if (titleEl) titleEl.innerHTML = '<i class="fa-solid fa-plus mr-2 text-gray-500"></i>Tạo Tuyến Mới';
+                    if (btnDelete) btnDelete.classList.add('hidden');
+                    if (provContainer) provContainer.classList.remove('hidden');
+
+                    if (btnProv) {
+                        btnProv.disabled = false;
+                        btnProv.classList.remove('bg-gray-100', 'cursor-not-allowed', 'opacity-70');
+                    }
+                    app.route.selectEditProvince('');
+                    app.route.renderEditProvMenu('');
+
+                    const targetType = app.route.selectorLockedType || (app.route.selectorTypeFilter === 'coach' ? 'coach' : 'bus');
+                    app.route.setEditVehicleType(targetType);
+                    const btnTypeBus = document.getElementById('btn-route-type-bus');
+                    const btnTypeCoach = document.getElementById('btn-route-type-coach');
+                    if (app.route.selectorLockedType === 'bus') {
+                        if (btnTypeCoach) { btnTypeCoach.disabled = true; btnTypeCoach.classList.add('opacity-40', 'cursor-not-allowed'); }
+                        if (btnTypeBus) { btnTypeBus.disabled = false; btnTypeBus.classList.remove('opacity-40', 'cursor-not-allowed'); }
+                    } else if (app.route.selectorLockedType === 'coach') {
+                        if (btnTypeBus) { btnTypeBus.disabled = true; btnTypeBus.classList.add('opacity-40', 'cursor-not-allowed'); }
+                        if (btnTypeCoach) { btnTypeCoach.disabled = false; btnTypeCoach.classList.remove('opacity-40', 'cursor-not-allowed'); }
+                    } else {
+                        if (btnTypeBus) { btnTypeBus.disabled = false; btnTypeBus.classList.remove('opacity-40', 'cursor-not-allowed'); }
+                        if (btnTypeCoach) { btnTypeCoach.disabled = false; btnTypeCoach.classList.remove('opacity-40', 'cursor-not-allowed'); }
+                    }
+
+                    const inactiveContainer = document.getElementById('route-edit-inactive-container');
+                    if (inactiveContainer) inactiveContainer.classList.add('hidden');
+
+                    const nameInput = document.getElementById('route-edit-name');
+                    if (nameInput) {
+                        nameInput.value = '';
+                        nameInput.disabled = false;
+                        nameInput.readOnly = false;
+                        nameInput.classList.remove('bg-gray-100', 'cursor-not-allowed', 'opacity-70');
+                    }
                     document.getElementById('route-edit-inactive').checked = false;
                     document.getElementById('route-edit-short-path').value = '';
                     document.getElementById('route-edit-desc').value = '';
                     document.getElementById('route-edit-ticket-price').value = '';
                     document.getElementById('route-edit-headway').value = '';
                     document.getElementById('route-edit-wheelchair').checked = false;
-                    const iconTypeInit = 'default';
-                      document.getElementById('route-edit-icon').value = iconTypeInit;
-                      document.getElementById('route-icon-label').innerText = 'Mặc định';
-                      document.querySelectorAll('.route-icon-item').forEach(el => {
-                          el.classList.remove('selected');
-                          const icon = el.querySelector('.check-icon');
-                          if(icon) icon.classList.add('opacity-0');
-                      });
-                      const selectedInit = document.querySelector(`.route-icon-item[data-val="${iconTypeInit}"]`);
-                      if(selectedInit) {
-                          selectedInit.classList.add('selected');
-                          const icon = selectedInit.querySelector('.check-icon');
-                          if(icon) icon.classList.remove('opacity-0');
-                      }
+                    document.getElementById('route-edit-icon').value = 'default';
+                    document.getElementById('route-icon-label').innerText = 'Mặc định';
+
+                    if (app.role === 'admin' || app.role === 'manager') {
+                        btnSave.innerText = "Tạo tuyến mới";
+                        if (warningText) warningText.innerText = "Tuyến mới sẽ được cập nhật trực tiếp vào hệ thống.";
+                    } else {
+                        btnSave.innerText = "Gửi yêu cầu tạo tuyến";
+                        if (warningText) warningText.innerText = "Thông tin tuyến mới sẽ được gửi đến hàng đợi và kiểm duyệt bởi Admin.";
+                    }
+
+                    modal.classList.remove('hidden');
+                    app.ui.lockScroll();
+                    setTimeout(() => {
+                        content.classList.remove('opacity-0', 'scale-95');
+                        content.classList.add('opacity-100', 'scale-100');
+                    }, 10);
+                },
+
+                openEditPrompt: async (targetRouteName, targetProvince, fromSelector = false) => {
+                    if (!app.user) return app.auth.check();
+                    const selectorModal = document.getElementById('route-selector-modal');
+                    const isFromSelector = !!fromSelector || !!(selectorModal && !selectorModal.classList.contains('hidden'));
+                    app.route._wasFromSelector = isFromSelector;
+                    if (selectorModal && !selectorModal.classList.contains('hidden')) {
+                        selectorModal.classList.add('hidden');
+                        const sc = document.getElementById('route-selector-content');
+                        if (sc) {
+                            sc.classList.remove('opacity-100', 'scale-100');
+                            sc.classList.add('opacity-0', 'scale-95');
+                        }
+                    }
+
+                    const rName = targetRouteName || (app.route.currentProvince ? `${app.route.currentRoute} - ${app.route.currentProvince}` : app.route.currentRoute);
+                    const cachedRouteMatch = (app.route.cachedRoutes || []).find(r => r.route_name === rName || r.route_no === rName);
+                    const isTargetCoach = cachedRouteMatch?.metadata?.vehicle_type === 'coach';
+                    let rNo = (!isTargetCoach && rName.includes(' - ')) ? rName.split(' - ')[0].trim() : rName;
+                    let prov = isTargetCoach ? '' : (targetProvince || (rName.includes(' - ') ? rName.split(' - ')[1].trim() : app.route.currentProvince));
+
+                    if (app.route.specialRoutes.includes(rNo) || app.route.specialRoutes.includes(rName)) {
+                        app.toast.show('error', 'Tuyến không có hồ sơ', `Tuyến "${rNo}" là tuyến trạng thái đặc biệt mặc định của hệ thống, không có hồ sơ riêng và không thể chỉnh sửa.`);
+                        return;
+                    }
+
+                    app.route.isEditingExisting = true;
+                    app.route.editingOriginalRouteName = rName;
+
+                    const modal = document.getElementById('route-edit-modal');
+                    const content = document.getElementById('route-edit-content');
+                    const titleEl = document.getElementById('route-edit-modal-title');
+                    const btnSave = document.getElementById('btn-save-route');
+                    const btnDelete = document.getElementById('btn-delete-route');
+                    const warningText = document.getElementById('route-edit-warning-text');
+                    const provContainer = document.getElementById('route-edit-province-container');
+                    const btnProv = document.getElementById('btn-route-edit-province');
+
+                    if (titleEl) titleEl.innerHTML = '<i class="fa-solid fa-route mr-2 text-gray-500"></i>Cập nhật Thông tin Tuyến';
+                    if (btnDelete) btnDelete.classList.remove('hidden');
+                    if (provContainer) provContainer.classList.remove('hidden');
+
+                    const inactiveContainer = document.getElementById('route-edit-inactive-container');
+                    if (inactiveContainer) inactiveContainer.classList.remove('hidden');
+
+                    if (btnProv) {
+                        btnProv.disabled = isFromSelector;
+                        if (isFromSelector) {
+                            btnProv.classList.add('bg-gray-100', 'cursor-not-allowed', 'opacity-70');
+                        } else {
+                            btnProv.classList.remove('bg-gray-100', 'cursor-not-allowed', 'opacity-70');
+                        }
+                    }
+                    const btnTypeBus = document.getElementById('btn-route-type-bus');
+                    const btnTypeCoach = document.getElementById('btn-route-type-coach');
+                    if (btnTypeBus) { btnTypeBus.disabled = false; btnTypeBus.classList.remove('opacity-40', 'cursor-not-allowed'); }
+                    if (btnTypeCoach) { btnTypeCoach.disabled = false; btnTypeCoach.classList.remove('opacity-40', 'cursor-not-allowed'); }
+
+                    app.route.setEditVehicleType(isTargetCoach ? 'coach' : 'bus');
+
+                    app.route.selectEditProvince(prov || '');
+                    app.route.renderEditProvMenu(prov || '');
+
+                    const nameInput = document.getElementById('route-edit-name');
+                    if (nameInput) {
+                        nameInput.value = rNo;
+                        nameInput.disabled = isFromSelector;
+                        if (isFromSelector) {
+                            nameInput.classList.add('bg-gray-100', 'cursor-not-allowed', 'opacity-70');
+                        } else {
+                            nameInput.readOnly = false;
+                            nameInput.classList.remove('bg-gray-100', 'cursor-not-allowed', 'opacity-70');
+                        }
+                    }
+                    document.getElementById('route-edit-inactive').checked = false;
+                    document.getElementById('route-edit-short-path').value = '';
+                    document.getElementById('route-edit-desc').value = '';
+                    document.getElementById('route-edit-ticket-price').value = '';
+                    document.getElementById('route-edit-headway').value = '';
+                    document.getElementById('route-edit-wheelchair').checked = false;
+                    document.getElementById('route-edit-icon').value = 'default';
+                    document.getElementById('route-icon-label').innerText = 'Mặc định';
+
                     if (app.role === 'admin' || app.role === 'manager') {
                         btnSave.innerText = "Lưu thông tin";
-                        warningText.innerHTML = "";
+                        if (warningText) warningText.innerText = "";
                     } else {
-                        btnSave.innerText = "Lưu thông tin";
-                        warningText.innerText = "Thông tin này sẽ được kiểm duyệt bởi Admin. Việc để trống tất cả sẽ gửi yêu cầu xóa thông tin hiện tại.";
+                        btnSave.innerText = "Gửi yêu cầu chỉnh sửa";
+                        if (warningText) warningText.innerText = "Thông tin này sẽ được gửi đến hàng đợi và kiểm duyệt bởi Admin.";
                     }
+
                     try {
-                        const routeName = app.route.currentProvince ? `${app.route.currentRoute} - ${app.route.currentProvince}` : app.route.currentRoute;
-                        const { data: exactInfo } = await window.sb.from('route_info').select('description, short_path, is_inactive, metadata').eq('route_name', routeName).maybeSingle();
+                        const { data: exactInfo } = await window.sb.from('route_info').select('description, short_path, is_inactive, metadata').eq('route_name', rName).maybeSingle();
                         if (exactInfo) {
                             document.getElementById('route-edit-inactive').checked = exactInfo.is_inactive || false;
                             document.getElementById('route-edit-short-path').value = exactInfo.short_path || '';
@@ -12338,45 +14749,25 @@ if (!decodedProvince || decodedProvince.trim() === '') {
                                 document.getElementById('route-edit-ticket-price').value = exactInfo.metadata.ticket_price || '';
                                 document.getElementById('route-edit-headway').value = exactInfo.metadata.headway || '';
                                 document.getElementById('route-edit-wheelchair').checked = exactInfo.metadata.wheelchair_support || false;
+                                app.route.setEditVehicleType(exactInfo.metadata.vehicle_type || (isTargetCoach ? 'coach' : 'bus'));
                                 let iconTypeMeta = exactInfo.metadata.icon_type || 'default';
                                 let iconLabelMeta = 'Mặc định';
                                 if (iconTypeMeta === 'circle') iconLabelMeta = 'Hình tròn (Max 5 kí tự)';
                                 else if (iconTypeMeta === 'trapezoid') iconLabelMeta = 'Hình thang cân (Max 5 kí tự)';
                                 document.getElementById('route-edit-icon').value = iconTypeMeta;
                                 document.getElementById('route-icon-label').innerText = iconLabelMeta;
-                                document.querySelectorAll('.route-icon-item').forEach(el => {
-                                    el.classList.remove('selected');
-                                    const icon = el.querySelector('.check-icon');
-                                    if(icon) icon.classList.add('opacity-0');
-                                });
-                                const selectedMeta = document.querySelector(`.route-icon-item[data-val="${iconTypeMeta}"]`);
-                                if(selectedMeta) {
-                                    selectedMeta.classList.add('selected');
-                                    const icon = selectedMeta.querySelector('.check-icon');
-                                    if(icon) icon.classList.remove('opacity-0');
-                                }
+                            } else {
+                                app.route.setEditVehicleType(isTargetCoach ? 'coach' : 'bus');
                             }
+                        } else {
+                            app.route.setEditVehicleType(isTargetCoach ? 'coach' : 'bus');
                         }
-                        
-                        // Fetch borrowed photos
-                          const { data: bPhotos } = await window.sb.from('photos').select('id, license_plate').eq('borrowed_route', routeName);
-                          let bList = [];
-                          let plates = [];
-                          if (exactInfo && exactInfo.metadata && exactInfo.metadata.borrowed_plates) {
-                              plates = exactInfo.metadata.borrowed_plates;
-                          }
-                          if (bPhotos && bPhotos.length > 0) {
-                              bPhotos.forEach(p => {
-                                  if (!plates.some(pl => pl.toLowerCase() === p.license_plate.toLowerCase())) {
-                                      bList.push(p.id);
-                                  }
-                              });
-                          }
-                          bList.push(...plates);
-                          document.getElementById('route-edit-borrowed').value = bList.join(', ');
+
+                        // (Bỏ trường ID ảnh / Xe vá tuyến theo yêu cầu)
                     } catch(e) {
                         console.error("Lỗi khi load dữ liệu sửa tuyến:", e);
                     }
+
                     modal.classList.remove('hidden');
                     app.ui.lockScroll();
                     setTimeout(() => {
@@ -12384,9 +14775,205 @@ if (!decodedProvince || decodedProvince.trim() === '') {
                         content.classList.add('opacity-100', 'scale-100');
                     }, 10);
                 },
+
                 closeEditPrompt: () => {
                     const modal = document.getElementById('route-edit-modal');
                     const content = document.getElementById('route-edit-content');
+                    if (!modal || !content) return;
+                    content.classList.remove('opacity-100', 'scale-100');
+                    content.classList.add('opacity-0', 'scale-95');
+                    setTimeout(() => {
+                        modal.classList.add('hidden');
+                        if (app.route._wasFromSelector) {
+                            app.route._wasFromSelector = false;
+                            app.route.openSelector({
+                                targetInputId: app.route.selectorTargetInputId,
+                                onSelect: app.route.selectorCallback
+                            });
+                        } else {
+                            app.ui.unlockScroll();
+                        }
+                    }, 200);
+                },
+
+                submitEdit: async () => {
+                    if (!app.user) return;
+                    const routeNo = (document.getElementById('route-edit-name')?.value || '').trim();
+                    const province = (document.getElementById('route-edit-province')?.value || '').trim();
+                    const desc = (document.getElementById('route-edit-desc')?.value || '').trim();
+                    const shortPath = (document.getElementById('route-edit-short-path')?.value || '').trim();
+                    const isInactive = document.getElementById('route-edit-inactive')?.checked || false;
+                    const ticketPrice = (document.getElementById('route-edit-ticket-price')?.value || '').trim();
+                    const headway = (document.getElementById('route-edit-headway')?.value || '').trim();
+                    const wheelchairSupport = document.getElementById('route-edit-wheelchair')?.checked || false;
+
+                    const vehicleType = document.getElementById('route-edit-vehicle-type')?.value || 'bus';
+                    const isCoach = vehicleType === 'coach';
+
+                    if (!routeNo) {
+                        return app.ui.showAlert(isCoach ? "Vui lòng nhập Tên tuyến / Lộ trình xe khách." : "Vui lòng nhập Số hiệu tuyến xe.");
+                    }
+                    if (!isCoach && !province) {
+                        return app.ui.showAlert("Vui lòng chọn Tỉnh / Thành phố cho tuyến xe.");
+                    }
+
+                    // Kiểm tra không được tạo trùng tên với 4 trường hợp đặc biệt
+                    if (app.route.specialRoutes.some(s => s.toLowerCase() === routeNo.toLowerCase())) {
+                        return app.ui.showAlert(`Tên tuyến "${routeNo}" trùng với tuyến trạng thái đặc biệt mặc định của hệ thống và không được phép tạo mới.`);
+                    }
+
+                    const finalProvince = isCoach ? null : (province || null);
+                    const routeName = (isCoach || !finalProvince) ? routeNo : `${routeNo} - ${finalProvince}`;
+
+                    // Nếu tạo mới HOẶC đổi số hiệu / tỉnh thành từ trang chi tiết, kiểm tra trùng lặp
+                    if (!app.route.isEditingExisting || (app.route.editingOriginalRouteName && routeName !== app.route.editingOriginalRouteName)) {
+                        const { data: exist } = await window.sb.from('route_info').select('route_name').eq('route_name', routeName).maybeSingle();
+                        if (exist) {
+                            return app.ui.showAlert(`Tuyến "${routeName}" đã tồn tại trên hệ thống. Vui lòng chọn lộ trình khác!`);
+                        }
+                    }
+
+                    let metadata = {};
+                    metadata.vehicle_type = vehicleType;
+
+                    let metadataObj = null;
+
+                    if (vehicleType === 'coach') {
+                        metadataObj = { vehicle_type: 'coach' };
+                    } else {
+                        if (ticketPrice) metadata.ticket_price = ticketPrice;
+                        if (headway) metadata.headway = headway;
+                        if (wheelchairSupport) metadata.wheelchair_support = wheelchairSupport;
+
+                        const iconType = document.getElementById('route-edit-icon')?.value || 'default';
+                        if (iconType !== 'default') {
+                            if (routeNo.length <= 5) {
+                                metadata.icon_type = iconType;
+                            } else {
+                                app.toast.show('warning', 'Lưu ý', 'Tên tuyến dài hơn 5 kí tự không thể sử dụng icon tùy chỉnh. Đã tự động chuyển về mặc định.');
+                            }
+                        }
+
+                        metadataObj = Object.keys(metadata).length > 0 ? metadata : null;
+                    }
+
+                    const btn = document.getElementById('btn-save-route');
+                    const origText = btn.innerHTML;
+                    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1"></i> Đang xử lý...';
+                    btn.disabled = true;
+
+                    try {
+                        if (app.role === 'admin' || app.role === 'manager') {
+                            const { error: upsertErr } = await window.sb.from('route_info').upsert({
+                                route_name: routeName,
+                                route_no: routeNo,
+                                province: finalProvince,
+                                short_path: isCoach ? null : (shortPath || null),
+                                description: isCoach ? null : (desc || null),
+                                is_inactive: isInactive,
+                                is_special: false,
+                                metadata: metadataObj
+                            }, { onConflict: 'route_name' });
+                            if (upsertErr) throw upsertErr;
+
+                            // Nếu đổi tên tuyến hoặc đổi tỉnh từ trang chi tiết, dọn dẹp bản ghi cũ và di chuyển liên kết
+                            if (app.route.isEditingExisting && app.route.editingOriginalRouteName && app.route.editingOriginalRouteName !== routeName) {
+                                await app.route.migrateRouteData(app.route.editingOriginalRouteName, routeName, routeNo, finalProvince);
+                            }
+
+                            // (Bỏ xử lý cập nhật ID ảnh và biển số xe vá tuyến)
+
+                            app.route.cachedRoutes = null;
+                            app.toast.show('success', 'Thành công', app.route.isEditingExisting ? 'Đã lưu thông tin Tuyến!' : 'Đã tạo tuyến mới thành công!');
+                            const wasFromSelector = app.route._wasFromSelector;
+                            app.route._wasFromSelector = false;
+                            app.route.closeEditPrompt();
+
+                            if (app.route.isEditingExisting && app.route.editingOriginalRouteName && app.route.editingOriginalRouteName !== routeName) {
+                                app.route.currentRoute = routeNo;
+                                app.route.currentProvince = province;
+                                app.utils.navigate('/route/' + (province ? encodeURIComponent(province) + '/' : '') + encodeURIComponent(routeNo));
+                            } else if (app.route.currentRoute === routeNo && app.route.currentProvince === province) {
+                                app.route.loadRoutePage(province, routeNo, true);
+                            }
+                            await app.route.fetchRoutes(true);
+                            app.route.filterSelector();
+
+                            if (wasFromSelector && (app.route.selectorTargetInputId || typeof app.route.selectorCallback === 'function')) {
+                                app.route.selectRoute(routeNo, routeName);
+                            }
+                        } else {
+                            // Người dùng thường gửi yêu cầu qua edit_requests
+                            const wasFromSelector = app.route._wasFromSelector;
+                            app.route._wasFromSelector = false;
+                            const reqType = app.route.isEditingExisting ? 'update_route_info' : 'create_route_info';
+                            let checkQuery = window.sb.from('edit_requests').select('*', { count: 'exact', head: true }).eq('status', 'pending');
+                            const { count, error: checkErr } = await checkQuery.contains('new_data', { request_type: reqType, route_name: routeName });
+                            if (checkErr) throw checkErr;
+                            if (count > 0) throw new Error("Đã có một yêu cầu cho tuyến này đang chờ duyệt.");
+
+                            const reqData = {
+                                requester_id: app.user.id,
+                                license_plate: 'ROUTE_INFO',
+                                new_data: {
+                                    request_type: reqType,
+                                    old_route_name: app.route.isEditingExisting ? app.route.editingOriginalRouteName : null,
+                                    route_name: routeName,
+                                    route_no: routeNo,
+                                    province: finalProvince,
+                                    short_path: isCoach ? null : (shortPath || null),
+                                    description: isCoach ? null : (desc || null),
+                                    is_inactive: isInactive,
+                                    metadata: metadataObj
+                                },
+                                status: 'pending'
+                            };
+                            const { error } = await window.sb.from('edit_requests').insert(reqData);
+                            if (error) throw error;
+                            app.ui.showAlert(app.route.isEditingExisting ? "Đã gửi yêu cầu cập nhật thông tin Tuyến và đang chờ Admin duyệt." : "Đã gửi yêu cầu tạo Tuyến mới và đang chờ Admin duyệt. Tuyến này đã được tạm áp dụng vào biểu mẫu của bạn.");
+                            app.route.closeEditPrompt();
+                            if (wasFromSelector && (app.route.selectorTargetInputId || typeof app.route.selectorCallback === 'function')) {
+                                app.route.selectRoute(routeNo, routeName);
+                            }
+                        }
+                    } catch (err) {
+                        app.ui.showAlert("Lỗi: " + err.message);
+                    } finally {
+                        btn.innerHTML = origText;
+                        btn.disabled = false;
+                    }
+                },
+
+                openDeletePrompt: (targetRouteName) => {
+                    if (!app.user) return app.auth.check();
+                    const target = targetRouteName || app.route.editingOriginalRouteName || (app.route.currentProvince ? `${app.route.currentRoute} - ${app.route.currentProvince}` : app.route.currentRoute);
+                    if (!target) return;
+
+                    const targetNo = target.split(' - ')[0].trim();
+                    if (app.route.specialRoutes.includes(targetNo) || app.route.specialRoutes.includes(target)) {
+                        return app.ui.showAlert("Các tuyến trạng thái đặc biệt mặc định của hệ thống không thể bị xóa.");
+                    }
+
+                    app.route.deletingRouteName = target;
+                    document.getElementById('del-route-target-name').innerText = target;
+                    document.getElementById('del-route-dest-display').value = 'Ngoài giờ hoạt động';
+                    document.getElementById('del-route-dest-val').value = 'Ngoài giờ hoạt động';
+                    document.getElementById('del-route-dest-val').dataset.routeName = 'Ngoài giờ hoạt động';
+
+                    const modal = document.getElementById('route-delete-modal');
+                    const content = document.getElementById('route-delete-content');
+                    modal.classList.remove('hidden');
+                    app.ui.lockScroll();
+                    setTimeout(() => {
+                        content.classList.remove('opacity-0', 'scale-95');
+                        content.classList.add('opacity-100', 'scale-100');
+                    }, 10);
+                },
+
+                closeDeletePrompt: () => {
+                    const modal = document.getElementById('route-delete-modal');
+                    const content = document.getElementById('route-delete-content');
+                    if (!modal || !content) return;
                     content.classList.remove('opacity-100', 'scale-100');
                     content.classList.add('opacity-0', 'scale-95');
                     setTimeout(() => {
@@ -12394,161 +14981,145 @@ if (!decodedProvince || decodedProvince.trim() === '') {
                         app.ui.unlockScroll();
                     }, 200);
                 },
-                submitEdit: async () => {
-                    if (!app.user) return;
-                    const desc = document.getElementById('route-edit-desc').value.trim();
-                    const shortPath = document.getElementById('route-edit-short-path').value.trim();
-                    const isInactive = document.getElementById('route-edit-inactive').checked;
-                    const ticketPrice = document.getElementById('route-edit-ticket-price').value.trim();
-                    const headway = document.getElementById('route-edit-headway').value.trim();
-                    const wheelchairSupport = document.getElementById('route-edit-wheelchair').checked;
-                    const borrowedPhotosStr = document.getElementById('route-edit-borrowed').value.trim();
-                    
-                    let metadata = {};
-                    if (ticketPrice) metadata.ticket_price = ticketPrice;
-                    if (headway) metadata.headway = headway;
-                    if (wheelchairSupport) metadata.wheelchair_support = wheelchairSupport;
-                    
-                    const iconType = document.getElementById('route-edit-icon').value;
-                    if (iconType !== 'default') {
-                        const expectedRouteNo = (app.route.currentProvince ? `${app.route.currentRoute} - ${app.route.currentProvince}` : app.route.currentRoute).split(' - ')[0];
-                        if (expectedRouteNo.length <= 5) {
-                            metadata.icon_type = iconType;
-                        } else {
-                            app.toast.show('warning', 'Lưu ý', 'Tên tuyến dài hơn 5 kí tự không thể sử dụng icon tùy chỉnh. Đã tự động chuyển về mặc định.');
-                        }
-                    }
-                    
-                    let metadataObj = Object.keys(metadata).length > 0 ? metadata : null;
-                      const rawInputList = borrowedPhotosStr ? borrowedPhotosStr.split(',').map(s => s.trim()).filter(Boolean) : [];
-                      const enteredIdsStr = rawInputList.filter(s => /^\d+$/.test(s));
-                      const enteredPlates = rawInputList.filter(s => !/^\d+$/.test(s));
-                      const newBorrowedIds = enteredIdsStr.map(Number);
-                      
-                      if (enteredPlates.length > 0) {
-                          metadataObj = metadataObj || {};
-                          metadataObj.borrowed_plates = enteredPlates;
-                      } else if (metadataObj && metadataObj.borrowed_plates) {
-                          delete metadataObj.borrowed_plates;
-                          if (Object.keys(metadataObj).length === 0) metadataObj = null;
-                      }
-                    
-                    const btn = document.getElementById('btn-save-route');
-                    
-                    const executeSave = async () => {
-                        if (app.role !== 'admin' && app.role !== 'manager') {
-                            try { await app.captcha.request(); } catch (err) { if (err.message !== "CAPTCHA_CANCELLED") app.ui.showAlert("Lỗi xác thực Captcha."); return; }
-                        }
-                        const origText = btn.innerHTML;
-                        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang xử lý...';
-                        btn.disabled = true;
-                        try {
-                            if (app.role === 'admin' || app.role === 'manager') {
-                                const routeName = app.route.currentProvince ? `${app.route.currentRoute} - ${app.route.currentProvince}` : app.route.currentRoute;
-                                if (!desc && !shortPath && !isInactive && !metadataObj) {
-                                    const { error: delErr } = await window.sb.from('route_info').delete().eq('route_name', routeName);
-                                    if (delErr) throw delErr;
-                                } else {
-                                    const { error: upsertErr } = await window.sb.from('route_info').upsert({
-                                        route_name: routeName,
-                                        short_path: shortPath || null,
-                                        description: desc || null,
-                                        is_inactive: isInactive,
-                                        metadata: metadataObj
-                                    });
-                                    if (upsertErr) throw upsertErr;
-                                }
-                                
-                                // Xử lý cập nhật ID ảnh và biển số xe vá tuyến
-                                  const { data: curBorrowed } = await window.sb.from('photos').select('id, license_plate').eq('borrowed_route', routeName);
-                                  const curIds = curBorrowed ? curBorrowed.map(p => p.id) : [];
-                                  const addedIdsRaw = newBorrowedIds.filter(id => !curIds.includes(id));
-                                  const removedIds = curIds.filter(id => !newBorrowedIds.includes(id));
-                                  
-                                  const expectedRouteNo = routeName.split(' - ')[0];
-                                  if (enteredPlates.length > 0) {
-                                      const { data: retroPhotos } = await window.sb.from('photos').select('id, route_no').in('license_plate', enteredPlates).eq('route_no', expectedRouteNo);
-                                      if (retroPhotos && retroPhotos.length > 0) {
-                                          retroPhotos.forEach(p => {
-                                              if (!curIds.includes(p.id) && !addedIdsRaw.includes(p.id)) {
-                                                  addedIdsRaw.push(p.id);
-                                              }
-                                          });
-                                      }
-                                  }
-                                  
-                                  if (addedIdsRaw.length > 0) {
-                                      const { data: validPhotos } = await window.sb.from('photos').select('id, route_no').in('id', addedIdsRaw);
-                                      const trulyAddedIds = (validPhotos || []).filter(p => p.route_no === expectedRouteNo).map(p => p.id);
-                                      
-                                      if (trulyAddedIds.length > 0) {
-                                          await window.sb.from('photos').update({ borrowed_route: routeName }).in('id', trulyAddedIds);
-                                      }
-                                  }
-                                  
-                                  let finalRemovedIds = removedIds;
-                                  if (enteredPlates.length > 0 && curBorrowed) {
-                                      finalRemovedIds = removedIds.filter(id => {
-                                          const photo = curBorrowed.find(p => p.id === id);
-                                          return !(photo && enteredPlates.some(plate => plate.toLowerCase() === photo.license_plate.toLowerCase()));
-                                      });
-                                  }
-                                  if (finalRemovedIds.length > 0) {
-                                    const removedPhotos = curBorrowed.filter(p => finalRemovedIds.includes(p.id));
-                                    for (const p of removedPhotos) {
-                                        let defProv = 'Chưa xác định';
-                                        const match = p.license_plate.match(/^(\d{2})/);
-                                        if (match && app.utils.provinceData) {
-                                            const num = match[1];
-                                            const pData = app.utils.provinceData.find(pd => {
-                                                if (Array.isArray(pd.ky_hieu)) return pd.ky_hieu.includes(parseInt(num)) || pd.ky_hieu.includes(num);
-                                                return String(pd.ky_hieu).split(',').map(s=>s.trim()).includes(num);
-                                            });
-                                            if (pData) defProv = pData.ten;
-                                        }
-                                        await window.sb.from('photos').update({ borrowed_route: null }).eq('id', p.id);
-                                    }
-                                }
-                                app.toast.show('success', 'Thành công', 'Đã lưu thông tin Tuyến!');
-                                app.route.closeEditPrompt();
-                                app.route.loadRoutePage(app.route.currentProvince, app.route.currentRoute, true);
-                            } else {
-                                const routeName = app.route.currentProvince ? `${app.route.currentRoute} - ${app.route.currentProvince}` : app.route.currentRoute;
-                                let checkQuery = window.sb.from('edit_requests').select('*', { count: 'exact', head: true }).eq('status', 'pending');
-                                const { count, error: checkErr } = await checkQuery.contains('new_data', { request_type: 'update_route_info', route_name: routeName });
-                                if (checkErr) throw checkErr;
-                                if (count > 0) throw new Error("Đã có một yêu cầu cập nhật thông tin cho tuyến này đang chờ duyệt.");
-                                
-                                const reqData = {
-                                    requester_id: app.user.id,
-                                    license_plate: 'ROUTE_INFO',
-                                    new_data: {
-                                        request_type: 'update_route_info',
-                                        route_name: routeName,
-                                        short_path: shortPath || null,
-                                        description: desc || null,
-                                        is_inactive: isInactive,
-                                        metadata: metadataObj,
-                                        borrowed_photos_str: borrowedPhotosStr
-                                    },
-                                    status: 'pending'
-                                };
-                                const { error } = await window.sb.from('edit_requests').insert(reqData);
-                                if (error) throw error;
-                                app.ui.showAlert("Đã gửi yêu cầu cập nhật thông tin Tuyến và đang chờ Admin duyệt.");
-                                app.route.closeEditPrompt();
+
+                chooseDeleteDestination: () => {
+                    const delModal = document.getElementById('route-delete-modal');
+                    if (delModal) delModal.classList.add('hidden');
+                    app.route.openSelector({
+                        excludeRoute: app.route.deletingRouteName,
+                        onSelect: (r) => {
+                            const disp = r.route_name || r.route_no;
+                            document.getElementById('del-route-dest-display').value = disp;
+                            document.getElementById('del-route-dest-val').value = r.route_no;
+                            document.getElementById('del-route-dest-val').dataset.routeName = disp;
+                            if (delModal) {
+                                delModal.classList.remove('hidden');
+                                app.ui.lockScroll();
                             }
-                        } catch (err) {
-                            app.ui.showAlert("Lỗi: " + err.message);
-                        } finally {
-                            btn.innerHTML = origText;
-                            btn.disabled = false;
                         }
-                    };
-                    
-                    executeSave();
+                    });
+                },
+
+                confirmDeleteRoute: async () => {
+                    if (!app.user) return;
+                    const deletingName = app.route.deletingRouteName;
+                    if (!deletingName) return;
+                    const cachedRoute = (app.route.cachedRoutes || []).find(r => r.route_name === deletingName);
+                    const isDelCoach = cachedRoute?.metadata?.vehicle_type === 'coach';
+                    const deletingNo = (!isDelCoach && deletingName.includes(' - ')) ? deletingName.split(' - ')[0].trim() : deletingName;
+                    const deletingProv = isDelCoach ? '' : (deletingName.includes(' - ') ? deletingName.split(' - ').slice(1).join(' - ').trim() : '');
+
+                    const destRouteNo = (document.getElementById('del-route-dest-val')?.value || 'Ngoài giờ hoạt động').trim();
+                    const destRouteName = (document.getElementById('del-route-dest-val')?.dataset.routeName || destRouteNo).trim();
+
+                    const btn = document.getElementById('btn-confirm-delete-route');
+                    const origText = btn.innerHTML;
+                    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1"></i> Đang xóa...';
+                    btn.disabled = true;
+
+                    try {
+                        if (app.role === 'admin' || app.role === 'manager') {
+                            const newBorrowed = destRouteName !== destRouteNo ? destRouteName : null;
+                            const provMatch = deletingProv && app.utils.provinceData ? app.utils.provinceData.find(p => p.ten.toLowerCase() === deletingProv.toLowerCase()) : null;
+                            const provPrefixes = provMatch ? (Array.isArray(provMatch.ky_hieu) ? provMatch.ky_hieu : String(provMatch.ky_hieu).split(',').map(s => s.trim())) : [];
+
+                            // 1. Chuyển tất cả ảnh thuộc tuyến bị xóa sang tuyến đích (chỉ các ảnh thực sự thuộc tuyến và tỉnh này)
+                            const { data: candPhotos } = await window.sb.from('photos')
+                                .select('id, license_plate, route_no, borrowed_route')
+                                .or(`route_no.eq."${deletingNo}",borrowed_route.eq."${deletingName}"`);
+                            
+                            const isPhotoMatch = (p) => {
+                                if (p.borrowed_route === deletingName) return true;
+                                if (p.route_no === deletingNo && (!p.borrowed_route || p.borrowed_route === '')) {
+                                    if (provMatch) {
+                                        if (provPrefixes.some(pref => (p.license_plate || '').startsWith(pref))) return true;
+                                        if (app.utils.getProvinceFromPlate && app.utils.getProvinceFromPlate(p.license_plate) === provMatch.ten) return true;
+                                        return false;
+                                    }
+                                    return p.borrowed_route === deletingName || p.route_no === deletingName;
+                                }
+                                return false;
+                            };
+
+                            const targetPhotoIds = (candPhotos || []).filter(isPhotoMatch).map(p => p.id);
+                            for (let i = 0; i < targetPhotoIds.length; i += 100) {
+                                const chunk = targetPhotoIds.slice(i, i + 100);
+                                await window.sb.from('photos').update({ route_no: destRouteNo, borrowed_route: newBorrowed }).in('id', chunk);
+                            }
+
+                            // 2. Chuyển tất cả lịch sử phương tiện (vehicle_history) sang tuyến đích (chỉ xe thuộc tỉnh này)
+                            const { data: candHist } = await window.sb.from('vehicle_history')
+                                .select('id, license_plate, route')
+                                .or(`route.eq."${deletingNo}",route.eq."${deletingName}"`);
+
+                            const isHistMatch = (h) => {
+                                if (h.route === deletingName) return true;
+                                if (h.route === deletingNo) {
+                                    const vehiclePhotos = (candPhotos || []).filter(p => (p.license_plate || '').toUpperCase() === (h.license_plate || '').toUpperCase());
+                                    const hasThisBorrowed = vehiclePhotos.some(p => p.borrowed_route === deletingName);
+                                    if (hasThisBorrowed) return true;
+                                    const hasOtherBorrowed = vehiclePhotos.some(p => p.borrowed_route && p.borrowed_route !== deletingName && p.route_no === deletingNo);
+                                    if (hasOtherBorrowed) return false;
+
+                                    if (provMatch) {
+                                        if (provPrefixes.some(pref => (h.license_plate || '').startsWith(pref))) return true;
+                                        if (app.utils.getProvinceFromPlate && app.utils.getProvinceFromPlate(h.license_plate) === provMatch.ten) return true;
+                                        return false;
+                                    }
+                                    return h.route === deletingName;
+                                }
+                                return false;
+                            };
+
+                            const targetHistIds = (candHist || []).filter(isHistMatch).map(h => h.id);
+                            for (let i = 0; i < targetHistIds.length; i += 100) {
+                                const chunk = targetHistIds.slice(i, i + 100);
+                                await window.sb.from('vehicle_history').update({ route: destRouteNo }).in('id', chunk);
+                            }
+
+                            // 3. Xóa hồ sơ tuyến khỏi bảng route_info
+                            const { error: delErr } = await window.sb.from('route_info').delete().eq('route_name', deletingName);
+                            if (delErr) throw delErr;
+
+                            app.route.cachedRoutes = null;
+                            app.toast.show('success', 'Đã xóa tuyến', `Đã chuyển toàn bộ ảnh và lịch sử xe sang tuyến "${destRouteName}" và xóa hồ sơ.`);
+                            app.route.closeDeletePrompt();
+                            app.route.closeEditPrompt();
+
+                            if (app.route.currentRoute === deletingNo) {
+                                app.utils.navigate('/');
+                            }
+                            await app.route.fetchRoutes(true);
+                            app.route.filterSelector();
+                        } else {
+                            // Thành viên thường gửi yêu cầu duyệt xóa
+                            const reqData = {
+                                requester_id: app.user.id,
+                                license_plate: 'ROUTE_INFO',
+                                new_data: {
+                                    request_type: 'delete_route',
+                                    route_name: deletingName,
+                                    route_no: deletingNo,
+                                    province: deletingProv,
+                                    dest_route_no: destRouteNo,
+                                    dest_route_name: destRouteName
+                                },
+                                status: 'pending'
+                            };
+                            const { error } = await window.sb.from('edit_requests').insert(reqData);
+                            if (error) throw error;
+                            app.ui.showAlert(`Đã gửi yêu cầu xóa tuyến và chuyển dữ liệu sang tuyến "${destRouteName}". Admin sẽ kiểm duyệt yêu cầu của bạn.`);
+                            app.route.closeDeletePrompt();
+                            app.route.closeEditPrompt();
+                        }
+                    } catch (err) {
+                        app.ui.showAlert("Lỗi khi xóa tuyến: " + err.message);
+                    } finally {
+                        btn.innerHTML = origText;
+                        btn.disabled = false;
+                    }
                 }
-  }
+            }
 });
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -13573,7 +16144,7 @@ Object.assign(window.app, {
                         if (exactVehicle) {
                             const { data } = await window.sb
                                 .from('photos')
-                                .select('operator, route_no, type, taken_at, created_at')
+                                .select('operator, route_no, borrowed_route, type, taken_at, created_at')
                                 .eq('license_plate', rawPlate)
                                 .eq('status', 'approved')
                                 .order('taken_at', { ascending: false, nullsFirst: false })
@@ -13595,9 +16166,16 @@ Object.assign(window.app, {
                                     return Math.abs(timeA - uploadDate) - Math.abs(timeB - uploadDate);
                                 });
                                 let validPhoto = recentPhotos.find(p => p.route_no !== 'Ngoài giờ hoạt động');
-                                if (!validPhoto) validPhoto = { operator: recentPhotos[0].operator, route_no: '', type: recentPhotos[0].type };
+                                if (!validPhoto) validPhoto = { operator: recentPhotos[0].operator, route_no: '', borrowed_route: null, type: recentPhotos[0].type };
                                 document.getElementById('up-operator').value = validPhoto.operator || '';
-                                document.getElementById('up-route').value = validPhoto.route_no || '';
+                                const upRouteEl = document.getElementById('up-route');
+                                const finalRouteName = validPhoto.borrowed_route || validPhoto.route_no || '';
+                                const finalRouteNo = validPhoto.route_no || finalRouteName;
+                                if (upRouteEl) {
+                                    upRouteEl.value = finalRouteNo;
+                                    upRouteEl.dataset.routeName = finalRouteName;
+                                    upRouteEl.dataset.routeNo = finalRouteNo;
+                                }
                                 const dbType = validPhoto.type || 'bus';
                                 const prefType = app.preference.current;
                                 if (prefType !== 'both' && dbType !== prefType) {
@@ -13691,6 +16269,7 @@ Object.assign(window.app, {
                     app.upload.performSelectType(type);
                 },
                 performSelectType: (type) => {
+                    app.upload.selectedType = type;
                     document.getElementById('up-type').value = type;
                     document.getElementById('type-msg').classList.add('hidden');
                     const btnBus = document.getElementById('btn-type-bus');
@@ -13852,12 +16431,22 @@ Object.assign(window.app, {
                     }
                 },
                 updateWmRotate: (val) => {
-                    const deg = parseInt(val, 10) || 0;
+                    let deg = parseInt(val, 10);
+                    if (isNaN(deg)) deg = 0;
+                    if (deg < -180) deg = -180;
+                    if (deg > 180) deg = 180;
                     if (!app.wmState) app.wmState = {};
                     app.wmState.rotate = deg;
                     const valEl = document.getElementById('wm-rotate-val');
                     if (valEl) valEl.innerText = deg + '°';
+                    const rotSlider = document.getElementById('wm-rotate-slider');
+                    if (rotSlider && parseInt(rotSlider.value, 10) !== deg) rotSlider.value = deg;
                     if (app.upload.clampWmPosition) app.upload.clampWmPosition();
+                },
+                stepWmRotate: (delta) => {
+                    const slider = document.getElementById('wm-rotate-slider');
+                    let current = slider ? (parseInt(slider.value, 10) || 0) : ((app.wmState && app.wmState.rotate !== undefined) ? app.wmState.rotate : 0);
+                    app.upload.updateWmRotate(current + delta);
                 },
                 updateWmScale: (val) => {
                     const scaleVal = parseInt(val, 10) || 100;
@@ -13865,7 +16454,16 @@ Object.assign(window.app, {
                     app.wmState.scale = scaleVal / 100;
                     const valEl = document.getElementById('wm-scale-val');
                     if (valEl) valEl.innerText = scaleVal + '%';
+                    const slider = document.getElementById('wm-scale-slider');
+                    if (slider && parseInt(slider.value, 10) !== scaleVal) slider.value = scaleVal;
                     if (app.upload.clampWmPosition) app.upload.clampWmPosition();
+                },
+                stepWmScale: (delta) => {
+                    const slider = document.getElementById('wm-scale-slider');
+                    let current = slider ? (parseInt(slider.value, 10) || 100) : ((app.wmState && app.wmState.scale !== undefined) ? Math.round(app.wmState.scale * 100) : 100);
+                    let nextVal = Math.min(100, Math.max(50, current + delta));
+                    if (slider) slider.value = nextVal;
+                    app.upload.updateWmScale(nextVal);
                 },
                 updateWmBarScale: (val) => {
                     const barScaleVal = parseInt(val, 10) || 100;
@@ -13873,6 +16471,8 @@ Object.assign(window.app, {
                     app.wmState.barScale = barScaleVal / 100;
                     const valEl = document.getElementById('wm-bar-scale-val');
                     if (valEl) valEl.innerText = barScaleVal + '%';
+                    const slider = document.getElementById('wm-bar-scale-slider');
+                    if (slider && parseInt(slider.value, 10) !== barScaleVal) slider.value = barScaleVal;
                     try { localStorage.setItem('vnbus_wm_bar_scale', barScaleVal.toString()); } catch(e){}
                     if (!app.upload.debouncedSaveWmPrefs) {
                         app.upload.debouncedSaveWmPrefs = app.utils.debounce(() => {
@@ -13882,6 +16482,13 @@ Object.assign(window.app, {
                     app.upload.debouncedSaveWmPrefs();
                     if (app.previewUpdateSize) app.previewUpdateSize();
                     if (app.upload.clampWmPosition) app.upload.clampWmPosition();
+                },
+                stepWmBarScale: (delta) => {
+                    const slider = document.getElementById('wm-bar-scale-slider');
+                    let current = slider ? (parseInt(slider.value, 10) || 100) : ((app.wmState && app.wmState.barScale !== undefined) ? Math.round(app.wmState.barScale * 100) : 100);
+                    let nextVal = Math.min(150, Math.max(50, current + delta));
+                    if (slider) slider.value = nextVal;
+                    app.upload.updateWmBarScale(nextVal);
                 },
                 clampWmPosition: () => {
                     const el = document.getElementById('draggable-watermark');
@@ -13899,8 +16506,8 @@ Object.assign(window.app, {
                     if (!cWidth || !cHeight) return;
                     
                     const wmCanvas = document.getElementById('preview-wm-canvas');
-                    const rawW = wmCanvas ? wmCanvas.width : (el.offsetWidth || 100);
-                    const rawH = wmCanvas ? wmCanvas.height : (el.offsetHeight || 30);
+                    const rawW = wmCanvas ? (parseFloat(wmCanvas.style.width) || wmCanvas.width) : (el.offsetWidth || 100);
+                    const rawH = wmCanvas ? (parseFloat(wmCanvas.style.height) || wmCanvas.height) : (el.offsetHeight || 30);
                     
                     const rad = Math.abs((rotate || 0) * Math.PI / 180);
                     const cos = Math.abs(Math.cos(rad));
@@ -13909,13 +16516,21 @@ Object.assign(window.app, {
                     const wHalf = (scale * (rawW * cos + rawH * sin)) / 2;
                     const hHalf = (scale * (rawW * sin + rawH * cos)) / 2;
                     
-                    const footerBar = document.getElementById('preview-footer-bar');
-                    const footerBarH = footerBar ? footerBar.offsetHeight : (cHeight * 0.0576 * barScale);
+                    const footerBarH = cHeight * 0.0576 * barScale;
                     
-                    const minLeft = wHalf;
-                    const maxLeft = Math.max(minLeft, cWidth - wHalf);
-                    const minTop = hHalf;
-                    const maxTop = Math.max(minTop, cHeight - footerBarH - hHalf);
+                    let minLeft = wHalf;
+                    let maxLeft = cWidth - wHalf;
+                    if (minLeft > maxLeft) {
+                        minLeft = cWidth / 2;
+                        maxLeft = cWidth / 2;
+                    }
+
+                    let minTop = hHalf;
+                    let maxTop = cHeight - footerBarH - hHalf;
+                    if (minTop > maxTop) {
+                        minTop = (cHeight - footerBarH) / 2;
+                        maxTop = (cHeight - footerBarH) / 2;
+                    }
                     
                     let currentLeft = (app.wmState.x !== undefined ? app.wmState.x : 0.5) * cWidth;
                     let currentTop = (app.wmState.y !== undefined ? app.wmState.y : 0.5) * cHeight;
@@ -13933,7 +16548,10 @@ Object.assign(window.app, {
                     if (!app.wmState) app.wmState = {};
                     app.wmState.rotate = 0;
                     app.wmState.scale = 1.0;
-                    app.wmState.barScale = 1.0;
+                    const savedBarScale = (typeof localStorage !== 'undefined' && localStorage.getItem('vnbus_wm_bar_scale') !== null) ? (parseInt(localStorage.getItem('vnbus_wm_bar_scale'), 10) / 100) : 1.0;
+                    if (app.wmState.barScale === undefined) {
+                        app.wmState.barScale = savedBarScale;
+                    }
                     app.wmState.color = 'white';
                     app.wmState.x = 0.5;
                     app.wmState.y = 0.5;
@@ -13949,9 +16567,10 @@ Object.assign(window.app, {
                     if (valEl) valEl.innerText = '100%';
                     
                     const barSlider = document.getElementById('wm-bar-scale-slider');
-                    if (barSlider) barSlider.value = 100;
+                    const bsPercent = Math.round((app.wmState.barScale !== undefined ? app.wmState.barScale : 1.0) * 100);
+                    if (barSlider) barSlider.value = bsPercent;
                     const barValEl = document.getElementById('wm-bar-scale-val');
-                    if (barValEl) barValEl.innerText = '100%';
+                    if (barValEl) barValEl.innerText = bsPercent + '%';
                     
                     const chk = document.getElementById('chk-wm-black');
                     if (chk) chk.checked = false;
@@ -13959,10 +16578,7 @@ Object.assign(window.app, {
                     try {
                         localStorage.removeItem('vnbus_wm_rotate');
                         localStorage.removeItem('vnbus_wm_scale');
-                        localStorage.setItem('vnbus_wm_bar_scale', '100');
                     } catch(e){}
-                    
-                    if (app.upload.savePreferencesToServer) app.upload.savePreferencesToServer();
                     
                     const savedMode = (typeof localStorage !== 'undefined' && localStorage.getItem('vnbus_wm_mode')) || (app.wmState && app.wmState.mode) || 'basic';
                     app.upload.setWmMode(savedMode, false);
@@ -14032,11 +16648,11 @@ Object.assign(window.app, {
                 },
                 currentFilters: 'none',
                 closeAllUploadPanels: () => {
-                    ['color-adjust-panel', 'blur-adjust-panel', 'wm-adjust-panel'].forEach(id => {
+                    ['color-adjust-panel', 'histogram-panel', 'blur-adjust-panel', 'wm-adjust-panel'].forEach(id => {
                         const el = document.getElementById(id);
                         if (el) el.classList.add('hidden');
                     });
-                    ['btn-adjust-color', 'btn-add-blur', 'btn-adjust-wm'].forEach(id => {
+                    ['btn-adjust-color', 'btn-histogram', 'btn-add-blur', 'btn-adjust-wm'].forEach(id => {
                         const el = document.getElementById(id);
                         if (el) {
                             el.classList.remove('bg-black', 'text-white', 'border-black');
@@ -14055,6 +16671,99 @@ Object.assign(window.app, {
                             btn.classList.remove('bg-white', 'text-gray-700', 'border-gray-300', 'hover:bg-gray-100', 'hover:text-black');
                             btn.classList.add('bg-black', 'text-white', 'border-black');
                         }
+                    }
+                },
+                histogramMode: 'luma',
+                histogramData: null,
+                histDebounce: null,
+                toggleHistogramPanel: () => {
+                    const panel = document.getElementById('histogram-panel');
+                    const btn = document.getElementById('btn-histogram');
+                    const isHidden = panel ? panel.classList.contains('hidden') : true;
+                    if (app.upload.closeAllUploadPanels) app.upload.closeAllUploadPanels();
+                    if (isHidden && panel) {
+                        panel.classList.remove('hidden');
+                        if (btn) {
+                            btn.classList.remove('bg-white', 'text-gray-700', 'border-gray-300', 'hover:bg-gray-100', 'hover:text-black');
+                            btn.classList.add('bg-black', 'text-white', 'border-black');
+                        }
+                        app.upload.renderHistogram();
+                    }
+                },
+                switchHistogramMode: (mode) => {
+                    app.upload.histogramMode = mode;
+                    if (app.upload.histogramData) {
+                        app.upload.drawHistogram(app.upload.histogramData, mode);
+                    } else {
+                        app.upload.renderHistogram();
+                    }
+                },
+                renderHistogram: () => {
+                    const previewImg = document.getElementById('preview-img');
+                    if (!previewImg || !previewImg.src) return;
+                    const loadingEl = document.getElementById('up-hist-loading');
+                    if (loadingEl) loadingEl.classList.remove('hidden');
+
+                    const doCompute = () => {
+                        try {
+                            const data = app.utils.computeHistogramData(previewImg, app.upload.currentFilters || 'none');
+                            app.upload.histogramData = data;
+                            app.upload.drawHistogram(data, app.upload.histogramMode || 'luma');
+                        } catch (err) {
+                            console.error('Lỗi tính toán Histogram:', err);
+                            if (loadingEl) {
+                                loadingEl.innerHTML = '<span class="text-red-400 text-xs">Không thể phân tích ảnh</span>';
+                            }
+                        }
+                    };
+
+                    if (!previewImg.complete || previewImg.naturalWidth === 0) {
+                        previewImg.onload = () => {
+                            doCompute();
+                        };
+                        return;
+                    }
+                    setTimeout(doCompute, 20);
+                },
+                drawHistogram: (data, mode = null) => {
+                    const canvas = document.getElementById('up-hist-canvas');
+                    if (!canvas || !data) return;
+
+                    const activeMode = mode || app.upload.histogramMode || 'luma';
+                    app.upload.histogramMode = activeMode;
+
+                    const btnLuma = document.getElementById('up-hist-btn-luma');
+                    const btnRgb = document.getElementById('up-hist-btn-rgb');
+                    if (btnLuma && btnRgb) {
+                        if (activeMode === 'luma') {
+                            btnLuma.className = "text-[10px] font-bold px-2.5 py-1 rounded border border-black dark:border-white bg-black text-white dark:bg-white dark:text-black transition";
+                            btnRgb.className = "text-[10px] font-bold px-2.5 py-1 rounded border border-black dark:border-white bg-white text-black dark:bg-black dark:text-white hover:bg-gray-100 dark:hover:bg-gray-800 transition";
+                        } else {
+                            btnRgb.className = "text-[10px] font-bold px-2.5 py-1 rounded border border-black dark:border-white bg-black text-white dark:bg-white dark:text-black transition";
+                            btnLuma.className = "text-[10px] font-bold px-2.5 py-1 rounded border border-black dark:border-white bg-white text-black dark:bg-black dark:text-white hover:bg-gray-100 dark:hover:bg-gray-800 transition";
+                        }
+                    }
+
+                    app.utils.drawHistogramCanvas(canvas, data, activeMode);
+
+                    const loadingEl = document.getElementById('up-hist-loading');
+                    if (loadingEl) loadingEl.classList.add('hidden');
+
+                    const avgEl = document.getElementById('up-hist-avg');
+                    const shadowEl = document.getElementById('up-hist-shadow');
+                    const highEl = document.getElementById('up-hist-high');
+
+                    const avgPct = Math.round((data.avgLuma / 255) * 100);
+                    if (avgEl) avgEl.innerText = `${avgPct}%`;
+                    if (shadowEl) {
+                        shadowEl.innerText = `${data.shadowPercent.toFixed(1)}%`;
+                        if (data.shadowPercent > 18) shadowEl.className = "text-xs font-bold text-red-600 font-mono";
+                        else shadowEl.className = "text-xs font-bold text-black dark:text-white font-mono";
+                    }
+                    if (highEl) {
+                        highEl.innerText = `${data.highlightPercent.toFixed(1)}%`;
+                        if (data.highlightPercent > 5) highEl.className = "text-xs font-bold text-red-600 font-mono";
+                        else highEl.className = "text-xs font-bold text-black dark:text-white font-mono";
                     }
                 },
                 currentDenoise: 0,
@@ -14082,6 +16791,14 @@ Object.assign(window.app, {
                     if(previewImg) previewImg.style.filter = filterString;
                     app.upload.currentFilters = filterString;
                     app.upload.currentDenoise = d;
+
+                    if (app.upload.histDebounce) clearTimeout(app.upload.histDebounce);
+                    const histPanel = document.getElementById('histogram-panel');
+                    if (histPanel && !histPanel.classList.contains('hidden')) {
+                        app.upload.histDebounce = setTimeout(() => {
+                            app.upload.renderHistogram();
+                        }, 60);
+                    }
 
                     if (app.upload.denoiseTimeout) clearTimeout(app.upload.denoiseTimeout);
                     app.upload.denoiseTimeout = setTimeout(() => {
@@ -14222,6 +16939,8 @@ Object.assign(window.app, {
                     if(app.upload.resetFilters) app.upload.resetFilters();
                     document.querySelectorAll('.blur-panel').forEach(p => p.remove());
                     if (app.upload.updateBlurBtn) app.upload.updateBlurBtn();
+                    if (app.upload.closeAllUploadPanels) app.upload.closeAllUploadPanels();
+                    app.upload.histogramData = null;
                 },
                 handleFileSelect: async (e) => {
                     const fileInput = document.getElementById('up-file');
@@ -14628,7 +17347,12 @@ Object.assign(window.app, {
                     app.upload.basePreviewUrl = url;
                     app.upload.basePreviewImage = new Image();
                     app.upload.basePreviewImage.src = url;
+                    document.getElementById('preview-box').classList.remove('hidden');
+                    document.getElementById('drop-zone').classList.add('hidden');
+                    if (app.upload.restoreDropZone) app.upload.restoreDropZone();
                     const previewImg = document.getElementById('preview-img');
+                    if (!previewImg) return;
+
                     previewImg.onload = () => {
                         const updateSize = () => {
                             const nw = previewImg.naturalWidth, nh = previewImg.naturalHeight;
@@ -14637,7 +17361,13 @@ Object.assign(window.app, {
                             const box = document.getElementById('preview-box');
                             container.style.width = '100%';
                             container.style.height = 'auto';
-                            const availableWidth = box.clientWidth;
+                            let availableWidth = box ? box.clientWidth : 0;
+                            if (!availableWidth && box && box.parentElement) {
+                                availableWidth = box.parentElement.clientWidth;
+                            }
+                            if (!availableWidth) {
+                                availableWidth = Math.min(window.innerWidth - 32, 600);
+                            }
                             const availableHeight = window.innerHeight * 0.65;
                             const ratio = nw / nh;
                             let finalW = availableWidth;
@@ -14646,22 +17376,61 @@ Object.assign(window.app, {
                                 finalH = availableHeight;
                                 finalW = finalH * ratio;
                             }
+                            finalW = Math.round(finalW);
+                            finalH = Math.round(finalH);
                             container.style.width = finalW + 'px';
                             container.style.height = finalH + 'px';
+
                             const barScale = (app.wmState && app.wmState.barScale !== undefined) ? app.wmState.barScale : 1.0;
                             const barHeight = finalH * 0.0576 * barScale;
-                            const baseFontSize = finalH * 0.02304 * barScale;
-                            const watermarkFontSize = finalH * 0.096;
+                            const fontSize = barHeight * 0.4;
+                            const padX = barHeight / 2;
+
                             const footerBar = document.getElementById('preview-footer-bar');
                             if (footerBar) {
                                 footerBar.style.height = barHeight + 'px';
-                                footerBar.style.paddingLeft = (barHeight / 2) + 'px';
-                                footerBar.style.paddingRight = (barHeight / 2) + 'px';
+                                let footerCanvas = document.getElementById('preview-footer-canvas');
+                                if (!footerCanvas) {
+                                    footerCanvas = document.createElement('canvas');
+                                    footerCanvas.id = 'preview-footer-canvas';
+                                    footerCanvas.className = 'w-full h-full block pointer-events-none';
+                                    footerBar.innerHTML = '';
+                                    footerBar.appendChild(footerCanvas);
+                                }
+                                const dpr = Math.max(1, window.devicePixelRatio || 1);
+                                footerCanvas.width = Math.round(finalW * dpr);
+                                footerCanvas.height = Math.round(barHeight * dpr);
+                                footerCanvas.style.width = finalW + 'px';
+                                footerCanvas.style.height = barHeight + 'px';
+
+                                const fCtx = footerCanvas.getContext('2d');
+                                fCtx.clearRect(0, 0, footerCanvas.width, footerCanvas.height);
+                                fCtx.save();
+                                fCtx.scale(dpr, dpr);
+
+                                fCtx.fillStyle = "white";
+                                fCtx.textBaseline = 'alphabetic';
+
+                                const fontFace = 'Montserrat, sans-serif';
+                                const textY = (barHeight / 2) + (fontSize * 0.35);
+
+                                // Chữ bên trái: VNBUSARCHIVE.io.vn
+                                fCtx.textAlign = 'left';
+                                fCtx.font = `italic 900 ${fontSize}px ${fontFace}`;
+                                fCtx.fillText("VNBUSARCHIVE", padX, textY);
+                                const vnbusWidth = fCtx.measureText("VNBUSARCHIVE").width;
+                                fCtx.font = `italic 700 ${fontSize * 0.8}px ${fontFace}`;
+                                fCtx.fillText(".io.vn", padX + vnbusWidth, textY);
+
+                                // Chữ bên phải: Bản quyền bởi [name] (dùng chung textY để thẳng tắp một hàng ngang)
+                                fCtx.textAlign = 'right';
+                                fCtx.font = `700 ${fontSize}px ${fontFace}`;
+                                const name = app.username || "Guest";
+                                fCtx.fillText(`Bản quyền bởi ${name}`, finalW - padX, textY);
+
+                                fCtx.restore();
                             }
-                            const leftText = document.querySelector('.footer-text-left');
-                            const rightText = document.getElementById('preview-footer-copy');
-                            if (leftText) leftText.style.fontSize = baseFontSize + 'px';
-                            if (rightText) rightText.style.fontSize = baseFontSize + 'px';
+
                             const wmDrag = document.getElementById('draggable-watermark');
                             if (wmDrag) {
                                 let wmCanvas = document.getElementById('preview-wm-canvas');
@@ -14674,19 +17443,29 @@ Object.assign(window.app, {
                                     wmDrag.style.border = 'none';
                                 }
                                 const text = `© ${app.username || 'Guest'}`;
-                                const fontFace = '"Montserrat", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif';
+                                const fontFace = 'Montserrat, sans-serif';
+                                const watermarkFontSize = finalH * 0.096;
                                 const font = `700 ${watermarkFontSize}px ${fontFace}`;
                                 const ctx = wmCanvas.getContext('2d');
                                 ctx.font = font;
                                 const metrics = ctx.measureText(text);
-                                wmCanvas.width = metrics.width + 4; 
-                                wmCanvas.height = watermarkFontSize * 1.5; 
+                                const rawW = Math.ceil(metrics.width + 4);
+                                const rawH = Math.ceil(watermarkFontSize * 1.5);
+                                const dpr = Math.max(1, window.devicePixelRatio || 1);
+                                wmCanvas.width = Math.round(rawW * dpr);
+                                wmCanvas.height = Math.round(rawH * dpr);
+                                wmCanvas.style.width = rawW + 'px';
+                                wmCanvas.style.height = rawH + 'px';
+                                ctx.save();
+                                ctx.scale(dpr, dpr);
                                 ctx.font = font;
                                 ctx.textAlign = 'center';
                                 ctx.textBaseline = 'middle';
                                 ctx.fillStyle = wmDrag.classList.contains('wm-black') ? 'black' : 'white';
-                                ctx.clearRect(0, 0, wmCanvas.width, wmCanvas.height);
-                                ctx.fillText(text, wmCanvas.width / 2, wmCanvas.height / 2);
+                                ctx.clearRect(0, 0, rawW, rawH);
+                                ctx.fillText(text, rawW / 2, rawH / 2);
+                                ctx.restore();
+
                                 const currentScale = app.wmState ? (app.wmState.scale !== undefined ? app.wmState.scale : 1.0) : 1.0;
                                 const currentRotate = app.wmState ? (app.wmState.rotate !== undefined ? app.wmState.rotate : 0) : 0;
                                 wmDrag.style.transform = `translate(-50%, -50%) rotate(${currentRotate}deg) scale(${currentScale})`;
@@ -14699,6 +17478,16 @@ Object.assign(window.app, {
                         };
                         updateSize();
                         app.previewUpdateSize = updateSize;
+                        if (typeof document !== 'undefined' && document.fonts && document.fonts.load) {
+                            Promise.all([
+                                document.fonts.load(`italic 900 16px Montserrat`),
+                                document.fonts.load(`italic 700 16px Montserrat`),
+                                document.fonts.load(`700 16px Montserrat`),
+                                document.fonts.load(`700 32px Montserrat`)
+                            ]).then(() => {
+                                if (app.previewUpdateSize) app.previewUpdateSize();
+                            }).catch(() => {});
+                        }
                         
                         if (app.upload._draftPending) {
                             const pending = app.upload._draftPending;
@@ -14733,16 +17522,18 @@ Object.assign(window.app, {
                         }
 
                         if (app.upload.updateBlurBtn) app.upload.updateBlurBtn();
+                        const histPanel = document.getElementById('histogram-panel');
+                        if (histPanel && !histPanel.classList.contains('hidden')) {
+                            app.upload.renderHistogram();
+                        }
                     };
                     previewImg.src = url;
-                    document.getElementById('preview-box').classList.remove('hidden');
-                    document.getElementById('drop-zone').classList.add('hidden');
-                    if (app.upload.restoreDropZone) app.upload.restoreDropZone();
+                    if (previewImg.complete && previewImg.naturalWidth) {
+                        previewImg.onload();
+                    }
                     const name = app.username || "Guest";
                     const wmName = document.getElementById('wm-username');
                     if (wmName) wmName.innerText = name;
-                    const footerCopy = document.getElementById('preview-footer-copy');
-                    if (footerCopy) footerCopy.innerText = `Bản quyền bởi ${name}`;
                     const wmDrag = document.getElementById('draggable-watermark');
                     if (wmDrag) {
                         if (app.wmState && app.wmState.mode === 'standard') {
@@ -14752,20 +17543,25 @@ Object.assign(window.app, {
                         }
                         wmDrag.classList.remove('wm-active');
                     }
-                    if (app.upload.resetWm) app.upload.resetWm();
+                    if (!app.upload._draftPending && app.upload.resetWm) app.upload.resetWm();
                     if (app.upload.resetFilters) app.upload.resetFilters();
+                    if (app.upload.initDraggable) app.upload.initDraggable();
                 },
                 initDraggable: () => {
-                    if (app.draggableInitialized) return;
-                    app.draggableInitialized = true;
                     const el = document.getElementById('draggable-watermark');
                     const container = document.getElementById('preview-container');
+                    if (!el || !container) return;
+                    if (app.draggableInitialized) return;
+                    app.draggableInitialized = true;
                     let isDragging = false;
                     let startX, startY, initialLeft, initialTop;
-                    const resizeObserver = new ResizeObserver(() => {
-                        if (app.previewUpdateSize) app.previewUpdateSize();
-                    });
-                    resizeObserver.observe(document.getElementById('preview-box'));
+                    const previewBox = document.getElementById('preview-box');
+                    if (previewBox && typeof ResizeObserver !== 'undefined') {
+                        const resizeObserver = new ResizeObserver(() => {
+                            if (app.previewUpdateSize) app.previewUpdateSize();
+                        });
+                        resizeObserver.observe(previewBox);
+                    }
                     document.addEventListener('mousedown', (e) => {
                         if (!el.contains(e.target)) el.classList.remove('wm-active');
                     });
@@ -14803,8 +17599,8 @@ Object.assign(window.app, {
                         const barScale = (app.wmState && app.wmState.barScale !== undefined) ? app.wmState.barScale : 1.0;
 
                         const wmCanvas = document.getElementById('preview-wm-canvas');
-                        const rawW = wmCanvas ? wmCanvas.width : (el.offsetWidth || 100);
-                        const rawH = wmCanvas ? wmCanvas.height : (el.offsetHeight || 30);
+                        const rawW = wmCanvas ? (parseFloat(wmCanvas.style.width) || wmCanvas.width) : (el.offsetWidth || 100);
+                        const rawH = wmCanvas ? (parseFloat(wmCanvas.style.height) || wmCanvas.height) : (el.offsetHeight || 30);
 
                         const rad = Math.abs(rotate * Math.PI / 180);
                         const cos = Math.abs(Math.cos(rad));
@@ -14814,13 +17610,21 @@ Object.assign(window.app, {
                         const hHalf = (scale * (rawW * sin + rawH * cos)) / 2;
 
                         const cRect = container.getBoundingClientRect();
-                        const footerBar = document.getElementById('preview-footer-bar');
-                        const footerBarH = footerBar ? footerBar.offsetHeight : (cRect.height * 0.0576 * barScale);
+                        const footerBarH = cRect.height * 0.0576 * barScale;
 
-                        const minLeft = wHalf;
-                        const maxLeft = Math.max(minLeft, cRect.width - wHalf);
-                        const minTop = hHalf;
-                        const maxTop = Math.max(minTop, cRect.height - footerBarH - hHalf);
+                        let minLeft = wHalf;
+                        let maxLeft = cRect.width - wHalf;
+                        if (minLeft > maxLeft) {
+                            minLeft = cRect.width / 2;
+                            maxLeft = cRect.width / 2;
+                        }
+
+                        let minTop = hHalf;
+                        let maxTop = cRect.height - footerBarH - hHalf;
+                        if (minTop > maxTop) {
+                            minTop = (cRect.height - footerBarH) / 2;
+                            maxTop = (cRect.height - footerBarH) / 2;
+                        }
 
                         newLeft = Math.max(minLeft, Math.min(newLeft, maxLeft));
                         newTop = Math.max(minTop, Math.min(newTop, maxTop));
@@ -14860,8 +17664,15 @@ Object.assign(window.app, {
                     }
                     const valPlate = document.getElementById('up-plate').value.trim();
                     const valOp = document.getElementById('up-operator').value.trim();
-                    const valType = document.getElementById('up-type').value;
-                    const valRoute = document.getElementById('up-route').value.trim();
+                    const valType = document.getElementById('up-type')?.value || '';
+                    const routeEl = document.getElementById('up-route');
+                    let valRoute = (routeEl?.dataset?.routeName || routeEl?.value || '').trim();
+                    if (valType !== 'coach' && valRoute && !valRoute.includes(' - ') && (!app.route?.specialRoutes || !app.route.specialRoutes.includes(valRoute))) {
+                        const upProv = document.getElementById('up-province')?.value || (valPlate ? app.utils.getProvinceFromPlate(valPlate) : '');
+                        if (upProv && upProv !== 'Không xác định' && upProv !== 'Biển tạm') {
+                            valRoute = `${valRoute} - ${upProv}`;
+                        }
+                    }
                     const valModel = document.getElementById('up-model').value.trim();
                     const valLoc = document.getElementById('up-location').value.trim();
                     const valDate = document.getElementById('up-date').value;
@@ -15192,7 +18003,8 @@ Object.assign(window.app, {
                         }
                         
                         let baseLimit = 15;
-                        if (score <= 0) baseLimit = 5;
+                        if (score < -50) baseLimit = 1;
+                        else if (score <= 0) baseLimit = 5;
                         else if (score <= 49) baseLimit = 8;
                         else if (score <= 99) baseLimit = 12;
                         else if (score === 100) baseLimit = 15;
@@ -16132,7 +18944,7 @@ Object.assign(window.app, {
             [ratioControls, rotateControls].forEach(c => {
                 if (!c) return;
                 c.classList.add('hidden');
-                c.classList.remove('flex');
+                c.classList.remove('flex', 'flex-col');
             });
 
             if (tab === 'ratio') {
@@ -16148,7 +18960,7 @@ Object.assign(window.app, {
                     slider.style.width = 'calc((100% - 14px) / 2)';
                 }
                 if (btnRotate) { btnRotate.classList.add('text-black'); btnRotate.classList.remove('text-gray-500', 'hover:text-black'); }
-                if (rotateControls) { rotateControls.classList.remove('hidden'); rotateControls.classList.add('flex'); }
+                if (rotateControls) { rotateControls.classList.remove('hidden'); rotateControls.classList.add('flex', 'flex-col'); }
             }
         },
         slideRotate: (val) => {
@@ -17212,9 +20024,16 @@ Object.assign(window.app, {
                     app.edit.isEditing = !app.edit.isEditing;
                     if (app.edit.isEditing) {
                         formInputs.forEach(input => {
-                            if (input.tagName === 'SELECT') { input.disabled = false; } 
+                            if (input.tagName === 'SELECT') {
+                                input.classList.remove('pointer-events-none', 'appearance-none', 'bg-transparent', 'cursor-default');
+                                input.classList.add('cursor-pointer', 'bg-white');
+                            } 
                             else {
-                                if (input.id !== 'info-plate' && input.id !== 'info-date') input.readOnly = false;
+                                if (input.id !== 'info-plate' && input.id !== 'info-date' && input.id !== 'info-route') input.readOnly = false;
+                                if (input.id === 'info-route') {
+                                    input.readOnly = true;
+                                    input.classList.add('cursor-pointer', 'bg-gray-50');
+                                }
                                 if (input.id === 'info-note') {
                                     const displayDiv = document.getElementById('info-note-display');
                                     if (displayDiv) displayDiv.classList.add('hidden');
@@ -17250,9 +20069,15 @@ Object.assign(window.app, {
                 cancel: () => {
                     const formInputs = document.querySelectorAll('#inline-edit-form .info-input');
                     formInputs.forEach(input => {
-                        if (input.tagName === 'SELECT') input.disabled = true;
+                        if (input.tagName === 'SELECT') {
+                            input.classList.add('pointer-events-none', 'appearance-none', 'bg-transparent', 'cursor-default');
+                            input.classList.remove('cursor-pointer', 'bg-white');
+                        }
                         else {
                             input.readOnly = true;
+                            if (input.id === 'info-route') {
+                                input.classList.remove('cursor-pointer', 'bg-gray-50');
+                            }
                             if (input.id === 'info-note') {
                                 const displayDiv = document.getElementById('info-note-display');
                                 if (displayDiv) displayDiv.classList.remove('hidden');
@@ -17284,11 +20109,20 @@ Object.assign(window.app, {
                     const btn = document.getElementById('btn-save-inline');
                     const originalText = btn.innerText;
                     btn.innerText = "Đang xử lý..."; btn.disabled = true;
+                    const routeEl = document.getElementById('info-route');
+                    let fullRouteName = (routeEl?.dataset?.routeName || routeEl?.value || '').trim();
+                    const infoType = document.getElementById('info-type')?.value;
+                    if (infoType !== 'coach' && fullRouteName && !fullRouteName.includes(' - ') && (!app.route?.specialRoutes || !app.route.specialRoutes.includes(fullRouteName))) {
+                        const provFromPlate = document.getElementById('info-plate')?.value ? app.utils.getProvinceFromPlate(document.getElementById('info-plate').value) : '';
+                        if (provFromPlate && provFromPlate !== 'Không xác định' && provFromPlate !== 'Biển tạm') {
+                            fullRouteName = `${fullRouteName} - ${provFromPlate}`;
+                        }
+                    }
                     const payload = {
                         license_plate: document.getElementById('info-plate').value.replace(/[^A-Z0-9-]/gi, '').toUpperCase(),
                         operator: document.getElementById('info-operator').value,
                         type: document.getElementById('info-type').value,
-                        route: document.getElementById('info-route').value,
+                        route: fullRouteName,
                         model: document.getElementById('info-model').value,
                         location: document.getElementById('info-location').value,
                         note: document.getElementById('info-note').value,
@@ -17354,6 +20188,10 @@ Object.assign(window.app, {
                                 app.currentPhoto.taken_at = payload.taken_at;
                             }
                         }
+                        const routeVal = (payload.route || '').trim();
+                        const isCoach = payload.type === 'coach';
+                        const routeNoVal = (!isCoach && routeVal && routeVal.includes(' - ')) ? routeVal.split(' - ')[0].trim() : routeVal;
+                        const borrowedVal = (!isCoach && routeVal && routeVal.includes(' - ')) ? routeVal : null;
                         if (app.role === 'admin' || app.role === 'manager') {
                             const { error: vError } = await window.sb.from('vehicles').upsert({
                                 license_plate: payload.license_plate,
@@ -17366,7 +20204,8 @@ Object.assign(window.app, {
                                 note: payload.note,
                                 operator: payload.operator,
                                 type: payload.type,
-                                route_no: payload.route
+                                route_no: routeNoVal,
+                                borrowed_route: borrowedVal
                             }).eq('id', app.currentPhoto.id);
                             if (pError) throw pError;
                             const afterSnapshot = {
@@ -17377,7 +20216,8 @@ Object.assign(window.app, {
                                 note: payload.note,
                                 operator: payload.operator,
                                 type: payload.type,
-                                route_no: payload.route,
+                                route_no: routeNoVal,
+                                borrowed_route: borrowedVal,
                                 model: payload.model
                             };
                             app.admin.logAction(
@@ -17386,12 +20226,12 @@ Object.assign(window.app, {
                                 { taken_at_changed: takenAtChanged, before: beforeSnapshot, after: afterSnapshot }
                             );
                             const isPlateChanged = beforeSnapshot.license_plate !== payload.license_plate;
-                            if (isPlateChanged || takenAtChanged || beforeSnapshot.operator !== payload.operator || beforeSnapshot.route_no !== payload.route) {
+                            if (isPlateChanged || takenAtChanged || beforeSnapshot.operator !== payload.operator || beforeSnapshot.route_no !== routeNoVal) {
                                 await app.vehicle.syncHistoryOnPhotoEdit(
                                     payload.license_plate,
                                     takenAtChanged ? payload.taken_at : beforeSnapshot.taken_at,
                                     { operator: beforeSnapshot.operator, route_no: beforeSnapshot.route_no },
-                                    { operator: payload.operator, route_no: payload.route },
+                                    { operator: payload.operator, route_no: routeNoVal },
                                     isPlateChanged
                                 );
                             }
@@ -17405,7 +20245,15 @@ Object.assign(window.app, {
                             app.currentPhoto.note = payload.note;
                             app.currentPhoto.operator = payload.operator;
                             app.currentPhoto.type = payload.type;
-                            app.currentPhoto.route_no = payload.route;
+                            app.currentPhoto.route_no = routeNoVal;
+                            app.currentPhoto.borrowed_route = borrowedVal;
+                            const elInfoRoute = document.getElementById('info-route');
+                            if (elInfoRoute) {
+                                elInfoRoute.value = routeNoVal;
+                                elInfoRoute.dataset.routeName = routeVal;
+                                if (borrowedVal) elInfoRoute.dataset.borrowed = borrowedVal;
+                                else delete elInfoRoute.dataset.borrowed;
+                            }
                             if (app.currentVehicle) {
                                 app.currentVehicle.model = payload.model;
                             }
@@ -17428,6 +20276,8 @@ Object.assign(window.app, {
                                 license_plate: payload.license_plate,
                                 new_data: {
                                     ...payload,
+                                    route_no: routeNoVal,
+                                    borrowed_route: borrowedVal,
                                     request_type: 'update_vehicle_info',
                                     photo_id: app.currentPhoto.id
                                 },
@@ -17681,7 +20531,7 @@ Object.assign(window.app, {
                                   </div>
                                   <div class="flex flex-col sm:flex-1 min-w-0">
                                       <span class="sm:hidden font-bold text-gray-500 mb-1">Tuyến</span>
-                                      <input type="text" value="${app.utils.escapeAttr(h.route || '')}" placeholder="Tuyến" oninput="app.utils.checkRouteStatus(this.value, '${prefix}hist-op-input-${index}', '${prefix}hist-op-wrapper-${index}')" onchange="app.vehicle.updateHistoryItem(${index}, 'route', this.value, '${prefix}'); app.vehicle.updateHistoryItem(${index}, 'operator', document.getElementById('${prefix}hist-op-input-${index}').value, '${prefix}')" class="hist-input">
+                                      <input type="text" id="${prefix}hist-route-${index}" value="${app.utils.escapeAttr(h.route || '')}" readonly placeholder="Chọn tuyến..." onfocus="this.blur()" class="hist-input cursor-pointer bg-white select-none caret-transparent" onclick="this.blur(); app.route.openSelector({ targetInputId: '${prefix}hist-route-${index}', isHistory: true, selectedRoute: this.value, onSelect: (r) => { const itemPlate = app.vehicle.tempHistory[${index}]?.plate || app.currentPlate || ''; const vehProv = itemPlate ? app.utils.getProvinceFromPlate(itemPlate) : ''; const routeProv = r.route_name && r.route_name.includes(' - ') ? r.route_name.split(' - ').slice(1).join(' - ').trim() : ''; const routeVal = (routeProv && vehProv && routeProv.toLowerCase() !== vehProv.toLowerCase()) ? r.route_name : r.route_no; app.vehicle.updateHistoryItem(${index}, 'route', routeVal, '${prefix}'); const targetEl = document.getElementById('${prefix}hist-route-${index}'); if (targetEl) targetEl.value = routeVal; app.utils.checkRouteStatus(r.route_no, '${prefix}hist-op-input-${index}', '${prefix}hist-op-wrapper-${index}'); } })">
                                   </div>
                             </div>
                             <div class="flex flex-col sm:flex-row gap-2 items-start mt-1">
@@ -17737,11 +20587,24 @@ Object.assign(window.app, {
                     const rawDate = document.getElementById(prefix + 'hist-new-date').value;
                     const dateVal = app.utils.parseDDMMYYYYToDate(rawDate);
                     const op = document.getElementById(prefix + 'hist-new-op').value;
-                    const route = document.getElementById(prefix + 'hist-new-route').value;
+                    const routeInput = document.getElementById(prefix + 'hist-new-route');
+                    let route = (routeInput?.dataset.routeName || routeInput?.value || '').trim();
                     const note = document.getElementById(prefix + 'hist-new-note') ? document.getElementById(prefix + 'hist-new-note').value : '';
-                    const plate = document.getElementById(prefix + 'hist-new-plate') ? document.getElementById(prefix + 'hist-new-plate').value.trim() : '';
+                    const plate = (document.getElementById(prefix + 'hist-new-plate') ? document.getElementById(prefix + 'hist-new-plate').value.trim() : '') || app.currentPlate || '';
                     if(!rawDate || !op) return app.ui.showAlert("Vui lòng nhập Ngày áp dụng và Đơn vị vận hành!");
                     if(!dateVal) return app.ui.showAlert("Ngày không hợp lệ! Vui lòng nhập đúng định dạng DD/MM/YYYY.");
+                    
+                    const invalidHistoryRoutes = ['Ngoài giờ hoạt động', 'Chưa hoạt động'];
+                    if (invalidHistoryRoutes.includes(route)) {
+                        return app.ui.showAlert(`Tuyến "${route}" không được phép ghi vào lịch sử xe. Chỉ có tuyến "Dừng hoạt động" được phép ghi vào lịch sử.`);
+                    }
+
+                    const vehProv = plate ? app.utils.getProvinceFromPlate(plate) : '';
+                    const routeProv = route.includes(' - ') ? route.split(' - ').slice(1).join(' - ').trim() : '';
+                    if (routeProv && vehProv && routeProv.toLowerCase() === vehProv.toLowerCase()) {
+                        route = route.split(' - ')[0].trim();
+                    }
+
                     app.vehicle.tempHistory.push({
                         license_plate: app.currentPlate,
                         plate: plate || app.currentPlate || null,
@@ -17754,7 +20617,10 @@ Object.assign(window.app, {
                     if(document.getElementById(prefix + 'hist-new-plate')) document.getElementById(prefix + 'hist-new-plate').value = '';
                     if(document.getElementById(prefix + 'hist-new-note')) document.getElementById(prefix + 'hist-new-note').value = '';
                     if(document.getElementById(prefix + 'hist-new-op')) document.getElementById(prefix + 'hist-new-op').value = '';
-                    if(document.getElementById(prefix + 'hist-new-route')) document.getElementById(prefix + 'hist-new-route').value = '';
+                    if(document.getElementById(prefix + 'hist-new-route')) {
+                        document.getElementById(prefix + 'hist-new-route').value = '';
+                        document.getElementById(prefix + 'hist-new-route').dataset.routeName = '';
+                    }
                     app.vehicle.renderEditList(prefix);
                 },
                 removeHistoryItem: (index, prefix) => {
@@ -17773,9 +20639,20 @@ Object.assign(window.app, {
                         if (!rawDate || !op) return app.ui.showAlert("Vui lòng nhập Ngày áp dụng và Đơn vị vận hành cho mục mới đang nhập dở!");
                         if (!dateVal) return app.ui.showAlert("Ngày đang nhập dở không hợp lệ! Vui lòng nhập đúng định dạng DD/MM/YYYY.");
                         
-                        const route = document.getElementById(prefix + 'hist-new-route') ? document.getElementById(prefix + 'hist-new-route').value.trim() : '';
+                        const routeInput = document.getElementById(prefix + 'hist-new-route');
+                        let route = (routeInput?.dataset.routeName || routeInput?.value || '').trim();
+                        const invalidHistoryRoutes = ['Ngoài giờ hoạt động', 'Chưa hoạt động'];
+                        if (invalidHistoryRoutes.includes(route)) {
+                            return app.ui.showAlert(`Tuyến "${route}" không được phép ghi vào lịch sử xe. Chỉ có tuyến "Dừng hoạt động" được phép ghi vào lịch sử.`);
+                        }
+
                         const note = document.getElementById(prefix + 'hist-new-note') ? document.getElementById(prefix + 'hist-new-note').value.trim() : '';
-                        const plate = document.getElementById(prefix + 'hist-new-plate') ? document.getElementById(prefix + 'hist-new-plate').value.trim() : '';
+                        const plate = (document.getElementById(prefix + 'hist-new-plate') ? document.getElementById(prefix + 'hist-new-plate').value.trim() : '') || app.currentPlate || '';
+                        const vehProv = plate ? app.utils.getProvinceFromPlate(plate) : '';
+                        const routeProv = route.includes(' - ') ? route.split(' - ').slice(1).join(' - ').trim() : '';
+                        if (routeProv && vehProv && routeProv.toLowerCase() === vehProv.toLowerCase()) {
+                            route = route.split(' - ')[0].trim();
+                        }
                         
                         app.vehicle.tempHistory.push({
                             license_plate: app.currentPlate,
@@ -17790,7 +20667,10 @@ Object.assign(window.app, {
                         opInput.value = '';
                         if(document.getElementById(prefix + 'hist-new-plate')) document.getElementById(prefix + 'hist-new-plate').value = '';
                         if(document.getElementById(prefix + 'hist-new-note')) document.getElementById(prefix + 'hist-new-note').value = '';
-                        if(document.getElementById(prefix + 'hist-new-route')) document.getElementById(prefix + 'hist-new-route').value = '';
+                        if(document.getElementById(prefix + 'hist-new-route')) {
+                            document.getElementById(prefix + 'hist-new-route').value = '';
+                            document.getElementById(prefix + 'hist-new-route').dataset.routeName = '';
+                        }
                         
                         app.vehicle.renderEditList(prefix);
                     }
@@ -17799,6 +20679,15 @@ Object.assign(window.app, {
                         app.vehicle.sortTempHistory();
                         // Tự động xóa mốc "Dừng hoạt động" nếu có mốc lịch sử khác sau ngày dừng hoạt động
                         app.vehicle.tempHistory = app.vehicle.autoRemoveStoppedAfterNewer(app.vehicle.tempHistory);
+
+                        const invalidHistoryRoutes = ['Ngoài giờ hoạt động', 'Chưa hoạt động'];
+                        for (const item of app.vehicle.tempHistory) {
+                            if (invalidHistoryRoutes.includes((item.route || '').trim())) {
+                                resetBtn();
+                                return app.ui.showAlert(`Tuyến "${item.route}" không được phép ghi vào lịch sử xe. Chỉ có tuyến "Dừng hoạt động" được phép ghi vào lịch sử.`);
+                            }
+                        }
+
                         for (let i = 1; i < app.vehicle.tempHistory.length; i++) {
                             const prev = app.vehicle.tempHistory[i - 1];
                             const curr = app.vehicle.tempHistory[i];
@@ -17905,13 +20794,24 @@ Object.assign(window.app, {
                 },
                 syncHistoryOnPhotoEdit: async (plate, takenAtIso, oldData, newData, isPlateChanged = false) => {
                     if (!takenAtIso || !plate) return;
-                    if (!isPlateChanged && oldData.operator === newData.operator && oldData.route_no === newData.route_no) return;
+                    if (!isPlateChanged && oldData.operator === newData.operator && oldData.route_no === newData.route_no && oldData.borrowed_route === newData.borrowed_route) return;
                     const targetDate = takenAtIso.split('T')[0];
                     const specialRoutes = ['Ngoài giờ hoạt động', 'Chưa hoạt động'];
                     const isSpecial = specialRoutes.includes(newData.route_no);
-                    const isSameRoute = (r1, r2) => (r1 || '').trim().toLowerCase() === (r2 || '').trim().toLowerCase();
+                    const isSameRoute = (r1, r2) => {
+                        if (!r1 || !r2) return false;
+                        const s1 = (r1 || '').trim().toLowerCase();
+                        const s2 = (r2 || '').trim().toLowerCase();
+                        if (s1 === s2) return true;
+                        const p1 = s1.includes(' - ') ? s1.split(' - ').slice(1).join(' - ').trim() : '';
+                        const p2 = s2.includes(' - ') ? s2.split(' - ').slice(1).join(' - ').trim() : '';
+                        if (p1 && p2 && p1 !== p2) return false;
+                        const no1 = s1.split(' - ')[0].trim();
+                        const no2 = s2.split(' - ')[0].trim();
+                        return no1 === no2;
+                    };
                     try {
-                        const { data: photos } = await window.sb.from('photos').select('id, operator, route_no')
+                        const { data: photos } = await window.sb.from('photos').select('id, operator, route_no, borrowed_route')
                             .eq('license_plate', plate)
                             .like('taken_at', `${targetDate}%`)
                             .eq('status', 'approved');
@@ -17921,7 +20821,7 @@ Object.assign(window.app, {
                                 const fallback = otherNormalPhotos[0];
                                 await window.sb.from('vehicle_history').update({
                                     operator: fallback.operator,
-                                    route: fallback.route_no
+                                    route: fallback.borrowed_route || fallback.route_no
                                 }).eq('license_plate', plate).eq('effective_date', targetDate);
                             } else {
                                 await window.sb.from('vehicle_history').delete()
@@ -17934,7 +20834,10 @@ Object.assign(window.app, {
                                 .order('effective_date', { ascending: true });
                             allHistory = allHistory || [];
 
-                            const route = newData.route_no;
+                            const vehProv = plate ? app.utils.getProvinceFromPlate(plate) : '';
+                            const rawBorrow = newData.borrowed_route || (newData.route_name && newData.route_name.includes(' - ') ? newData.route_name : null);
+                            const routeProv = rawBorrow && rawBorrow.includes(' - ') ? rawBorrow.split(' - ').slice(1).join(' - ').trim() : '';
+                            const route = (rawBorrow && routeProv && vehProv && routeProv.toLowerCase() !== vehProv.toLowerCase()) ? rawBorrow : newData.route_no;
                             const op = newData.operator;
 
                             const normalizeText = (str) => {
@@ -18494,9 +21397,253 @@ Object.assign(window.app, {
                         btn.disabled = false;
                     }
                 },
+                // ================= HISTOGRAM HELPER METHODS =================
+                histogramCache: {},
+                histogramMode: {},
+                computeHistogramData: (img) => {
+                    return app.utils.computeHistogramData(img);
+                },
+                drawHistogram: (photoId, data, mode = null) => {
+                    const canvas = document.getElementById(`adm-hist-canvas-${photoId}`);
+                    if (!canvas) return;
+                    
+                    const loadingEl = document.getElementById(`adm-hist-loading-${photoId}`);
+                    if (loadingEl) loadingEl.classList.add('hidden');
+                    
+                    if (!app.admin.histogramMode) app.admin.histogramMode = {};
+                    const activeMode = mode || app.admin.histogramMode[photoId] || 'luma';
+                    app.admin.histogramMode[photoId] = activeMode;
+                    
+                    const btnLuma = document.getElementById(`adm-hist-btn-luma-${photoId}`);
+                    const btnRgb = document.getElementById(`adm-hist-btn-rgb-${photoId}`);
+                    if (btnLuma && btnRgb) {
+                        if (activeMode === 'luma') {
+                            btnLuma.className = "text-[10px] font-bold px-2 py-0.5 rounded border border-black dark:border-white bg-black text-white dark:bg-white dark:text-black transition";
+                            btnRgb.className = "text-[10px] font-bold px-2 py-0.5 rounded border border-black dark:border-white bg-white text-black dark:bg-black dark:text-white hover:bg-gray-100 dark:hover:bg-gray-800 transition";
+                        } else {
+                            btnRgb.className = "text-[10px] font-bold px-2 py-0.5 rounded border border-black dark:border-white bg-black text-white dark:bg-white dark:text-black transition";
+                            btnLuma.className = "text-[10px] font-bold px-2 py-0.5 rounded border border-black dark:border-white bg-white text-black dark:bg-black dark:text-white hover:bg-gray-100 dark:hover:bg-gray-800 transition";
+                        }
+                    }
+                    
+                    app.utils.drawHistogramCanvas(canvas, data, activeMode);
+                    
+                    const avgEl = document.getElementById(`adm-hist-avg-${photoId}`);
+                    const shadowEl = document.getElementById(`adm-hist-shadow-${photoId}`);
+                    const highEl = document.getElementById(`adm-hist-high-${photoId}`);
+                    const diagEl = document.getElementById(`adm-hist-diag-${photoId}`);
+                    
+                    const avgPct = Math.round((data.avgLuma / 255) * 100);
+                    if (avgEl) avgEl.innerText = `${avgPct}%`;
+                    if (shadowEl) {
+                        shadowEl.innerText = `${data.shadowPercent.toFixed(1)}%`;
+                        if (data.shadowPercent > 18) shadowEl.className = "text-xs font-bold text-red-600 font-mono";
+                        else shadowEl.className = "text-xs font-bold text-black dark:text-white font-mono";
+                    }
+                    if (highEl) {
+                        highEl.innerText = `${data.highlightPercent.toFixed(1)}%`;
+                        if (data.highlightPercent > 5) highEl.className = "text-xs font-bold text-red-600 font-mono";
+                        else highEl.className = "text-xs font-bold text-black dark:text-white font-mono";
+                    }
+                    if (diagEl) {
+                        const lightIssues = [];
+                        let isSevere = false;
+                        const shadowZonePct = data.shadowZonePct || 0;
+                        const deepShadowPct = data.deepShadowPct || 0;
+                        const midZonePct = data.midZonePct || 0;
+                        const highlightZonePct = data.highlightZonePct || 0;
+                        const p50 = data.p50 || 128;
+                        const dynamicSpan = data.dynamicSpan || 150;
+                        const centerLuma = data.centerLuma !== undefined ? data.centerLuma : data.avgLuma;
+                        const centerShadowPct = data.centerShadowPct || 0;
+                        const centerHighlightPct = data.centerHighlightPct || 0;
+                        const topLuma = data.topLuma !== undefined ? data.topLuma : data.avgLuma;
+
+                        // 1. Cháy sáng thân xe vs Cháy sáng bầu trời
+                        if (centerHighlightPct > 4.5 || (centerLuma > 165 && data.highlightPercent > 5.0)) {
+                            lightIssues.push("Cháy sáng thân xe");
+                            if (centerHighlightPct > 8.0 || centerLuma > 185) isSevere = true;
+                        } else if (data.highlightPercent > 3.5) {
+                            lightIssues.push("Cháy sáng vùng trời / hậu cảnh");
+                        }
+
+                        // 2. Cháy tối thân xe vs Vùng tối tự nhiên của lốp xe/mặt đường
+                        if (centerShadowPct > 18.0 || data.shadowPercent > 22.0) {
+                            lightIssues.push("Cháy tối thân xe");
+                            if (centerShadowPct > 30.0 || data.shadowPercent > 32.0) isSevere = true;
+                        }
+
+                        // 3. Ảnh ngược sáng (Backlit)
+                        const isBacklit = (centerLuma < 85 || p50 < 82) && (topLuma > 165 || highlightZonePct > 7) && (shadowZonePct > 1.3 * midZonePct);
+                        if (isBacklit) {
+                            lightIssues.push("Ảnh bị ngược sáng");
+                            if (centerLuma < 65 || p50 < 68) isSevere = true;
+                        } else if (centerLuma < 75 && shadowZonePct > 50 && highlightZonePct <= 7) {
+                            // 4. Thiếu sáng tổng thể
+                            lightIssues.push("Ảnh thiếu sáng");
+                            if (centerLuma < 58 || p50 < 60) isSevere = true;
+                        } else if (avgPct < 28 && data.shadowPercent <= 16.0) {
+                            lightIssues.push("Ảnh tối");
+                        }
+
+                        // 5. Quá sáng
+                        if (centerLuma > 158 && highlightZonePct > 35 && data.highlightPercent <= 3.5) {
+                            lightIssues.push("Ảnh quá sáng");
+                        }
+
+                        // 6. Chênh sáng gắt / bóng đổ sâu (Chụp trưa nắng gắt)
+                        if (highlightZonePct > 20 && shadowZonePct > 32 && midZonePct < 30) {
+                            lightIssues.push("Độ tương phản gắt");
+                        }
+
+                        // 7. Đục mờ / thiếu tương phản (Thời tiết mù / mưa)
+                        if (shadowZonePct < 8 && highlightZonePct < 8 && dynamicSpan < 85) {
+                            lightIssues.push("Thiếu tương phản");
+                        }
+
+                        if (lightIssues.length === 0) {
+                            diagEl.innerHTML = `<span class="inline-flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400"><i class="fa-solid fa-circle-check"></i> Ánh sáng: Đo sáng tốt</span>`;
+                        } else if (isSevere) {
+                            diagEl.innerHTML = `<span class="inline-flex items-center gap-1.5 text-red-600 dark:text-red-400"><i class="fa-solid fa-circle-exclamation"></i> Ánh sáng: ${app.utils.escapeHtml(lightIssues.join(' • '))}</span>`;
+                        } else {
+                            diagEl.innerHTML = `<span class="inline-flex items-center gap-1.5 text-amber-600 dark:text-amber-400"><i class="fa-solid fa-triangle-exclamation"></i> Ánh sáng: ${app.utils.escapeHtml(lightIssues.join(' • '))}</span>`;
+                        }
+                    }
+                    const colorDiagEl = document.getElementById(`adm-hist-color-diag-${photoId}`);
+                    if (colorDiagEl) {
+                        const avgR = data.avgR || 128;
+                        const avgG = data.avgG || 128;
+                        const avgB = data.avgB || 128;
+                        const avgSat = data.avgSat || 0;
+                        const neutralPixels = data.neutralPixels || 0;
+                        const neutralDiffRB = data.neutralDiffRB !== undefined ? data.neutralDiffRB : (avgR - avgB);
+                        const neutralDiffGB = data.neutralDiffGB !== undefined ? data.neutralDiffGB : (avgG - avgB);
+                        const neutralDiffRG = data.neutralDiffRG !== undefined ? data.neutralDiffRG : (avgR - avgG);
+                        const neutralDiffGR = data.neutralDiffGR !== undefined ? data.neutralDiffGR : (avgG - avgR);
+                        const neutralDiffBR = data.neutralDiffBR !== undefined ? data.neutralDiffBR : (avgB - avgR);
+                        const channelClipR = data.channelClipR || 0;
+                        const channelClipG = data.channelClipG || 0;
+                        const channelClipB = data.channelClipB || 0;
+                        const colorIssues = [];
+
+                        // 1. Phân tích Cân bằng trắng (White Balance) trên bề mặt trung tính (mặt đường, vỉa hè, kính, trần xe)
+                        // Giúp không bị đánh lừa bởi màu sơn đặc trưng của xe (VinBus xanh lá, Phương Trang cam, Hanoibus đỏ-vàng...)
+                        if (neutralPixels > 300) {
+                            if (neutralDiffRB > 22 && neutralDiffGB > 10) {
+                                colorIssues.push("Ám vàng / nóng màu");
+                            } else if (neutralDiffBR > 20) {
+                                colorIssues.push("Ám xanh / lạnh màu");
+                            } else if (neutralDiffRG > 18 && neutralDiffBR > 12) {
+                                colorIssues.push("Ám tím / hồng");
+                            } else if (neutralDiffGR > 18 && neutralDiffGB > 12) {
+                                colorIssues.push("Ám xanh lá");
+                            }
+                        } else {
+                            // Dự phòng khi ảnh không đủ điểm ảnh trung tính (dùng ngưỡng lệch lớn để không báo nhầm màu sơn xe)
+                            if ((avgR - avgB) > 36 && (avgG - avgB) > 18) {
+                                colorIssues.push("Ám vàng / nóng màu");
+                            } else if ((avgB - avgR) > 32) {
+                                colorIssues.push("Ám xanh / lạnh màu");
+                            } else if ((avgG - avgR) > 32 && (avgG - avgB) > 22) {
+                                colorIssues.push("Ám xanh lá");
+                            }
+                        }
+
+                        // 2. Phân tích Bệt màu & Độ tươi (Saturation & Channel Clipping)
+                        if (channelClipR > 4.0 || channelClipG > 4.0 || channelClipB > 4.0) {
+                            colorIssues.push("Bệt màu");
+                        } else if (avgSat > 52) {
+                            colorIssues.push("Quá rực màu");
+                        } else if (avgSat < 10) {
+                            colorIssues.push("Nhợt nhạt");
+                        }
+
+                        if (colorIssues.length === 0) {
+                            colorDiagEl.innerHTML = `<span class="inline-flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400"><i class="fa-solid fa-circle-check"></i> Màu sắc: Cân bằng tốt</span>`;
+                        } else {
+                            colorDiagEl.innerHTML = `<span class="inline-flex items-center gap-1.5 text-amber-600 dark:text-amber-400"><i class="fa-solid fa-triangle-exclamation"></i> Màu sắc: ${app.utils.escapeHtml(colorIssues.join(' • '))}</span>`;
+                        }
+                    }
+                },
+                switchHistogramMode: (photoId, mode) => {
+                    if (!app.admin.histogramMode) app.admin.histogramMode = {};
+                    app.admin.histogramMode[photoId] = mode;
+                    if (app.admin.histogramCache && app.admin.histogramCache[photoId]) {
+                        app.admin.drawHistogram(photoId, app.admin.histogramCache[photoId], mode);
+                    }
+                },
+                renderHistogram: (photoId, imgUrl) => {
+                    if (!imgUrl) {
+                        app.admin.showHistogramError(photoId);
+                        return;
+                    }
+                    if (app.admin.histogramCache && app.admin.histogramCache[photoId]) {
+                        app.admin.drawHistogram(photoId, app.admin.histogramCache[photoId]);
+                        return;
+                    }
+                    const canvas = document.getElementById(`adm-hist-canvas-${photoId}`);
+                    if (!canvas) return;
+                    
+                    const tempImg = new Image();
+                    tempImg.crossOrigin = 'anonymous';
+                    tempImg.src = app.utils.getProxiedUrl(imgUrl, 'hist.jpg', 'thumb');
+                    
+                    let isHandled = false;
+                    const handleSuccess = () => {
+                        if (isHandled) return;
+                        isHandled = true;
+                        try {
+                            const data = app.admin.computeHistogramData(tempImg);
+                            if (!app.admin.histogramCache) app.admin.histogramCache = {};
+                            app.admin.histogramCache[photoId] = data;
+                            app.admin.drawHistogram(photoId, data);
+                        } catch (e) {
+                            tryFallback();
+                        }
+                    };
+                    
+                    const tryFallback = () => {
+                        if (tempImg.src === imgUrl) {
+                            app.admin.showHistogramError(photoId);
+                            return;
+                        }
+                        const fallbackImg = new Image();
+                        fallbackImg.crossOrigin = 'anonymous';
+                        fallbackImg.src = imgUrl;
+                        fallbackImg.onload = () => {
+                            try {
+                                const data = app.admin.computeHistogramData(fallbackImg);
+                                if (!app.admin.histogramCache) app.admin.histogramCache = {};
+                                app.admin.histogramCache[photoId] = data;
+                                app.admin.drawHistogram(photoId, data);
+                            } catch (err) {
+                                app.admin.showHistogramError(photoId);
+                            }
+                        };
+                        fallbackImg.onerror = () => {
+                            app.admin.showHistogramError(photoId);
+                        };
+                    };
+                    
+                    tempImg.onload = handleSuccess;
+                    tempImg.onerror = tryFallback;
+                },
+                showHistogramError: (photoId) => {
+                    const loadingEl = document.getElementById(`adm-hist-loading-${photoId}`);
+                    if (loadingEl) {
+                        loadingEl.innerHTML = `<span class="text-[11px] text-gray-400"><i class="fa-solid fa-circle-exclamation mr-1 text-red-500"></i>Không thể đo sáng nguồn ảnh</span>`;
+                        loadingEl.classList.remove('hidden');
+                    }
+                    const diagEl = document.getElementById(`adm-hist-diag-${photoId}`);
+                    if (diagEl) {
+                        diagEl.innerHTML = `<span class="text-[11px] text-gray-400 italic">Không thể phân tích dữ liệu điểm ảnh</span>`;
+                    }
+                    const colorDiagEl = document.getElementById(`adm-hist-color-diag-${photoId}`);
+                    if (colorDiagEl) colorDiagEl.innerHTML = '';
+                },
                 // ======================================================
 
-                renderSinglePhotoCardHTML: (p, approvedPlateSet = app.admin?.approvedPlateSet || new Set(), approvedOpSet = app.admin?.approvedOpSet || new Set(), approvedRouteSet = app.admin?.approvedRouteSet || new Set(), approvedModelSet = app.admin?.approvedModelSet || new Set()) => {
+                renderSinglePhotoCardHTML: (p, approvedPlateSet = app.admin?.approvedPlateSet || new Set(), approvedOpSet = app.admin?.approvedOpSet || new Set(), approvedRouteSet = app.admin?.approvedRouteSet || new Set(), approvedModelSet = app.admin?.approvedModelSet || new Set(), isQuality = (app.adminTab === 'quality' || p.status === 'pending_quality')) => {
                     const op = app.utils.cleanText(p.operator || '');
                     const type = p.type || 'bus';
                     const route = app.utils.cleanText(p.route_no || '');
@@ -18534,7 +21681,7 @@ Object.assign(window.app, {
                                     ${reviewTabHtml}
                                     <div class="admin-card-header relative z-10 bg-white rounded-t-lg">
                                         <div class="flex items-center gap-2 flex-wrap">
-                                            <span class="font-bold text-sm">${safePlate}</span>
+                                            <span class="font-bold text-sm">${safePlate || ('Ảnh #' + p.id)}</span>
                                             ${plateKey && plateKey !== '---' && !approvedPlateSet.has(plateKey) ? '<span class="badge-xe-moi"><i class="fa-solid fa-sparkles"></i> XE MỚI</span>' : ''}
                                             ${p.suspected_exif_fraud ? '<span class="bg-red-600 text-white px-1.5 py-0.5 rounded text-[10px] font-bold ml-1 tracking-wider whitespace-nowrap"><i class="fa-solid fa-triangle-exclamation mr-1"></i>Nghi ngờ gian lận</span>' : ''}
                                         </div>
@@ -18552,48 +21699,102 @@ Object.assign(window.app, {
                                         <button onclick="app.admin.openZoom('${app.utils.getProxiedUrl(p.url)}', false, true)" class="absolute top-2 right-2 bg-black/50 text-white w-8 h-8 rounded hover:bg-black flex items-center justify-center transition z-20" title="Soi ảnh"><i class="fa-solid fa-expand"></i></button>
                                     </div>
                                     <div class="admin-card-body">
+                                        ${isQuality ? `
+                                            <!-- Bảng đo sáng (Exposure Histogram) -->
+                                            <div class="admin-hist-box border border-black dark:border-white rounded-md p-3 bg-white dark:bg-black">
+                                                <div class="flex items-center justify-between mb-2">
+                                                    <span class="text-xs font-bold text-black dark:text-white flex items-center gap-1.5">
+                                                        <i class="fa-solid fa-mountain-sun"></i> Bảng đo sáng
+                                                    </span>
+                                                    <div class="flex items-center gap-1">
+                                                        <button type="button" onclick="app.admin.switchHistogramMode('${p.id}', 'luma')" id="adm-hist-btn-luma-${p.id}" class="text-[10px] font-bold px-2 py-0.5 rounded border border-black dark:border-white bg-black text-white dark:bg-white dark:text-black transition">Độ sáng</button>
+                                                        <button type="button" onclick="app.admin.switchHistogramMode('${p.id}', 'rgb')" id="adm-hist-btn-rgb-${p.id}" class="text-[10px] font-bold px-2 py-0.5 rounded border border-black dark:border-white bg-white text-black dark:bg-black dark:text-white hover:bg-gray-100 dark:hover:bg-gray-800 transition">RGB</button>
+                                                    </div>
+                                                </div>
+                                                <div class="hist-canvas-box relative w-full h-24 bg-white dark:bg-[#111113] rounded border border-black dark:border-zinc-700 overflow-hidden flex items-center justify-center">
+                                                    <canvas id="adm-hist-canvas-${p.id}" width="512" height="180" class="w-full h-full block"></canvas>
+                                                    <div class="absolute inset-0 pointer-events-none flex justify-between px-[25%] opacity-20">
+                                                        <div class="hist-grid-line w-px h-full bg-black dark:bg-white border-r border-dashed border-black dark:border-white"></div>
+                                                        <div class="hist-grid-line w-px h-full bg-black dark:bg-white border-r border-dashed border-black dark:border-white"></div>
+                                                    </div>
+                                                    <div id="adm-hist-loading-${p.id}" class="hist-loading-overlay absolute inset-0 bg-white/80 dark:bg-[#111113]/80 flex items-center justify-center text-xs text-gray-500 dark:text-gray-400">
+                                                        <i class="fa-solid fa-spinner fa-spin mr-1.5"></i> Đang phân tích sáng...
+                                                    </div>
+                                                </div>
+                                                <div class="flex justify-between items-center text-[10px] text-gray-500 font-mono mt-1 px-1">
+                                                    <span>Tối (0)</span>
+                                                    <span>Trung gian (128)</span>
+                                                    <span>Sáng (255)</span>
+                                                </div>
+                                                <div id="adm-hist-stats-${p.id}" class="mt-2.5 grid grid-cols-3 gap-1.5 text-center">
+                                                    <div class="admin-hist-stat-item p-1.5 bg-gray-50 dark:bg-zinc-900 border border-black dark:border-zinc-700 rounded">
+                                                        <div class="text-[9px] text-gray-500 uppercase font-bold">Độ sáng TB</div>
+                                                        <div id="adm-hist-avg-${p.id}" class="text-xs font-bold text-black dark:text-white font-mono">--%</div>
+                                                    </div>
+                                                    <div class="admin-hist-stat-item p-1.5 bg-gray-50 dark:bg-zinc-900 border border-black dark:border-zinc-700 rounded">
+                                                        <div class="text-[9px] text-gray-500 uppercase font-bold">Cháy tối</div>
+                                                        <div id="adm-hist-shadow-${p.id}" class="text-xs font-bold text-black dark:text-white font-mono">--%</div>
+                                                    </div>
+                                                    <div class="admin-hist-stat-item p-1.5 bg-gray-50 dark:bg-zinc-900 border border-black dark:border-zinc-700 rounded">
+                                                        <div class="text-[9px] text-gray-500 uppercase font-bold">Cháy sáng</div>
+                                                        <div id="adm-hist-high-${p.id}" class="text-xs font-bold text-black dark:text-white font-mono">--%</div>
+                                                    </div>
+                                                </div>
+                                                <div id="adm-hist-diag-${p.id}" class="mt-2 text-center text-[11px] font-bold text-gray-600 dark:text-gray-300"></div>
+                                                <div id="adm-hist-color-diag-${p.id}" class="mt-1 text-center text-[11px] font-bold text-gray-600 dark:text-gray-300"></div>
+                                            </div>
 
-                                        <div class="grid grid-cols-2 gap-2 mb-2">
-                                            <div><span class="admin-label">Biển số</span><input type="text" id="adm-p-plate-${p.id}" value="${safePlate}" class="admin-input transition-all" oninput="app.utils.formatPlateInput(this)" onchange="app.admin.checkPlateAdmin(this, '${p.id}', 'photo')"></div>
-                                            <div>
-                                                <span class="admin-label">Đơn vị${isNewOp ? tagNew : ''}</span>
-                                                <div class="relative">
-                                                    <input type="text" id="adm-p-op-${p.id}" value="${op}" class="admin-input" autocomplete="off" oninput="app.utils.formatNoPunctuation(this); app.utils.triggerSuggestion('adm-p-op-${p.id}', 'adm-sug-op-${p.id}', this.value, 'operator')">
-                                                    <div id="adm-sug-op-${p.id}" class="suggestion-box"></div>
-                                                </div>
-                                            </div>
-                                            <div><span class="admin-label">Loại xe</span><select id="adm-p-type-${p.id}" class="admin-input"><option value="bus" ${type === 'bus' ? 'selected' : ''}>Xe buýt</option><option value="coach" ${type === 'coach' ? 'selected' : ''}>Xe khách</option></select></div>
-                                            <div>
-                                                <span class="admin-label">Tuyến${isNewRoute ? tagNew : ''}</span>
-                                                <div class="relative">
-                                                    <input type="text" id="adm-p-route-${p.id}" value="${route}" class="admin-input" autocomplete="off" onfocus="app.utils.triggerRouteSuggestion('adm-p-route-${p.id}', 'adm-sug-route-${p.id}', '')" oninput="app.utils.triggerRouteSuggestion('adm-p-route-${p.id}', 'adm-sug-route-${p.id}', this.value)">
-                                                    <div id="adm-sug-route-${p.id}" class="suggestion-box"></div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="grid grid-cols-2 gap-2 mb-2">
-                                            <div>
-                                                <span class="admin-label">Dòng xe${isNewModel ? tagNew : ''}</span>
-                                                <div class="relative">
-                                                    ${isNewVehicle ? `
-                                                        <input type="text" id="adm-p-model-${p.id}" value="${model}" class="admin-input" autocomplete="off" oninput="app.utils.triggerSuggestion('adm-p-model-${p.id}', 'adm-sug-model-${p.id}', this.value, 'model')">
-                                                    ` : `
-                                                        <input type="text" id="adm-p-model-${p.id}" value="${model}" class="admin-input cursor-pointer" autocomplete="off" readonly onclick="app.admin.showModelDisabledAlert('${app.utils.escapeAttr(safePlate)}', '${p.id}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();app.admin.showModelDisabledAlert('${app.utils.escapeAttr(safePlate)}', '${p.id}');}" title="Bấm để xem hồ sơ xe">
-                                                    `}
-                                                    <div id="adm-sug-model-${p.id}" class="suggestion-box"></div>
-                                                </div>
-                                            </div>
-                                            <div><span class="admin-label">Vị trí</span><input type="text" id="adm-p-location-${p.id}" value="${location}" class="admin-input" onchange="app.admin.checkDuplicateDateAdmin('${p.id}', '${p.uploader_id}', '${p.taken_at ? p.taken_at.split('T')[0] : ''}')"></div>
-                                        </div>
+                                            ${p.mod_note ? `<div class="mt-2 p-2.5 bg-gray-100 dark:bg-zinc-900 border border-black dark:border-white rounded-md"><span class="block text-xs font-bold text-black dark:text-white mb-1"><i class="fa-solid fa-shield-halved mr-1"></i>Note dành cho kiểm duyệt (Không công khai):</span><div class="text-xs text-black dark:text-white font-mono leading-relaxed whitespace-pre-wrap">${app.utils.escapeHtml(p.mod_note)}</div></div>` : ''}
 
-                                        <div><span class="admin-label">Ghi chú ảnh (Công khai)</span><textarea id="adm-p-note-${p.id}" rows="2" class="admin-input">${note}</textarea></div>
-                                        ${p.mod_note ? `<div class="mt-2 p-2.5 bg-gray-100 border border-black rounded-md"><span class="block text-xs font-bold text-black mb-1"><i class="fa-solid fa-shield-halved mr-1"></i>Note dành cho kiểm duyệt (Không công khai):</span><div class="text-xs text-black font-mono leading-relaxed whitespace-pre-wrap">${app.utils.escapeHtml(p.mod_note)}</div></div>` : ''}
-                                        
-                                        <div class="grid grid-cols-2 gap-2 mt-2">
-                                            <div><span class="admin-label">Ngày chụp gốc</span><input type="text" class="admin-input bg-gray-50 !text-gray-500" value="${p.taken_at ? p.taken_at.split('T')[0] : 'Không rõ'}" disabled></div>
-                                            <div><span class="admin-label">Thiết bị chụp</span><input type="text" class="admin-input bg-gray-50 !text-gray-500 truncate" value="${p.camera_model || 'Không rõ'}" disabled title="${p.camera_model || 'Không rõ'}"></div>
-                                        </div>
-                                        ${p.exif_params ? `<div class="mt-2"><span class="admin-label">Thông số EXIF</span><input type="text" class="admin-input bg-gray-50 !text-gray-500 truncate" value="${p.exif_params}" disabled title="${p.exif_params}"></div>` : ''}
+                                            <div class="mt-2">
+                                                <span class="admin-label">Thiết bị chụp</span>
+                                                <input type="text" class="admin-input bg-gray-50 !text-gray-500 truncate" value="${p.camera_model || 'Không rõ'}" disabled title="${p.camera_model || 'Không rõ'}">
+                                            </div>
+                                            ${p.exif_params ? `<div class="mt-2"><span class="admin-label">Thông số EXIF</span><input type="text" class="admin-input bg-gray-50 !text-gray-500 truncate" value="${p.exif_params}" disabled title="${p.exif_params}"></div>` : ''}
+
+                                            <img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg'/>" class="hidden" onerror="app.admin.renderHistogram('${p.id}', '${app.utils.escapeAttr(p.url)}')">
+                                        ` : `
+                                            <div class="grid grid-cols-2 gap-2 mb-2">
+                                                <div><span class="admin-label">Biển số</span><input type="text" id="adm-p-plate-${p.id}" value="${safePlate}" class="admin-input transition-all" oninput="app.utils.formatPlateInput(this)" onchange="app.admin.checkPlateAdmin(this, '${p.id}', 'photo')"></div>
+                                                <div>
+                                                    <span class="admin-label">Đơn vị${isNewOp ? tagNew : ''}</span>
+                                                    <div class="relative">
+                                                        <input type="text" id="adm-p-op-${p.id}" value="${op}" class="admin-input" autocomplete="off" oninput="app.utils.formatNoPunctuation(this); app.utils.triggerSuggestion('adm-p-op-${p.id}', 'adm-sug-op-${p.id}', this.value, 'operator')">
+                                                        <div id="adm-sug-op-${p.id}" class="suggestion-box"></div>
+                                                    </div>
+                                                </div>
+                                                <div><span class="admin-label">Loại xe</span><select id="adm-p-type-${p.id}" class="admin-input"><option value="bus" ${type === 'bus' ? 'selected' : ''}>Xe buýt</option><option value="coach" ${type === 'coach' ? 'selected' : ''}>Xe khách</option></select></div>
+                                                <div>
+                                                    <span class="admin-label">Tuyến${isNewRoute ? tagNew : ''}</span>
+                                                    <div class="relative">
+                                                        <input type="text" id="adm-p-route-${p.id}" value="${route}" class="admin-input cursor-pointer bg-white select-none caret-transparent" readonly onfocus="this.blur()" onclick="this.blur(); app.route.openSelector({ targetInputId: 'adm-p-route-${p.id}', vehicleType: document.getElementById('adm-p-type-${p.id}') ? document.getElementById('adm-p-type-${p.id}').value : '${type}', selectedRoute: this.value })">
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="grid grid-cols-2 gap-2 mb-2">
+                                                <div>
+                                                    <span class="admin-label">Dòng xe${isNewModel ? tagNew : ''}</span>
+                                                    <div class="relative">
+                                                        ${isNewVehicle ? `
+                                                            <input type="text" id="adm-p-model-${p.id}" value="${model}" class="admin-input" autocomplete="off" oninput="app.utils.triggerSuggestion('adm-p-model-${p.id}', 'adm-sug-model-${p.id}', this.value, 'model')">
+                                                        ` : `
+                                                            <input type="text" id="adm-p-model-${p.id}" value="${model}" class="admin-input cursor-pointer" autocomplete="off" readonly onclick="app.admin.showModelDisabledAlert('${app.utils.escapeAttr(safePlate)}', '${p.id}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();app.admin.showModelDisabledAlert('${app.utils.escapeAttr(safePlate)}', '${p.id}');}" title="Bấm để xem hồ sơ xe">
+                                                        `}
+                                                        <div id="adm-sug-model-${p.id}" class="suggestion-box"></div>
+                                                    </div>
+                                                </div>
+                                                <div><span class="admin-label">Vị trí</span><input type="text" id="adm-p-location-${p.id}" value="${location}" class="admin-input" onchange="app.admin.checkDuplicateDateAdmin('${p.id}', '${p.uploader_id}', '${p.taken_at ? p.taken_at.split('T')[0] : ''}')"></div>
+                                            </div>
+
+                                            <div><span class="admin-label">Ghi chú ảnh (Công khai)</span><textarea id="adm-p-note-${p.id}" rows="2" class="admin-input">${note}</textarea></div>
+                                            ${p.mod_note ? `<div class="mt-2 p-2.5 bg-gray-100 border border-black rounded-md"><span class="block text-xs font-bold text-black mb-1"><i class="fa-solid fa-shield-halved mr-1"></i>Note dành cho kiểm duyệt (Không công khai):</span><div class="text-xs text-black font-mono leading-relaxed whitespace-pre-wrap">${app.utils.escapeHtml(p.mod_note)}</div></div>` : ''}
+                                            
+                                            <div class="grid grid-cols-2 gap-2 mt-2">
+                                                <div><span class="admin-label">Ngày chụp gốc</span><input type="text" class="admin-input bg-gray-50 !text-gray-500" value="${p.taken_at ? p.taken_at.split('T')[0] : 'Không rõ'}" disabled></div>
+                                                <div><span class="admin-label">Thiết bị chụp</span><input type="text" class="admin-input bg-gray-50 !text-gray-500 truncate" value="${p.camera_model || 'Không rõ'}" disabled title="${p.camera_model || 'Không rõ'}"></div>
+                                            </div>
+                                            ${p.exif_params ? `<div class="mt-2"><span class="admin-label">Thông số EXIF</span><input type="text" class="admin-input bg-gray-50 !text-gray-500 truncate" value="${p.exif_params}" disabled title="${p.exif_params}"></div>` : ''}
+                                        `}
                                         ${(() => {
                                         const isOwnPhoto = p.uploader_id === app.user.id;
                                         const canApprove = (!isOwnPhoto || app.role === 'manager') && !p._isReviewedByMe;
@@ -19410,6 +22611,11 @@ if (app.admin._activeLoadToken !== currentLoadToken || app.adminTab !== tab) ret
                             if (app.admin.update3x3UI) app.admin.update3x3UI();
                             if (app.admin.updateRulerUI) app.admin.updateRulerUI();
                             if (app.admin.updateHideMineUI) app.admin.updateHideMineUI();
+                            if (tab === 'quality') {
+                                photos.forEach(p => {
+                                    setTimeout(() => app.admin.renderHistogram(p.id, p.url), 20);
+                                });
+                            }
 } else if (tab === 'delete') {
                             let html = '';
                             if (app.role === 'manager') {
@@ -19482,10 +22688,10 @@ if (app.admin._activeLoadToken !== currentLoadToken || app.adminTab !== tab) ret
                                         <div class="flex gap-2 mt-3">
                                         ${app.role === 'manager' ? `
                                             <button onclick="app.admin.approveDeleteReq('${req.id}', '${req.new_data.photo_id}', '${req.requester_id}', '${userReason}', this)" class="flex-1 bg-red-600 text-white py-1.5 font-bold rounded hover:bg-red-700">DUYỆT XÓA</button>
-                                            <button onclick="app.admin.denyReq('${req.id}', this)" class="flex-1 bg-gray-600 text-white py-1.5 font-bold rounded hover:bg-gray-700">TỪ CHỐI</button>
                                         ` : `
-                                            <div class="flex-1 bg-gray-100 text-gray-400 py-1.5 font-bold rounded text-center border border-gray-200 cursor-not-allowed">Chỉ Manager được duyệt</div>
+                                            <div class="flex-1 bg-gray-100 text-gray-400 py-1.5 font-bold rounded text-center border border-gray-200 cursor-not-allowed text-[11px] flex items-center justify-center">Chỉ Manager duyệt xóa</div>
                                         `}
+                                            <button onclick="app.admin.denyReq('${req.id}', this)" class="flex-1 bg-gray-600 text-white py-1.5 font-bold rounded hover:bg-gray-700">TỪ CHỐI</button>
                                         </div>
                                     </div>
                                 </div>`
@@ -19607,8 +22813,7 @@ if (app.admin._activeLoadToken !== currentLoadToken || app.adminTab !== tab) ret
                                                 <div>
                                                     <span class="admin-label">Tuyến ${d.route !== curP.route_no ? tagNew : ''}</span>
                                                     <div class="relative">
-                                                        <input type="text" id="req-route-${r.id}" value="${app.utils.escapeAttr(d.route || '')}" class="admin-input" autocomplete="off" onfocus="app.utils.triggerRouteSuggestion('req-route-${r.id}', 'req-sug-route-${r.id}', '')" oninput="app.utils.triggerRouteSuggestion('req-route-${r.id}', 'req-sug-route-${r.id}', this.value)">
-                                                        <div id="req-sug-route-${r.id}" class="suggestion-box"></div>
+                                                        <input type="text" id="req-route-${r.id}" value="${app.utils.escapeAttr(d.route || '')}" class="admin-input cursor-pointer bg-white select-none caret-transparent" readonly onfocus="this.blur()" onclick="this.blur(); app.route.openSelector({ targetInputId: 'req-route-${r.id}', vehicleType: document.getElementById('req-type-${r.id}') ? document.getElementById('req-type-${r.id}').value : '${d.type || curP.type || ''}', selectedRoute: this.value })">
                                                     </div>
                                                 </div>
                                             </div>
@@ -19639,7 +22844,7 @@ if (app.admin._activeLoadToken !== currentLoadToken || app.adminTab !== tab) ret
                                             <p class="font-bold text-sm mb-2 text-black"><i class="fa-solid fa-route mr-1 text-gray-400"></i> ${app.utils.escapeAttr(d.route_name)}</p>
                                             <p class="mb-2 text-xs font-bold text-gray-500">Thông tin gốc (Hiện tại):</p>
                                             <div class="space-y-1 mb-4 text-xs opacity-75 border p-2 rounded bg-gray-50">
-                                                
+                                                <div><span class="font-bold">Loại xe:</span> ${curRoute.metadata?.vehicle_type === 'coach' ? 'Xe khách' : 'Xe buýt'}</div>
                                                 <div><span class="font-bold">Trạng thái:</span> ${curRoute.is_inactive ? '<span class="text-red-500 font-bold">Dừng hoạt động</span>' : 'Đang hoạt động'}</div>
                                                 <div><span class="font-bold">Lộ trình (Rút gọn):</span> ${app.utils.escapeAttr(curRoute.short_path || '-')}</div>
                                                 <div><span class="font-bold">Mô tả:</span> ${app.utils.escapeAttr(curRoute.description || '-')}</div>
@@ -19650,6 +22855,13 @@ if (app.admin._activeLoadToken !== currentLoadToken || app.adminTab !== tab) ret
                                             </div>
                                             <p class="mb-2 font-bold text-red-500">[MỚI] Yêu cầu cập nhật thành:</p>
                                             
+                                            <div class="mb-2">
+                                                <span class="admin-label">Loại xe ${d.metadata?.vehicle_type && d.metadata?.vehicle_type !== curRoute.metadata?.vehicle_type ? '<span class="text-red-500 font-bold ml-1 text-[9px]">[MỚI]</span>' : ''}</span>
+                                                <select id="req-route-type-${r.id}" class="admin-input">
+                                                    <option value="bus" ${(d.metadata?.vehicle_type || curRoute.metadata?.vehicle_type || 'bus') === 'bus' ? 'selected' : ''}>Xe buýt</option>
+                                                    <option value="coach" ${(d.metadata?.vehicle_type || curRoute.metadata?.vehicle_type) === 'coach' ? 'selected' : ''}>Xe khách</option>
+                                                </select>
+                                            </div>
                                             <div class="mb-2 flex items-center justify-between bg-white border border-gray-300 rounded p-2">
                                                 <span class="text-xs font-bold text-gray-700">Dừng hoạt động ${d.is_inactive !== curRoute.is_inactive ? '<span class="text-red-500 font-bold ml-1 text-[9px]">[MỚI]</span>' : ''}</span>
                                                 <input type="checkbox" id="req-route-inactive-${r.id}" ${d.is_inactive ? 'checked' : ''} class="w-4 h-4 cursor-pointer">
@@ -19682,13 +22894,89 @@ if (app.admin._activeLoadToken !== currentLoadToken || app.adminTab !== tab) ret
                                                     <option value="trapezoid" ${reqIcon === 'trapezoid' ? 'selected' : ''}>Hình thang cân (Max 5 kí tự)</option>
                                                 </select>
                                             </div>
-                                            <div class="mb-2">
-                                                <span class="admin-label">ID ảnh vá tuyến ${d.borrowed_photos_str !== undefined ? '<span class="text-red-500 font-bold ml-1 text-[9px]">[MỚI]</span>' : ''}</span>
-                                                <input type="text" id="req-route-borrowed-${r.id}" class="admin-input" value="${app.utils.escapeAttr(d.borrowed_photos_str || '')}">
-                                            </div>
+                                            
                                             <div class="flex gap-2 mt-3">
                                                 <button onclick="app.admin.approveReq('${r.id}', this, 'route_info')" class="flex-1 bg-green-600 text-white py-1.5 font-bold rounded hover:bg-green-700">DUYỆT</button>
                                                 <button onclick="app.admin.denyReq('${r.id}', this)" class="flex-1 bg-red-600 text-white py-1.5 font-bold rounded hover:bg-red-700">TỪ CHỐI</button>
+                                            </div>
+                                        </div>
+                                    </div>`;
+                                } else if (type === 'create_route_info') {
+                                    const cIcon = d.metadata?.icon_type || 'default';
+                                    const cType = d.metadata?.vehicle_type || 'bus';
+                                    return `
+                                    <div class="admin-card overflow-visible">
+                                        <div class="admin-card-header bg-teal-50"><span class="font-bold text-xs uppercase text-teal-600">TẠO TUYẾN MỚI</span><span class="text-xs text-gray-500">${username}</span></div>
+                                        <div class="admin-card-body text-xs">
+                                            <p class="font-bold text-sm mb-2 text-black"><i class="fa-solid fa-route mr-1 text-gray-400"></i> ${app.utils.escapeAttr(d.route_name)}</p>
+                                            <div class="grid grid-cols-2 gap-2 mb-2">
+                                                <div>
+                                                    <span class="admin-label">Số hiệu tuyến</span>
+                                                    <input type="text" id="req-c-route-no-${r.id}" class="admin-input font-bold" value="${app.utils.escapeAttr(d.route_no || '')}">
+                                                </div>
+                                                <div>
+                                                    <span class="admin-label">Tỉnh / Thành phố</span>
+                                                    <input type="text" id="req-c-route-prov-${r.id}" class="admin-input" value="${app.utils.escapeAttr(d.province || '')}">
+                                                </div>
+                                            </div>
+                                            <div class="mb-2">
+                                                <span class="admin-label">Loại phương tiện</span>
+                                                <select id="req-c-route-type-${r.id}" class="admin-input">
+                                                    <option value="bus" ${cType === 'bus' ? 'selected' : ''}>Xe buýt</option>
+                                                    <option value="coach" ${cType === 'coach' ? 'selected' : ''}>Xe khách</option>
+                                                </select>
+                                            </div>
+                                            <div class="mb-2 flex items-center justify-between bg-white border border-gray-300 rounded p-2">
+                                                <span class="text-xs font-bold text-gray-700">Dừng hoạt động</span>
+                                                <input type="checkbox" id="req-c-route-inactive-${r.id}" ${d.is_inactive ? 'checked' : ''} class="w-4 h-4 cursor-pointer">
+                                            </div>
+                                            <div class="mb-2">
+                                                <span class="admin-label">Lộ trình ngắn</span>
+                                                <input type="text" id="req-c-route-short-${r.id}" class="admin-input" value="${app.utils.escapeAttr(d.short_path || '')}">
+                                            </div>
+                                            <div class="mb-2">
+                                                <span class="admin-label">Mô tả</span>
+                                                <textarea id="req-c-route-desc-${r.id}" class="admin-input" rows="3">${app.utils.escapeAttr(d.description || '')}</textarea>
+                                            </div>
+                                            <div class="mb-2">
+                                                <span class="admin-label">Giá vé lượt</span>
+                                                <input type="text" id="req-c-route-ticket-${r.id}" class="admin-input" value="${app.utils.escapeAttr(d.metadata?.ticket_price || '')}">
+                                            </div>
+                                            <div class="mb-2">
+                                                <span class="admin-label">Giãn cách, TG hoạt động</span>
+                                                <input type="text" id="req-c-route-headway-${r.id}" class="admin-input" value="${app.utils.escapeAttr(d.metadata?.headway || '')}">
+                                            </div>
+                                            <div class="mb-2 flex items-center justify-between bg-white border border-gray-300 rounded p-2">
+                                                <span class="text-xs font-bold text-gray-700">Hỗ trợ xe lăn</span>
+                                                <input type="checkbox" id="req-c-route-wheelchair-${r.id}" ${d.metadata?.wheelchair_support ? 'checked' : ''} class="w-4 h-4 cursor-pointer">
+                                            </div>
+                                            <div class="mb-2">
+                                                <span class="admin-label">Kiểu Icon hiển thị</span>
+                                                <select id="req-c-route-icon-${r.id}" class="admin-input">
+                                                    <option value="default" ${cIcon === 'default' ? 'selected' : ''}>Mặc định</option>
+                                                    <option value="circle" ${cIcon === 'circle' ? 'selected' : ''}>Hình tròn (Max 5 kí tự)</option>
+                                                    <option value="trapezoid" ${cIcon === 'trapezoid' ? 'selected' : ''}>Hình thang cân (Max 5 kí tự)</option>
+                                                </select>
+                                            </div>
+                                            
+                                            <div class="flex gap-2 mt-3">
+                                                <button onclick="app.admin.approveReq('${r.id}', this, 'create_route_info')" class="flex-1 bg-green-600 text-white py-1.5 font-bold rounded hover:bg-green-700">DUYỆT TẠO</button>
+                                                <button onclick="app.admin.denyReq('${r.id}', this)" class="flex-1 bg-red-600 text-white py-1.5 font-bold rounded hover:bg-red-700">TỪ CHỐI</button>
+                                            </div>
+                                        </div>
+                                    </div>`;
+                                } else if (type === 'delete_route') {
+                                    return `
+                                    <div class="admin-card overflow-visible">
+                                        <div class="admin-card-header bg-red-50"><span class="font-bold text-xs uppercase text-red-600">YÊU CẦU XÓA TUYẾN</span><span class="text-xs text-gray-500">${username}</span></div>
+                                        <div class="admin-card-body text-xs">
+                                            <p class="font-bold text-sm mb-2 text-black"><i class="fa-solid fa-triangle-exclamation mr-1 text-red-500"></i> Xóa tuyến: ${app.utils.escapeAttr(d.route_name)}</p>
+                                            <div class="p-2.5 bg-gray-50 border border-gray-200 rounded text-xs leading-relaxed mb-3">
+                                                Chuyển toàn bộ ảnh và lịch sử xe sang tuyến: <strong class="text-black">${app.utils.escapeAttr(d.dest_route_name || d.dest_route_no || 'Ngoài giờ hoạt động')}</strong>.
+                                            </div>
+                                            <div class="flex gap-2 mt-3">
+                                                <button onclick="app.admin.approveReq('${r.id}', this, 'delete_route')" class="flex-1 bg-red-600 text-white py-1.5 font-bold rounded hover:bg-red-700">DUYỆT XÓA</button>
+                                                <button onclick="app.admin.denyReq('${r.id}', this)" class="flex-1 bg-gray-600 text-white py-1.5 font-bold rounded hover:bg-gray-700">TỪ CHỐI</button>
                                             </div>
                                         </div>
                                     </div>`;
@@ -19710,8 +22998,8 @@ if (app.admin._activeLoadToken !== currentLoadToken || app.adminTab !== tab) ret
                                         </div>
                                         <div class="mb-4">${details}</div>
                                         <div class="flex gap-2">
-                                            <button onclick="app.admin.approveRequest('${r.id}', 'unmerge_vehicle')" class="flex-1 bg-black text-white px-3 py-2 text-xs font-bold rounded-md hover:bg-gray-800 transition">DUYỆT</button>
-                                            <button onclick="app.admin.denyRequest('${r.id}')" class="bg-white border border-gray-300 text-gray-700 px-3 py-2 text-xs font-bold rounded-md hover:bg-gray-50 transition">TỪ CHỐI</button>
+                                            <button onclick="app.admin.approveReq('${r.id}', this, 'unmerge_vehicle')" class="flex-1 bg-green-600 text-white px-3 py-2 text-xs font-bold rounded-md hover:bg-green-700 transition">DUYỆT</button>
+                                            <button onclick="app.admin.denyReq('${r.id}', this)" class="bg-white border border-gray-300 text-gray-700 px-3 py-2 text-xs font-bold rounded-md hover:bg-gray-50 transition">TỪ CHỐI</button>
                                         </div>
                                     </div>`;
                                 } else if (type === 'update_history') {
@@ -19763,8 +23051,7 @@ if (app.admin._activeLoadToken !== currentLoadToken || app.adminTab !== tab) ret
                                                 <div>
                                                     <span class="admin-label">Tuyến ${routeTag}</span>
                                                     <div class="relative">
-                                                        <input type="text" id="req-h-route-${r.id}-${i}" value="${app.utils.escapeAttr(h.route || '')}" class="admin-input" autocomplete="off" onfocus="app.utils.triggerRouteSuggestion('req-h-route-${r.id}-${i}', 'req-h-sug-route-${r.id}-${i}', '')" oninput="app.utils.triggerRouteSuggestion('req-h-route-${r.id}-${i}', 'req-h-sug-route-${r.id}-${i}', this.value)">
-                                                        <div id="req-h-sug-route-${r.id}-${i}" class="suggestion-box"></div>
+                                                        <input type="text" id="req-h-route-${r.id}-${i}" value="${app.utils.escapeAttr(h.route || '')}" class="admin-input cursor-pointer bg-white select-none caret-transparent" readonly onfocus="this.blur()" onclick="this.blur(); app.route.openSelector({ targetInputId: 'req-h-route-${r.id}-${i}', vehicleType: '${curV.type || ''}', selectedRoute: this.value })">
                                                     </div>
                                                 </div>
                                             </div>
@@ -19891,6 +23178,21 @@ if (app.admin._activeLoadToken !== currentLoadToken || app.adminTab !== tab) ret
                                             </div>
                                             <div class="flex gap-2 mt-3">
                                                 <button onclick="app.admin.approveReq('${r.id}', this, 'model_info')" class="flex-1 bg-green-600 text-white py-1.5 font-bold rounded hover:bg-green-700">DUYỆT</button>
+                                                <button onclick="app.admin.denyReq('${r.id}', this)" class="flex-1 bg-red-600 text-white py-1.5 font-bold rounded hover:bg-red-700">TỪ CHỐI</button>
+                                            </div>
+                                        </div>
+                                    </div>`;
+                                } else {
+                                    return `
+                                    <div class="admin-card overflow-visible">
+                                        <div class="admin-card-header bg-gray-100"><span class="font-bold text-xs uppercase text-gray-700">YÊU CẦU: ${app.utils.escapeAttr(type || 'KHÁC')}</span><span class="text-xs text-gray-500">${username}</span></div>
+                                        <div class="admin-card-body text-xs">
+                                            <p class="font-bold text-sm mb-2 text-black"><i class="fa-solid fa-file-lines mr-1 text-gray-400"></i> ${app.utils.escapeAttr(r.license_plate || r.id)}</p>
+                                            <div class="space-y-1 mb-4 text-xs border p-2 rounded bg-gray-50 font-mono overflow-auto max-h-40">
+                                                <pre class="text-[11px] whitespace-pre-wrap">${app.utils.escapeAttr(JSON.stringify(d, null, 2))}</pre>
+                                            </div>
+                                            <div class="flex gap-2 mt-3">
+                                                <button onclick="app.admin.approveReq('${r.id}', this, '${type}')" class="flex-1 bg-green-600 text-white py-1.5 font-bold rounded hover:bg-green-700">DUYỆT</button>
                                                 <button onclick="app.admin.denyReq('${r.id}', this)" class="flex-1 bg-red-600 text-white py-1.5 font-bold rounded hover:bg-red-700">TỪ CHỐI</button>
                                             </div>
                                         </div>
@@ -21666,16 +24968,23 @@ if (cbQuality) newSubroles.push('quality_aud');
                     window.scrollTo({ top: currentScrollY, behavior: 'instant' });
                     btn.innerText = "Đang tải lên CDN..."; btn.disabled = true; btn.classList.add('btn-loading');
                     try {
-                        const plate = document.getElementById(`adm-p-plate-${id}`).value.trim();
-                        const op = document.getElementById(`adm-p-op-${id}`).value.trim();
-                        const type = document.getElementById(`adm-p-type-${id}`).value;
-                        const route = document.getElementById(`adm-p-route-${id}`).value.trim();
-                        const model = document.getElementById(`adm-p-model-${id}`).value.trim();
-                        const location = document.getElementById(`adm-p-location-${id}`).value.trim();
-                        const note = document.getElementById(`adm-p-note-${id}`).value.trim();
+                        const plateEl = document.getElementById(`adm-p-plate-${id}`);
+                        const plate = plateEl ? plateEl.value.trim() : (app.admin.originalData?.['photo_' + id]?.plate || '');
+                        const opEl = document.getElementById(`adm-p-op-${id}`);
+                        const op = opEl ? opEl.value.trim() : (app.admin.originalData?.['photo_' + id]?.operator || '');
+                        const typeEl = document.getElementById(`adm-p-type-${id}`);
+                        const type = typeEl ? typeEl.value : (app.admin.originalData?.['photo_' + id]?.type || 'bus');
+                        const routeEl = document.getElementById(`adm-p-route-${id}`);
+                        const route = routeEl ? (routeEl.dataset?.routeName || routeEl.value.trim()) : (app.admin.originalData?.['photo_' + id]?.route || '');
+                        const modelEl = document.getElementById(`adm-p-model-${id}`);
+                        const model = modelEl ? modelEl.value.trim() : (app.admin.originalData?.['photo_' + id]?.model || '');
+                        const locationEl = document.getElementById(`adm-p-location-${id}`);
+                        const location = locationEl ? locationEl.value.trim() : (app.admin.originalData?.['photo_' + id]?.location || '');
+                        const noteEl = document.getElementById(`adm-p-note-${id}`);
+                        const note = noteEl ? noteEl.value.trim() : '';
                         const provinceEl = document.getElementById(`adm-p-province-${id}`);
                         const province = provinceEl ? provinceEl.value : '';
-                        if (await app.utils.checkModelDuplicatePolicy(plate, model)) {
+                        if (plateEl && modelEl && await app.utils.checkModelDuplicatePolicy(plate, model)) {
                             if (cardEl && parentEl) {
                                 if (originalNextSibling && originalNextSibling !== cardEl) parentEl.insertBefore(cardEl, originalNextSibling);
                                 else parentEl.appendChild(cardEl);
@@ -21688,7 +24997,7 @@ if (cbQuality) newSubroles.push('quality_aud');
                         }
                         let exif_perfect = false;
                         const orig = app.admin.originalData && app.admin.originalData['photo_' + id];
-                        if (orig && orig.plate === plate && orig.operator === op && orig.type === type && orig.route === route && orig.model === model && orig.location === location) {
+                        if (plateEl && orig && orig.plate === plate && orig.operator === op && orig.type === type && orig.route === route && orig.model === model && orig.location === location) {
                             exif_perfect = true;
                         }
 
@@ -21851,7 +25160,8 @@ if (cbQuality) newSubroles.push('quality_aud');
                         btn.innerText = "Đang xử lý..."; btn.disabled = true; btn.classList.add('btn-loading');
                         (async () => {
                             try {
-                                const plate = document.getElementById(`adm-p-plate-${id}`).value.trim();
+                                const plateEl = document.getElementById(`adm-p-plate-${id}`);
+                                const plate = plateEl ? plateEl.value.trim() : (app.admin.originalData?.['photo_' + id]?.plate || '');
                                 const location = document.getElementById(`adm-p-location-${id}`)?.value?.trim();
                                 const res = await fetch('/api/admin/action', {
                                     method: 'POST',
@@ -21962,17 +25272,18 @@ if (cbQuality) newSubroles.push('quality_aud');
                             if (vError) throw vError;
                             if (req.new_data.photo_id) {
                                 const { data: oldP } = await window.sb.from('photos').select('license_plate, operator, route_no, taken_at').eq('id', req.new_data.photo_id).single();
+                                const isCoach = type === 'coach';
+                                const finalRouteNo = (!isCoach && route && route.includes(' - ')) ? route.split(' - ')[0].trim() : route;
+                                const finalBorrowed = (!isCoach && route && route.includes(' - ')) ? route : (!isCoach ? (req.new_data?.borrowed_route || null) : null);
                                 let updateObj = {
                                     license_plate: plate,
                                     note: note,
                                     location: loc,
                                     operator: op,
                                     type: type,
-                                    route_no: route
+                                    route_no: finalRouteNo,
+                                    borrowed_route: finalBorrowed
                                 };
-                                if (oldP && oldP.route_no !== route) {
-                                    updateObj.borrowed_route = null;
-                                }
                                 const { error: pError } = await window.sb.from('photos').update(updateObj).eq('id', req.new_data.photo_id);
                                 if (pError) throw pError;
                                 if (oldP && oldP.taken_at) {
@@ -21980,8 +25291,8 @@ if (cbQuality) newSubroles.push('quality_aud');
                                     await app.vehicle.syncHistoryOnPhotoEdit(
                                         plate,
                                         oldP.taken_at,
-                                        { operator: oldP.operator, route_no: oldP.route_no },
-                                        { operator: op, route_no: route },
+                                        { operator: oldP.operator, route_no: oldP.route_no, borrowed_route: oldP.borrowed_route },
+                                        { operator: op, route_no: finalRouteNo, borrowed_route: finalBorrowed },
                                         isPlateChanged
                                     );
                                 }
@@ -22038,15 +25349,20 @@ if (cbQuality) newSubroles.push('quality_aud');
                             const headway = document.getElementById(`req-route-headway-${id}`).value.trim();
                             const wheelchairSupport = document.getElementById(`req-route-wheelchair-${id}`).checked;
                             const iconType = document.getElementById(`req-route-icon-${id}`).value;
-                            const borrowedPhotosStr = document.getElementById(`req-route-borrowed-${id}`)?.value.trim();
+                            const vehicleTypeEl = document.getElementById(`req-route-type-${id}`);
+                            const vehicleType = vehicleTypeEl ? vehicleTypeEl.value : (req.new_data.metadata?.vehicle_type || 'bus');
                             
                             let metadata = {};
+                            if (vehicleType) metadata.vehicle_type = vehicleType;
                             if (ticketPrice) metadata.ticket_price = ticketPrice;
                             if (headway) metadata.headway = headway;
                             if (wheelchairSupport) metadata.wheelchair_support = wheelchairSupport;
                             
-                            if (iconType !== 'default') {
-                                const expectedRouteNo = req.new_data.route_name.split(' - ')[0];
+                            const reqVehicleType = req.new_data?.metadata?.vehicle_type || req.new_data?.vehicle_type || 'bus';
+                            const isReqCoach = reqVehicleType === 'coach';
+
+                            if (iconType !== 'default' && !isReqCoach) {
+                                const expectedRouteNo = req.new_data.route_no || (!isReqCoach && req.new_data.route_name.includes(' - ') ? req.new_data.route_name.split(' - ')[0] : req.new_data.route_name);
                                 if (expectedRouteNo.length <= 5) {
                                     metadata.icon_type = iconType;
                                 } else {
@@ -22055,100 +25371,165 @@ if (cbQuality) newSubroles.push('quality_aud');
                             }
 
                             let metadataObj = Object.keys(metadata).length > 0 ? metadata : null;
-                            const rawInputListAdmin = borrowedPhotosStr ? borrowedPhotosStr.split(',').map(s => s.trim()).filter(Boolean) : [];
-                            const enteredPlatesAdmin = rawInputListAdmin.filter(s => !/^\d+$/.test(s));
-                            if (enteredPlatesAdmin.length > 0) {
-                                const { data: existVeh, error: existErr } = await window.sb.from('vehicles').select('license_plate').in('license_plate', enteredPlatesAdmin);
-                                if (existErr) throw existErr;
-                                const existingP = existVeh.map(v => v.license_plate.toUpperCase());
-                                const invalidP = enteredPlatesAdmin.filter(p => !existingP.includes(p.toUpperCase()));
-                                if (invalidP.length > 0) {
-                                    btn.innerHTML = originalText;
-                                    btn.disabled = false;
-                                    return app.ui.showAlert(`Lỗi: Các biển số xe sau không tồn tại trên hệ thống: ${invalidP.join(', ')}`);
-                                }
-                            }
-                            if (enteredPlatesAdmin.length > 0) {
-                                metadataObj = metadataObj || {};
-                                metadataObj.borrowed_plates = enteredPlatesAdmin;
-                            } else if (metadataObj && metadataObj.borrowed_plates) {
-                                delete metadataObj.borrowed_plates;
-                                if (Object.keys(metadataObj).length === 0) metadataObj = null;
-                            }
                             
+                            
+                            const expectedRouteNo = req.new_data.route_no || (!isReqCoach && req.new_data.route_name.includes(' - ') ? req.new_data.route_name.split(' - ')[0].trim() : req.new_data.route_name);
+                            const targetProvince = isReqCoach ? null : (req.new_data.province || (req.new_data.route_name.includes(' - ') ? req.new_data.route_name.split(' - ')[1].trim() : null));
+
                             if (!desc && !shortPath && !isInactive && !metadataObj) {
                                 const { error: delErr } = await window.sb.from('route_info').delete().eq('route_name', req.new_data.route_name);
                                 if (delErr) throw delErr;
                             } else {
                                 const { error: upsertErr } = await window.sb.from('route_info').upsert({
                                     route_name: req.new_data.route_name,
+                                    route_no: expectedRouteNo,
+                                    province: targetProvince,
                                     short_path: shortPath || null,
                                     description: desc || null,
                                     is_inactive: isInactive,
+                                    is_special: false,
                                     metadata: metadataObj
-                                });
+                                }, { onConflict: 'route_name' });
                                 if (upsertErr) throw upsertErr;
                             }
+                            if (app.route) app.route.cachedRoutes = null;
                             
-                            // Xử lý cập nhật ID ảnh và biển số xe vá tuyến
-                            const rawInputList = borrowedPhotosStr ? borrowedPhotosStr.split(',').map(s => s.trim()).filter(Boolean) : [];
-                            const enteredIdsStr = rawInputList.filter(s => /^\d+$/.test(s));
-                            const enteredPlates = rawInputList.filter(s => !/^\d+$/.test(s));
-                            const newBorrowedIds = enteredIdsStr.map(Number);
-                            
-                            const { data: curBorrowed } = await window.sb.from('photos').select('id, license_plate').eq('borrowed_route', req.new_data.route_name);
-                            const curIds = curBorrowed ? curBorrowed.map(p => p.id) : [];
-                            
-                            const addedIdsRaw = newBorrowedIds.filter(id => !curIds.includes(id));
-                            const removedIds = curIds.filter(id => !newBorrowedIds.includes(id));
-                            
-                            const expectedRouteNo = req.new_data.route_name.split(' - ')[0];
-                            const targetProvince = req.new_data.route_name.split(' - ')[1] || '';
-                            
-                            if (enteredPlates.length > 0) {
-                                const { data: retroPhotos } = await window.sb.from('photos').select('id, route_no').in('license_plate', enteredPlates).eq('route_no', expectedRouteNo);
-                                if (retroPhotos && retroPhotos.length > 0) {
-                                    retroPhotos.forEach(p => {
-                                        if (!curIds.includes(p.id) && !addedIdsRaw.includes(p.id)) {
-                                            addedIdsRaw.push(p.id);
-                                        }
-                                    });
+                            // Nếu đổi tên tuyến hoặc đổi tỉnh thành, di chuyển dữ liệu ảnh & lịch sử từ tuyến cũ sang tuyến mới và xóa tuyến cũ
+                            if (req.new_data.old_route_name && req.new_data.old_route_name !== req.new_data.route_name) {
+                                if (app.route && app.route.migrateRouteData) {
+                                    await app.route.migrateRouteData(req.new_data.old_route_name, req.new_data.route_name, expectedRouteNo, targetProvince);
                                 }
                             }
                             
-                            if (addedIdsRaw.length > 0) {
-                                const { data: validPhotos } = await window.sb.from('photos').select('id, route_no').in('id', addedIdsRaw);
-                                const trulyAddedIds = (validPhotos || []).filter(p => p.route_no === expectedRouteNo).map(p => p.id);
-                                
-                                if (trulyAddedIds.length > 0) {
-                                    await window.sb.from('photos').update({ borrowed_route: req.new_data.route_name }).in('id', trulyAddedIds);
-                                }
+                            // (Bỏ cập nhật ảnh/xe vá tuyến)
+                        }
+                        else if (reqType === 'create_route_info' || req.new_data?.request_type === 'create_route_info') {
+                            const d = req.new_data;
+                            const routeNoEl = document.getElementById(`req-c-route-no-${id}`);
+                            const provEl = document.getElementById(`req-c-route-prov-${id}`);
+                            const typeEl = document.getElementById(`req-c-route-type-${id}`);
+                            const inactEl = document.getElementById(`req-c-route-inactive-${id}`);
+                            const shortEl = document.getElementById(`req-c-route-short-${id}`);
+                            const descEl = document.getElementById(`req-c-route-desc-${id}`);
+                            const ticketEl = document.getElementById(`req-c-route-ticket-${id}`);
+                            const headwayEl = document.getElementById(`req-c-route-headway-${id}`);
+                            const wheelchairEl = document.getElementById(`req-c-route-wheelchair-${id}`);
+                            const iconEl = document.getElementById(`req-c-route-icon-${id}`);
+
+                            const vehicleType = typeEl ? typeEl.value : (d.metadata?.vehicle_type || 'bus');
+                            const isCoach = vehicleType === 'coach';
+                            const routeNo = routeNoEl ? routeNoEl.value.trim() : (d.route_no || (!isCoach && d.route_name.includes(' - ') ? d.route_name.split(' - ')[0].trim() : d.route_name));
+                            const province = isCoach ? null : (provEl ? provEl.value.trim() : (d.province || (d.route_name.includes(' - ') ? d.route_name.split(' - ')[1].trim() : null)));
+                            const isInactive = inactEl ? inactEl.checked : !!d.is_inactive;
+                            const shortPath = isCoach ? null : (shortEl ? shortEl.value.trim() : (d.short_path || ''));
+                            const desc = isCoach ? null : (descEl ? descEl.value.trim() : (d.description || ''));
+                            const ticketPrice = isCoach ? '' : (ticketEl ? ticketEl.value.trim() : (d.metadata?.ticket_price || ''));
+                            const headway = isCoach ? '' : (headwayEl ? headwayEl.value.trim() : (d.metadata?.headway || ''));
+                            const wheelchairSupport = isCoach ? false : (wheelchairEl ? wheelchairEl.checked : !!d.metadata?.wheelchair_support);
+                            const iconType = isCoach ? 'default' : (iconEl ? iconEl.value : (d.metadata?.icon_type || 'default'));
+
+                            const routeName = (isCoach || !province) ? routeNo : `${routeNo} - ${province}`;
+
+                            let metadata = {};
+                            if (vehicleType) metadata.vehicle_type = vehicleType;
+                            if (ticketPrice) metadata.ticket_price = ticketPrice;
+                            if (headway) metadata.headway = headway;
+                            if (wheelchairSupport) metadata.wheelchair_support = wheelchairSupport;
+                            if (iconType !== 'default') {
+                                if (routeNo.length <= 5) metadata.icon_type = iconType;
                             }
+
+                            let metadataObj = Object.keys(metadata).length > 0 ? metadata : null;
                             
-                            let finalRemovedIds = removedIds;
-                            if (enteredPlates.length > 0 && curBorrowed) {
-                                finalRemovedIds = removedIds.filter(id => {
-                                    const photo = curBorrowed.find(p => p.id === id);
-                                    return !(photo && enteredPlates.some(plate => plate.toLowerCase() === photo.license_plate.toLowerCase()));
-                                });
-                            }
-                            
-                            if (finalRemovedIds.length > 0) {
-                                const removedPhotos = curBorrowed.filter(p => finalRemovedIds.includes(p.id));
-                                for (const p of removedPhotos) {
-                                    let defProv = 'Chưa xác định';
-                                    const match = p.license_plate.match(/^(\d{2})/);
-                                    if (match && app.utils.provinceData) {
-                                        const num = match[1];
-                                        const pData = app.utils.provinceData.find(pd => {
-                                            if (Array.isArray(pd.ky_hieu)) return pd.ky_hieu.includes(parseInt(num)) || pd.ky_hieu.includes(num);
-                                            return String(pd.ky_hieu).split(',').map(s=>s.trim()).includes(num);
-                                        });
-                                        if (pData) defProv = pData.ten;
+
+                            const { error: upsertErr } = await window.sb.from('route_info').upsert({
+                                route_name: routeName,
+                                route_no: routeNo,
+                                province: province || null,
+                                short_path: shortPath || null,
+                                description: desc || null,
+                                is_inactive: isInactive,
+                                is_special: false,
+                                metadata: metadataObj
+                            }, { onConflict: 'route_name' });
+                            if (upsertErr) throw upsertErr;
+
+                            // (Bỏ cập nhật ảnh/xe vá tuyến)
+
+                            if (app.route) app.route.cachedRoutes = null;
+                        }
+                        else if (reqType === 'delete_route' || req.new_data?.request_type === 'delete_route') {
+                            const d = req.new_data;
+                            const deletingName = d.route_name;
+                            const isDelCoach = d.metadata?.vehicle_type === 'coach';
+                            const deletingNo = d.route_no || (!isDelCoach && deletingName.includes(' - ') ? deletingName.split(' - ')[0].trim() : deletingName);
+                            const deletingProv = isDelCoach ? '' : (d.province || (deletingName.includes(' - ') ? deletingName.split(' - ').slice(1).join(' - ').trim() : ''));
+                            const destRouteNo = (d.dest_route_no || 'Ngoài giờ hoạt động').trim();
+                            const destRouteName = (d.dest_route_name || destRouteNo).trim();
+                            const newBorrowed = destRouteName !== destRouteNo ? destRouteName : null;
+
+                            const provMatch = deletingProv && app.utils.provinceData ? app.utils.provinceData.find(p => p.ten.toLowerCase() === deletingProv.toLowerCase()) : null;
+                            const provPrefixes = provMatch ? (Array.isArray(provMatch.ky_hieu) ? provMatch.ky_hieu : String(provMatch.ky_hieu).split(',').map(s => s.trim())) : [];
+
+                            // 1. Chuyển tất cả ảnh thuộc tuyến bị xóa sang tuyến đích (chỉ các ảnh thực sự thuộc tuyến và tỉnh này)
+                            const { data: candPhotos } = await window.sb.from('photos')
+                                .select('id, license_plate, route_no, borrowed_route')
+                                .or(`route_no.eq."${deletingNo}",borrowed_route.eq."${deletingName}"`);
+
+                            const isPhotoMatch = (p) => {
+                                if (p.borrowed_route === deletingName) return true;
+                                if (p.route_no === deletingNo && (!p.borrowed_route || p.borrowed_route === '')) {
+                                    if (provMatch) {
+                                        if (provPrefixes.some(pref => (p.license_plate || '').startsWith(pref))) return true;
+                                        if (app.utils.getProvinceFromPlate && app.utils.getProvinceFromPlate(p.license_plate) === provMatch.ten) return true;
+                                        return false;
                                     }
-                                    await window.sb.from('photos').update({ borrowed_route: null }).eq('id', p.id);
+                                    return p.borrowed_route === deletingName || p.route_no === deletingName;
                                 }
+                                return false;
+                            };
+
+                            const targetPhotoIds = (candPhotos || []).filter(isPhotoMatch).map(p => p.id);
+                            for (let i = 0; i < targetPhotoIds.length; i += 100) {
+                                const chunk = targetPhotoIds.slice(i, i + 100);
+                                await window.sb.from('photos').update({ route_no: destRouteNo, borrowed_route: newBorrowed }).in('id', chunk);
                             }
+
+                            // 2. Chuyển tất cả lịch sử phương tiện (vehicle_history) sang tuyến đích (chỉ xe thuộc tỉnh này)
+                            const { data: candHist } = await window.sb.from('vehicle_history')
+                                .select('id, license_plate, route')
+                                .or(`route.eq."${deletingNo}",route.eq."${deletingName}"`);
+
+                            const isHistMatch = (h) => {
+                                if (h.route === deletingName) return true;
+                                if (h.route === deletingNo) {
+                                    const vehiclePhotos = (candPhotos || []).filter(p => (p.license_plate || '').toUpperCase() === (h.license_plate || '').toUpperCase());
+                                    const hasThisBorrowed = vehiclePhotos.some(p => p.borrowed_route === deletingName);
+                                    if (hasThisBorrowed) return true;
+                                    const hasOtherBorrowed = vehiclePhotos.some(p => p.borrowed_route && p.borrowed_route !== deletingName && p.route_no === deletingNo);
+                                    if (hasOtherBorrowed) return false;
+
+                                    if (provMatch) {
+                                        if (provPrefixes.some(pref => (h.license_plate || '').startsWith(pref))) return true;
+                                        if (app.utils.getProvinceFromPlate && app.utils.getProvinceFromPlate(h.license_plate) === provMatch.ten) return true;
+                                        return false;
+                                    }
+                                    return h.route === deletingName;
+                                }
+                                return false;
+                            };
+
+                            const targetHistIds = (candHist || []).filter(isHistMatch).map(h => h.id);
+                            for (let i = 0; i < targetHistIds.length; i += 100) {
+                                const chunk = targetHistIds.slice(i, i + 100);
+                                await window.sb.from('vehicle_history').update({ route: destRouteNo }).in('id', chunk);
+                            }
+
+                            // 3. Xóa hồ sơ tuyến khỏi bảng route_info
+                            const { error: delErr } = await window.sb.from('route_info').delete().eq('route_name', deletingName);
+                            if (delErr) throw delErr;
+
+                            if (app.route) app.route.cachedRoutes = null;
                         }
                         else if (reqType === 'model_info' || req.new_data.request_type === 'update_model_info') {
                             const logo = document.getElementById(`req-mdl-logo-${id}`).value.trim();
@@ -22171,7 +25552,24 @@ if (cbQuality) newSubroles.push('quality_aud');
                                     .ilike('model_name', `${brandName}%`);
                             }
                         }
-                        else {
+                        else if (reqType === 'unmerge_vehicle' || req.new_data?.request_type === 'unmerge_vehicle') {
+                            const d = req.new_data;
+                            const currentPlate = req.license_plate;
+                            const targetPlate = d.target_plate;
+                            if (targetPlate && currentPlate) {
+                                await window.sb.from('vehicle_history')
+                                    .update({ license_plate: targetPlate })
+                                    .eq('license_plate', currentPlate)
+                                    .eq('plate', targetPlate);
+
+                                const { data: targetVeh } = await window.sb.from('vehicles').select('note').eq('license_plate', targetPlate).maybeSingle();
+                                if (targetVeh && targetVeh.note) {
+                                    const newNote = targetVeh.note.replace(`[MERGED_INTO:${currentPlate}]`, '').trim();
+                                    await window.sb.from('vehicles').update({ note: newNote }).eq('license_plate', targetPlate);
+                                }
+                            }
+                        }
+                        else if (reqType === 'history' || reqType === 'update_history' || req.new_data?.request_type === 'update_history') {
                             let newItems = [];
                             let hasError = false;
                             if (reqType === 'history') {
@@ -22210,6 +25608,15 @@ if (cbQuality) newSubroles.push('quality_aud');
                                     });
                                 }
                             }
+
+                            // Chặn 2 tuyến trạng thái đặc biệt không được ghi vào lịch sử
+                            const invalidHistoryRoutes = ['Ngoài giờ hoạt động', 'Chưa hoạt động'];
+                            for (const item of newItems) {
+                                if (invalidHistoryRoutes.includes((item.route || '').trim())) {
+                                    return app.ui.showAlert(`Tuyến "${item.route}" không được phép ghi vào lịch sử xe. Vui lòng chỉnh sửa trước khi duyệt.`);
+                                }
+                            }
+
                             const currentPlate = req.license_plate;
                             // Tự động xóa mốc "Dừng hoạt động" nếu có mốc lịch sử khác sau ngày dừng hoạt động
                             newItems = app.vehicle.autoRemoveStoppedAfterNewer(newItems);
@@ -22244,6 +25651,9 @@ if (cbQuality) newSubroles.push('quality_aud');
                                 const { error: insErr } = await window.sb.from('vehicle_history').insert(newItems);
                                 if (insErr) throw insErr;
                             }
+                        }
+                        else {
+                            // Yêu cầu khác: Tự động hoàn thành phê duyệt
                         }
                         await window.sb.from('edit_requests').update({ status: 'approved' }).eq('id', id);
                         app.admin.logAction('approve_edit_req', id, { req_type: reqType, plate: req.license_plate });
@@ -22343,21 +25753,38 @@ if (cbQuality) newSubroles.push('quality_aud');
                     if (app.isRealtimeConnected === false) {
                         return app.ui.showAlert("Mất kết nối Realtime với máy chủ! Đã tạm khóa chức năng từ chối yêu cầu để tránh lệch dữ liệu.");
                     }
-                    app.ui.showPrompt("Nhập lý do từ chối yêu cầu này (Tùy chọn):", "", async (reason) => {
+                    app.ui.showPrompt("Nhập lý do từ chối yêu cầu này (Bắt buộc):", "", async (reason) => {
+                        const cleanReason = (reason || '').trim();
+                        if (!cleanReason) {
+                            app.ui.showAlert("Vui lòng nhập lý do từ chối, không được để trống!");
+                            return;
+                        }
                         btn.innerText = "Đang xử lý..."; btn.disabled = true; btn.classList.add('btn-loading');
                         try {
-                            const { data: req } = await window.sb.from('edit_requests').select('requester_id, license_plate, new_data').eq('id', reqId).single();
-                            await window.sb.from('edit_requests').update({ status: 'denied' }).eq('id', reqId);
-                            let actionName = req.new_data.request_type === 'delete_photo' ? 'xóa ảnh' : 'chỉnh sửa';
-                            let reasonMsg = reason ? ` Lý do: ${reason}` : '';
+                            const { data: req, error: reqErr } = await window.sb.from('edit_requests').select('id, requester_id, license_plate, new_data').eq('id', reqId).single();
+                            if (reqErr) throw reqErr;
+                            const currentNewData = (req && req.new_data && typeof req.new_data === 'object') ? req.new_data : {};
+                            const updatedNewData = {
+                                ...currentNewData,
+                                admin_note: cleanReason
+                            };
+                            const { error: updErr } = await window.sb.from('edit_requests').update({
+                                status: 'denied',
+                                new_data: updatedNewData
+                            }).eq('id', reqId);
+                            if (updErr) throw updErr;
+
+                            let actionName = req?.new_data?.request_type === 'delete_photo' ? 'xóa ảnh' : 'chỉnh sửa';
+                            app.toast.show('success', 'Thành công', `Đã từ chối yêu cầu ${actionName}!`);
+                            app.admin.logAction('deny_edit_req', reqId, { req_type: req?.new_data?.request_type, plate: req?.license_plate, reason: cleanReason });
                             if (document.activeElement) document.activeElement.blur();
-                            if (req.new_data.request_type === 'delete_photo') app.admin.loadTab('delete', false, true);
+                            if (req?.new_data?.request_type === 'delete_photo') app.admin.loadTab('delete', false, true);
                             else app.admin.loadTab('requests', false, true);
                         } catch (err) {
                             app.ui.showAlert("Lỗi: " + err.message);
                             btn.innerText = "TỪ CHỐI"; btn.disabled = false; btn.classList.remove('btn-loading');
                         }
-                    });
+                    }, { allowEmpty: false, title: "Từ chối yêu cầu" });
                 }
             },
 

@@ -1381,18 +1381,18 @@ Object.assign(window.app, {
                     }
                 }
 
-                // 4th card: action card linking to /support-us
+                // 4th card: action card linking to /support-us (inverted contrast like a button)
                 cards.push(`
-                    <div onclick="app.utils.navigate('/support-us')" class="cursor-pointer transition-all duration-300 relative flex flex-row items-center p-3 text-left bg-white rounded-xl border border-gray-200 shadow-sm hover:border-black group">
-                        <div class="w-8 h-8 rounded-full bg-gray-100 group-hover:bg-black group-hover:text-white flex items-center justify-center shrink-0 border border-gray-200 transition mr-3">
-                            <i class="fa-solid fa-heart text-black group-hover:text-white text-xs"></i>
+                    <div id="home-supporters-action-card" onclick="app.utils.navigate('/support-us')" class="cursor-pointer transition-all duration-300 relative flex flex-row items-center p-3 text-left bg-black text-white rounded-xl border border-black shadow-sm hover:bg-gray-900 group">
+                        <div class="supporter-action-icon w-8 h-8 rounded-full bg-white/10 text-white flex items-center justify-center shrink-0 border border-white/20 transition mr-3">
+                            <i class="fa-solid fa-heart text-white text-xs"></i>
                         </div>
                         <div class="flex-1 min-w-0 flex flex-col justify-center">
                             <div class="flex items-center justify-between gap-2">
-                                <span class="truncate font-bold text-gray-900 text-sm leading-tight">Tôi cũng muốn ủng hộ!</span>
-                                <span class="text-xs font-bold text-gray-500 group-hover:text-black shrink-0">Ủng hộ ngay &rarr;</span>
+                                <span class="truncate font-bold text-white text-sm leading-tight">Tôi cũng muốn ủng hộ!</span>
+                                <span class="text-xs font-bold text-white/80 group-hover:text-white shrink-0">Ủng hộ ngay &rarr;</span>
                             </div>
-                            <span class="block text-gray-500 text-xs tracking-wide w-full truncate mt-0.5">Tiếp sức cùng dự án duy trì máy chủ</span>
+                            <span class="block text-white/70 text-xs tracking-wide w-full truncate mt-0.5">Tiếp sức cùng dự án duy trì máy chủ</span>
                         </div>
                     </div>
                 `);
