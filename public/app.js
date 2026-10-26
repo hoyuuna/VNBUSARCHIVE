@@ -12685,7 +12685,11 @@ Object.assign(window.app, {
                         </label>
                     </div>
 
-                    <div class="mt-5 pt-1 relative">
+                    <p class="text-[11px] text-gray-500 text-center leading-normal mt-3">
+                        Khoản ủng hộ chỉ dùng để duy trì dự án và không đi kèm đặc quyền nào so với người không ủng hộ.
+                    </p>
+
+                    <div class="mt-4 pt-1 relative">
                         <!-- State 1: Chưa thay đổi -> Nút Đóng -->
                         <div id="donation-modal-btn-close" class="transition-all duration-300 ease-in-out">
                             <button type="button" onclick="app.ui.closeAlert()" class="w-full py-2.5 px-4 bg-black hover:bg-gray-800 text-white rounded-lg text-xs font-bold transition shadow-sm">
