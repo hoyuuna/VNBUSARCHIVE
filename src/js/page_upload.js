@@ -2907,7 +2907,7 @@ Object.assign(window.app, {
                         } catch (e) {}
                         let result = null;
                         let uploadAttempts = 0;
-                        const maxUploadAttempts = 1;
+                        const maxUploadAttempts = 2; // Tự động thử lại 1 lần nếu gặp lỗi mạng chập chờn
                         let lastUploadErr = null;
                         while (uploadAttempts < maxUploadAttempts) {
                             uploadAttempts++;

@@ -121,32 +121,6 @@ export async function onRequest(context) {
                 throw new Error(`Lỗi phản hồi từ CDN: ${JSON.stringify(uploadResult)}`);
             }
             let rawSrc = uploadResult[0].src;
-            try {
-                const checkUrl = uploadResult[0].src.startsWith('/') ? 'https://cdn.vnbusarchive.io.vn' + uploadResult[0].src : uploadResult[0].src;
-                await new Promise(r => setTimeout(r, 1500));
-                const antiCacheUrl = new URL(checkUrl);
-                antiCacheUrl.searchParams.set('nocache', Date.now().toString());
-                const checkRes = await fetch(antiCacheUrl.toString(), {
-                    method: 'HEAD',
-                    cache: 'no-store',
-                    headers: {
-                        'Cache-Control': 'no-cache, no-store, must-revalidate',
-                        'Pragma': 'no-cache',
-                        'Expires': '0'
-                    }
-                });
-                if (!checkRes.ok) {
-                    throw new Error('CDN trả về lỗi ' + checkRes.status + ' (Ảnh 404 hoặc không tồn tại)');
-                }
-                const size = checkRes.headers.get('content-length');
-                if (size && parseInt(size, 10) < 100) {
-                    throw new Error('Ảnh trả về là ảnh trống hoặc quá nhỏ');
-                }
-            } catch (e) {
-                console.error('[CDN VERIFY ERROR]:', e);
-                throw new Error('Lỗi xác minh ảnh sau tải lên: ' + e.message);
-            }
-
             finalOptimizedUrl = rawSrc.startsWith('/') ? `https://cdn.vnbusarchive.io.vn${rawSrc}` : rawSrc;
 
             let oldAvatarUrl = null;
@@ -196,32 +170,6 @@ export async function onRequest(context) {
                 throw new Error(`Lỗi phản hồi từ CDN: ${JSON.stringify(uploadResult)}`);
             }
             let rawSrc = uploadResult[0].src;
-            try {
-                const checkUrl = uploadResult[0].src.startsWith('/') ? 'https://cdn.vnbusarchive.io.vn' + uploadResult[0].src : uploadResult[0].src;
-                await new Promise(r => setTimeout(r, 1500));
-                const antiCacheUrl = new URL(checkUrl);
-                antiCacheUrl.searchParams.set('nocache', Date.now().toString());
-                const checkRes = await fetch(antiCacheUrl.toString(), {
-                    method: 'HEAD',
-                    cache: 'no-store',
-                    headers: {
-                        'Cache-Control': 'no-cache, no-store, must-revalidate',
-                        'Pragma': 'no-cache',
-                        'Expires': '0'
-                    }
-                });
-                if (!checkRes.ok) {
-                    throw new Error('CDN trả về lỗi ' + checkRes.status + ' (Ảnh 404 hoặc không tồn tại)');
-                }
-                const size = checkRes.headers.get('content-length');
-                if (size && parseInt(size, 10) < 100) {
-                    throw new Error('Ảnh trả về là ảnh trống hoặc quá nhỏ');
-                }
-            } catch (e) {
-                console.error('[CDN VERIFY ERROR]:', e);
-                throw new Error('Lỗi xác minh ảnh sau tải lên: ' + e.message);
-            }
-
             finalOptimizedUrl = rawSrc.startsWith('/') ? `https://cdn.vnbusarchive.io.vn${rawSrc}` : rawSrc;
 
             const { error: vErr } = await sbAdmin
