@@ -1148,7 +1148,7 @@ Object.assign(window.app, {
                                 })
                             });
                             if (typeof app.donate.loadHomeSupporters === 'function') {
-                                app.donate.loadHomeSupporters();
+                                app.donate.loadHomeSupporters(true);
                             }
                         } catch(e) {}
                     };
@@ -1167,7 +1167,7 @@ Object.assign(window.app, {
             app.donate.currentOrder = null;
 
             if (typeof app.donate.loadHomeSupporters === 'function') {
-                app.donate.loadHomeSupporters();
+                app.donate.loadHomeSupporters(true);
             }
 
             app.utils.navigate('/');
@@ -1313,6 +1313,9 @@ Object.assign(window.app, {
             const safeMsg = item.message ? app.utils.escapeHtml(item.message) : '';
             const safeName = app.utils.escapeHtml(item.donor_name);
             const defaultAv = (typeof DEFAULT_AVATAR !== 'undefined') ? DEFAULT_AVATAR : '/media/default-avatar.png';
+            const photoCountText = (!isAnon && typeof item.photo_count === 'number')
+                ? `${new Intl.NumberFormat('vi-VN').format(item.photo_count)} ảnh đã đăng`
+                : 'Thành viên VNBUSARCHIVE';
 
             let accountBoxHtml = '';
             if (!isAnon && item.username) {
@@ -1328,7 +1331,7 @@ Object.assign(window.app, {
                         </div>
                         <div class="min-w-0 flex-1">
                             <div class="font-bold text-sm text-black truncate">${safeName}</div>
-                            <p class="text-[11px] text-gray-500 truncate mt-0.5">Thành viên VNBUSARCHIVE</p>
+                            <p class="text-[11px] text-gray-500 truncate mt-0.5">${photoCountText}</p>
                         </div>
                     </div>
                 `;
@@ -1375,106 +1378,123 @@ Object.assign(window.app, {
             });
         },
 
-        loadHomeSupporters: async () => {
+        _lastHomeSupportersLoadTime: 0,
+
+        loadHomeSupporters: async (forceRefresh = false) => {
             const container = document.getElementById('home-supporters-list');
             if (!container) return;
 
+            const now = Date.now();
+            // Client cache: reuse existing top supporters if fetched within last 60s unless forced
+            if (!forceRefresh && app.donate._homeSupportersCache?.length > 0 && (now - (app.donate._lastHomeSupportersLoadTime || 0) < 60000)) {
+                if (container.children.length > 0) return;
+                app.donate._renderHomeSupporters(app.donate._homeSupportersCache);
+                return;
+            }
+
             try {
-                const res = await fetch('/api/donate/supporters');
+                const url = forceRefresh ? `/api/donate/supporters?force=1&t=${now}` : '/api/donate/supporters';
+                const res = await fetch(url);
                 const resData = await res.json();
                 const list = (resData && resData.success && Array.isArray(resData.data)) ? resData.data : [];
 
                 const top3 = list.slice(0, 3);
                 app.donate._homeSupportersCache = top3;
-                const cards = [];
-
-                for (let i = 0; i < 3; i++) {
-                    const item = top3[i];
-                    if (item) {
-                        const amtStr = new Intl.NumberFormat('vi-VN').format(item.amount) + 'đ';
-                        const safeName = app.utils.escapeHtml(item.donor_name);
-                        const dateStr = item.created_at ? new Date(item.created_at).toLocaleDateString('vi-VN') : '';
-                        const defaultAv = (typeof DEFAULT_AVATAR !== 'undefined') ? DEFAULT_AVATAR : '/media/default-avatar.png';
-
-                        let iconOrAvatarHtml = '';
-                        const clickAttr = `onclick="app.donate.showHomeSupporterModal(${i})"`;
-                        const cursorClass = 'cursor-pointer hover:border-black';
-
-                        if (!item.is_anonymous && item.username) {
-                            const rawAv = item.avatar_url;
-                            const finalAv = rawAv 
-                                ? (rawAv.startsWith('http') && !rawAv.includes('/avatar.jpg') ? app.utils.getProxiedUrl(rawAv.replace(/"/g, ''), 'avatar.jpg', 'avatar') : rawAv)
-                                : defaultAv;
-                            iconOrAvatarHtml = `
-                                <div class="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center shrink-0 border border-gray-200 mr-3 overflow-hidden">
-                                    <img src="${finalAv}" alt="${safeName}" onerror="this.src='${defaultAv}'" class="w-full h-full object-cover">
-                                </div>
-                            `;
-                        } else {
-                            iconOrAvatarHtml = `
-                                <div class="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center shrink-0 border border-gray-200 mr-3">
-                                    <i class="fa-solid fa-user text-black text-xs"></i>
-                                </div>
-                            `;
-                        }
-
-                        const tooltipAttr = item.message ? `title="${app.utils.escapeHtml(item.message)}"` : '';
-                        const subMsg = item.message ? app.utils.escapeHtml(item.message) : '';
-
-                        cards.push(`
-                            <div class="${cursorClass} transition-all duration-300 relative flex flex-row items-center p-3 text-left bg-white rounded-xl border border-gray-200 shadow-sm hover:border-black" ${clickAttr} ${tooltipAttr}>
-                                ${iconOrAvatarHtml}
-                                <div class="flex-1 min-w-0 flex flex-col justify-center">
-                                    <div class="flex items-center justify-between gap-2">
-                                        <span class="truncate font-bold text-gray-900 text-sm leading-tight">${safeName}</span>
-                                        <span class="text-xs font-extrabold text-black shrink-0">+${amtStr}</span>
-                                    </div>
-                                    <div class="flex items-center justify-between gap-2 mt-0.5">
-                                        <span class="block text-gray-500 text-xs tracking-wide truncate">${subMsg || 'Đồng hành cùng dự án'}</span>
-                                        <span class="text-[11px] text-gray-400 shrink-0">${dateStr}</span>
-                                    </div>
-                                </div>
-                            </div>
-                        `);
-                    } else {
-                        cards.push(`
-                            <div class="transition-all duration-300 relative flex flex-row items-center p-3 text-left bg-white rounded-xl border border-gray-200 shadow-sm opacity-60">
-                                <div class="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center shrink-0 border border-gray-200 mr-3">
-                                    <i class="fa-solid fa-heart text-black text-xs"></i>
-                                </div>
-                                <div class="flex-1 min-w-0 flex flex-col justify-center">
-                                    <div class="flex items-center justify-between gap-2">
-                                        <span class="truncate font-bold text-gray-500 text-sm leading-tight">Vị trí chờ bạn</span>
-                                        <span class="text-xs text-gray-400 shrink-0">---</span>
-                                    </div>
-                                    <span class="block text-gray-400 text-xs tracking-wide w-full truncate mt-0.5">Chưa có người ủng hộ</span>
-                                </div>
-                            </div>
-                        `);
-                    }
-                }
-
-                // 4th card: action card linking to /support-us (inverted contrast like a button)
-                cards.push(`
-                    <div id="home-supporters-action-card" onclick="app.utils.navigate('/support-us')" class="cursor-pointer transition-all duration-300 relative flex flex-row items-center p-3 text-left bg-black text-white rounded-xl border border-black shadow-sm hover:bg-gray-900 group">
-                        <div class="supporter-action-icon w-8 h-8 rounded-full bg-white/10 text-white flex items-center justify-center shrink-0 border border-white/20 transition mr-3">
-                            <i class="fa-solid fa-heart text-white text-xs"></i>
-                        </div>
-                        <div class="flex-1 min-w-0 flex flex-col justify-center">
-                            <div class="flex items-center justify-between gap-2">
-                                <span class="truncate font-bold text-white text-sm leading-tight">Tôi cũng muốn ủng hộ!</span>
-                                <span class="text-xs font-bold text-white/80 group-hover:text-white shrink-0">Ủng hộ ngay &rarr;</span>
-                            </div>
-                            <span class="block text-white/70 text-xs tracking-wide w-full truncate mt-0.5">Tiếp sức cùng dự án duy trì máy chủ</span>
-                        </div>
-                    </div>
-                `);
-
-                container.innerHTML = cards.join('');
-
+                app.donate._lastHomeSupportersLoadTime = now;
+                app.donate._renderHomeSupporters(top3);
             } catch (e) {
                 console.error('Error loading supporters:', e);
             }
+        },
+
+        _renderHomeSupporters: (top3) => {
+            const container = document.getElementById('home-supporters-list');
+            if (!container) return;
+
+            const cards = [];
+            for (let i = 0; i < 3; i++) {
+                const item = top3[i];
+                if (item) {
+                    const amtStr = new Intl.NumberFormat('vi-VN').format(item.amount) + 'đ';
+                    const safeName = app.utils.escapeHtml(item.donor_name);
+                    const dateStr = item.created_at ? new Date(item.created_at).toLocaleDateString('vi-VN') : '';
+                    const defaultAv = (typeof DEFAULT_AVATAR !== 'undefined') ? DEFAULT_AVATAR : '/media/default-avatar.png';
+
+                    let iconOrAvatarHtml = '';
+                    const clickAttr = `onclick="app.donate.showHomeSupporterModal(${i})"`;
+                    const cursorClass = 'cursor-pointer hover:border-black';
+
+                    if (!item.is_anonymous && item.username) {
+                        const rawAv = item.avatar_url;
+                        const finalAv = rawAv 
+                            ? (rawAv.startsWith('http') && !rawAv.includes('/avatar.jpg') ? app.utils.getProxiedUrl(rawAv.replace(/"/g, ''), 'avatar.jpg', 'avatar') : rawAv)
+                            : defaultAv;
+                        iconOrAvatarHtml = `
+                            <div class="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center shrink-0 border border-gray-200 mr-3 overflow-hidden">
+                                <img src="${finalAv}" alt="${safeName}" onerror="this.src='${defaultAv}'" class="w-full h-full object-cover">
+                            </div>
+                        `;
+                    } else {
+                        iconOrAvatarHtml = `
+                            <div class="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center shrink-0 border border-gray-200 mr-3">
+                                <i class="fa-solid fa-user text-black text-xs"></i>
+                            </div>
+                        `;
+                    }
+
+                    const tooltipAttr = item.message ? `title="${app.utils.escapeHtml(item.message)}"` : '';
+                    const subMsg = item.message ? app.utils.escapeHtml(item.message) : '';
+
+                    cards.push(`
+                        <div class="${cursorClass} transition-all duration-300 relative flex flex-row items-center p-3 text-left bg-white rounded-xl border border-gray-200 shadow-sm hover:border-black" ${clickAttr} ${tooltipAttr}>
+                            ${iconOrAvatarHtml}
+                            <div class="flex-1 min-w-0 flex flex-col justify-center">
+                                <div class="flex items-center justify-between gap-2">
+                                    <span class="truncate font-bold text-gray-900 text-sm leading-tight">${safeName}</span>
+                                    <span class="text-xs font-extrabold text-black shrink-0">+${amtStr}</span>
+                                </div>
+                                <div class="flex items-center justify-between gap-2 mt-0.5">
+                                    <span class="block text-gray-500 text-xs tracking-wide truncate">${subMsg || 'Đồng hành cùng dự án'}</span>
+                                    <span class="text-[11px] text-gray-400 shrink-0">${dateStr}</span>
+                                </div>
+                            </div>
+                        </div>
+                    `);
+                } else {
+                    cards.push(`
+                        <div class="transition-all duration-300 relative flex flex-row items-center p-3 text-left bg-white rounded-xl border border-gray-200 shadow-sm opacity-60">
+                            <div class="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center shrink-0 border border-gray-200 mr-3">
+                                <i class="fa-solid fa-heart text-black text-xs"></i>
+                            </div>
+                            <div class="flex-1 min-w-0 flex flex-col justify-center">
+                                <div class="flex items-center justify-between gap-2">
+                                    <span class="truncate font-bold text-gray-500 text-sm leading-tight">Vị trí chờ bạn</span>
+                                    <span class="text-xs text-gray-400 shrink-0">---</span>
+                                </div>
+                                <span class="block text-gray-400 text-xs tracking-wide w-full truncate mt-0.5">Chưa có người ủng hộ</span>
+                            </div>
+                        </div>
+                    `);
+                }
+            }
+
+            // 4th card: action card linking to /support-us (inverted contrast like a button)
+            cards.push(`
+                <div id="home-supporters-action-card" onclick="app.utils.navigate('/support-us')" class="cursor-pointer transition-all duration-300 relative flex flex-row items-center p-3 text-left bg-black text-white rounded-xl border border-black shadow-sm hover:bg-gray-900 group">
+                    <div class="supporter-action-icon w-8 h-8 rounded-full bg-white/10 text-white flex items-center justify-center shrink-0 border border-white/20 transition mr-3">
+                        <i class="fa-solid fa-heart text-white text-xs"></i>
+                    </div>
+                    <div class="flex-1 min-w-0 flex flex-col justify-center">
+                        <div class="flex items-center justify-between gap-2">
+                            <span class="truncate font-bold text-white text-sm leading-tight">Tôi cũng muốn ủng hộ!</span>
+                            <span class="text-xs font-bold text-white/80 group-hover:text-white shrink-0">Ủng hộ ngay &rarr;</span>
+                        </div>
+                        <span class="block text-white/70 text-xs tracking-wide w-full truncate mt-0.5">Tiếp sức cùng dự án duy trì máy chủ</span>
+                    </div>
+                </div>
+            `);
+
+            container.innerHTML = cards.join('');
         },
 
         _profileCache: {},
@@ -1745,9 +1765,9 @@ Object.assign(window.app, {
                     }, 150);
                 }
 
-                // Refresh home supporters list in real-time
+                // Refresh home supporters list in real-time with force bypass
                 if (typeof app.donate.loadHomeSupporters === 'function') {
-                    app.donate.loadHomeSupporters();
+                    app.donate.loadHomeSupporters(true);
                 }
 
                 if (app.toast && app.toast.show) {
