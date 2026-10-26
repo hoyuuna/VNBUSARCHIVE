@@ -901,14 +901,18 @@ Object.assign(window.app, {
                     avatarEl.src = finalAvatar;
                     avatarEl.onerror = () => { avatarEl.src = defaultAv; };
                     avatarEl.classList.remove('hidden');
-                    iconEl.classList.add('hidden');
+                    avatarEl.style.setProperty('display', 'block', 'important');
+                    iconEl.classList.add('hidden', '!hidden');
+                    iconEl.style.setProperty('display', 'none', 'important');
                 }
             } else {
                 if (nameEl) nameEl.innerText = 'Ẩn danh (Khách vãng lai)';
                 if (descEl) descEl.innerText = 'Bạn đang ủng hộ với tư cách ẩn danh. Đăng nhập nếu bạn muốn lưu vào hồ sơ cá nhân.';
                 if (avatarEl && iconEl) {
                     avatarEl.classList.add('hidden');
-                    iconEl.classList.remove('hidden');
+                    avatarEl.style.setProperty('display', 'none', 'important');
+                    iconEl.classList.remove('hidden', '!hidden');
+                    iconEl.style.setProperty('display', 'inline-block', 'important');
                 }
             }
 
