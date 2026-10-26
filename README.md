@@ -36,8 +36,6 @@ Dự án luôn hoan nghênh các đóng góp về hình ảnh, thông tin phươ
 - **Liên hệ:** [https://www.vnbusarchive.io.vn/contact](https://www.vnbusarchive.io.vn/contact) hoặc [lienhe@vnbusarchive.io.vn](mailto:lienhe@vnbusarchive.io.vn)
 
 ### Ủng hộ dự án
-- **Ngân hàng:** TMCP Ngoại Thương Việt Nam (Vietcombank)
-- **Số tài khoản:** `1054750225`
-- **Chủ tài khoản:** NGUYEN HOANG ANH TUAN
+https://www.vnbusarchive.io.vn/support-us
 
 <img src="https://img.vietqr.io/image/vietcombank-1054750225-compact2.png?addInfo=Donate%20VNBUSARCHIVE" width="300"/>
