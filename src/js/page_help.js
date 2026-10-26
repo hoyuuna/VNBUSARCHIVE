@@ -1301,6 +1301,85 @@ Object.assign(window.app, {
             }
         },
 
+        _homeSupportersCache: [],
+
+        showHomeSupporterModal: (index) => {
+            const item = app.donate._homeSupportersCache?.[index];
+            if (!item) return;
+
+            const isAnon = !!item.is_anonymous;
+            const amtStr = new Intl.NumberFormat('vi-VN').format(item.amount) + ' VNĐ';
+            const dateStr = item.created_at ? new Date(item.created_at).toLocaleDateString('vi-VN') : '---';
+            const safeMsg = item.message ? app.utils.escapeHtml(item.message) : '';
+            const safeName = app.utils.escapeHtml(item.donor_name);
+            const defaultAv = (typeof DEFAULT_AVATAR !== 'undefined') ? DEFAULT_AVATAR : '/media/default-avatar.png';
+
+            let accountBoxHtml = '';
+            if (!isAnon && item.username) {
+                const rawAv = item.avatar_url;
+                const finalAv = rawAv 
+                    ? (rawAv.startsWith('http') && !rawAv.includes('/avatar.jpg') ? app.utils.getProxiedUrl(rawAv.replace(/"/g, ''), 'avatar.jpg', 'avatar') : rawAv)
+                    : defaultAv;
+
+                accountBoxHtml = `
+                    <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-xl border border-gray-200 text-left">
+                        <div class="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center shrink-0 border border-gray-200 overflow-hidden">
+                            <img src="${finalAv}" alt="${safeName}" onerror="this.src='${defaultAv}'" class="w-full h-full object-cover">
+                        </div>
+                        <div class="min-w-0 flex-1">
+                            <div class="flex items-center gap-1.5">
+                                <span class="font-bold text-sm text-black truncate">${safeName}</span>
+                                <a href="javascript:void(0)" onclick="app.ui.closeAlert(); app.utils.navigate('/user/${encodeURIComponent(item.username)}')" class="text-[11px] font-bold text-gray-500 hover:text-black hover:underline shrink-0" title="Xem trang cá nhân">
+                                    <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i>
+                                </a>
+                            </div>
+                            <p class="text-[11px] text-gray-500 truncate mt-0.5">Thành viên VNBUSARCHIVE</p>
+                        </div>
+                    </div>
+                `;
+            } else {
+                accountBoxHtml = `
+                    <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-xl border border-gray-200 text-left">
+                        <div class="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center shrink-0 border border-gray-200">
+                            <i class="fa-solid fa-user text-black text-sm"></i>
+                        </div>
+                        <div class="min-w-0 flex-1">
+                            <span class="font-bold text-sm text-black truncate block">Nhà hảo tâm ẩn danh</span>
+                            <p class="text-[11px] text-gray-500 truncate mt-0.5">Khoản đóng góp ẩn danh</p>
+                        </div>
+                    </div>
+                `;
+            }
+
+            const contentHtml = `
+                <div class="text-left text-xs space-y-3 py-1">
+                    <!-- Ô 1: Tài khoản người ủng hộ -->
+                    ${accountBoxHtml}
+
+                    <!-- Ô 2: Số tiền ủng hộ -->
+                    <div class="p-3 bg-gray-50 rounded-xl border border-gray-200 text-center">
+                        <span class="text-[11px] font-bold text-gray-400 uppercase tracking-wider block mb-1">Số tiền ủng hộ</span>
+                        <div class="text-2xl font-black text-black">+${amtStr}</div>
+                        <div class="text-[11px] text-gray-500 mt-1">${dateStr}</div>
+                    </div>
+
+                    <!-- Ô 3: Lời nhắn -->
+                    <div class="text-left">
+                        <span class="text-[11px] font-bold text-gray-400 uppercase tracking-wider block mb-1.5">Lời nhắn gửi</span>
+                        <div class="p-3 bg-gray-50 rounded-xl border border-gray-200 text-black italic text-xs leading-relaxed">
+                            "${safeMsg || 'Đồng hành cùng dự án duy trì máy chủ lưu trữ hình ảnh xe buýt Việt Nam hoàn toàn miễn phí.'}"
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            app.ui.showAlert(contentHtml, () => {}, null, {
+                title: 'Nhà hảo tâm đồng hành',
+                iconHtml: '<i class="fa-solid fa-heart text-xl text-black"></i>',
+                btnOkText: 'Đóng'
+            });
+        },
+
         loadHomeSupporters: async () => {
             const container = document.getElementById('home-supporters-list');
             if (!container) return;
@@ -1311,6 +1390,7 @@ Object.assign(window.app, {
                 const list = (resData && resData.success && Array.isArray(resData.data)) ? resData.data : [];
 
                 const top3 = list.slice(0, 3);
+                app.donate._homeSupportersCache = top3;
                 const cards = [];
 
                 for (let i = 0; i < 3; i++) {
@@ -1322,8 +1402,8 @@ Object.assign(window.app, {
                         const defaultAv = (typeof DEFAULT_AVATAR !== 'undefined') ? DEFAULT_AVATAR : '/media/default-avatar.png';
 
                         let iconOrAvatarHtml = '';
-                        let clickAttr = '';
-                        let cursorClass = 'cursor-default';
+                        const clickAttr = `onclick="app.donate.showHomeSupporterModal(${i})"`;
+                        const cursorClass = 'cursor-pointer hover:border-black';
 
                         if (!item.is_anonymous && item.username) {
                             const rawAv = item.avatar_url;
@@ -1335,8 +1415,6 @@ Object.assign(window.app, {
                                     <img src="${finalAv}" alt="${safeName}" onerror="this.src='${defaultAv}'" class="w-full h-full object-cover">
                                 </div>
                             `;
-                            clickAttr = `onclick="app.utils.navigate('/user/${encodeURIComponent(item.username)}')"` ;
-                            cursorClass = 'cursor-pointer hover:border-black';
                         } else {
                             iconOrAvatarHtml = `
                                 <div class="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center shrink-0 border border-gray-200 mr-3">
