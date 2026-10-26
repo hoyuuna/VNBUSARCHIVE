@@ -29,7 +29,7 @@ export async function onRequestGet(context) {
             .from('donations')
             .select('id, order_code, amount, message, status, is_anonymous, created_at')
             .eq('user_id', user.id)
-            .eq('status', 'PAID')
+            .in('status', ['PAID', 'PENDING'])
             .order('created_at', { ascending: false });
 
         if (dbErr) {
@@ -40,9 +40,24 @@ export async function onRequestGet(context) {
             });
         }
 
+        const now = Date.now();
+        const validList = [];
+
+        for (const item of (history || [])) {
+            if (item.status === 'PENDING') {
+                const createdTime = new Date(item.created_at).getTime();
+                // If pending order is older than 15 minutes, mark cancelled in DB and don't return
+                if (now - createdTime > 15 * 60 * 1000) {
+                    sbAdmin.from('donations').update({ status: 'CANCELLED' }).eq('id', item.id);
+                    continue;
+                }
+            }
+            validList.push(item);
+        }
+
         return new Response(JSON.stringify({
             success: true,
-            data: history || []
+            data: validList
         }), {
             status: 200,
             headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' }

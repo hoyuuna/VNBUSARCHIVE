@@ -65,6 +65,8 @@ export async function onRequestGet(context) {
             });
         }
 
+        let payosData = null;
+
         // If status is PENDING and payOS credentials exist, verify with payOS directly
         if (donation.status === 'PENDING' && env.PAYOS_CLIENT_ID && env.PAYOS_API_KEY) {
             try {
@@ -78,12 +80,21 @@ export async function onRequestGet(context) {
 
                 if (payosRes.ok) {
                     const payosJson = await payosRes.json();
-                    if ((payosJson.code === '00' || payosJson.code === 0) && payosJson.data?.status === 'PAID') {
-                        await sbAdmin
-                            .from('donations')
-                            .update({ status: 'PAID', updated_at: new Date().toISOString() })
-                            .eq('order_code', orderCode);
-                        donation.status = 'PAID';
+                    if ((payosJson.code === '00' || payosJson.code === 0) && payosJson.data) {
+                        payosData = payosJson.data;
+                        if (payosData.status === 'PAID') {
+                            await sbAdmin
+                                .from('donations')
+                                .update({ status: 'PAID', updated_at: new Date().toISOString() })
+                                .eq('order_code', orderCode);
+                            donation.status = 'PAID';
+                        } else if (payosData.status === 'CANCELLED' || payosData.status === 'EXPIRED') {
+                            await sbAdmin
+                                .from('donations')
+                                .update({ status: 'CANCELLED', updated_at: new Date().toISOString() })
+                                .eq('order_code', orderCode);
+                            donation.status = 'CANCELLED';
+                        }
                     }
                 }
             } catch (pErr) {
@@ -98,7 +109,12 @@ export async function onRequestGet(context) {
             amount: donation.amount,
             is_anonymous: donation.is_anonymous,
             donor_name: donation.donor_name,
-            is_logged_in: !!donation.user_id
+            is_logged_in: !!donation.user_id,
+            qrCode: payosData?.qrCode || null,
+            accountNumber: payosData?.accountNumber || null,
+            accountName: payosData?.accountName || null,
+            description: payosData?.description || `VNBA ${donation.order_code}`,
+            checkoutUrl: payosData?.checkoutUrl || null
         }), {
             status: 200,
             headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' }

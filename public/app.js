@@ -12146,16 +12146,6 @@ Object.assign(window.app, {
             const accNameEl = document.getElementById('donate-qr-accname');
             if (accNameEl) accNameEl.innerText = data.accountName || '---';
 
-            const checkoutBtn = document.getElementById('donate-qr-checkout-btn');
-            if (checkoutBtn) {
-                if (data.checkoutUrl) {
-                    checkoutBtn.href = data.checkoutUrl;
-                    checkoutBtn.classList.remove('hidden');
-                } else {
-                    checkoutBtn.classList.add('hidden');
-                }
-            }
-
             if (app.donate._pollTimer) clearInterval(app.donate._pollTimer);
             app.donate._pollTimer = setInterval(async () => {
                 try {
@@ -12165,6 +12155,15 @@ Object.assign(window.app, {
                         clearInterval(app.donate._pollTimer);
                         app.donate._pollTimer = null;
                         app.donate.renderThankYou(data.orderCode, data.amount, !chk.is_logged_in, chk.is_anonymous);
+                    } else if (chk.success && (chk.status === 'CANCELLED' || chk.status === 'EXPIRED')) {
+                        clearInterval(app.donate._pollTimer);
+                        app.donate._pollTimer = null;
+                        app.ui.showAlert('Đơn ủng hộ này đã hết hạn hoặc bị hủy.', () => {
+                            app.donate.showStep('form');
+                            if (app.user && typeof app.donate.fetchProfileDonations === 'function') {
+                                app.donate.fetchProfileDonations();
+                            }
+                        });
                     }
                 } catch (e) {}
             }, 2500);
@@ -12234,13 +12233,95 @@ Object.assign(window.app, {
             }
         },
 
-        cancelPayment: () => {
+        downloadQr: () => {
+            const container = document.getElementById('donate-qr-box');
+            if (!container) return;
+
+            const canvas = container.querySelector('canvas');
+            const img = container.querySelector('img');
+            let dataUrl = null;
+
+            if (canvas) {
+                dataUrl = canvas.toDataURL('image/png');
+            } else if (img && img.src) {
+                dataUrl = img.src;
+            }
+
+            if (!dataUrl) {
+                app.ui.showAlert('Không tìm thấy hình ảnh mã QR để tải về.');
+                return;
+            }
+
+            const orderCode = app.donate.currentOrder?.orderCode || 'donate';
+            const a = document.createElement('a');
+            a.href = dataUrl;
+            a.download = `VNBA-QR-${orderCode}.png`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        },
+
+        cancelPayment: async () => {
             if (app.donate._pollTimer) {
                 clearInterval(app.donate._pollTimer);
                 app.donate._pollTimer = null;
             }
+            const order = app.donate.currentOrder;
             app.donate.currentOrder = null;
             app.donate.showStep('form');
+
+            if (order && order.orderCode) {
+                try {
+                    await fetch('/api/donate/cancel', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ orderCode: order.orderCode })
+                    });
+                    if (app.user && typeof app.donate.fetchProfileDonations === 'function') {
+                        app.donate.fetchProfileDonations();
+                    }
+                } catch (e) {
+                    console.error('Error cancelling payment:', e);
+                }
+            }
+        },
+
+        resumePayment: async (orderCode) => {
+            app.utils.navigate('/support-us');
+            app.loadingBar.start();
+            try {
+                const res = await fetch(`/api/donate/check?orderCode=${encodeURIComponent(orderCode)}`);
+                const checkData = await res.json();
+                app.loadingBar.finish();
+
+                if (!checkData || !checkData.success) {
+                    app.ui.showAlert('Không tìm thấy thông tin đơn ủng hộ này.');
+                    return;
+                }
+
+                if (checkData.status === 'PAID') {
+                    app.donate.renderThankYou(checkData.orderCode, checkData.amount, !checkData.is_logged_in, checkData.is_anonymous);
+                    return;
+                }
+
+                if (checkData.status === 'CANCELLED' || checkData.status === 'EXPIRED') {
+                    app.ui.showAlert('Đơn ủng hộ này đã hết hạn hoặc bị hủy.', () => {
+                        app.donate.showStep('form');
+                        if (app.user && typeof app.donate.fetchProfileDonations === 'function') {
+                            app.donate.fetchProfileDonations();
+                        }
+                    });
+                    return;
+                }
+
+                app.donate.currentOrder = checkData;
+                app.donate.renderQrStep(checkData);
+
+            } catch (err) {
+                app.loadingBar.finish();
+                console.error('Error resuming donation:', err);
+                app.ui.showAlert('Lỗi khi mở lại đơn ủng hộ: ' + err.message);
+            }
         },
 
         loadHomeSupporters: async () => {
@@ -12379,15 +12460,19 @@ Object.assign(window.app, {
                     app.donate._profileCache[item.order_code] = item;
                     const amtStr = new Intl.NumberFormat('vi-VN').format(item.amount) + ' đ';
                     const dateStr = item.created_at ? new Date(item.created_at).toLocaleDateString('vi-VN') : '';
-                    const orderCodeStr = item.order_code ? `#${item.order_code}` : '';
-                    const subText = `${orderCodeStr}${orderCodeStr && dateStr ? ' · ' : ''}${dateStr}`;
+                    const isPending = item.status === 'PENDING';
+                    const dotColor = isPending ? 'bg-[#f58e27]' : 'bg-green-500';
+                    const statusText = isPending ? 'Chờ thanh toán' : (dateStr || 'Đã ghi nhận');
+                    const clickHandler = isPending 
+                        ? `app.donate.resumePayment(${item.order_code})` 
+                        : `app.donate.showDetailAlert('${item.order_code}')`;
 
                     return `
-                        <div class="${cardStyleClasses}" onclick="app.donate.showDetailAlert('${item.order_code}')">
-                            <span class="w-2 h-2 rounded-full bg-green-500 shrink-0 block mr-3"></span>
+                        <div class="${cardStyleClasses}" onclick="${clickHandler}">
+                            <span class="w-2 h-2 rounded-full ${dotColor} shrink-0 block mr-3"></span>
                             <div class="flex-1 min-w-0 flex flex-col justify-center">
                                 <span class="truncate font-bold text-gray-900 text-sm leading-tight mb-0.5">+${amtStr}</span>
-                                <span class="block text-gray-500 text-xs tracking-wide w-full truncate">${subText}</span>
+                                <span class="block text-gray-500 text-xs tracking-wide w-full truncate">#${item.order_code} · ${statusText}</span>
                             </div>
                         </div>
                     `;

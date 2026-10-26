@@ -806,11 +806,25 @@ body.theme-dark [id^="req-h-route-"] {
     color: #000000 !important;
 }
 
-#donate-anonymous-toggle:checked + div {
+#donate-anonymous-toggle + div,
+#donation-item-anon-toggle + div {
+    background-color: #27272a !important;
+    border: 1px solid #52525b !important;
+}
+
+#donate-anonymous-toggle + div::after,
+#donation-item-anon-toggle + div::after {
     background-color: #ffffff !important;
 }
 
-#donate-anonymous-toggle:checked + div::after {
+#donate-anonymous-toggle:checked + div,
+#donation-item-anon-toggle:checked + div {
+    background-color: #ffffff !important;
+    border-color: #ffffff !important;
+}
+
+#donate-anonymous-toggle:checked + div::after,
+#donation-item-anon-toggle:checked + div::after {
     background-color: #000000 !important;
 }
 

@@ -4330,9 +4330,9 @@ html.theme-dark .ct-icon {
                                 </div>
 
                                 <div class="flex flex-col sm:flex-row gap-2 max-w-sm mx-auto">
-                                    <a id="donate-qr-checkout-btn" href="#" target="_blank" rel="noopener" class="flex-1 py-2.5 px-4 bg-black hover:bg-gray-800 text-white rounded-lg text-xs font-bold transition flex items-center justify-center gap-1.5">
-                                        <i class="fa-solid fa-arrow-up-right-from-square"></i> Mở cổng payOS
-                                    </a>
+                                    <button type="button" id="btn-donate-download-qr" onclick="app.donate.downloadQr()" class="flex-1 py-2.5 px-4 bg-black hover:bg-gray-800 text-white rounded-lg text-xs font-bold transition flex items-center justify-center gap-1.5">
+                                        <i class="fa-solid fa-download"></i> Tải mã QR
+                                    </button>
                                     <button type="button" onclick="app.donate.cancelPayment()" class="py-2.5 px-4 bg-white border border-gray-300 hover:border-black text-gray-700 hover:text-black rounded-lg text-xs font-bold transition">
                                         Tôi đổi ý rồi
                                     </button>
