@@ -1132,14 +1132,24 @@ Object.assign(window.app, {
                     toggle.disabled = false;
                     toggle.onchange = async () => {
                         try {
+                            const headers = { 'Content-Type': 'application/json' };
+                            if (window.sb && window.sb.auth) {
+                                const { data: { session } } = await window.sb.auth.getSession();
+                                if (session?.access_token) {
+                                    headers['Authorization'] = `Bearer ${session.access_token}`;
+                                }
+                            }
                             await fetch('/api/donate/toggle-anonymous', {
                                 method: 'POST',
-                                headers: { 'Content-Type': 'application/json' },
+                                headers,
                                 body: JSON.stringify({
-                                    orderCode,
+                                    orderCode: Number(orderCode),
                                     is_anonymous: toggle.checked
                                 })
                             });
+                            if (typeof app.donate.loadHomeSupporters === 'function') {
+                                app.donate.loadHomeSupporters();
+                            }
                         } catch(e) {}
                     };
                 }
@@ -1427,9 +1437,19 @@ Object.assign(window.app, {
             }
         },
 
+        _activeDetailOrderCode: null,
+        _activeDetailInitialAnon: false,
+        _activeDetailCurrentAnon: false,
+        _modalAnimTimeout: null,
+
         showDetailAlert: (orderCode) => {
             const item = app.donate._profileCache?.[orderCode];
             if (!item) return;
+
+            const isAnon = Boolean(item.is_anonymous === true || item.is_anonymous === 'true' || item.is_anonymous === 1 || item.is_anonymous === '1');
+            app.donate._activeDetailOrderCode = orderCode;
+            app.donate._activeDetailInitialAnon = isAnon;
+            app.donate._activeDetailCurrentAnon = isAnon;
 
             const amtStr = new Intl.NumberFormat('vi-VN').format(item.amount) + ' VNĐ';
             const dateStr = item.created_at ? new Date(item.created_at).toLocaleString('vi-VN') : '---';
@@ -1468,16 +1488,35 @@ Object.assign(window.app, {
                                     Ẩn danh trên trang chủ
                                 </div>
                                 <p id="donation-modal-anon-desc" class="text-[11px] text-gray-500 mt-0.5 leading-normal">
-                                    ${item.is_anonymous ? 'Khoản này đang được giấu tên trên danh sách tri ân.' : 'Khoản này đang được công khai tên trên danh sách tri ân.'}
+                                    ${isAnon ? 'Khoản này đang được giấu tên trên danh sách tri ân.' : 'Khoản này đang được công khai tên trên danh sách tri ân.'}
                                 </p>
                             </div>
                             <div class="relative shrink-0 flex items-center">
-                                <input type="checkbox" id="donation-item-anon-toggle" class="custom-cb-input sr-only" ${item.is_anonymous ? 'checked' : ''} onchange="app.donate.toggleItemAnonymous('${item.order_code}', this.checked)">
+                                <input type="checkbox" id="donation-item-anon-toggle" class="custom-cb-input sr-only" ${isAnon ? 'checked' : ''} onchange="app.donate.onDetailAnonChange(this.checked)">
                                 <div class="custom-cb-box shrink-0 shadow-sm" style="margin: 0 !important;">
                                     <i class="fa-solid fa-check"></i>
                                 </div>
                             </div>
                         </label>
+                    </div>
+
+                    <div class="mt-5 pt-1 relative">
+                        <!-- State 1: Chưa thay đổi -> Nút Đóng -->
+                        <div id="donation-modal-btn-close" class="transition-all duration-300 ease-in-out">
+                            <button type="button" onclick="app.ui.closeAlert()" class="w-full py-2.5 px-4 bg-black hover:bg-gray-800 text-white rounded-lg text-xs font-bold transition shadow-sm">
+                                Đóng
+                            </button>
+                        </div>
+
+                        <!-- State 2: Có thay đổi -> 2 nút Hủy và Lưu (Có Animation) -->
+                        <div id="donation-modal-btn-actions" class="hidden opacity-0 translate-y-1 transition-all duration-300 ease-in-out flex items-center gap-2">
+                            <button type="button" onclick="app.donate.cancelDetailChanges()" class="flex-1 py-2.5 px-4 bg-white border border-black hover:bg-gray-100 text-black rounded-lg text-xs font-bold transition shadow-sm">
+                                Hủy
+                            </button>
+                            <button type="button" id="donation-modal-save-btn" onclick="app.donate.saveDetailChanges()" class="flex-1 py-2.5 px-4 bg-black hover:bg-gray-800 text-white rounded-lg text-xs font-bold transition shadow-sm flex items-center justify-center gap-1.5">
+                                Lưu
+                            </button>
+                        </div>
                     </div>
                 </div>
             `;
@@ -1487,11 +1526,23 @@ Object.assign(window.app, {
                 iconHtml: '<i class="fa-solid fa-heart text-xl text-black"></i>',
                 btnOkText: 'Đóng'
             });
+
+            // Hide the default modal footer container so our custom animated buttons handle everything
+            const okBtn = document.getElementById('custom-alert-ok-btn');
+            if (okBtn && okBtn.parentElement) {
+                okBtn.parentElement.style.display = 'none';
+            }
+
+            // Explicitly sync the checkbox DOM checked state
+            const toggleEl = document.getElementById('donation-item-anon-toggle');
+            if (toggleEl) {
+                toggleEl.checked = isAnon;
+            }
         },
 
-        toggleItemAnonymous: async (orderCode, isChecked) => {
-            const item = app.donate._profileCache?.[orderCode];
-            if (item) item.is_anonymous = isChecked;
+        onDetailAnonChange: (isChecked) => {
+            app.donate._activeDetailCurrentAnon = isChecked;
+            const hasChanged = app.donate._activeDetailCurrentAnon !== app.donate._activeDetailInitialAnon;
 
             const descEl = document.getElementById('donation-modal-anon-desc');
             if (descEl) {
@@ -1500,20 +1551,120 @@ Object.assign(window.app, {
                     : 'Khoản này đang được công khai tên trên danh sách tri ân.';
             }
 
+            const closeBox = document.getElementById('donation-modal-btn-close');
+            const actionsBox = document.getElementById('donation-modal-btn-actions');
+            if (!closeBox || !actionsBox) return;
+
+            if (app.donate._modalAnimTimeout) {
+                clearTimeout(app.donate._modalAnimTimeout);
+            }
+
+            if (hasChanged) {
+                // Animate Close out, Actions in
+                closeBox.classList.add('opacity-0', '-translate-y-1');
+                app.donate._modalAnimTimeout = setTimeout(() => {
+                    if (app.donate._activeDetailCurrentAnon !== app.donate._activeDetailInitialAnon) {
+                        closeBox.classList.add('hidden');
+                        actionsBox.classList.remove('hidden');
+                        void actionsBox.offsetWidth; // Trigger reflow for CSS transition
+                        actionsBox.classList.remove('opacity-0', 'translate-y-1');
+                        actionsBox.classList.add('opacity-100', 'translate-y-0');
+                    }
+                }, 150);
+            } else {
+                // Reverted back to initial state -> Animate Actions out, Close in
+                actionsBox.classList.remove('opacity-100', 'translate-y-0');
+                actionsBox.classList.add('opacity-0', 'translate-y-1');
+                app.donate._modalAnimTimeout = setTimeout(() => {
+                    if (app.donate._activeDetailCurrentAnon === app.donate._activeDetailInitialAnon) {
+                        actionsBox.classList.add('hidden');
+                        closeBox.classList.remove('hidden');
+                        void closeBox.offsetWidth; // Trigger reflow for CSS transition
+                        closeBox.classList.remove('opacity-0', '-translate-y-1');
+                        closeBox.classList.add('opacity-100', 'translate-y-0');
+                    }
+                }, 150);
+            }
+        },
+
+        cancelDetailChanges: () => {
+            const toggle = document.getElementById('donation-item-anon-toggle');
+            if (toggle) {
+                toggle.checked = app.donate._activeDetailInitialAnon;
+            }
+            app.donate.onDetailAnonChange(app.donate._activeDetailInitialAnon);
+        },
+
+        saveDetailChanges: async () => {
+            const orderCode = app.donate._activeDetailOrderCode;
+            const targetAnon = app.donate._activeDetailCurrentAnon;
+            const saveBtn = document.getElementById('donation-modal-save-btn');
+
+            if (saveBtn) {
+                saveBtn.disabled = true;
+                saveBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1.5"></i> Đang lưu...';
+            }
+
             try {
-                await fetch('/api/donate/toggle-anonymous', {
+                const headers = { 'Content-Type': 'application/json' };
+                if (window.sb && window.sb.auth) {
+                    const { data: { session } } = await window.sb.auth.getSession();
+                    if (session?.access_token) {
+                        headers['Authorization'] = `Bearer ${session.access_token}`;
+                    }
+                }
+
+                const res = await fetch('/api/donate/toggle-anonymous', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers,
                     body: JSON.stringify({
                         orderCode: Number(orderCode),
-                        is_anonymous: isChecked
+                        is_anonymous: targetAnon
                     })
                 });
+
+                const resData = await res.json();
+                if (!res.ok || !resData.success) {
+                    throw new Error(resData.error || 'Lỗi khi cập nhật trạng thái');
+                }
+
+                // Update caches
+                app.donate._activeDetailInitialAnon = targetAnon;
+                const item = app.donate._profileCache?.[orderCode];
+                if (item) item.is_anonymous = targetAnon;
+
+                // Animate actions out, close button back in
+                const closeBox = document.getElementById('donation-modal-btn-close');
+                const actionsBox = document.getElementById('donation-modal-btn-actions');
+                if (actionsBox && closeBox) {
+                    actionsBox.classList.remove('opacity-100', 'translate-y-0');
+                    actionsBox.classList.add('opacity-0', 'translate-y-1');
+                    setTimeout(() => {
+                        actionsBox.classList.add('hidden');
+                        closeBox.classList.remove('hidden');
+                        void closeBox.offsetWidth;
+                        closeBox.classList.remove('opacity-0', '-translate-y-1');
+                        closeBox.classList.add('opacity-100', 'translate-y-0');
+                    }, 150);
+                }
+
+                // Refresh home supporters list in real-time
                 if (typeof app.donate.loadHomeSupporters === 'function') {
                     app.donate.loadHomeSupporters();
                 }
+
+                if (app.toast && app.toast.show) {
+                    app.toast.show('success', 'Đã lưu', 'Cập nhật trạng thái hiển thị thành công.');
+                }
+
             } catch (err) {
-                console.error('Error toggling anonymous status:', err);
+                console.error('Error saving anonymity setting:', err);
+                app.ui.showAlert('Không thể lưu thay đổi: ' + err.message);
+            } finally {
+                if (saveBtn) {
+                    saveBtn.disabled = false;
+                    saveBtn.innerHTML = 'Lưu';
+                }
             }
         }
     }

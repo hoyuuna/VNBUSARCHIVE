@@ -835,6 +835,7 @@ Object.assign(window.app, {
                         iconBox.innerHTML = options.iconHtml || '<i class="fa-solid fa-bell text-xl text-black"></i>';
                     }
                     if (okBtn) {
+                        if (okBtn.parentElement) okBtn.parentElement.style.display = '';
                         let defaultText = options.btnOkText || "Đồng ý";
                         okBtn.style.display = options.hideButtons ? 'none' : 'inline-flex';
                         if (options.isDestructive) {

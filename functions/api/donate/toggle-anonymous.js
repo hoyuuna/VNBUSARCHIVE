@@ -42,9 +42,19 @@ export async function onRequestPost(context) {
             });
         }
 
+        const authHeader = request.headers.get('authorization') || request.headers.get('Authorization');
+        const token = authHeader ? authHeader.replace(/^Bearer\s+/i, '').trim() : null;
+
         const sb = createClient(env.SUPABASE_URL, env.SUPABASE_KEY);
         const sbAdmin = env.SUPABASE_SERVICE_ROLE_KEY ? createClient(env.SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY) : sb;
 
+        let user = null;
+        if (token) {
+            const { data: userData } = await sb.auth.getUser(token);
+            user = userData?.user || null;
+        }
+
+        // Fetch donation to verify existence and ownership
         const { data: donation, error: dErr } = await sbAdmin
             .from('donations')
             .select('id, user_id, is_anonymous')
@@ -58,20 +68,38 @@ export async function onRequestPost(context) {
             });
         }
 
-        // If guest (no user_id), always remain anonymous
-        let finalAnonymous = true;
+        // If donation belongs to a user, verify authentication
         if (donation.user_id) {
-            // For logged-in user, can toggle
-            finalAnonymous = !!is_anonymous;
+            if (!user || user.id !== donation.user_id) {
+                return new Response(JSON.stringify({ success: false, error: 'Bạn không có quyền chỉnh sửa khoản ủng hộ này' }), {
+                    status: 403,
+                    headers: { 'Content-Type': 'application/json' }
+                });
+            }
         }
 
-        await sbAdmin
+        const finalAnonymous = !!is_anonymous;
+
+        // Choose appropriate client for update
+        const clientToUpdate = env.SUPABASE_SERVICE_ROLE_KEY 
+            ? sbAdmin 
+            : (token ? createClient(env.SUPABASE_URL, env.SUPABASE_KEY, { global: { headers: { Authorization: `Bearer ${token}` } } }) : sb);
+
+        const { error: upErr } = await clientToUpdate
             .from('donations')
             .update({
                 is_anonymous: finalAnonymous,
                 updated_at: new Date().toISOString()
             })
             .eq('order_code', Number(orderCode));
+
+        if (upErr) {
+            console.error('Error updating donation anonymity:', upErr);
+            return new Response(JSON.stringify({ success: false, error: 'Lỗi cập nhật cơ sở dữ liệu: ' + upErr.message }), {
+                status: 500,
+                headers: { 'Content-Type': 'application/json' }
+            });
+        }
 
         return new Response(JSON.stringify({
             success: true,
@@ -83,7 +111,7 @@ export async function onRequestPost(context) {
 
     } catch (err) {
         console.error('Error in donate/toggle-anonymous:', err);
-        return new Response(JSON.stringify({ success: false, error: 'Lỗi cập nhật' }), {
+        return new Response(JSON.stringify({ success: false, error: 'Lỗi máy chủ' }), {
             status: 500,
             headers: { 'Content-Type': 'application/json' }
         });
