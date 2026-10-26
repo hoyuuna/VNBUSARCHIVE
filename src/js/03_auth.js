@@ -225,7 +225,7 @@ Object.assign(window.app, {
                             }
                         },
                         () => {},
-                        { btnOkText: "Đăng xuất", btnCancelText: "Đóng", title: "Xác nhận", isDestructive: true }
+                        { btnOkText: "Đăng xuất", btnCancelText: "Đóng", title: "Xác nhận" }
                     );
                 },
                 logoutAll: async () => {

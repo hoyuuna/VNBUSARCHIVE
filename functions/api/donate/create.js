@@ -114,9 +114,10 @@ export async function onRequestPost(context) {
         const returnUrl = `${origin}/support-us?orderCode=${orderCode}`;
         const cancelUrl = `${origin}/support-us?orderCode=${orderCode}&status=cancelled`;
 
-        // payOS signature data sorted alphabetically by key
-        const signData = `amount=${amt}&cancelUrl=${cancelUrl}&description=${description}&orderCode=${orderCode}&returnUrl=${returnUrl}`;
-        const signature = await createHmacSha256(env.PAYOS_CHECKSUM_KEY, signData);
+        // Create HMAC_SHA256 signature according to payOS specification:
+        // amount=${amount}&cancelUrl=${cancelUrl}&description=${description}&orderCode=${orderCode}&returnUrl=${returnUrl}
+        const rawSignatureString = `amount=${amt}&cancelUrl=${cancelUrl}&description=${description}&orderCode=${orderCode}&returnUrl=${returnUrl}`;
+        const signature = await createHmacSha256(env.PAYOS_CHECKSUM_KEY, rawSignatureString);
 
         const payosRes = await fetch('https://api-merchant.payos.vn/v2/payment-requests', {
             method: 'POST',
@@ -143,11 +144,20 @@ export async function onRequestPost(context) {
             }), { status: 400, headers: { 'Content-Type': 'application/json' } });
         }
 
-        if (payosJson.data?.paymentLinkId) {
-            await sbAdmin.from('donations').update({
-                payos_payment_link_id: payosJson.data.paymentLinkId
-            }).eq('order_code', orderCode);
-        }
+        // Save payOS payment details into payos_payment_link_id for resume capability
+        const payosMeta = JSON.stringify({
+            paymentLinkId: payosJson.data?.paymentLinkId || null,
+            qrCode: payosJson.data?.qrCode || null,
+            accountNumber: payosJson.data?.accountNumber || null,
+            accountName: payosJson.data?.accountName || null,
+            bin: payosJson.data?.bin || null,
+            checkoutUrl: payosJson.data?.checkoutUrl || null,
+            description: description
+        });
+
+        await sbAdmin.from('donations').update({
+            payos_payment_link_id: payosMeta
+        }).eq('order_code', orderCode);
 
         return new Response(JSON.stringify({
             success: true,

@@ -54,7 +54,7 @@ export async function onRequestGet(context) {
 
         const { data: donation, error: dbErr } = await sbAdmin
             .from('donations')
-            .select('order_code, status, amount, is_anonymous, donor_name, user_id, created_at')
+            .select('order_code, status, amount, is_anonymous, donor_name, user_id, payos_payment_link_id, created_at')
             .eq('order_code', orderCode)
             .maybeSingle();
 
@@ -63,6 +63,17 @@ export async function onRequestGet(context) {
                 status: 404,
                 headers: { 'Content-Type': 'application/json' }
             });
+        }
+
+        let meta = {};
+        if (donation.payos_payment_link_id) {
+            try {
+                if (donation.payos_payment_link_id.startsWith('{')) {
+                    meta = JSON.parse(donation.payos_payment_link_id);
+                } else {
+                    meta = { paymentLinkId: donation.payos_payment_link_id };
+                }
+            } catch (e) {}
         }
 
         let payosData = null;
@@ -110,11 +121,11 @@ export async function onRequestGet(context) {
             is_anonymous: donation.is_anonymous,
             donor_name: donation.donor_name,
             is_logged_in: !!donation.user_id,
-            qrCode: payosData?.qrCode || null,
-            accountNumber: payosData?.accountNumber || null,
-            accountName: payosData?.accountName || null,
-            description: payosData?.description || `VNBA ${donation.order_code}`,
-            checkoutUrl: payosData?.checkoutUrl || null
+            qrCode: meta.qrCode || payosData?.qrCode || null,
+            accountNumber: meta.accountNumber || payosData?.accountNumber || null,
+            accountName: meta.accountName || payosData?.accountName || null,
+            description: meta.description || payosData?.description || `VNBA ${donation.order_code}`,
+            checkoutUrl: meta.checkoutUrl || payosData?.checkoutUrl || null
         }), {
             status: 200,
             headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' }

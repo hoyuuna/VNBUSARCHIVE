@@ -1247,6 +1247,16 @@ Object.assign(window.app, {
                     return;
                 }
 
+                if (!checkData.qrCode) {
+                    app.ui.showAlert('Đơn ủng hộ này đã cũ và không thể tải lại mã QR. Vui lòng tạo một khoản ủng hộ mới nhé!', () => {
+                        app.donate.showStep('form');
+                        if (app.user && typeof app.donate.fetchProfileDonations === 'function') {
+                            app.donate.fetchProfileDonations();
+                        }
+                    });
+                    return;
+                }
+
                 app.donate.currentOrder = checkData;
                 app.donate.renderQrStep(checkData);
 

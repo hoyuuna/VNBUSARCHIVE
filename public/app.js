@@ -4489,7 +4489,7 @@ dropdown.innerHTML = `
                          <button onclick="app.settings.open()" class="w-full text-left block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 border-b border-gray-100 font-bold"><i class="fa-solid fa-gear w-5 text-center mr-1"></i> Cài đặt</button>
                          <a href="/help" class="block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 border-b border-gray-100 font-bold"><i class="fa-solid fa-book-open w-5 text-center mr-1"></i> Trung tâm hỗ trợ</a>
                          <a href="/contact" class="w-full text-left block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 border-b border-gray-100 font-bold"><i class="fa-solid fa-headset w-5 text-center mr-1"></i> Liên hệ hỗ trợ</a>
-                         <button onclick="app.auth.logout()" class="w-full text-left block px-4 py-3 text-sm text-red-600 hover:bg-red-50 font-bold"><i class="fa-solid fa-right-from-bracket w-5 text-center mr-1"></i> Đăng xuất</button>
+                         <button onclick="app.auth.logout()" class="w-full text-left block px-4 py-3 text-sm text-black hover:bg-gray-100 font-bold"><i class="fa-solid fa-right-from-bracket w-5 text-center mr-1"></i> Đăng xuất</button>
                      `;
                     app.auth.close();
                     if (app.role === 'admin' || app.role === 'manager') {
@@ -5780,7 +5780,7 @@ Object.assign(window.app, {
                             }
                         },
                         () => {},
-                        { btnOkText: "Đăng xuất", btnCancelText: "Đóng", title: "Xác nhận", isDestructive: true }
+                        { btnOkText: "Đăng xuất", btnCancelText: "Đóng", title: "Xác nhận" }
                     );
                 },
                 logoutAll: async () => {
@@ -12306,6 +12306,16 @@ Object.assign(window.app, {
 
                 if (checkData.status === 'CANCELLED' || checkData.status === 'EXPIRED') {
                     app.ui.showAlert('Đơn ủng hộ này đã hết hạn hoặc bị hủy.', () => {
+                        app.donate.showStep('form');
+                        if (app.user && typeof app.donate.fetchProfileDonations === 'function') {
+                            app.donate.fetchProfileDonations();
+                        }
+                    });
+                    return;
+                }
+
+                if (!checkData.qrCode) {
+                    app.ui.showAlert('Đơn ủng hộ này đã cũ và không thể tải lại mã QR. Vui lòng tạo một khoản ủng hộ mới nhé!', () => {
                         app.donate.showStep('form');
                         if (app.user && typeof app.donate.fetchProfileDonations === 'function') {
                             app.donate.fetchProfileDonations();
