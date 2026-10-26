@@ -837,6 +837,7 @@ Object.assign(window.app, {
                         iconBox.innerHTML = options.iconHtml || '<i class="fa-solid fa-bell text-xl text-black"></i>';
                     }
                     if (okBtn) {
+                        if (okBtn.parentElement) okBtn.parentElement.style.display = '';
                         let defaultText = options.btnOkText || "Đồng ý";
                         okBtn.style.display = options.hideButtons ? 'none' : 'inline-flex';
                         if (options.isDestructive) {
@@ -977,14 +978,14 @@ Object.assign(window.app, {
                         null, null, { title: "Chính sách giới hạn đăng tải", btnOkText: "Đã hiểu" }
                     );
                 },
-                showPrompt: (msg, defaultValue = '', callback) => {
+                showPrompt: (msg, defaultValue = '', callback, options = {}) => {
                     const modal = document.getElementById('custom-prompt-modal');
                     const content = document.getElementById('custom-prompt-content');
                     const titleEl = document.getElementById('custom-prompt-title');
                     const msgEl = document.getElementById('custom-prompt-msg');
                     const inputEl = document.getElementById('custom-prompt-input');
                     const okBtn = document.getElementById('custom-prompt-ok-btn');
-                    titleEl.innerText = "Nhập thông tin";
+                    titleEl.innerText = options.title || "Nhập thông tin";
                     msgEl.innerText = msg;
                     inputEl.value = defaultValue;
                     if (app.ui.promptCloseTimeout) clearTimeout(app.ui.promptCloseTimeout);
@@ -999,11 +1000,15 @@ Object.assign(window.app, {
                     }, 200);
                     inputEl.onkeydown = (e) => {
                         if (e.key === 'Enter') {
+                            if (!options.allowEmpty && !inputEl.value.trim()) {
+                                app.ui.showAlert("Vui lòng nhập nội dung, không được để trống!");
+                                return;
+                            }
                             app.ui.closePrompt(true);
                         }
                     };
                     okBtn.onclick = () => {
-                        if (!inputEl.value.trim()) {
+                        if (!options.allowEmpty && !inputEl.value.trim()) {
                             app.ui.showAlert("Vui lòng nhập nội dung, không được để trống!");
                             return;
                         }
@@ -3536,6 +3541,12 @@ cleanupState: () => {
                     app.views.switch('admin', false);
                     app.admin.refreshCounts();
                     app.admin.loadTab(app.adminTab);
+                } else if (path === '/support-us') {
+                    document.title = 'Ủng hộ chúng tôi | VNBUSARCHIVE';
+                    app.views.switch('support-us', false);
+                    if (app.donate && typeof app.donate.init === 'function') {
+                        app.donate.init();
+                    }
                 } else if (path === '/contact') {
                     app.views.loadContact();
                 } else if (path === '/leaderboard') {
@@ -4458,6 +4469,7 @@ cleanupState: () => {
                         app.role = 'user';
                     }
                     document.getElementById('nav-username').innerText = app.username;
+                    app.avatarUrl = currentAvatar;
                     if (currentAvatar) {
                         const hImg = document.getElementById('nav-user-avatar');
                         if (hImg) {
@@ -4478,7 +4490,7 @@ dropdown.innerHTML = `
                          <button onclick="app.settings.open()" class="w-full text-left block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 border-b border-gray-100 font-bold"><i class="fa-solid fa-gear w-5 text-center mr-1"></i> Cài đặt</button>
                          <a href="/help" class="block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 border-b border-gray-100 font-bold"><i class="fa-solid fa-book-open w-5 text-center mr-1"></i> Trung tâm hỗ trợ</a>
                          <a href="/contact" class="w-full text-left block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 border-b border-gray-100 font-bold"><i class="fa-solid fa-headset w-5 text-center mr-1"></i> Liên hệ hỗ trợ</a>
-                         <button onclick="app.auth.logout()" class="w-full text-left block px-4 py-3 text-sm text-red-600 hover:bg-red-50 font-bold"><i class="fa-solid fa-right-from-bracket w-5 text-center mr-1"></i> Đăng xuất</button>
+                         <button onclick="app.auth.logout()" class="w-full text-left block px-4 py-3 text-sm text-black hover:bg-gray-100 font-bold"><i class="fa-solid fa-right-from-bracket w-5 text-center mr-1"></i> Đăng xuất</button>
                      `;
                     app.auth.close();
                     if (app.role === 'admin' || app.role === 'manager') {
@@ -4500,6 +4512,7 @@ dropdown.innerHTML = `
                     if (hIcon) hIcon.classList.remove('hidden');
                     document.getElementById('nav-admin').classList.add('hidden');
                     app.username = 'Guest';
+                    app.avatarUrl = null;
                     app.role = 'user';
 dropdown.innerHTML = `
                          <a href="/auth" class="w-full text-left block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 border-b border-gray-100 font-bold"><i class="fa-solid fa-arrow-right-to-bracket w-5 text-center mr-1"></i> Đăng nhập</a>
@@ -4670,6 +4683,14 @@ Object.assign(window.app, {
                                     window.history.replaceState(null, null, window.location.pathname);
                                 }, 500);
                             }
+                        }
+                        else if (event === 'TOKEN_REFRESHED') {
+                            if (session && session.user) {
+                                await app.setUser(session.user);
+                            }
+                        }
+                        else if (event === 'SIGNED_OUT') {
+                            await app.setUser(null);
                         }
                     });
                 } catch (e) {
@@ -5760,7 +5781,7 @@ Object.assign(window.app, {
                             }
                         },
                         () => {},
-                        { btnOkText: "Đăng xuất", btnCancelText: "Đóng", title: "Xác nhận", isDestructive: true }
+                        { btnOkText: "Đăng xuất", btnCancelText: "Đóng", title: "Xác nhận" }
                     );
                 },
                 logoutAll: async () => {
@@ -6301,7 +6322,9 @@ changePassword: async () => {
             peer: null,
             conn: null,
             timer: null,
+            clientTimer: null,
             timeLeft: 180,
+            isSuccess: false,
             startHost: () => {
                 const modal = document.getElementById('qr-login-host-modal');
                 const loading = document.getElementById('qr-login-loading');
@@ -6314,7 +6337,9 @@ changePassword: async () => {
                 statusText.innerText = "Đang tạo mã QR...";
                 countdownEl.innerText = "03:00";
                 app.ui.lockScroll();
-                if (app.qrLogin.peer) app.qrLogin.peer.destroy();
+                if (app.qrLogin.peer) {
+                    try { app.qrLogin.peer.destroy(); } catch(e){}
+                }
                 app.qrLogin.peer = new Peer();
                 app.qrLogin.peer.on('open', (id) => {
                     loading.classList.add('hidden');
@@ -6326,6 +6351,10 @@ changePassword: async () => {
                     });
                     app.qrLogin.startCountdown();
                 });
+                app.qrLogin.peer.on('error', (err) => {
+                    console.error("Host QR Peer error:", err);
+                    statusText.innerText = "Lỗi kết nối máy chủ QR. Đang thử lại...";
+                });
                 app.qrLogin.peer.on('connection', (conn) => {
                     app.qrLogin.conn = conn;
                     conn.on('open', () => {
@@ -6336,17 +6365,56 @@ changePassword: async () => {
                         conn.send({ type: 'host_info', userAgent: navigator.userAgent });
                     });
                     conn.on('data', async (data) => {
-                        if (data.type === 'login_link') {
+                        if (data.type === 'login_token') {
+                            statusText.innerText = "Đang đăng nhập hệ thống...";
+                            try {
+                                const { data: sessData, error: sessErr } = await window.sb.auth.setSession({
+                                    access_token: data.access_token,
+                                    refresh_token: data.refresh_token
+                                });
+                                if (sessErr) throw sessErr;
+
+                                conn.send({ type: 'success' });
+                                setTimeout(() => {
+                                    window.location.href = '/';
+                                }, 800);
+                            } catch (e) {
+                                console.error("setSession error:", e);
+                                try {
+                                    const projectUrl = window.sb?.supabaseUrl || '';
+                                    const ref = projectUrl.split('//')[1]?.split('.')[0] || 'auth';
+                                    const storageKey = 'sb-' + ref + '-auth-token';
+                                    localStorage.setItem(storageKey, JSON.stringify({
+                                        access_token: data.access_token,
+                                        refresh_token: data.refresh_token,
+                                        token_type: 'bearer',
+                                        user: data.user || null
+                                    }));
+                                    conn.send({ type: 'success' });
+                                    setTimeout(() => {
+                                        window.location.href = '/';
+                                    }, 800);
+                                    return;
+                                } catch(fbErr) {}
+                                app.ui.showAlert("Lỗi khi đăng nhập bằng QR: " + (e.message || e));
+                                app.qrLogin.cancelHost();
+                            }
+                        } else if (data.type === 'login_link' && data.url) {
                             statusText.innerText = "Đang chuyển hướng đăng nhập...";
                             conn.send({ type: 'success' });
-                            window.location.href = data.url;
+                            setTimeout(() => {
+                                window.location.href = data.url;
+                            }, 800);
                         } else if (data.type === 'cancel') {
                             app.ui.showAlert("Đăng nhập bị từ chối từ thiết bị quét.");
                             app.qrLogin.cancelHost();
                         }
                     });
                     conn.on('close', () => {
-                        app.qrLogin.cancelHost();
+                        const curText = statusText ? statusText.innerText : '';
+                        if (!curText.includes("Đang đăng nhập") && !curText.includes("Đang chuyển hướng")) {
+                            app.qrLogin.cancelHost();
+                        }
                     });
                 });
             },
@@ -6358,7 +6426,7 @@ changePassword: async () => {
                     app.qrLogin.timeLeft--;
                     const m = Math.floor(app.qrLogin.timeLeft / 60).toString().padStart(2, '0');
                     const s = (app.qrLogin.timeLeft % 60).toString().padStart(2, '0');
-                    timerEl.innerText = `${m}:${s}`;
+                    timerEl.innerText = m + ':' + s;
                     if (app.qrLogin.timeLeft <= 0) {
                         app.ui.showAlert("Mã QR đã hết hạn (3 phút). Vui lòng tạo lại.");
                         app.qrLogin.cancelHost();
@@ -6367,26 +6435,37 @@ changePassword: async () => {
             },
             cancelHost: () => {
                 if(app.qrLogin.timer) clearInterval(app.qrLogin.timer);
-                if(app.qrLogin.conn) app.qrLogin.conn.close();
-                if(app.qrLogin.peer) app.qrLogin.peer.destroy();
+                if(app.qrLogin.conn) {
+                    try { app.qrLogin.conn.close(); } catch(e){}
+                    app.qrLogin.conn = null;
+                }
+                if(app.qrLogin.peer) {
+                    try { app.qrLogin.peer.destroy(); } catch(e){}
+                    app.qrLogin.peer = null;
+                }
                 document.getElementById('qr-login-host-modal').classList.add('hidden');
                 app.ui.unlockScroll();
             },
             initClient: async (hostId) => {
+                app.qrLogin.isSuccess = false;
                 if (!app.user) {
                     app.ui.showAlert("Bạn chưa đăng nhập! Vui lòng đăng nhập trên điện thoại này trước khi quét mã QR.", () => {
                         app.utils.navigate('/auth');
                     });
                     return;
                 }
+                try {
+                    window.history.replaceState(null, null, '/');
+                } catch(e){}
+
                 const modal = document.getElementById('qr-login-confirm-modal');
                 const btnConfirm = document.getElementById('qr-confirm-btn');
                 const avatarImg = document.getElementById('qr-confirm-avatar');
                 const deviceText = document.getElementById('qr-confirm-device');
                 btnConfirm.disabled = true;
                 btnConfirm.classList.add('opacity-50', 'cursor-not-allowed');
-                let timeLeft = 10;
-                btnConfirm.innerText = `Đăng nhập (${timeLeft})`;
+                let timeLeft = 3;
+                btnConfirm.innerText = 'Đăng nhập (' + timeLeft + ')';
                 document.getElementById('qr-confirm-name').innerText = app.username;
                 try {
                     const { data: profile } = await window.sb.from('profiles').select('avatar_url').eq('id', app.user.id).single();
@@ -6404,38 +6483,58 @@ changePassword: async () => {
                 app.qrLogin.getIP();
                 modal.classList.remove('hidden');
                 app.ui.lockScroll();
-                const cTimer = setInterval(() => {
+
+                if (app.qrLogin.clientTimer) clearInterval(app.qrLogin.clientTimer);
+                app.qrLogin.clientTimer = setInterval(() => {
                     timeLeft--;
                     if (timeLeft <= 0) {
-                        clearInterval(cTimer);
+                        clearInterval(app.qrLogin.clientTimer);
                         btnConfirm.disabled = false;
                         btnConfirm.classList.remove('opacity-50', 'cursor-not-allowed');
                         btnConfirm.innerText = "Đăng nhập";
                     } else {
-                        btnConfirm.innerText = `Đăng nhập (${timeLeft})`;
+                        btnConfirm.innerText = 'Đăng nhập (' + timeLeft + ')';
                     }
                 }, 1000);
-                if (app.qrLogin.peer) app.qrLogin.peer.destroy();
+
+                if (app.qrLogin.peer) {
+                    try { app.qrLogin.peer.destroy(); } catch(e){}
+                }
                 app.qrLogin.peer = new Peer();
+                app.qrLogin.peer.on('error', (err) => {
+                    console.error("Client QR Peer error:", err);
+                    if (!app.qrLogin.isSuccess) {
+                        app.ui.showAlert("Không thể kết nối với thiết bị chờ đăng nhập. Vui lòng quét lại.");
+                        app.qrLogin.closeClient();
+                    }
+                });
                 app.qrLogin.peer.on('open', () => {
                     app.qrLogin.conn = app.qrLogin.peer.connect(hostId, { reliable: true });
+                    app.qrLogin.conn.on('error', (err) => {
+                        console.error("Client QR Conn error:", err);
+                        if (!app.qrLogin.isSuccess) {
+                            app.ui.showAlert("Lỗi kết nối với thiết bị chờ đăng nhập. Vui lòng quét lại.");
+                            app.qrLogin.closeClient();
+                        }
+                    });
                     app.qrLogin.conn.on('data', (data) => {
                         if (data.type === 'host_info') {
                             deviceText.innerText = data.userAgent || 'Trình duyệt không xác định';
                             deviceText.className = "text-[10px] font-mono text-gray-800 break-words leading-tight mt-0.5";
                         }
                         else if (data.type === 'success') {
+                            app.qrLogin.isSuccess = true;
                             app.ui.showAlert(
-                                `<div class="text-left">
-                                    <p class="text-sm font-bold text-green-600 mb-2"><i class="fa-solid fa-check-circle mr-1"></i> Đăng nhập thành công!</p>
-                                    <p class="text-xs text-gray-700 mb-2">Thiết bị yêu cầu đã được cấp quyền truy cập hệ thống.</p>
-                                    <div class="bg-gray-50 border border-gray-200 p-3 rounded-md mt-3 shadow-sm">
-                                        <p class="text-[10.5px] text-gray-600 font-medium leading-relaxed m-0">
-                                            <i class="fa-solid fa-triangle-exclamation text-amber-500 mr-1"></i>
-                                            Nếu bạn lỡ tay hoặc nghi ngờ rủi ro, hãy vào <a href="javascript:void(0)" onclick="app.ui.closeAlert(true); setTimeout(() => { app.settings.open(); app.settings.switchTab('security'); }, 300);" class="font-bold text-red-600 hover:text-red-800 transition underline">Cài đặt > Bảo mật > Đăng xuất tất cả</a> để vô hiệu hóa quyền truy cập ngay lập tức.
-                                        </p>
-                                    </div>
-                                </div>`,
+                                '<div class="text-left">' +
+                                    '<p class="text-sm font-bold text-green-600 mb-2"><i class="fa-solid fa-check-circle mr-1"></i> Đăng nhập thành công!</p>' +
+                                    '<p class="text-xs text-gray-700 mb-2">Thiết bị yêu cầu đã được cấp quyền truy cập hệ thống.</p>' +
+                                    '<div class="bg-gray-50 border border-gray-200 p-3 rounded-md mt-3 shadow-sm">' +
+                                        '<p class="text-[10.5px] text-gray-600 font-medium leading-relaxed m-0">' +
+                                            '<i class="fa-solid fa-triangle-exclamation text-amber-500 mr-1"></i>' +
+                                            'Nếu bạn nghi ngờ rủi ro, hãy vào <a href="javascript:void(0)" onclick="app.ui.closeAlert(true); setTimeout(() => { app.settings.open(); app.settings.switchTab(\'security\'); }, 300);" class="font-bold text-red-600 hover:text-red-800 transition underline">Cài đặt > Bảo mật > Đăng xuất tất cả</a> để vô hiệu hóa quyền truy cập ngay lập tức.' +
+                                        '</p>' +
+                                    '</div>' +
+                                '</div>',
                                 () => { app.utils.navigate('/'); },
                                 null,
                                 { title: "Xác thực QR hoàn tất", btnOkText: "Đã hiểu" }
@@ -6444,6 +6543,7 @@ changePassword: async () => {
                         }
                     });
                     app.qrLogin.conn.on('close', () => {
+                        if (app.qrLogin.isSuccess) return;
                         app.ui.showAlert("Mất kết nối với thiết bị chờ đăng nhập. Vui lòng quét lại.");
                         app.utils.navigate('/');
                         app.qrLogin.closeClient();
@@ -6465,23 +6565,17 @@ changePassword: async () => {
                 btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang xử lý...';
                 try {
                     const { data, error } = await window.sb.auth.getSession();
-                    if (error || !data.session) throw new Error("Lấy Token thất bại. Vui lòng tải lại trang.");
-                    if (!app.qrLogin.conn || !app.qrLogin.conn.open) {
-                        throw new Error("Không thể kết nối với máy chủ chờ. Vui lòng quét lại mã QR.");
+                    if (error || !data.session || !data.session.access_token) {
+                        throw new Error("Lấy phiên đăng nhập thất bại. Vui lòng tải lại trang.");
                     }
-                    const res = await fetch('/api/system', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${data.session.access_token}`
-                        },
-                        body: JSON.stringify({ action: 'qr-login' })
-                    });
-                    const apiData = await res.json();
-                    if (!res.ok) throw new Error(apiData.error || "Không thể tạo token đăng nhập mới từ máy chủ.");
+                    if (!app.qrLogin.conn || !app.qrLogin.conn.open) {
+                        throw new Error("Không thể kết nối với thiết bị chờ. Vui lòng quét lại mã QR.");
+                    }
                     app.qrLogin.conn.send({
-                        type: 'login_link',
-                        url: apiData.url
+                        type: 'login_token',
+                        access_token: data.session.access_token,
+                        refresh_token: data.session.refresh_token || data.session.access_token,
+                        user: data.session.user
                     });
                 } catch (e) {
                     app.ui.showAlert(e.message);
@@ -6490,8 +6584,9 @@ changePassword: async () => {
                 }
             },
             cancelClient: () => {
+                app.qrLogin.isSuccess = true;
                 if (app.qrLogin.conn && app.qrLogin.conn.open) {
-                    app.qrLogin.conn.send({ type: 'cancel' });
+                    try { app.qrLogin.conn.send({ type: 'cancel' }); } catch(e){}
                 }
                 app.ui.showAlert("Đã hủy quá trình đăng nhập qua QR.", () => {
                     app.utils.navigate('/');
@@ -6499,8 +6594,18 @@ changePassword: async () => {
                 app.qrLogin.closeClient();
             },
             closeClient: () => {
-                if(app.qrLogin.conn) app.qrLogin.conn.close();
-                if(app.qrLogin.peer) app.qrLogin.peer.destroy();
+                if (app.qrLogin.clientTimer) clearInterval(app.qrLogin.clientTimer);
+                if (app.qrLogin.conn) {
+                    try {
+                        app.qrLogin.conn.removeAllListeners?.();
+                        app.qrLogin.conn.close();
+                    } catch(e){}
+                    app.qrLogin.conn = null;
+                }
+                if (app.qrLogin.peer) {
+                    try { app.qrLogin.peer.destroy(); } catch(e){}
+                    app.qrLogin.peer = null;
+                }
                 document.getElementById('qr-login-confirm-modal').classList.add('hidden');
                 app.ui.unlockScroll();
             }
@@ -6846,6 +6951,9 @@ Object.assign(window.app, {
                     if (id === 'leaderboard' && window.location.pathname !== '/leaderboard') {
                         app.utils.navigate('/leaderboard'); return;
                     }
+                    if (id === 'support-us' && window.location.pathname !== '/support-us') {
+                        app.utils.navigate('/support-us'); return;
+                    }
                     if (id === 'admin') {
                         if (!app.user) { app.utils.navigate('/auth'); return; }
                         const { data: securityCheck } = await window.sb.from('profiles').select('role').eq('id', app.user.id).single();
@@ -6893,7 +7001,7 @@ Object.assign(window.app, {
                             }
                         }
                         
-                        if (['upload', 'search', 'mobile-upload', 'map'].includes(id)) {
+                        if (['upload', 'search', 'mobile-upload', 'map', 'support-us'].includes(id)) {
                             if (searchBox) searchBox.classList.add('hidden');
                             if (headerSpacer) {
                                 headerSpacer.classList.remove('h-28');
@@ -6922,7 +7030,7 @@ Object.assign(window.app, {
                     }
                     const depths = {
                         'home': 0,
-                        'search': 1, 'account': 1, 'upload': 1, 'mobile-upload': 1, 'admin': 1, 'contact': 1, 'help-list': 1, 'comment-dashboard': 1, 'leaderboard': 1,
+                        'search': 1, 'account': 1, 'upload': 1, 'mobile-upload': 1, 'admin': 1, 'contact': 1, 'help-list': 1, 'comment-dashboard': 1, 'leaderboard': 1, 'support-us': 1,
                         'detail': 2, 'vehicle': 2, 'operator-view': 2, 'model-view': 2, 'route-view': 2, 'help-detail': 2, 'policy-detail': 2
                     };
                     const currentId = document.querySelector('.view-section.active')?.id || 'home';
@@ -6989,6 +7097,9 @@ Object.assign(window.app, {
                     document.getElementById('load-more-cards-container')?.classList.add('hidden');
                     app.search.setFilter('all', false);
                     app.loadedCount = 0;
+                    if (app.donate && typeof app.donate.loadHomeSupporters === 'function') {
+                        app.donate.loadHomeSupporters();
+                    }
                     const heroMainEl = document.getElementById('hero-main');
                     const heroSubEl = document.getElementById('hero-sub');
                     if (heroMainEl && heroSubEl) {
@@ -7599,6 +7710,7 @@ Object.assign(window.app, {
                             if (isBannedUser) manageCommentBtn.classList.add('hidden');
                             else manageCommentBtn.classList.remove('hidden');
                         }
+
                         document.getElementById('profile-stats-title').innerText = "THỐNG KÊ HOẠT ĐỘNG";
                         document.getElementById('profile-photos-title').innerText = "Ảnh của bạn";
                     } else {
@@ -7607,6 +7719,7 @@ Object.assign(window.app, {
                         if (editProfileBtn) { editProfileBtn.classList.add('hidden'); editProfileBtn.classList.remove('flex'); }
                         if (document.getElementById('btn-detailed-stats')) document.getElementById('btn-detailed-stats').classList.add('hidden');
                         if (manageCommentBtn) manageCommentBtn.classList.add('hidden');
+
                         document.getElementById('profile-stats-title').innerText = "THỐNG KÊ CỦA " + displayUsername.toUpperCase();
                         document.getElementById('profile-photos-title').innerText = "Ảnh đã đăng";
                     }
@@ -7719,11 +7832,16 @@ Object.assign(window.app, {
                     if (isOwnProfile) {
                         app.views.fetchLikedPhotosPage(app.likedPage || 1);
                         app.views.fetchProfileRequests(1);
+                        if (app.donate && typeof app.donate.fetchProfileDonations === 'function') {
+                            app.donate.fetchProfileDonations();
+                        }
                     } else {
                         const reqSec = document.getElementById('my-requests-section');
                         if (reqSec) reqSec.classList.add('hidden');
                         const likedSec = document.getElementById('acc-liked-section');
                         if (likedSec) likedSec.classList.add('hidden');
+                        const donSec = document.getElementById('my-donations-section');
+                        if (donSec) donSec.classList.add('hidden');
                     }
                     
                     app.lastLoadedUsername = targetUsername;
@@ -8051,13 +8169,21 @@ Object.assign(window.app, {
                             </div>
                         `;
                     }
-                    if (req.admin_note) {
+                    const adminNoteText = req.new_data?.admin_note || req.admin_note;
+                    const isDenied = req.status === 'denied' || req.status === 'rejected';
+                    if (isDenied) {
+                        const reasonDisplay = adminNoteText ? app.utils.cleanText(adminNoteText) : 'Yêu cầu đã bị từ chối bởi người kiểm duyệt.';
                         detailsHtml += `
-                            <div class="mt-4 text-left">
-                                <span class="text-gray-500 font-medium block mb-1">Ghi chú của Admin:</span>
-                                <div class="bg-gray-50 p-2.5 rounded border border-gray-100 text-gray-700 italic text-sm">
-                                    ${app.utils.cleanText(req.admin_note)}
-                                </div>
+                            <div class="mt-4 p-3 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 rounded-md text-left">
+                                <span class="font-bold text-red-700 dark:text-red-400 block mb-1 italic">Lý do từ chối:</span>
+                                <span class="text-red-600 dark:text-red-300 italic text-sm break-words whitespace-pre-wrap">${reasonDisplay}</span>
+                            </div>
+                        `;
+                    } else if (adminNoteText) {
+                        detailsHtml += `
+                            <div class="mt-4 p-3 bg-gray-50 border border-gray-100 rounded-md text-left">
+                                <span class="text-gray-500 font-medium block mb-1 italic">Ghi chú của Admin:</span>
+                                <span class="text-gray-700 italic text-sm break-words whitespace-pre-wrap font-medium">${app.utils.cleanText(adminNoteText)}</span>
                             </div>
                         `;
                     }
@@ -9069,6 +9195,7 @@ let currentRouteProvName = null;
                                                 <div id="veh-sug-hist-new-op" class="suggestion-box"></div>
                                             </div>
                                         </div>
+                                        <div class="flex flex-col sm:flex-1 min-w-0">
                                             <span class="sm:hidden font-bold text-gray-500 mb-1">Tuyến</span>
                                             <input type="text" id="veh-hist-new-route" readonly placeholder="Chọn tuyến..." onfocus="this.blur()" class="hist-input cursor-pointer bg-white select-none caret-transparent" onclick="this.blur(); app.route.openSelector({ targetInputId: 'veh-hist-new-route', isHistory: true, onSelect: (r) => { const plate = document.getElementById('veh-hist-new-plate')?.value.trim() || app.currentPlate || ''; const vehProv = plate ? app.utils.getProvinceFromPlate(plate) : ''; const routeProv = r.route_name && r.route_name.includes(' - ') ? r.route_name.split(' - ').slice(1).join(' - ').trim() : ''; const routeVal = (routeProv && vehProv && routeProv.toLowerCase() !== vehProv.toLowerCase()) ? r.route_name : r.route_no; const el = document.getElementById('veh-hist-new-route'); if (el) { el.value = routeVal; el.dataset.routeName = r.route_name || routeVal; } app.utils.checkRouteStatus(r.route_no, 'veh-hist-new-op', 'veh-hist-new-op-wrapper'); } })">
                                         </div>
@@ -11796,6 +11923,986 @@ Object.assign(window.app, {
                 btn.disabled = false;
             }
         }
+    },
+    donate: {
+        currentOrder: null,
+        _pollTimer: null,
+        selectedAmount: 20000,
+        isGuest: true,
+
+        init: async () => {
+            if (app.donate._pollTimer) {
+                clearInterval(app.donate._pollTimer);
+                app.donate._pollTimer = null;
+            }
+            app.donate.currentOrder = null;
+
+            const isUser = !!app.user;
+            app.donate.isGuest = !isUser;
+
+            const avatarEl = document.getElementById('donate-user-avatar');
+            const iconEl = document.getElementById('donate-user-icon');
+            const nameEl = document.getElementById('donate-user-name');
+            const descEl = document.getElementById('donate-user-desc');
+
+            if (isUser) {
+                const displayName = app.username || app.user.email?.split('@')[0] || 'Thành viên VNBUSARCHIVE';
+                if (nameEl) nameEl.innerText = displayName;
+                if (descEl) descEl.innerText = 'Khoản ủng hộ sẽ được ghi nhận và lưu lại trong hồ sơ cá nhân của bạn.';
+
+                let userAvatar = app.avatarUrl || null;
+                if (!userAvatar) {
+                    const navAvatar = document.getElementById('nav-user-avatar');
+                    if (navAvatar && navAvatar.src && !navAvatar.classList.contains('hidden')) {
+                        userAvatar = navAvatar.src;
+                    }
+                }
+                if (!userAvatar && app.user) {
+                    userAvatar = app.user.user_metadata?.avatar_url || app.user.user_metadata?.picture || null;
+                }
+
+                if (avatarEl && iconEl) {
+                    const defaultAv = (typeof DEFAULT_AVATAR !== 'undefined') ? DEFAULT_AVATAR : '/media/default-avatar.png';
+                    const finalAvatar = userAvatar
+                        ? (userAvatar.startsWith('http') && !userAvatar.includes('/avatar.jpg') ? app.utils.getProxiedUrl(userAvatar.replace(/"/g, ''), 'avatar.jpg', 'avatar') : userAvatar)
+                        : defaultAv;
+                    avatarEl.src = finalAvatar;
+                    avatarEl.onerror = () => { avatarEl.src = defaultAv; };
+                    avatarEl.classList.remove('hidden');
+                    avatarEl.style.setProperty('display', 'block', 'important');
+                    iconEl.classList.add('hidden', '!hidden');
+                    iconEl.style.setProperty('display', 'none', 'important');
+                }
+            } else {
+                if (nameEl) nameEl.innerText = 'Ẩn danh (Khách vãng lai)';
+                if (descEl) descEl.innerText = 'Bạn đang ủng hộ với tư cách ẩn danh. Đăng nhập nếu bạn muốn lưu vào hồ sơ cá nhân.';
+                if (avatarEl && iconEl) {
+                    avatarEl.classList.add('hidden');
+                    avatarEl.style.setProperty('display', 'none', 'important');
+                    iconEl.classList.remove('hidden', '!hidden');
+                    iconEl.style.setProperty('display', 'inline-block', 'important');
+                }
+            }
+
+            const searchParams = new URLSearchParams(window.location.search);
+            const orderCodeParam = searchParams.get('orderCode');
+            const statusParam = searchParams.get('status');
+
+            if (orderCodeParam && statusParam !== 'cancelled') {
+                app.loadingBar.start();
+                try {
+                    const res = await fetch(`/api/donate/check?orderCode=${encodeURIComponent(orderCodeParam)}`);
+                    const checkData = await res.json();
+                    if (checkData.success && checkData.status === 'PAID') {
+                        app.loadingBar.finish();
+                        app.donate.renderThankYou(checkData.orderCode, checkData.amount, !checkData.is_logged_in, checkData.is_anonymous);
+                        return;
+                    }
+                } catch(e) {}
+                app.loadingBar.finish();
+            }
+
+            app.donate.showStep('form');
+            app.donate.selectPreset(20000);
+            const msgInput = document.getElementById('donate-message');
+            if (msgInput) msgInput.value = '';
+
+            // Load 3 recent supporters under container on /support-us
+            if (typeof app.donate.loadSupportUsSupporters === 'function') {
+                app.donate.loadSupportUsSupporters();
+            }
+        },
+
+        showStep: (step) => {
+            const stepForm = document.getElementById('donate-step-form');
+            const stepQr = document.getElementById('donate-step-qr');
+            const stepThankYou = document.getElementById('donate-step-thankyou');
+            const headerTitle = document.getElementById('donate-header-title');
+
+            if (stepForm) stepForm.classList.toggle('hidden', step !== 'form');
+            if (stepQr) stepQr.classList.toggle('hidden', step !== 'qr');
+            if (stepThankYou) stepThankYou.classList.toggle('hidden', step !== 'thankyou');
+            if (headerTitle) headerTitle.classList.toggle('hidden', step === 'thankyou');
+        },
+
+        selectPreset: (val) => {
+            app.donate.selectedAmount = val;
+            const input = document.getElementById('donate-amount-input');
+            if (input) {
+                input.value = new Intl.NumberFormat('vi-VN').format(val);
+            }
+            document.querySelectorAll('.donate-preset-btn').forEach(btn => {
+                const bVal = parseInt(btn.dataset.amount, 10);
+                if (bVal === val) {
+                    btn.className = 'donate-preset-btn px-4 py-2.5 text-xs sm:text-sm font-bold rounded-lg border border-black bg-black text-white transition';
+                } else {
+                    btn.className = 'donate-preset-btn px-4 py-2.5 text-xs sm:text-sm font-bold rounded-lg border border-gray-300 hover:border-black bg-white text-gray-800 transition';
+                }
+            });
+        },
+
+        handleAmountInput: (e) => {
+            let raw = e.target.value.replace(/[^0-9]/g, '');
+            if (!raw) {
+                e.target.value = '';
+                app.donate.selectedAmount = 0;
+                return;
+            }
+            const num = parseInt(raw, 10);
+            app.donate.selectedAmount = num;
+            e.target.value = new Intl.NumberFormat('vi-VN').format(num);
+
+            document.querySelectorAll('.donate-preset-btn').forEach(btn => {
+                const bVal = parseInt(btn.dataset.amount, 10);
+                if (bVal === num) {
+                    btn.className = 'donate-preset-btn px-4 py-2.5 text-xs sm:text-sm font-bold rounded-lg border border-black bg-black text-white transition';
+                } else {
+                    btn.className = 'donate-preset-btn px-4 py-2.5 text-xs sm:text-sm font-bold rounded-lg border border-gray-300 hover:border-black bg-white text-gray-800 transition';
+                }
+            });
+        },
+
+        createPayment: async () => {
+            const amt = app.donate.selectedAmount;
+            if (!amt || amt < 2000) {
+                app.ui.showAlert("Số tiền ủng hộ tối thiểu là 2.000 VNĐ.");
+                return;
+            }
+            if (amt > 100000000) {
+                app.ui.showAlert("Số tiền ủng hộ vượt quá giới hạn cho phép.");
+                return;
+            }
+
+            const msgInput = document.getElementById('donate-message');
+            const message = msgInput ? msgInput.value.trim() : '';
+
+            const btn = document.getElementById('btn-donate-submit');
+            const origHTML = btn ? btn.innerHTML : 'Ủng hộ ngay';
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> Đang tạo mã...';
+            }
+
+            try {
+                const headers = { 'Content-Type': 'application/json' };
+                if (app.user) {
+                    const { data: { session } } = await window.sb.auth.getSession();
+                    if (session?.access_token) {
+                        headers['Authorization'] = `Bearer ${session.access_token}`;
+                    }
+                }
+
+                const res = await fetch('/api/donate/create', {
+                    method: 'POST',
+                    headers,
+                    body: JSON.stringify({ amount: amt, message })
+                });
+
+                const data = await res.json();
+                if (!res.ok || !data.success) {
+                    throw new Error(data.error || 'Không thể tạo mã thanh toán.');
+                }
+
+                app.donate.currentOrder = data;
+                app.donate.renderQrStep(data);
+
+            } catch (err) {
+                app.ui.showAlert("Không thể khởi tạo mã thanh toán: " + err.message);
+            } finally {
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = 'Ủng hộ ngay';
+                }
+            }
+        },
+
+        renderQrStep: (data) => {
+            app.donate.showStep('qr');
+
+            const qrContainer = document.getElementById('donate-qr-box');
+            if (qrContainer) {
+                qrContainer.innerHTML = '';
+                if (data.qrCode) {
+                    new QRCode(qrContainer, {
+                        text: data.qrCode,
+                        width: 210,
+                        height: 210,
+                        colorDark: '#000000',
+                        colorLight: '#ffffff',
+                        correctLevel: QRCode.CorrectLevel.M
+                    });
+                } else if (data.checkoutUrl) {
+                    qrContainer.innerHTML = `<div class="p-4 text-center text-xs text-gray-500">Mã QR tạm thời chưa tải được, bạn vui lòng thử lại sau.</div>`;
+                }
+            }
+
+            const amtText = new Intl.NumberFormat('vi-VN').format(data.amount) + ' đ';
+            const displayAmtEl = document.getElementById('donate-qr-amount');
+            if (displayAmtEl) displayAmtEl.innerText = amtText;
+
+            const orderCodeEl = document.getElementById('donate-qr-ordercode');
+            if (orderCodeEl) orderCodeEl.innerText = `#${data.orderCode}`;
+
+            const descEl = document.getElementById('donate-qr-desc');
+            if (descEl) descEl.innerText = data.description || `VNBA ${data.orderCode}`;
+
+            const accNumEl = document.getElementById('donate-qr-accnum');
+            if (accNumEl) accNumEl.innerText = data.accountNumber || '---';
+
+            const accNameEl = document.getElementById('donate-qr-accname');
+            if (accNameEl) accNameEl.innerText = data.accountName || '---';
+
+            if (app.donate._pollTimer) clearInterval(app.donate._pollTimer);
+            app.donate._pollTimer = setInterval(async () => {
+                try {
+                    const res = await fetch(`/api/donate/check?orderCode=${data.orderCode}`);
+                    const chk = await res.json();
+                    if (chk.success && chk.status === 'PAID') {
+                        clearInterval(app.donate._pollTimer);
+                        app.donate._pollTimer = null;
+                        app.donate.renderThankYou(data.orderCode, data.amount, !chk.is_logged_in, chk.is_anonymous);
+                    } else if (chk.success && (chk.status === 'CANCELLED' || chk.status === 'EXPIRED')) {
+                        clearInterval(app.donate._pollTimer);
+                        app.donate._pollTimer = null;
+                        app.ui.showAlert('Đơn ủng hộ đã hết hiệu lực hoặc bị hủy.', () => {
+                            app.donate.showStep('form');
+                            if (app.user && typeof app.donate.fetchProfileDonations === 'function') {
+                                app.donate.fetchProfileDonations();
+                            }
+                        });
+                    }
+                } catch (e) {}
+            }, 2500);
+        },
+
+        renderThankYou: (orderCode, amount, isGuest, isAnonymousDefault) => {
+            if (app.donate._pollTimer) {
+                clearInterval(app.donate._pollTimer);
+                app.donate._pollTimer = null;
+            }
+            app.donate.showStep('thankyou');
+
+            const amtEl = document.getElementById('donate-thankyou-amount');
+            if (amtEl) amtEl.innerText = new Intl.NumberFormat('vi-VN').format(amount) + ' VNĐ';
+
+            const codeEl = document.getElementById('donate-thankyou-code');
+            if (codeEl) codeEl.innerText = `#VNBA-${orderCode}`;
+
+            const toggle = document.getElementById('donate-anonymous-toggle');
+            const hintEl = document.getElementById('donate-anonymous-hint');
+
+            if (isGuest) {
+                if (toggle) {
+                    toggle.checked = true;
+                    toggle.disabled = true;
+                }
+                if (hintEl) {
+                    hintEl.innerText = 'Khách vãng lai mặc định được ẩn danh để bảo đảm quyền riêng tư.';
+                }
+            } else {
+                if (toggle) {
+                    toggle.checked = !!isAnonymousDefault;
+                    toggle.disabled = false;
+                    toggle.onchange = async () => {
+                        try {
+                            const headers = { 'Content-Type': 'application/json' };
+                            if (window.sb && window.sb.auth) {
+                                const { data: { session } } = await window.sb.auth.getSession();
+                                if (session?.access_token) {
+                                    headers['Authorization'] = `Bearer ${session.access_token}`;
+                                }
+                            }
+                            await fetch('/api/donate/toggle-anonymous', {
+                                method: 'POST',
+                                headers,
+                                body: JSON.stringify({
+                                    orderCode: Number(orderCode),
+                                    is_anonymous: toggle.checked
+                                })
+                            });
+                            if (typeof app.donate.loadHomeSupporters === 'function') {
+                                app.donate.loadHomeSupporters(true);
+                            }
+                        } catch(e) {}
+                    };
+                }
+                if (hintEl) {
+                    hintEl.innerText = 'Bật nếu bạn muốn giấu tên trên danh sách cảm ơn ở trang chủ.';
+                }
+            }
+        },
+
+        finish: async () => {
+            if (app.donate._pollTimer) {
+                clearInterval(app.donate._pollTimer);
+                app.donate._pollTimer = null;
+            }
+            app.donate.currentOrder = null;
+
+            if (typeof app.donate.loadHomeSupporters === 'function') {
+                app.donate.loadHomeSupporters(true);
+            }
+
+            app.utils.navigate('/');
+            if (app.toast && app.toast.show) {
+                app.toast.show('success', 'Đóng góp thành công', 'Cảm ơn bạn rất nhiều vì đã đồng hành và ủng hộ VNBUSARCHIVE!');
+            }
+        },
+
+        copyText: (elementId, label) => {
+            const el = document.getElementById(elementId);
+            if (!el) return;
+            const val = el.innerText.trim();
+            if (!val || val === '---') return;
+            navigator.clipboard.writeText(val).then(() => {
+                if (app.toast && app.toast.show) {
+                    app.toast.show('success', 'Đã sao chép', `Đã sao chép ${label} vào bộ nhớ tạm.`);
+                }
+            }).catch(() => {});
+        },
+
+        downloadQr: () => {
+            const container = document.getElementById('donate-qr-box');
+            if (!container) return;
+
+            const canvas = container.querySelector('canvas');
+            const img = container.querySelector('img');
+            let dataUrl = null;
+
+            if (canvas) {
+                dataUrl = canvas.toDataURL('image/png');
+            } else if (img && img.src) {
+                dataUrl = img.src;
+            }
+
+            if (!dataUrl) {
+                app.ui.showAlert('Không tìm thấy hình ảnh mã QR để tải về.');
+                return;
+            }
+
+            const orderCode = app.donate.currentOrder?.orderCode || 'donate';
+            const a = document.createElement('a');
+            a.href = dataUrl;
+            a.download = `VNBA-QR-${orderCode}.png`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        },
+
+        cancelPayment: async () => {
+            if (app.donate._pollTimer) {
+                clearInterval(app.donate._pollTimer);
+                app.donate._pollTimer = null;
+            }
+            const order = app.donate.currentOrder;
+            app.donate.currentOrder = null;
+            app.donate.showStep('form');
+
+            if (order && order.orderCode) {
+                try {
+                    const res = await fetch('/api/donate/cancel', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ orderCode: order.orderCode })
+                    });
+                    const resJson = await res.json().catch(() => ({}));
+                    if (resJson && resJson.paid) {
+                        app.ui.showAlert('Ngân hàng đã ghi nhận khoản chuyển thành công của bạn!', () => {
+                            app.donate.renderThankYou(order.orderCode, order.amount, app.donate.isGuest, false);
+                        });
+                        return;
+                    }
+                    if (app.user && typeof app.donate.fetchProfileDonations === 'function') {
+                        app.donate.fetchProfileDonations();
+                    }
+                } catch (e) {
+                    console.error('Error cancelling payment:', e);
+                }
+            }
+        },
+
+        resumePayment: async (orderCode) => {
+            app.utils.navigate('/support-us');
+            app.loadingBar.start();
+            try {
+                const res = await fetch(`/api/donate/check?orderCode=${encodeURIComponent(orderCode)}`);
+                const checkData = await res.json();
+                app.loadingBar.finish();
+
+                if (!checkData || !checkData.success) {
+                    app.ui.showAlert(checkData?.error || 'Đơn ủng hộ đã hết hạn hoặc không khả dụng.', () => {
+                        app.donate.showStep('form');
+                        if (app.user && typeof app.donate.fetchProfileDonations === 'function') {
+                            app.donate.fetchProfileDonations();
+                        }
+                    });
+                    return;
+                }
+
+                if (checkData.status === 'PAID') {
+                    app.donate.renderThankYou(checkData.orderCode, checkData.amount, !checkData.is_logged_in, checkData.is_anonymous);
+                    return;
+                }
+
+                if (checkData.status === 'CANCELLED' || checkData.status === 'EXPIRED') {
+                    app.ui.showAlert('Đơn ủng hộ đã hết hiệu lực hoặc bị hủy.', () => {
+                        app.donate.showStep('form');
+                        if (app.user && typeof app.donate.fetchProfileDonations === 'function') {
+                            app.donate.fetchProfileDonations();
+                        }
+                    });
+                    return;
+                }
+
+                if (!checkData.qrCode) {
+                    app.ui.showAlert('Đơn ủng hộ không còn mã QR khả dụng. Bạn hãy tạo một khoản ủng hộ mới nhé!', () => {
+                        app.donate.showStep('form');
+                        if (app.user && typeof app.donate.fetchProfileDonations === 'function') {
+                            app.donate.fetchProfileDonations();
+                        }
+                    });
+                    return;
+                }
+
+                app.donate.currentOrder = checkData;
+                app.donate.renderQrStep(checkData);
+
+            } catch (err) {
+                app.loadingBar.finish();
+                console.error('Error resuming donation:', err);
+                app.ui.showAlert('Không thể mở lại đơn ủng hộ: ' + err.message);
+            }
+        },
+
+        _homeSupportersCache: [],
+
+        showHomeSupporterModal: (index) => {
+            const item = app.donate._homeSupportersCache?.[index];
+            if (!item) return;
+
+            const isAnon = !!item.is_anonymous;
+            const amtStr = new Intl.NumberFormat('vi-VN').format(item.amount) + ' VNĐ';
+            const dateStr = item.created_at ? new Date(item.created_at).toLocaleDateString('vi-VN') : '---';
+            const safeMsg = item.message ? app.utils.escapeHtml(item.message) : '';
+            const safeName = app.utils.escapeHtml(item.donor_name);
+            const defaultAv = (typeof DEFAULT_AVATAR !== 'undefined') ? DEFAULT_AVATAR : '/media/default-avatar.png';
+            const photoCountText = (!isAnon && typeof item.photo_count === 'number')
+                ? `${new Intl.NumberFormat('vi-VN').format(item.photo_count)} ảnh đã đăng`
+                : 'Thành viên VNBUSARCHIVE';
+
+            let accountBoxHtml = '';
+            if (!isAnon && item.username) {
+                const rawAv = item.avatar_url;
+                const finalAv = rawAv 
+                    ? (rawAv.startsWith('http') && !rawAv.includes('/avatar.jpg') ? app.utils.getProxiedUrl(rawAv.replace(/"/g, ''), 'avatar.jpg', 'avatar') : rawAv)
+                    : defaultAv;
+
+                accountBoxHtml = `
+                    <div onclick="app.ui.closeAlert(); app.utils.navigate('/user/${encodeURIComponent(item.username)}')" class="supporter-modal-user-box cursor-pointer flex items-center gap-3 p-3 bg-gray-50 hover:bg-gray-100 rounded-xl border border-gray-200 hover:border-black transition-all text-left" title="Xem trang cá nhân của ${safeName}">
+                        <div class="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center shrink-0 border border-gray-200 overflow-hidden">
+                            <img src="${finalAv}" alt="${safeName}" onerror="this.src='${defaultAv}'" class="w-full h-full object-cover">
+                        </div>
+                        <div class="min-w-0 flex-1">
+                            <div class="font-bold text-sm text-black truncate">${safeName}</div>
+                            <p class="text-[11px] text-gray-500 truncate mt-0.5">${photoCountText}</p>
+                        </div>
+                    </div>
+                `;
+            } else {
+                accountBoxHtml = `
+                    <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-xl border border-gray-200 text-left">
+                        <div class="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center shrink-0 border border-gray-200">
+                            <i class="fa-solid fa-user text-black text-sm"></i>
+                        </div>
+                        <div class="min-w-0 flex-1">
+                            <span class="font-bold text-sm text-black truncate block">Nhà hảo tâm ẩn danh</span>
+                            <p class="text-[11px] text-gray-500 truncate mt-0.5">Khoản đóng góp ẩn danh</p>
+                        </div>
+                    </div>
+                `;
+            }
+
+            const contentHtml = `
+                <div class="text-left text-xs space-y-3 py-1">
+                    <!-- Ô 1: Tài khoản người ủng hộ -->
+                    ${accountBoxHtml}
+
+                    <!-- Ô 2: Số tiền ủng hộ -->
+                    <div class="p-3 bg-gray-50 rounded-xl border border-gray-200 text-center">
+                        <span class="text-[11px] font-bold text-gray-400 uppercase tracking-wider block mb-1">Số tiền ủng hộ</span>
+                        <div class="text-2xl font-black text-black">+${amtStr}</div>
+                        <div class="text-[11px] text-gray-500 mt-1">${dateStr}</div>
+                    </div>
+
+                    <!-- Ô 3: Lời nhắn -->
+                    <div class="text-left">
+                        <span class="text-[11px] font-bold text-gray-400 uppercase tracking-wider block mb-1.5">Lời nhắn gửi</span>
+                        <div class="p-3 bg-gray-50 rounded-xl border border-gray-200 text-black italic text-xs leading-relaxed">
+                            "${safeMsg || 'Đồng hành cùng dự án duy trì máy chủ lưu trữ hình ảnh xe buýt Việt Nam hoàn toàn miễn phí.'}"
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            app.ui.showAlert(contentHtml, () => {}, null, {
+                title: 'Nhà hảo tâm đồng hành',
+                iconHtml: '<i class="fa-solid fa-heart text-xl text-black"></i>',
+                btnOkText: 'Đóng'
+            });
+        },
+
+        _lastHomeSupportersLoadTime: 0,
+
+        loadHomeSupporters: async (forceRefresh = false) => {
+            const container = document.getElementById('home-supporters-list');
+            const supportUsContainer = document.getElementById('donate-recent-supporters-list');
+            if (!container && !supportUsContainer) return;
+
+            const now = Date.now();
+            // Client cache: reuse existing top supporters if fetched within last 60s unless forced
+            if (!forceRefresh && app.donate._homeSupportersCache?.length > 0 && (now - (app.donate._lastHomeSupportersLoadTime || 0) < 60000)) {
+                if (container && container.children.length === 0) {
+                    app.donate._renderHomeSupporters(app.donate._homeSupportersCache);
+                }
+                if (supportUsContainer && supportUsContainer.children.length === 0) {
+                    app.donate._renderSupportUsSupporters(app.donate._homeSupportersCache);
+                }
+                return;
+            }
+
+            try {
+                const url = forceRefresh ? `/api/donate/supporters?force=1&t=${now}` : '/api/donate/supporters';
+                const res = await fetch(url);
+                const resData = await res.json();
+                const list = (resData && resData.success && Array.isArray(resData.data)) ? resData.data : [];
+
+                const top3 = list.slice(0, 3);
+                app.donate._homeSupportersCache = top3;
+                app.donate._lastHomeSupportersLoadTime = now;
+                app.donate._renderHomeSupporters(top3);
+                app.donate._renderSupportUsSupporters(top3);
+            } catch (e) {
+                console.error('Error loading supporters:', e);
+            }
+        },
+
+        loadSupportUsSupporters: async (forceRefresh = false) => {
+            const container = document.getElementById('donate-recent-supporters-list');
+            if (!container) return;
+
+            const now = Date.now();
+            if (!forceRefresh && app.donate._homeSupportersCache?.length > 0 && (now - (app.donate._lastHomeSupportersLoadTime || 0) < 60000)) {
+                app.donate._renderSupportUsSupporters(app.donate._homeSupportersCache);
+                return;
+            }
+
+            try {
+                const url = forceRefresh ? `/api/donate/supporters?force=1&t=${now}` : '/api/donate/supporters';
+                const res = await fetch(url);
+                const resData = await res.json();
+                const list = (resData && resData.success && Array.isArray(resData.data)) ? resData.data : [];
+
+                const top3 = list.slice(0, 3);
+                app.donate._homeSupportersCache = top3;
+                app.donate._lastHomeSupportersLoadTime = now;
+                app.donate._renderSupportUsSupporters(top3);
+                app.donate._renderHomeSupporters(top3);
+            } catch (e) {
+                console.error('Error loading supporters on support-us:', e);
+            }
+        },
+
+        _renderHomeSupporters: (top3) => {
+            const container = document.getElementById('home-supporters-list');
+            if (!container) return;
+            container.innerHTML = app.donate._generateSupportersCardsHtml(top3, true);
+        },
+
+        _renderSupportUsSupporters: (top3) => {
+            const container = document.getElementById('donate-recent-supporters-list');
+            if (!container) return;
+            container.innerHTML = app.donate._generateSupportersCardsHtml(top3, false);
+        },
+
+        _generateSupportersCardsHtml: (top3, includeActionCard = true) => {
+            const cards = [];
+            for (let i = 0; i < 3; i++) {
+                const item = top3[i];
+                if (item) {
+                    const amtStr = new Intl.NumberFormat('vi-VN').format(item.amount) + 'đ';
+                    const safeName = app.utils.escapeHtml(item.donor_name);
+                    const dateStr = item.created_at ? new Date(item.created_at).toLocaleDateString('vi-VN') : '';
+                    const defaultAv = (typeof DEFAULT_AVATAR !== 'undefined') ? DEFAULT_AVATAR : '/media/default-avatar.png';
+
+                    let iconOrAvatarHtml = '';
+                    const clickAttr = `onclick="app.donate.showHomeSupporterModal(${i})"`;
+                    const cursorClass = 'cursor-pointer hover:border-black';
+
+                    if (!item.is_anonymous && item.username) {
+                        const rawAv = item.avatar_url;
+                        const finalAv = rawAv 
+                            ? (rawAv.startsWith('http') && !rawAv.includes('/avatar.jpg') ? app.utils.getProxiedUrl(rawAv.replace(/"/g, ''), 'avatar.jpg', 'avatar') : rawAv)
+                            : defaultAv;
+                        iconOrAvatarHtml = `
+                            <div class="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center shrink-0 border border-gray-200 mr-3 overflow-hidden">
+                                <img src="${finalAv}" alt="${safeName}" onerror="this.src='${defaultAv}'" class="w-full h-full object-cover">
+                            </div>
+                        `;
+                    } else {
+                        iconOrAvatarHtml = `
+                            <div class="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center shrink-0 border border-gray-200 mr-3">
+                                <i class="fa-solid fa-user text-black text-xs"></i>
+                            </div>
+                        `;
+                    }
+
+                    const tooltipAttr = item.message ? `title="${app.utils.escapeHtml(item.message)}"` : '';
+                    const subMsg = item.message ? app.utils.escapeHtml(item.message) : '';
+
+                    cards.push(`
+                        <div class="${cursorClass} transition-all duration-300 relative flex flex-row items-center p-3 text-left bg-white rounded-xl border border-gray-200 shadow-sm hover:border-black" ${clickAttr} ${tooltipAttr}>
+                            ${iconOrAvatarHtml}
+                            <div class="flex-1 min-w-0 flex flex-col justify-center">
+                                <div class="flex items-center justify-between gap-2">
+                                    <span class="truncate font-bold text-gray-900 text-sm leading-tight">${safeName}</span>
+                                    <span class="text-xs font-extrabold text-black shrink-0">+${amtStr}</span>
+                                </div>
+                                <div class="flex items-center justify-between gap-2 mt-0.5">
+                                    <span class="block text-gray-500 text-xs tracking-wide truncate">${subMsg || 'Đồng hành cùng dự án'}</span>
+                                    <span class="text-[11px] text-gray-400 shrink-0">${dateStr}</span>
+                                </div>
+                            </div>
+                        </div>
+                    `);
+                } else {
+                    cards.push(`
+                        <div class="transition-all duration-300 relative flex flex-row items-center p-3 text-left bg-white rounded-xl border border-gray-200 shadow-sm opacity-60">
+                            <div class="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center shrink-0 border border-gray-200 mr-3">
+                                <i class="fa-solid fa-heart text-black text-xs"></i>
+                            </div>
+                            <div class="flex-1 min-w-0 flex flex-col justify-center">
+                                <div class="flex items-center justify-between gap-2">
+                                    <span class="truncate font-bold text-gray-500 text-sm leading-tight">Vị trí chờ bạn</span>
+                                    <span class="text-xs text-gray-400 shrink-0">---</span>
+                                </div>
+                                <span class="block text-gray-400 text-xs tracking-wide w-full truncate mt-0.5">Chưa có người ủng hộ</span>
+                            </div>
+                        </div>
+                    `);
+                }
+            }
+
+            if (includeActionCard) {
+                cards.push(`
+                    <div id="home-supporters-action-card" onclick="app.utils.navigate('/support-us')" class="cursor-pointer transition-all duration-300 relative flex flex-row items-center p-3 text-left bg-black text-white rounded-xl border border-black shadow-sm hover:bg-gray-900 group">
+                        <div class="supporter-action-icon w-8 h-8 rounded-full bg-white/10 text-white flex items-center justify-center shrink-0 border border-white/20 transition mr-3">
+                            <i class="fa-solid fa-heart text-white text-xs"></i>
+                        </div>
+                        <div class="flex-1 min-w-0 flex flex-col justify-center">
+                            <div class="flex items-center justify-between gap-2">
+                                <span class="truncate font-bold text-white text-sm leading-tight">Tôi cũng muốn ủng hộ!</span>
+                                <span class="text-xs font-bold text-white/80 group-hover:text-white shrink-0">Ủng hộ ngay &rarr;</span>
+                            </div>
+                            <span class="block text-white/70 text-xs tracking-wide w-full truncate mt-0.5">Tiếp sức cùng dự án duy trì máy chủ</span>
+                        </div>
+                    </div>
+                `);
+            }
+
+            return cards.join('');
+        },
+
+        _profileCache: {},
+
+        fetchProfileDonations: async () => {
+            const section = document.getElementById('my-donations-section');
+            const grid = document.getElementById('my-donations-grid');
+            if (!grid || !app.user) {
+                if (section) section.classList.add('hidden');
+                return;
+            }
+
+            try {
+                const { data: { session } } = await window.sb.auth.getSession();
+                const res = await fetch('/api/donate/history', {
+                    headers: { 'Authorization': `Bearer ${session?.access_token || ''}` }
+                });
+                const resData = await res.json();
+                const list = (resData && resData.success && Array.isArray(resData.data)) ? resData.data : [];
+
+                if (!list.length) {
+                    if (section) section.classList.add('hidden');
+                    grid.innerHTML = '';
+                    return;
+                }
+
+                if (section) section.classList.remove('hidden');
+                app.donate._profileCache = {};
+
+                const cardStyleClasses = "cursor-pointer transition-all duration-300 relative flex flex-row items-center p-3 text-left bg-white rounded-xl border border-gray-200 shadow-md hover:-translate-y-1 hover:shadow-xl";
+
+                grid.innerHTML = list.map(item => {
+                    app.donate._profileCache[item.order_code] = item;
+                    const amtStr = new Intl.NumberFormat('vi-VN').format(item.amount) + ' đ';
+                    const dateStr = item.created_at ? new Date(item.created_at).toLocaleDateString('vi-VN') : '';
+                    const isPending = item.status === 'PENDING';
+                    const dotColor = isPending ? 'bg-[#f58e27]' : 'bg-green-500';
+                    const statusText = isPending ? 'Chờ thanh toán' : (dateStr || 'Đã ghi nhận');
+                    const clickHandler = isPending 
+                        ? `app.donate.resumePayment(${item.order_code})` 
+                        : `app.donate.showDetailAlert('${item.order_code}')`;
+
+                    return `
+                        <div class="${cardStyleClasses}" onclick="${clickHandler}">
+                            <span class="w-2 h-2 rounded-full ${dotColor} shrink-0 block mr-3"></span>
+                            <div class="flex-1 min-w-0 flex flex-col justify-center">
+                                <span class="truncate font-bold text-gray-900 text-sm leading-tight mb-0.5">+${amtStr}</span>
+                                <span class="block text-gray-500 text-xs tracking-wide w-full truncate">#${item.order_code} · ${statusText}</span>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+
+            } catch (err) {
+                console.error('Error fetching profile donations:', err);
+                if (section) section.classList.add('hidden');
+            }
+        },
+
+        _activeDetailOrderCode: null,
+        _activeDetailInitialAnon: false,
+        _activeDetailCurrentAnon: false,
+        _modalAnimTimeout: null,
+
+        showDetailAlert: (orderCode) => {
+            const item = app.donate._profileCache?.[orderCode];
+            if (!item) return;
+
+            const isAnon = Boolean(item.is_anonymous === true || item.is_anonymous === 'true' || item.is_anonymous === 1 || item.is_anonymous === '1');
+            app.donate._activeDetailOrderCode = orderCode;
+            app.donate._activeDetailInitialAnon = isAnon;
+            app.donate._activeDetailCurrentAnon = isAnon;
+
+            const amtStr = new Intl.NumberFormat('vi-VN').format(item.amount) + ' VNĐ';
+            const dateStr = item.created_at ? new Date(item.created_at).toLocaleString('vi-VN') : '---';
+            const safeMsg = item.message ? app.utils.escapeHtml(item.message) : '';
+
+            const contentHtml = `
+                <div class="text-left text-xs space-y-2.5 py-1">
+                    <div class="flex justify-between items-center">
+                        <span class="text-gray-500 font-medium">Mã ủng hộ:</span>
+                        <span class="font-bold text-black font-mono">#${item.order_code}</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-gray-500 font-medium">Số tiền:</span>
+                        <span class="font-extrabold text-sm text-black">+${amtStr}</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-gray-500 font-medium">Trạng thái:</span>
+                        <span class="font-bold text-black">Đã ghi nhận</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-gray-500 font-medium">Thời gian:</span>
+                        <span class="text-gray-700">${dateStr}</span>
+                    </div>
+                    ${safeMsg ? `
+                    <div class="mt-2 text-left">
+                        <span class="text-gray-500 font-medium block mb-1">Lời nhắn:</span>
+                        <div class="bg-gray-50 p-2.5 rounded border border-gray-200 text-black italic text-xs">
+                            "${safeMsg}"
+                        </div>
+                    </div>` : ''}
+
+                    <div class="mt-4 pt-2">
+                        <label class="flex items-center justify-between gap-3 p-3 bg-gray-50 rounded-lg border border-black cursor-pointer select-none">
+                            <div class="min-w-0 pr-2">
+                                <div class="text-xs font-bold text-black">
+                                    Ẩn danh trên trang chủ
+                                </div>
+                                <p id="donation-modal-anon-desc" class="text-[11px] text-gray-500 mt-0.5 leading-normal">
+                                    ${isAnon ? 'Khoản này đang được giấu tên trên danh sách tri ân.' : 'Khoản này đang được công khai tên trên danh sách tri ân.'}
+                                </p>
+                            </div>
+                            <div class="relative shrink-0 flex items-center">
+                                <input type="checkbox" id="donation-item-anon-toggle" class="custom-cb-input sr-only" ${isAnon ? 'checked' : ''} onchange="app.donate.onDetailAnonChange(this.checked)">
+                                <div class="custom-cb-box shrink-0 shadow-sm" style="margin: 0 !important;">
+                                    <i class="fa-solid fa-check"></i>
+                                </div>
+                            </div>
+                        </label>
+                    </div>
+
+                    <p class="text-[11px] text-gray-500 text-center leading-normal mt-3">
+                        Khoản ủng hộ không được hoàn lại, chỉ dùng để duy trì dự án và không đi kèm đặc quyền nào so với người không ủng hộ.
+                    </p>
+
+                    <div class="mt-4 pt-1 relative">
+                        <!-- State 1: Chưa thay đổi -> Nút Đóng -->
+                        <div id="donation-modal-btn-close" class="transition-all duration-300 ease-in-out">
+                            <button type="button" onclick="app.ui.closeAlert()" class="w-full py-2.5 px-4 bg-black hover:bg-gray-800 text-white rounded-lg text-xs font-bold transition shadow-sm">
+                                Đóng
+                            </button>
+                        </div>
+
+                        <!-- State 2: Có thay đổi -> 2 nút Hủy và Lưu (Có Animation) -->
+                        <div id="donation-modal-btn-actions" class="hidden opacity-0 translate-y-1 transition-all duration-300 ease-in-out flex items-center gap-2">
+                            <button type="button" onclick="app.donate.cancelDetailChanges()" class="flex-1 py-2.5 px-4 bg-white border border-black hover:bg-gray-100 text-black rounded-lg text-xs font-bold transition shadow-sm">
+                                Hủy
+                            </button>
+                            <button type="button" id="donation-modal-save-btn" onclick="app.donate.saveDetailChanges()" class="flex-1 py-2.5 px-4 bg-black hover:bg-gray-800 text-white rounded-lg text-xs font-bold transition shadow-sm flex items-center justify-center gap-1.5">
+                                Lưu
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            app.ui.showAlert(contentHtml, () => {}, null, { 
+                title: 'Chi tiết khoản ủng hộ',
+                iconHtml: '<i class="fa-solid fa-heart text-xl text-black"></i>',
+                btnOkText: 'Đóng'
+            });
+
+            // Hide the default modal footer container so our custom animated buttons handle everything
+            const okBtn = document.getElementById('custom-alert-ok-btn');
+            if (okBtn && okBtn.parentElement) {
+                okBtn.parentElement.style.display = 'none';
+            }
+
+            // Explicitly sync the checkbox DOM checked state
+            const toggleEl = document.getElementById('donation-item-anon-toggle');
+            if (toggleEl) {
+                toggleEl.checked = isAnon;
+            }
+        },
+
+        onDetailAnonChange: (isChecked) => {
+            app.donate._activeDetailCurrentAnon = isChecked;
+            const hasChanged = app.donate._activeDetailCurrentAnon !== app.donate._activeDetailInitialAnon;
+
+            const descEl = document.getElementById('donation-modal-anon-desc');
+            if (descEl) {
+                descEl.innerText = isChecked 
+                    ? 'Khoản này đang được giấu tên trên danh sách tri ân.' 
+                    : 'Khoản này đang được công khai tên trên danh sách tri ân.';
+            }
+
+            const closeBox = document.getElementById('donation-modal-btn-close');
+            const actionsBox = document.getElementById('donation-modal-btn-actions');
+            if (!closeBox || !actionsBox) return;
+
+            if (app.donate._modalAnimTimeout) {
+                clearTimeout(app.donate._modalAnimTimeout);
+            }
+
+            if (hasChanged) {
+                // Animate Close out, Actions in
+                closeBox.classList.add('opacity-0', '-translate-y-1');
+                app.donate._modalAnimTimeout = setTimeout(() => {
+                    if (app.donate._activeDetailCurrentAnon !== app.donate._activeDetailInitialAnon) {
+                        closeBox.classList.add('hidden');
+                        actionsBox.classList.remove('hidden');
+                        void actionsBox.offsetWidth; // Trigger reflow for CSS transition
+                        actionsBox.classList.remove('opacity-0', 'translate-y-1');
+                        actionsBox.classList.add('opacity-100', 'translate-y-0');
+                    }
+                }, 150);
+            } else {
+                // Reverted back to initial state -> Animate Actions out, Close in
+                actionsBox.classList.remove('opacity-100', 'translate-y-0');
+                actionsBox.classList.add('opacity-0', 'translate-y-1');
+                app.donate._modalAnimTimeout = setTimeout(() => {
+                    if (app.donate._activeDetailCurrentAnon === app.donate._activeDetailInitialAnon) {
+                        actionsBox.classList.add('hidden');
+                        closeBox.classList.remove('hidden');
+                        void closeBox.offsetWidth; // Trigger reflow for CSS transition
+                        closeBox.classList.remove('opacity-0', '-translate-y-1');
+                        closeBox.classList.add('opacity-100', 'translate-y-0');
+                    }
+                }, 150);
+            }
+        },
+
+        cancelDetailChanges: () => {
+            const toggle = document.getElementById('donation-item-anon-toggle');
+            if (toggle) {
+                toggle.checked = app.donate._activeDetailInitialAnon;
+            }
+            app.donate.onDetailAnonChange(app.donate._activeDetailInitialAnon);
+        },
+
+        saveDetailChanges: async () => {
+            const orderCode = app.donate._activeDetailOrderCode;
+            const targetAnon = app.donate._activeDetailCurrentAnon;
+            const saveBtn = document.getElementById('donation-modal-save-btn');
+
+            if (saveBtn) {
+                saveBtn.disabled = true;
+                saveBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1.5"></i> Đang lưu...';
+            }
+
+            try {
+                const headers = { 'Content-Type': 'application/json' };
+                if (window.sb && window.sb.auth) {
+                    const { data: { session } } = await window.sb.auth.getSession();
+                    if (session?.access_token) {
+                        headers['Authorization'] = `Bearer ${session.access_token}`;
+                    }
+                }
+
+                const res = await fetch('/api/donate/toggle-anonymous', {
+                    method: 'POST',
+                    headers,
+                    body: JSON.stringify({
+                        orderCode: Number(orderCode),
+                        is_anonymous: targetAnon
+                    })
+                });
+
+                const resData = await res.json();
+                if (!res.ok || !resData.success) {
+                    throw new Error(resData.error || 'Lỗi khi cập nhật trạng thái');
+                }
+
+                // Update caches
+                app.donate._activeDetailInitialAnon = targetAnon;
+                const item = app.donate._profileCache?.[orderCode];
+                if (item) item.is_anonymous = targetAnon;
+
+                // Animate actions out, close button back in
+                const closeBox = document.getElementById('donation-modal-btn-close');
+                const actionsBox = document.getElementById('donation-modal-btn-actions');
+                if (actionsBox && closeBox) {
+                    actionsBox.classList.remove('opacity-100', 'translate-y-0');
+                    actionsBox.classList.add('opacity-0', 'translate-y-1');
+                    setTimeout(() => {
+                        actionsBox.classList.add('hidden');
+                        closeBox.classList.remove('hidden');
+                        void closeBox.offsetWidth;
+                        closeBox.classList.remove('opacity-0', '-translate-y-1');
+                        closeBox.classList.add('opacity-100', 'translate-y-0');
+                    }, 150);
+                }
+
+                // Refresh home supporters list in real-time with force bypass
+                if (typeof app.donate.loadHomeSupporters === 'function') {
+                    app.donate.loadHomeSupporters(true);
+                }
+
+                if (app.toast && app.toast.show) {
+                    app.toast.show('success', 'Đã lưu', 'Cập nhật trạng thái hiển thị thành công.');
+                }
+
+            } catch (err) {
+                console.error('Error saving anonymity setting:', err);
+                app.ui.showAlert('Không thể lưu thay đổi: ' + err.message);
+            } finally {
+                if (saveBtn) {
+                    saveBtn.disabled = false;
+                    saveBtn.innerHTML = 'Lưu';
+                }
+            }
+        }
     }
 });
 
@@ -12777,6 +13884,94 @@ if (!decodedProvince || decodedProvince.trim() === '') {
                      app.loadingBar.finish();
                  },
                 specialRoutes: ['Dừng hoạt động', 'Ngoài giờ hoạt động', 'Chưa hoạt động', 'Hợp đồng'],
+                                migrateRouteData: async (oldRouteName, newRouteName, newRouteNo, newProvince) => {
+                    if (!oldRouteName || !newRouteName || oldRouteName === newRouteName) return;
+
+                    if ((!app.utils.provinceData || !app.utils.provinceData.length) && app.utils.loadProvinceData) {
+                        await app.utils.loadProvinceData();
+                    }
+
+                    const isOldCoach = oldRouteName.includes(' - ') ? false : true;
+                    const oldNo = (!isOldCoach && oldRouteName.includes(' - ')) ? oldRouteName.split(' - ')[0].trim() : oldRouteName;
+                    const oldProv = (!isOldCoach && oldRouteName.includes(' - ')) ? oldRouteName.split(' - ').slice(1).join(' - ').trim() : '';
+
+                    const destRouteNo = newRouteNo || ((newProvince && newRouteName.includes(' - ')) ? newRouteName.split(' - ')[0].trim() : newRouteName);
+                    const destRouteName = newRouteName;
+                    const isNewCoach = !newProvince && !destRouteName.includes(' - ');
+                    const newBorrowed = (isNewCoach || destRouteName === destRouteNo) ? null : destRouteName;
+
+                    const provMatch = oldProv && app.utils.provinceData ? app.utils.provinceData.find(p => p.ten.toLowerCase() === oldProv.toLowerCase()) : null;
+                    const provPrefixes = provMatch ? (Array.isArray(provMatch.ky_hieu) ? provMatch.ky_hieu : String(provMatch.ky_hieu).split(',').map(s => s.trim())) : [];
+
+                    // 1. Chuyển tất cả ảnh thuộc tuyến cũ sang tuyến mới
+                    const { data: candPhotos } = await window.sb.from('photos')
+                        .select('id, license_plate, route_no, borrowed_route')
+                        .or(`route_no.eq."${oldNo}",borrowed_route.eq."${oldRouteName}"`);
+
+                    const isPhotoMatch = (p) => {
+                        if (p.borrowed_route === oldRouteName) return true;
+                        if (p.route_no === oldNo && (!p.borrowed_route || p.borrowed_route === '')) {
+                            if (provMatch) {
+                                if (provPrefixes.some(pref => (p.license_plate || '').startsWith(pref))) return true;
+                                if (app.utils.getProvinceFromPlate && app.utils.getProvinceFromPlate(p.license_plate) === provMatch.ten) return true;
+                                return false;
+                            }
+                            return p.borrowed_route === oldRouteName || p.route_no === oldRouteName;
+                        }
+                        return false;
+                    };
+
+                    const targetPhotoIds = (candPhotos || []).filter(isPhotoMatch).map(p => p.id);
+                    for (let i = 0; i < targetPhotoIds.length; i += 100) {
+                        const chunk = targetPhotoIds.slice(i, i + 100);
+                        await window.sb.from('photos').update({ route_no: destRouteNo, borrowed_route: newBorrowed }).in('id', chunk);
+                    }
+
+                    // 2. Chuyển tất cả lịch sử phương tiện (vehicle_history) sang tuyến mới
+                    const { data: candHist } = await window.sb.from('vehicle_history')
+                        .select('id, license_plate, route')
+                        .or(`route.eq."${oldNo}",route.eq."${oldRouteName}"`);
+
+                    const isHistMatch = (h) => {
+                        if (h.route === oldRouteName) return true;
+                        if (h.route === oldNo) {
+                            const vehiclePhotos = (candPhotos || []).filter(p => (p.license_plate || '').toUpperCase() === (h.license_plate || '').toUpperCase());
+                            const hasThisBorrowed = vehiclePhotos.some(p => p.borrowed_route === oldRouteName);
+                            if (hasThisBorrowed) return true;
+                            const hasOtherBorrowed = vehiclePhotos.some(p => p.borrowed_route && p.borrowed_route !== oldRouteName && p.route_no === oldNo);
+                            if (hasOtherBorrowed) return false;
+
+                            if (provMatch) {
+                                if (provPrefixes.some(pref => (h.license_plate || '').startsWith(pref))) return true;
+                                if (app.utils.getProvinceFromPlate && app.utils.getProvinceFromPlate(h.license_plate) === provMatch.ten) return true;
+                                return false;
+                            }
+                            return h.route === oldRouteName;
+                        }
+                        return false;
+                    };
+
+                    const targetHistIds = (candHist || []).filter(isHistMatch).map(h => h.id);
+                    for (let i = 0; i < targetHistIds.length; i += 100) {
+                        const chunk = targetHistIds.slice(i, i + 100);
+                        await window.sb.from('vehicle_history').update({ route: destRouteNo }).in('id', chunk);
+                    }
+
+                    // 3. Xóa hồ sơ tuyến cũ khỏi bảng route_info
+                    await window.sb.from('route_info').delete().eq('route_name', oldRouteName);
+                    if (app.route) app.route.cachedRoutes = null;
+                },
+                compareRoutes: (a, b) => {
+                    const noA = (a.route_no || a.route_name || '').trim();
+                    const noB = (b.route_no || b.route_name || '').trim();
+                    const cmpNo = noA.localeCompare(noB, 'vi', { numeric: true, sensitivity: 'base' });
+                    if (cmpNo !== 0) return cmpNo;
+                    const cmpExactNo = noA.localeCompare(noB, 'vi');
+                    if (cmpExactNo !== 0) return cmpExactNo;
+                    const provA = (a.province || '').trim();
+                    const provB = (b.province || '').trim();
+                    return provA.localeCompare(provB, 'vi', { sensitivity: 'base' });
+                },
                 cachedRoutes: null,
                 selectorCallback: null,
                 selectorTargetInputId: null,
@@ -13082,6 +14277,7 @@ if (!decodedProvince || decodedProvince.trim() === '') {
                         return routes.some(other => other !== r && other.route_no === r.route_no && other.province);
                     };
                     routes = routes.filter(r => !hasProvWithSameNo(r));
+                    routes.sort(app.route.compareRoutes);
 
                     app.route.cachedRoutes = routes;
                     return routes;
@@ -13363,6 +14559,9 @@ if (!decodedProvince || decodedProvince.trim() === '') {
                         });
                     }
 
+                    // Sắp xếp tự nhiên số hiệu tuyến và tỉnh thành
+                    normalList.sort(app.route.compareRoutes);
+
                     // Đưa tuyến đang chọn lên đầu danh sách bình thường (ghim lên top)
                     const isNormalSelected = (r) => {
                         if (!curSelected) return false;
@@ -13575,7 +14774,6 @@ if (!decodedProvince || decodedProvince.trim() === '') {
                     document.getElementById('route-edit-ticket-price').value = '';
                     document.getElementById('route-edit-headway').value = '';
                     document.getElementById('route-edit-wheelchair').checked = false;
-                    document.getElementById('route-edit-borrowed').value = '';
                     document.getElementById('route-edit-icon').value = 'default';
                     document.getElementById('route-icon-label').innerText = 'Mặc định';
 
@@ -13674,7 +14872,6 @@ if (!decodedProvince || decodedProvince.trim() === '') {
                     document.getElementById('route-edit-ticket-price').value = '';
                     document.getElementById('route-edit-headway').value = '';
                     document.getElementById('route-edit-wheelchair').checked = false;
-                    document.getElementById('route-edit-borrowed').value = '';
                     document.getElementById('route-edit-icon').value = 'default';
                     document.getElementById('route-icon-label').innerText = 'Mặc định';
 
@@ -13710,22 +14907,7 @@ if (!decodedProvince || decodedProvince.trim() === '') {
                             app.route.setEditVehicleType(isTargetCoach ? 'coach' : 'bus');
                         }
 
-                        // Fetch borrowed photos
-                        const { data: bPhotos } = await window.sb.from('photos').select('id, license_plate').eq('borrowed_route', rName);
-                        let bList = [];
-                        let plates = [];
-                        if (exactInfo && exactInfo.metadata && exactInfo.metadata.borrowed_plates) {
-                            plates = exactInfo.metadata.borrowed_plates;
-                        }
-                        if (bPhotos && bPhotos.length > 0) {
-                            bPhotos.forEach(p => {
-                                if (!plates.some(pl => pl.toLowerCase() === p.license_plate.toLowerCase())) {
-                                    bList.push(p.id);
-                                }
-                            });
-                        }
-                        bList.push(...plates);
-                        document.getElementById('route-edit-borrowed').value = bList.join(', ');
+                        // (Bỏ trường ID ảnh / Xe vá tuyến theo yêu cầu)
                     } catch(e) {
                         console.error("Lỗi khi load dữ liệu sửa tuyến:", e);
                     }
@@ -13768,7 +14950,6 @@ if (!decodedProvince || decodedProvince.trim() === '') {
                     const ticketPrice = (document.getElementById('route-edit-ticket-price')?.value || '').trim();
                     const headway = (document.getElementById('route-edit-headway')?.value || '').trim();
                     const wheelchairSupport = document.getElementById('route-edit-wheelchair')?.checked || false;
-                    const borrowedPhotosStr = (document.getElementById('route-edit-borrowed')?.value || '').trim();
 
                     const vehicleType = document.getElementById('route-edit-vehicle-type')?.value || 'bus';
                     const isCoach = vehicleType === 'coach';
@@ -13800,9 +14981,6 @@ if (!decodedProvince || decodedProvince.trim() === '') {
                     metadata.vehicle_type = vehicleType;
 
                     let metadataObj = null;
-                    let rawInputList = [];
-                    let newBorrowedIds = [];
-                    let enteredPlates = [];
 
                     if (vehicleType === 'coach') {
                         metadataObj = { vehicle_type: 'coach' };
@@ -13821,15 +14999,6 @@ if (!decodedProvince || decodedProvince.trim() === '') {
                         }
 
                         metadataObj = Object.keys(metadata).length > 0 ? metadata : null;
-                        rawInputList = borrowedPhotosStr ? borrowedPhotosStr.split(',').map(s => s.trim()).filter(Boolean) : [];
-                        const enteredIdsStr = rawInputList.filter(s => /^\d+$/.test(s));
-                        enteredPlates = rawInputList.filter(s => !/^\d+$/.test(s));
-                        newBorrowedIds = enteredIdsStr.map(Number);
-
-                        if (enteredPlates.length > 0) {
-                            metadataObj = metadataObj || {};
-                            metadataObj.borrowed_plates = enteredPlates;
-                        }
                     }
 
                     const btn = document.getElementById('btn-save-route');
@@ -13851,49 +15020,12 @@ if (!decodedProvince || decodedProvince.trim() === '') {
                             }, { onConflict: 'route_name' });
                             if (upsertErr) throw upsertErr;
 
-                            // Nếu đổi tên tuyến từ trang chi tiết, dọn dẹp bản ghi cũ và di chuyển liên kết
+                            // Nếu đổi tên tuyến hoặc đổi tỉnh từ trang chi tiết, dọn dẹp bản ghi cũ và di chuyển liên kết
                             if (app.route.isEditingExisting && app.route.editingOriginalRouteName && app.route.editingOriginalRouteName !== routeName) {
-                                await window.sb.from('route_info').delete().eq('route_name', app.route.editingOriginalRouteName);
-                                await window.sb.from('photos').update({ borrowed_route: routeName }).eq('borrowed_route', app.route.editingOriginalRouteName);
+                                await app.route.migrateRouteData(app.route.editingOriginalRouteName, routeName, routeNo, finalProvince);
                             }
 
-                            // Xử lý cập nhật ID ảnh và biển số xe vá tuyến
-                            const { data: curBorrowed } = await window.sb.from('photos').select('id, license_plate').eq('borrowed_route', routeName);
-                            const curIds = curBorrowed ? curBorrowed.map(p => p.id) : [];
-                            const addedIdsRaw = newBorrowedIds.filter(id => !curIds.includes(id));
-                            const removedIds = curIds.filter(id => !newBorrowedIds.includes(id));
-
-                            if (enteredPlates.length > 0) {
-                                const { data: retroPhotos } = await window.sb.from('photos').select('id, route_no').in('license_plate', enteredPlates).eq('route_no', routeNo);
-                                if (retroPhotos && retroPhotos.length > 0) {
-                                    retroPhotos.forEach(p => {
-                                        if (!curIds.includes(p.id) && !addedIdsRaw.includes(p.id)) {
-                                            addedIdsRaw.push(p.id);
-                                        }
-                                    });
-                                }
-                            }
-
-                            if (addedIdsRaw.length > 0) {
-                                const { data: validPhotos } = await window.sb.from('photos').select('id, route_no').in('id', addedIdsRaw);
-                                const trulyAddedIds = (validPhotos || []).filter(p => p.route_no === routeNo).map(p => p.id);
-                                if (trulyAddedIds.length > 0) {
-                                    await window.sb.from('photos').update({ borrowed_route: routeName }).in('id', trulyAddedIds);
-                                }
-                            }
-
-                            let finalRemovedIds = removedIds;
-                            if (enteredPlates.length > 0 && curBorrowed) {
-                                finalRemovedIds = removedIds.filter(id => {
-                                    const photo = curBorrowed.find(p => p.id === id);
-                                    return !(photo && enteredPlates.some(plate => plate.toLowerCase() === photo.license_plate.toLowerCase()));
-                                });
-                            }
-                            if (finalRemovedIds.length > 0) {
-                                for (const id of finalRemovedIds) {
-                                    await window.sb.from('photos').update({ borrowed_route: null }).eq('id', id);
-                                }
-                            }
+                            // (Bỏ xử lý cập nhật ID ảnh và biển số xe vá tuyến)
 
                             app.route.cachedRoutes = null;
                             app.toast.show('success', 'Thành công', app.route.isEditingExisting ? 'Đã lưu thông tin Tuyến!' : 'Đã tạo tuyến mới thành công!');
@@ -13936,8 +15068,7 @@ if (!decodedProvince || decodedProvince.trim() === '') {
                                     short_path: isCoach ? null : (shortPath || null),
                                     description: isCoach ? null : (desc || null),
                                     is_inactive: isInactive,
-                                    metadata: metadataObj,
-                                    borrowed_photos_str: isCoach ? '' : borrowedPhotosStr
+                                    metadata: metadataObj
                                 },
                                 status: 'pending'
                             };
@@ -17016,7 +18147,8 @@ Object.assign(window.app, {
                         }
                         
                         let baseLimit = 15;
-                        if (score <= 0) baseLimit = 5;
+                        if (score < -50) baseLimit = 1;
+                        else if (score <= 0) baseLimit = 5;
                         else if (score <= 49) baseLimit = 8;
                         else if (score <= 99) baseLimit = 12;
                         else if (score === 100) baseLimit = 15;
@@ -21700,10 +22832,10 @@ if (app.admin._activeLoadToken !== currentLoadToken || app.adminTab !== tab) ret
                                         <div class="flex gap-2 mt-3">
                                         ${app.role === 'manager' ? `
                                             <button onclick="app.admin.approveDeleteReq('${req.id}', '${req.new_data.photo_id}', '${req.requester_id}', '${userReason}', this)" class="flex-1 bg-red-600 text-white py-1.5 font-bold rounded hover:bg-red-700">DUYỆT XÓA</button>
-                                            <button onclick="app.admin.denyReq('${req.id}', this)" class="flex-1 bg-gray-600 text-white py-1.5 font-bold rounded hover:bg-gray-700">TỪ CHỐI</button>
                                         ` : `
-                                            <div class="flex-1 bg-gray-100 text-gray-400 py-1.5 font-bold rounded text-center border border-gray-200 cursor-not-allowed">Chỉ Manager được duyệt</div>
+                                            <div class="flex-1 bg-gray-100 text-gray-400 py-1.5 font-bold rounded text-center border border-gray-200 cursor-not-allowed text-[11px] flex items-center justify-center">Chỉ Manager duyệt xóa</div>
                                         `}
+                                            <button onclick="app.admin.denyReq('${req.id}', this)" class="flex-1 bg-gray-600 text-white py-1.5 font-bold rounded hover:bg-gray-700">TỪ CHỐI</button>
                                         </div>
                                     </div>
                                 </div>`
@@ -21906,10 +23038,7 @@ if (app.admin._activeLoadToken !== currentLoadToken || app.adminTab !== tab) ret
                                                     <option value="trapezoid" ${reqIcon === 'trapezoid' ? 'selected' : ''}>Hình thang cân (Max 5 kí tự)</option>
                                                 </select>
                                             </div>
-                                            <div class="mb-2">
-                                                <span class="admin-label">ID ảnh vá tuyến ${d.borrowed_photos_str !== undefined ? '<span class="text-red-500 font-bold ml-1 text-[9px]">[MỚI]</span>' : ''}</span>
-                                                <input type="text" id="req-route-borrowed-${r.id}" class="admin-input" value="${app.utils.escapeAttr(d.borrowed_photos_str || '')}">
-                                            </div>
+                                            
                                             <div class="flex gap-2 mt-3">
                                                 <button onclick="app.admin.approveReq('${r.id}', this, 'route_info')" class="flex-1 bg-green-600 text-white py-1.5 font-bold rounded hover:bg-green-700">DUYỆT</button>
                                                 <button onclick="app.admin.denyReq('${r.id}', this)" class="flex-1 bg-red-600 text-white py-1.5 font-bold rounded hover:bg-red-700">TỪ CHỐI</button>
@@ -21973,10 +23102,7 @@ if (app.admin._activeLoadToken !== currentLoadToken || app.adminTab !== tab) ret
                                                     <option value="trapezoid" ${cIcon === 'trapezoid' ? 'selected' : ''}>Hình thang cân (Max 5 kí tự)</option>
                                                 </select>
                                             </div>
-                                            <div class="mb-2">
-                                                <span class="admin-label">ID ảnh / Biển số vá tuyến</span>
-                                                <input type="text" id="req-c-route-borrowed-${r.id}" class="admin-input" value="${app.utils.escapeAttr(d.borrowed_photos_str || '')}">
-                                            </div>
+                                            
                                             <div class="flex gap-2 mt-3">
                                                 <button onclick="app.admin.approveReq('${r.id}', this, 'create_route_info')" class="flex-1 bg-green-600 text-white py-1.5 font-bold rounded hover:bg-green-700">DUYỆT TẠO</button>
                                                 <button onclick="app.admin.denyReq('${r.id}', this)" class="flex-1 bg-red-600 text-white py-1.5 font-bold rounded hover:bg-red-700">TỪ CHỐI</button>
@@ -24367,7 +25493,6 @@ if (cbQuality) newSubroles.push('quality_aud');
                             const headway = document.getElementById(`req-route-headway-${id}`).value.trim();
                             const wheelchairSupport = document.getElementById(`req-route-wheelchair-${id}`).checked;
                             const iconType = document.getElementById(`req-route-icon-${id}`).value;
-                            const borrowedPhotosStr = document.getElementById(`req-route-borrowed-${id}`)?.value.trim();
                             const vehicleTypeEl = document.getElementById(`req-route-type-${id}`);
                             const vehicleType = vehicleTypeEl ? vehicleTypeEl.value : (req.new_data.metadata?.vehicle_type || 'bus');
                             
@@ -24390,26 +25515,7 @@ if (cbQuality) newSubroles.push('quality_aud');
                             }
 
                             let metadataObj = Object.keys(metadata).length > 0 ? metadata : null;
-                            const rawInputListAdmin = borrowedPhotosStr ? borrowedPhotosStr.split(',').map(s => s.trim()).filter(Boolean) : [];
-                            const enteredPlatesAdmin = rawInputListAdmin.filter(s => !/^\d+$/.test(s));
-                            if (enteredPlatesAdmin.length > 0) {
-                                const { data: existVeh, error: existErr } = await window.sb.from('vehicles').select('license_plate').in('license_plate', enteredPlatesAdmin);
-                                if (existErr) throw existErr;
-                                const existingP = existVeh.map(v => v.license_plate.toUpperCase());
-                                const invalidP = enteredPlatesAdmin.filter(p => !existingP.includes(p.toUpperCase()));
-                                if (invalidP.length > 0) {
-                                    btn.innerHTML = originalText;
-                                    btn.disabled = false;
-                                    return app.ui.showAlert(`Lỗi: Các biển số xe sau không tồn tại trên hệ thống: ${invalidP.join(', ')}`);
-                                }
-                            }
-                            if (enteredPlatesAdmin.length > 0) {
-                                metadataObj = metadataObj || {};
-                                metadataObj.borrowed_plates = enteredPlatesAdmin;
-                            } else if (metadataObj && metadataObj.borrowed_plates) {
-                                delete metadataObj.borrowed_plates;
-                                if (Object.keys(metadataObj).length === 0) metadataObj = null;
-                            }
+                            
                             
                             const expectedRouteNo = req.new_data.route_no || (!isReqCoach && req.new_data.route_name.includes(' - ') ? req.new_data.route_name.split(' - ')[0].trim() : req.new_data.route_name);
                             const targetProvince = isReqCoach ? null : (req.new_data.province || (req.new_data.route_name.includes(' - ') ? req.new_data.route_name.split(' - ')[1].trim() : null));
@@ -24432,62 +25538,14 @@ if (cbQuality) newSubroles.push('quality_aud');
                             }
                             if (app.route) app.route.cachedRoutes = null;
                             
-                            // Xử lý cập nhật ID ảnh và biển số xe vá tuyến
-                            const rawInputList = borrowedPhotosStr ? borrowedPhotosStr.split(',').map(s => s.trim()).filter(Boolean) : [];
-                            const enteredIdsStr = rawInputList.filter(s => /^\d+$/.test(s));
-                            const enteredPlates = rawInputList.filter(s => !/^\d+$/.test(s));
-                            const newBorrowedIds = enteredIdsStr.map(Number);
-                            
-                            const { data: curBorrowed } = await window.sb.from('photos').select('id, license_plate').eq('borrowed_route', req.new_data.route_name);
-                            const curIds = curBorrowed ? curBorrowed.map(p => p.id) : [];
-                            
-                            const addedIdsRaw = newBorrowedIds.filter(id => !curIds.includes(id));
-                            const removedIds = curIds.filter(id => !newBorrowedIds.includes(id));
-                            
-                            if (enteredPlates.length > 0) {
-                                const { data: retroPhotos } = await window.sb.from('photos').select('id, route_no').in('license_plate', enteredPlates).eq('route_no', expectedRouteNo);
-                                if (retroPhotos && retroPhotos.length > 0) {
-                                    retroPhotos.forEach(p => {
-                                        if (!curIds.includes(p.id) && !addedIdsRaw.includes(p.id)) {
-                                            addedIdsRaw.push(p.id);
-                                        }
-                                    });
+                            // Nếu đổi tên tuyến hoặc đổi tỉnh thành, di chuyển dữ liệu ảnh & lịch sử từ tuyến cũ sang tuyến mới và xóa tuyến cũ
+                            if (req.new_data.old_route_name && req.new_data.old_route_name !== req.new_data.route_name) {
+                                if (app.route && app.route.migrateRouteData) {
+                                    await app.route.migrateRouteData(req.new_data.old_route_name, req.new_data.route_name, expectedRouteNo, targetProvince);
                                 }
                             }
                             
-                            if (addedIdsRaw.length > 0) {
-                                const { data: validPhotos } = await window.sb.from('photos').select('id, route_no').in('id', addedIdsRaw);
-                                const trulyAddedIds = (validPhotos || []).filter(p => p.route_no === expectedRouteNo).map(p => p.id);
-                                
-                                if (trulyAddedIds.length > 0) {
-                                    await window.sb.from('photos').update({ borrowed_route: req.new_data.route_name }).in('id', trulyAddedIds);
-                                }
-                            }
-                            
-                            let finalRemovedIds = removedIds;
-                            if (enteredPlates.length > 0 && curBorrowed) {
-                                finalRemovedIds = removedIds.filter(id => {
-                                    const photo = curBorrowed.find(p => p.id === id);
-                                    return !(photo && enteredPlates.some(plate => plate.toLowerCase() === photo.license_plate.toLowerCase()));
-                                });
-                            }
-                            
-                            if (finalRemovedIds.length > 0) {
-                                const removedPhotos = curBorrowed.filter(p => finalRemovedIds.includes(p.id));
-                                for (const p of removedPhotos) {
-                                    let defProv = 'Chưa xác định';
-                                    const match = p.license_plate.match(/^(\d{2})/);
-                                    if (match && app.utils.provinceData) {
-                                        const num = match[1];
-                                        const pData = app.utils.provinceData.find(pd => {
-                                            if (Array.isArray(pd.ky_hieu)) return pd.ky_hieu.includes(parseInt(num)) || pd.ky_hieu.includes(num);
-                                            return String(pd.ky_hieu).split(',').map(s=>s.trim()).includes(num);
-                                        });
-                                        if (pData) defProv = pData.ten;
-                                    }
-                                    await window.sb.from('photos').update({ borrowed_route: null }).eq('id', p.id);
-                                }
-                            }
+                            // (Bỏ cập nhật ảnh/xe vá tuyến)
                         }
                         else if (reqType === 'create_route_info' || req.new_data?.request_type === 'create_route_info') {
                             const d = req.new_data;
@@ -24501,7 +25559,6 @@ if (cbQuality) newSubroles.push('quality_aud');
                             const headwayEl = document.getElementById(`req-c-route-headway-${id}`);
                             const wheelchairEl = document.getElementById(`req-c-route-wheelchair-${id}`);
                             const iconEl = document.getElementById(`req-c-route-icon-${id}`);
-                            const borrowedEl = document.getElementById(`req-c-route-borrowed-${id}`);
 
                             const vehicleType = typeEl ? typeEl.value : (d.metadata?.vehicle_type || 'bus');
                             const isCoach = vehicleType === 'coach';
@@ -24514,7 +25571,6 @@ if (cbQuality) newSubroles.push('quality_aud');
                             const headway = isCoach ? '' : (headwayEl ? headwayEl.value.trim() : (d.metadata?.headway || ''));
                             const wheelchairSupport = isCoach ? false : (wheelchairEl ? wheelchairEl.checked : !!d.metadata?.wheelchair_support);
                             const iconType = isCoach ? 'default' : (iconEl ? iconEl.value : (d.metadata?.icon_type || 'default'));
-                            const borrowedPhotosStr = isCoach ? '' : (borrowedEl ? borrowedEl.value.trim() : (d.borrowed_photos_str || ''));
 
                             const routeName = (isCoach || !province) ? routeNo : `${routeNo} - ${province}`;
 
@@ -24528,13 +25584,7 @@ if (cbQuality) newSubroles.push('quality_aud');
                             }
 
                             let metadataObj = Object.keys(metadata).length > 0 ? metadata : null;
-                            const rawInputList = borrowedPhotosStr ? borrowedPhotosStr.split(',').map(s => s.trim()).filter(Boolean) : [];
-                            const enteredPlates = rawInputList.filter(s => !/^\d+$/.test(s));
-                            const enteredIdsStr = rawInputList.filter(s => /^\d+$/.test(s));
-                            if (enteredPlates.length > 0) {
-                                metadataObj = metadataObj || {};
-                                metadataObj.borrowed_plates = enteredPlates;
-                            }
+                            
 
                             const { error: upsertErr } = await window.sb.from('route_info').upsert({
                                 route_name: routeName,
@@ -24548,19 +25598,7 @@ if (cbQuality) newSubroles.push('quality_aud');
                             }, { onConflict: 'route_name' });
                             if (upsertErr) throw upsertErr;
 
-                            const newBorrowedIds = enteredIdsStr.map(Number);
-                            const addedIds = [...newBorrowedIds];
-                            if (enteredPlates.length > 0) {
-                                const { data: retroPhotos } = await window.sb.from('photos').select('id, route_no').in('license_plate', enteredPlates).eq('route_no', routeNo);
-                                if (retroPhotos && retroPhotos.length > 0) {
-                                    retroPhotos.forEach(p => {
-                                        if (!addedIds.includes(p.id)) addedIds.push(p.id);
-                                    });
-                                }
-                            }
-                            if (addedIds.length > 0) {
-                                await window.sb.from('photos').update({ borrowed_route: routeName }).in('id', addedIds);
-                            }
+                            // (Bỏ cập nhật ảnh/xe vá tuyến)
 
                             if (app.route) app.route.cachedRoutes = null;
                         }
@@ -24859,21 +25897,38 @@ if (cbQuality) newSubroles.push('quality_aud');
                     if (app.isRealtimeConnected === false) {
                         return app.ui.showAlert("Mất kết nối Realtime với máy chủ! Đã tạm khóa chức năng từ chối yêu cầu để tránh lệch dữ liệu.");
                     }
-                    app.ui.showPrompt("Nhập lý do từ chối yêu cầu này (Tùy chọn):", "", async (reason) => {
+                    app.ui.showPrompt("Nhập lý do từ chối yêu cầu này (Bắt buộc):", "", async (reason) => {
+                        const cleanReason = (reason || '').trim();
+                        if (!cleanReason) {
+                            app.ui.showAlert("Vui lòng nhập lý do từ chối, không được để trống!");
+                            return;
+                        }
                         btn.innerText = "Đang xử lý..."; btn.disabled = true; btn.classList.add('btn-loading');
                         try {
-                            const { data: req } = await window.sb.from('edit_requests').select('requester_id, license_plate, new_data').eq('id', reqId).single();
-                            await window.sb.from('edit_requests').update({ status: 'denied', admin_note: reason || null }).eq('id', reqId);
+                            const { data: req, error: reqErr } = await window.sb.from('edit_requests').select('id, requester_id, license_plate, new_data').eq('id', reqId).single();
+                            if (reqErr) throw reqErr;
+                            const currentNewData = (req && req.new_data && typeof req.new_data === 'object') ? req.new_data : {};
+                            const updatedNewData = {
+                                ...currentNewData,
+                                admin_note: cleanReason
+                            };
+                            const { error: updErr } = await window.sb.from('edit_requests').update({
+                                status: 'denied',
+                                new_data: updatedNewData
+                            }).eq('id', reqId);
+                            if (updErr) throw updErr;
+
                             let actionName = req?.new_data?.request_type === 'delete_photo' ? 'xóa ảnh' : 'chỉnh sửa';
-                            let reasonMsg = reason ? ` Lý do: ${reason}` : '';
+                            app.toast.show('success', 'Thành công', `Đã từ chối yêu cầu ${actionName}!`);
+                            app.admin.logAction('deny_edit_req', reqId, { req_type: req?.new_data?.request_type, plate: req?.license_plate, reason: cleanReason });
                             if (document.activeElement) document.activeElement.blur();
-                            if (req.new_data.request_type === 'delete_photo') app.admin.loadTab('delete', false, true);
+                            if (req?.new_data?.request_type === 'delete_photo') app.admin.loadTab('delete', false, true);
                             else app.admin.loadTab('requests', false, true);
                         } catch (err) {
                             app.ui.showAlert("Lỗi: " + err.message);
                             btn.innerText = "TỪ CHỐI"; btn.disabled = false; btn.classList.remove('btn-loading');
                         }
-                    });
+                    }, { allowEmpty: false, title: "Từ chối yêu cầu" });
                 }
             },
 

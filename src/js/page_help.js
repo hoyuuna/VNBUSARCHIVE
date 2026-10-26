@@ -938,6 +938,11 @@ Object.assign(window.app, {
             app.donate.selectPreset(20000);
             const msgInput = document.getElementById('donate-message');
             if (msgInput) msgInput.value = '';
+
+            // Load 3 recent supporters under container on /support-us
+            if (typeof app.donate.loadSupportUsSupporters === 'function') {
+                app.donate.loadSupportUsSupporters();
+            }
         },
 
         showStep: (step) => {
@@ -1382,13 +1387,18 @@ Object.assign(window.app, {
 
         loadHomeSupporters: async (forceRefresh = false) => {
             const container = document.getElementById('home-supporters-list');
-            if (!container) return;
+            const supportUsContainer = document.getElementById('donate-recent-supporters-list');
+            if (!container && !supportUsContainer) return;
 
             const now = Date.now();
             // Client cache: reuse existing top supporters if fetched within last 60s unless forced
             if (!forceRefresh && app.donate._homeSupportersCache?.length > 0 && (now - (app.donate._lastHomeSupportersLoadTime || 0) < 60000)) {
-                if (container.children.length > 0) return;
-                app.donate._renderHomeSupporters(app.donate._homeSupportersCache);
+                if (container && container.children.length === 0) {
+                    app.donate._renderHomeSupporters(app.donate._homeSupportersCache);
+                }
+                if (supportUsContainer && supportUsContainer.children.length === 0) {
+                    app.donate._renderSupportUsSupporters(app.donate._homeSupportersCache);
+                }
                 return;
             }
 
@@ -1402,15 +1412,51 @@ Object.assign(window.app, {
                 app.donate._homeSupportersCache = top3;
                 app.donate._lastHomeSupportersLoadTime = now;
                 app.donate._renderHomeSupporters(top3);
+                app.donate._renderSupportUsSupporters(top3);
             } catch (e) {
                 console.error('Error loading supporters:', e);
+            }
+        },
+
+        loadSupportUsSupporters: async (forceRefresh = false) => {
+            const container = document.getElementById('donate-recent-supporters-list');
+            if (!container) return;
+
+            const now = Date.now();
+            if (!forceRefresh && app.donate._homeSupportersCache?.length > 0 && (now - (app.donate._lastHomeSupportersLoadTime || 0) < 60000)) {
+                app.donate._renderSupportUsSupporters(app.donate._homeSupportersCache);
+                return;
+            }
+
+            try {
+                const url = forceRefresh ? `/api/donate/supporters?force=1&t=${now}` : '/api/donate/supporters';
+                const res = await fetch(url);
+                const resData = await res.json();
+                const list = (resData && resData.success && Array.isArray(resData.data)) ? resData.data : [];
+
+                const top3 = list.slice(0, 3);
+                app.donate._homeSupportersCache = top3;
+                app.donate._lastHomeSupportersLoadTime = now;
+                app.donate._renderSupportUsSupporters(top3);
+                app.donate._renderHomeSupporters(top3);
+            } catch (e) {
+                console.error('Error loading supporters on support-us:', e);
             }
         },
 
         _renderHomeSupporters: (top3) => {
             const container = document.getElementById('home-supporters-list');
             if (!container) return;
+            container.innerHTML = app.donate._generateSupportersCardsHtml(top3, true);
+        },
 
+        _renderSupportUsSupporters: (top3) => {
+            const container = document.getElementById('donate-recent-supporters-list');
+            if (!container) return;
+            container.innerHTML = app.donate._generateSupportersCardsHtml(top3, false);
+        },
+
+        _generateSupportersCardsHtml: (top3, includeActionCard = true) => {
             const cards = [];
             for (let i = 0; i < 3; i++) {
                 const item = top3[i];
@@ -1478,23 +1524,24 @@ Object.assign(window.app, {
                 }
             }
 
-            // 4th card: action card linking to /support-us (inverted contrast like a button)
-            cards.push(`
-                <div id="home-supporters-action-card" onclick="app.utils.navigate('/support-us')" class="cursor-pointer transition-all duration-300 relative flex flex-row items-center p-3 text-left bg-black text-white rounded-xl border border-black shadow-sm hover:bg-gray-900 group">
-                    <div class="supporter-action-icon w-8 h-8 rounded-full bg-white/10 text-white flex items-center justify-center shrink-0 border border-white/20 transition mr-3">
-                        <i class="fa-solid fa-heart text-white text-xs"></i>
-                    </div>
-                    <div class="flex-1 min-w-0 flex flex-col justify-center">
-                        <div class="flex items-center justify-between gap-2">
-                            <span class="truncate font-bold text-white text-sm leading-tight">Tôi cũng muốn ủng hộ!</span>
-                            <span class="text-xs font-bold text-white/80 group-hover:text-white shrink-0">Ủng hộ ngay &rarr;</span>
+            if (includeActionCard) {
+                cards.push(`
+                    <div id="home-supporters-action-card" onclick="app.utils.navigate('/support-us')" class="cursor-pointer transition-all duration-300 relative flex flex-row items-center p-3 text-left bg-black text-white rounded-xl border border-black shadow-sm hover:bg-gray-900 group">
+                        <div class="supporter-action-icon w-8 h-8 rounded-full bg-white/10 text-white flex items-center justify-center shrink-0 border border-white/20 transition mr-3">
+                            <i class="fa-solid fa-heart text-white text-xs"></i>
                         </div>
-                        <span class="block text-white/70 text-xs tracking-wide w-full truncate mt-0.5">Tiếp sức cùng dự án duy trì máy chủ</span>
+                        <div class="flex-1 min-w-0 flex flex-col justify-center">
+                            <div class="flex items-center justify-between gap-2">
+                                <span class="truncate font-bold text-white text-sm leading-tight">Tôi cũng muốn ủng hộ!</span>
+                                <span class="text-xs font-bold text-white/80 group-hover:text-white shrink-0">Ủng hộ ngay &rarr;</span>
+                            </div>
+                            <span class="block text-white/70 text-xs tracking-wide w-full truncate mt-0.5">Tiếp sức cùng dự án duy trì máy chủ</span>
+                        </div>
                     </div>
-                </div>
-            `);
+                `);
+            }
 
-            container.innerHTML = cards.join('');
+            return cards.join('');
         },
 
         _profileCache: {},
