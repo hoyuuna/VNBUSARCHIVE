@@ -12408,7 +12408,7 @@ Object.assign(window.app, {
                         } else {
                             iconOrAvatarHtml = `
                                 <div class="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center shrink-0 border border-gray-200 mr-3">
-                                    <i class="fa-solid fa-heart text-black text-xs"></i>
+                                    <i class="fa-solid fa-user text-black text-xs"></i>
                                 </div>
                             `;
                         }
