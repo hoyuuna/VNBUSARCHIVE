@@ -1257,7 +1257,12 @@ Object.assign(window.app, {
                 app.loadingBar.finish();
 
                 if (!checkData || !checkData.success) {
-                    app.ui.showAlert('Không tìm thấy thông tin đơn ủng hộ.');
+                    app.ui.showAlert(checkData?.error || 'Đơn ủng hộ đã hết hạn hoặc không khả dụng.', () => {
+                        app.donate.showStep('form');
+                        if (app.user && typeof app.donate.fetchProfileDonations === 'function') {
+                            app.donate.fetchProfileDonations();
+                        }
+                    });
                     return;
                 }
 

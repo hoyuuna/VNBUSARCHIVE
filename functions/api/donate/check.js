@@ -105,18 +105,46 @@ export async function onRequestGet(context) {
                                 });
                             }
                         } else if (donation && (payosData.status === 'CANCELLED' || payosData.status === 'EXPIRED')) {
+                            // Clean up uncompleted cancelled/expired order from DB immediately
                             await sbAdmin
                                 .from('donations')
-                                .update({ status: payosData.status, updated_at: new Date().toISOString() })
+                                .delete()
                                 .eq('order_code', Number(orderCode))
                                 .neq('status', 'PAID');
-                            donation.status = payosData.status;
+
+                            return new Response(JSON.stringify({
+                                success: false,
+                                status: payosData.status,
+                                error: 'Đơn ủng hộ đã hết hạn hoặc bị hủy.'
+                            }), {
+                                status: 200,
+                                headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' }
+                            });
                         }
                     }
                 }
             } catch (pErr) {
                 console.error('Error fetching payOS status directly:', pErr);
             }
+        }
+
+        // If donation is not PAID and has no QR code available, clean it up from DB
+        const qrCode = meta.qrCode || payosData?.qrCode || null;
+        if (donation && donation.status !== 'PAID' && !qrCode) {
+            await sbAdmin
+                .from('donations')
+                .delete()
+                .eq('order_code', Number(orderCode))
+                .neq('status', 'PAID');
+
+            return new Response(JSON.stringify({
+                success: false,
+                status: 'EXPIRED',
+                error: 'Đơn ủng hộ không còn mã QR khả dụng và đã được dọn dẹp.'
+            }), {
+                status: 200,
+                headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' }
+            });
         }
 
         if (!donation && !payosData) {
@@ -138,7 +166,7 @@ export async function onRequestGet(context) {
             is_anonymous: donation ? donation.is_anonymous : false,
             donor_name: donation?.donor_name || 'Nhà hảo tâm',
             is_logged_in: !!donation?.user_id,
-            qrCode: meta.qrCode || payosData?.qrCode || null,
+            qrCode,
             accountNumber: meta.accountNumber || payosData?.accountNumber || null,
             accountName: meta.accountName || payosData?.accountName || null,
             description: meta.description || payosData?.description || `VNBA ${currentOrderCode}`,

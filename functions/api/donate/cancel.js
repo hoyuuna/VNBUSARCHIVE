@@ -47,7 +47,7 @@ export async function onRequestPost(context) {
 
         const codeNum = Number(orderCode);
 
-        // 1. Double check with payOS: Did the user ALREADY transfer the money right before clicking cancel?
+        // 1. Safety check with payOS: Did the user ALREADY transfer the money right before clicking cancel?
         if (env.PAYOS_CLIENT_ID && env.PAYOS_API_KEY) {
             try {
                 const payosRes = await fetch(`https://api-merchant.payos.vn/v2/payment-requests/${codeNum}`, {
@@ -76,7 +76,7 @@ export async function onRequestPost(context) {
             }
         }
 
-        // 2. If definitely not paid, cancel on payOS
+        // 2. If definitely not paid, cancel link on payOS
         if (env.PAYOS_CLIENT_ID && env.PAYOS_API_KEY) {
             try {
                 await fetch(`https://api-merchant.payos.vn/v2/payment-requests/${codeNum}/cancel`, {
@@ -93,13 +93,10 @@ export async function onRequestPost(context) {
             }
         }
 
-        // 3. Soft mark as CANCELLED instead of hard deleting immediately, so late webhooks can still recover the record
+        // 3. Permanently clean up cancelled uncompleted order so it does not linger in pending list
         await sbAdmin
             .from('donations')
-            .update({
-                status: 'CANCELLED',
-                updated_at: new Date().toISOString()
-            })
+            .delete()
             .eq('order_code', codeNum)
             .neq('status', 'PAID');
 
