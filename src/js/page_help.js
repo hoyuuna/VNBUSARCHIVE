@@ -1221,28 +1221,35 @@ Object.assign(window.app, {
                         }
 
                         const tooltipAttr = item.message ? `title="${app.utils.escapeHtml(item.message)}"` : '';
+                        const subMsg = item.message ? app.utils.escapeHtml(item.message) : '';
 
                         cards.push(`
-                            <div class="${cursorClass} transition-all duration-300 relative flex flex-row items-center p-3 text-left bg-white rounded-xl border border-gray-200 shadow-md hover:-translate-y-1 hover:shadow-xl" ${clickAttr} ${tooltipAttr}>
+                            <div class="${cursorClass} transition-all duration-300 relative flex flex-row items-center p-3 text-left bg-white rounded-xl border border-gray-200 shadow-sm hover:border-black" ${clickAttr} ${tooltipAttr}>
                                 ${iconOrAvatarHtml}
                                 <div class="flex-1 min-w-0 flex flex-col justify-center">
-                                    <div class="flex items-center justify-between gap-1 mb-0.5">
+                                    <div class="flex items-center justify-between gap-2">
                                         <span class="truncate font-bold text-gray-900 text-sm leading-tight">${safeName}</span>
                                         <span class="text-xs font-extrabold text-black shrink-0">+${amtStr}</span>
                                     </div>
-                                    <span class="block text-gray-500 text-xs tracking-wide w-full truncate">${dateStr}</span>
+                                    <div class="flex items-center justify-between gap-2 mt-0.5">
+                                        <span class="block text-gray-500 text-xs tracking-wide truncate">${subMsg || 'Đồng hành cùng dự án'}</span>
+                                        <span class="text-[11px] text-gray-400 shrink-0">${dateStr}</span>
+                                    </div>
                                 </div>
                             </div>
                         `);
                     } else {
                         cards.push(`
-                            <div class="transition-all duration-300 relative flex flex-row items-center p-3 text-left bg-white rounded-xl border border-gray-200 shadow-md opacity-60">
+                            <div class="transition-all duration-300 relative flex flex-row items-center p-3 text-left bg-white rounded-xl border border-gray-200 shadow-sm opacity-60">
                                 <div class="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center shrink-0 border border-gray-200 mr-3">
                                     <i class="fa-solid fa-heart text-black text-xs"></i>
                                 </div>
                                 <div class="flex-1 min-w-0 flex flex-col justify-center">
-                                    <span class="truncate font-bold text-gray-500 text-sm leading-tight mb-0.5">Vị trí chờ bạn</span>
-                                    <span class="block text-gray-400 text-xs tracking-wide w-full truncate">Chưa có người ủng hộ</span>
+                                    <div class="flex items-center justify-between gap-2">
+                                        <span class="truncate font-bold text-gray-500 text-sm leading-tight">Vị trí chờ bạn</span>
+                                        <span class="text-xs text-gray-400 shrink-0">---</span>
+                                    </div>
+                                    <span class="block text-gray-400 text-xs tracking-wide w-full truncate mt-0.5">Chưa có người ủng hộ</span>
                                 </div>
                             </div>
                         `);
@@ -1251,13 +1258,16 @@ Object.assign(window.app, {
 
                 // 4th card: action card linking to /support-us
                 cards.push(`
-                    <div onclick="app.utils.navigate('/support-us')" class="cursor-pointer transition-all duration-300 relative flex flex-row items-center p-3 text-left bg-white rounded-xl border border-gray-200 shadow-md hover:-translate-y-1 hover:shadow-xl group">
+                    <div onclick="app.utils.navigate('/support-us')" class="cursor-pointer transition-all duration-300 relative flex flex-row items-center p-3 text-left bg-white rounded-xl border border-gray-200 shadow-sm hover:border-black group">
                         <div class="w-8 h-8 rounded-full bg-gray-100 group-hover:bg-black group-hover:text-white flex items-center justify-center shrink-0 border border-gray-200 transition mr-3">
                             <i class="fa-solid fa-heart text-black group-hover:text-white text-xs"></i>
                         </div>
                         <div class="flex-1 min-w-0 flex flex-col justify-center">
-                            <span class="truncate font-bold text-gray-900 text-sm leading-tight mb-0.5">Tôi cũng muốn ủng hộ!</span>
-                            <span class="block text-gray-500 text-xs tracking-wide w-full truncate">Tiếp sức cùng dự án</span>
+                            <div class="flex items-center justify-between gap-2">
+                                <span class="truncate font-bold text-gray-900 text-sm leading-tight">Tôi cũng muốn ủng hộ!</span>
+                                <span class="text-xs font-bold text-gray-500 group-hover:text-black shrink-0">Ủng hộ ngay &rarr;</span>
+                            </div>
+                            <span class="block text-gray-500 text-xs tracking-wide w-full truncate mt-0.5">Tiếp sức cùng dự án duy trì máy chủ</span>
                         </div>
                     </div>
                 `);
@@ -1328,38 +1338,86 @@ Object.assign(window.app, {
 
             const amtStr = new Intl.NumberFormat('vi-VN').format(item.amount) + ' VNĐ';
             const dateStr = item.created_at ? new Date(item.created_at).toLocaleString('vi-VN') : '---';
-            const isAnon = item.is_anonymous ? 'Ẩn danh (Không công khai tên)' : 'Công khai trên bảng tri ân';
-            const safeMsg = item.message ? `<div class="mt-3 p-3 bg-gray-50 rounded text-xs text-gray-700 italic border border-gray-200">"${app.utils.escapeHtml(item.message)}"</div>` : '';
+            const safeMsg = item.message ? app.utils.escapeHtml(item.message) : '';
 
             const contentHtml = `
-                <div class="text-left text-xs space-y-2 py-1">
-                    <div class="flex justify-between items-center py-1">
-                        <span class="text-gray-500">Mã ủng hộ</span>
-                        <span class="font-bold text-gray-900">#${item.order_code}</span>
+                <div class="text-left text-xs space-y-2.5 py-1">
+                    <div class="flex justify-between items-center">
+                        <span class="text-gray-500 font-medium">Mã ủng hộ:</span>
+                        <span class="font-bold text-black font-mono">#${item.order_code}</span>
                     </div>
-                    <div class="flex justify-between items-center py-1">
-                        <span class="text-gray-500">Số tiền</span>
-                        <span class="font-bold text-green-600 text-sm">+${amtStr}</span>
+                    <div class="flex justify-between items-center">
+                        <span class="text-gray-500 font-medium">Số tiền:</span>
+                        <span class="font-extrabold text-sm text-black">+${amtStr}</span>
                     </div>
-                    <div class="flex justify-between items-center py-1">
-                        <span class="text-gray-500">Trạng thái</span>
-                        <span class="inline-flex items-center gap-1.5 font-bold text-green-700">
-                            <span class="w-2 h-2 rounded-full bg-green-500 inline-block"></span> Thành công
-                        </span>
+                    <div class="flex justify-between items-center">
+                        <span class="text-gray-500 font-medium">Trạng thái:</span>
+                        <span class="font-bold text-black">Đã ghi nhận</span>
                     </div>
-                    <div class="flex justify-between items-center py-1">
-                        <span class="text-gray-500">Thời gian</span>
+                    <div class="flex justify-between items-center">
+                        <span class="text-gray-500 font-medium">Thời gian:</span>
                         <span class="text-gray-700">${dateStr}</span>
                     </div>
-                    <div class="flex justify-between items-center py-1">
-                        <span class="text-gray-500">Chế độ</span>
-                        <span class="font-medium text-gray-800">${isAnon}</span>
+                    ${safeMsg ? `
+                    <div class="mt-2 text-left">
+                        <span class="text-gray-500 font-medium block mb-1">Lời nhắn:</span>
+                        <div class="bg-gray-50 p-2.5 rounded border border-gray-200 text-black italic text-xs">
+                            "${safeMsg}"
+                        </div>
+                    </div>` : ''}
+
+                    <div class="mt-4 pt-2">
+                        <div class="flex items-center justify-between gap-3 p-3 bg-gray-50 rounded-lg border border-black">
+                            <div class="min-w-0 pr-2">
+                                <div class="text-xs font-bold text-black">
+                                    Ẩn danh trên trang chủ
+                                </div>
+                                <p id="donation-modal-anon-desc" class="text-[11px] text-gray-500 mt-0.5 leading-normal">
+                                    ${item.is_anonymous ? 'Khoản này đang được giấu tên trên bảng tri ân.' : 'Khoản này đang được công khai tên trên bảng tri ân.'}
+                                </p>
+                            </div>
+                            <label class="relative inline-flex items-center cursor-pointer shrink-0">
+                                <input type="checkbox" id="donation-item-anon-toggle" ${item.is_anonymous ? 'checked' : ''} onchange="app.donate.toggleItemAnonymous('${item.order_code}', this.checked)" class="sr-only peer">
+                                <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-black"></div>
+                            </label>
+                        </div>
                     </div>
-                    ${safeMsg}
                 </div>
             `;
 
-            app.ui.showAlert(contentHtml, null, null, { title: 'Chi tiết khoản ủng hộ' });
+            app.ui.showAlert(contentHtml, () => {}, null, { 
+                title: 'Chi tiết khoản ủng hộ',
+                iconHtml: '<i class="fa-solid fa-heart text-xl text-black"></i>',
+                btnOkText: 'Đóng'
+            });
+        },
+
+        toggleItemAnonymous: async (orderCode, isChecked) => {
+            const item = app.donate._profileCache?.[orderCode];
+            if (item) item.is_anonymous = isChecked;
+
+            const descEl = document.getElementById('donation-modal-anon-desc');
+            if (descEl) {
+                descEl.innerText = isChecked 
+                    ? 'Khoản này đang được giấu tên trên bảng tri ân.' 
+                    : 'Khoản này đang được công khai tên trên bảng tri ân.';
+            }
+
+            try {
+                await fetch('/api/donate/toggle-anonymous', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        orderCode: Number(orderCode),
+                        is_anonymous: isChecked
+                    })
+                });
+                if (typeof app.donate.loadHomeSupporters === 'function') {
+                    app.donate.loadHomeSupporters();
+                }
+            } catch (err) {
+                console.error('Error toggling anonymous status:', err);
+            }
         }
     }
 });
