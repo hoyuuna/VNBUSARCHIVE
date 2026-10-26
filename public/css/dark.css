@@ -873,3 +873,10 @@ html.theme-dark #home-supporters-action-card .supporter-action-icon i,
 body.theme-dark #home-supporters-action-card .supporter-action-icon i {
     color: #000000 !important;
 }
+
+/* Supporter Modal User Box Hover in Dark Mode */
+html.theme-dark .supporter-modal-user-box:hover,
+body.theme-dark .supporter-modal-user-box:hover {
+    background-color: #27272a !important;
+    border-color: #ffffff !important;
+}

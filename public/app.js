@@ -12390,17 +12390,12 @@ Object.assign(window.app, {
                     : defaultAv;
 
                 accountBoxHtml = `
-                    <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-xl border border-gray-200 text-left">
+                    <div onclick="app.ui.closeAlert(); app.utils.navigate('/user/${encodeURIComponent(item.username)}')" class="supporter-modal-user-box cursor-pointer flex items-center gap-3 p-3 bg-gray-50 hover:bg-gray-100 rounded-xl border border-gray-200 hover:border-black transition-all text-left" title="Xem trang cá nhân của ${safeName}">
                         <div class="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center shrink-0 border border-gray-200 overflow-hidden">
                             <img src="${finalAv}" alt="${safeName}" onerror="this.src='${defaultAv}'" class="w-full h-full object-cover">
                         </div>
                         <div class="min-w-0 flex-1">
-                            <div class="flex items-center gap-1.5">
-                                <span class="font-bold text-sm text-black truncate">${safeName}</span>
-                                <a href="javascript:void(0)" onclick="app.ui.closeAlert(); app.utils.navigate('/user/${encodeURIComponent(item.username)}')" class="text-[11px] font-bold text-gray-500 hover:text-black hover:underline shrink-0" title="Xem trang cá nhân">
-                                    <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i>
-                                </a>
-                            </div>
+                            <div class="font-bold text-sm text-black truncate">${safeName}</div>
                             <p class="text-[11px] text-gray-500 truncate mt-0.5">Thành viên VNBUSARCHIVE</p>
                         </div>
                     </div>
