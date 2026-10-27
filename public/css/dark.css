@@ -156,10 +156,10 @@ a:hover, button:hover, [role="button"]:hover { text-decoration: none !important;
 .suggestion-box, .filter-menu, #user-dropdown, .dropdown-menu {
     border-color: #ffffff !important; background-color: #000000 !important; border-radius: 8px !important; box-shadow: none !important; color: #ffffff !important;
 }
-.suggestion-box .suggestion-item, .filter-menu button, .filter-menu a, #user-dropdown a, #user-dropdown button {
+.suggestion-box .suggestion-item, .filter-menu button, .filter-menu a, #user-dropdown a, #user-dropdown button, .dropdown-menu button, .dropdown-menu a {
     border-bottom-color: #ffffff !important; border-radius: 0 !important; margin: 0 !important; color: #ffffff !important;
 }
-.suggestion-box .suggestion-item:last-child, .filter-menu button:last-child, .filter-menu a:last-child, #user-dropdown a:last-child, #user-dropdown button:last-child {
+.suggestion-box .suggestion-item:last-child, .filter-menu button:last-child, .filter-menu a:last-child, #user-dropdown a:last-child, #user-dropdown button:last-child, .dropdown-menu button:last-child, .dropdown-menu a:last-child {
     border-bottom: none !important;
 }
 

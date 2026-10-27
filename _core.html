@@ -3310,7 +3310,7 @@ html.theme-dark .ct-icon {
                                 <span id="nav-user-icon-wrapper" class="flex items-center"><i id="nav-user-icon" class="fa-solid fa-circle-user lg:mr-0.5"></i></span>
                                 <span id="nav-username" class="hidden lg:inline">Tài khoản</span>
                             </button>
-                            <div id="user-dropdown" class="absolute top-full left-1/2 mt-2 w-48 border border-white/50 rounded-lg shadow-xl z-[9000] overflow-hidden transform opacity-0 -translate-y-4 pointer-events-none transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] origin-top" style="z-index: 2100 !important;">
+                            <div id="user-dropdown" class="absolute top-full left-1/2 mt-2 w-48 border border-black dark:border-white rounded-lg bg-white dark:bg-black z-[9000] overflow-hidden transform opacity-0 -translate-y-4 pointer-events-none transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] origin-top" style="z-index: 2100 !important;">
 
                             </div>
                         </div>
@@ -3741,7 +3741,7 @@ html.theme-dark .ct-icon {
                             <!-- PILL TỈNH THÀNH (NẰM TRONG THANH INPUT) -->
                             <div id="exact-route-page-box" class="hidden relative h-full flex items-center shrink-0 pr-3 z-30">
                                 <!-- Nút dạng Pill: Bo hơi vuông, vừa vặn -->
-                                <button onclick="document.getElementById('exact-route-page-menu').classList.toggle('active')" class="py-1.5 px-3 md:py-2 md:px-3.5 text-[11px] md:text-xs font-semibold text-gray-600 bg-white border border-gray-300 hover:border-gray-400 hover:text-black hover:bg-gray-50 rounded-md transition-all duration-200 flex items-center justify-center max-w-[140px] shadow-sm cursor-pointer" title="Lọc theo khu vực">
+                                <button onclick="document.getElementById('exact-route-page-menu').classList.toggle('active')" class="py-1.5 px-3 md:py-2 md:px-3.5 text-[11px] md:text-xs font-semibold text-black dark:text-white bg-white dark:bg-black border border-black dark:border-white hover:bg-gray-50 dark:hover:bg-zinc-800 rounded-md transition-all duration-200 flex items-center justify-center max-w-[140px] cursor-pointer" title="Lọc theo khu vực">
                                     <span id="exact-route-page-label" class="truncate leading-none">Toàn quốc</span>
                                 </button>
                                 <div id="exact-route-page-menu" class="filter-menu !max-h-[250px] !w-56 right-0 origin-top-right mt-2">
@@ -4450,7 +4450,7 @@ html.theme-dark .ct-icon {
                                 <label class="block text-[11px] font-bold text-gray-500 uppercase tracking-widest mb-1.5">Chủ đề cần hỗ trợ <span class="text-red-500">*</span></label>
                                 <input type="hidden" id="contact-topic" value="">
                                 
-                                <button type="button" id="contact-topic-btn" onclick="document.getElementById('contact-topic-menu').classList.toggle('active')" class="w-full flex items-center justify-between bg-white border border-gray-300 hover:border-black hover:bg-gray-50 rounded-xl p-3.5 text-sm font-bold text-gray-700 transition-all shadow-sm focus:ring-2 focus:ring-black outline-none">
+                                <button type="button" id="contact-topic-btn" onclick="document.getElementById('contact-topic-menu').classList.toggle('active')" class="w-full flex items-center justify-between bg-white dark:bg-black border border-black dark:border-white hover:bg-gray-50 dark:hover:bg-zinc-800 rounded-md p-3.5 text-sm font-bold text-black dark:text-white transition-all outline-none">
                                     <span id="contact-topic-label" class="truncate pr-4">-- Vui lòng chọn một chủ đề --</span>
                                     <i class="fa-solid fa-chevron-down text-gray-400 shrink-0"></i>
                                 </button>
@@ -4529,8 +4529,8 @@ html.theme-dark .ct-icon {
                                         <label class="block text-[11px] font-bold text-gray-500 uppercase tracking-widest mb-1.5">Hình thức vi phạm bản quyền <span class="text-red-500">*</span></label>
                                         <input type="hidden" id="contact-copyright-type" value="internal">
                                         
-                                        <button type="button" id="contact-copyright-btn" onclick="document.getElementById('contact-copyright-menu').classList.toggle('active')" class="w-full flex items-center justify-between bg-white border border-gray-300 hover:border-black hover:bg-gray-50 rounded-xl p-3.5 text-sm font-bold text-gray-700 transition-all shadow-sm focus:ring-2 focus:ring-black outline-none">
-                                            <span id="contact-copyright-label" class="truncate pr-4 text-black">Ảnh của tôi bị đăng trái luật lên nền tảng</span>
+                                        <button type="button" id="contact-copyright-btn" onclick="document.getElementById('contact-copyright-menu').classList.toggle('active')" class="w-full flex items-center justify-between bg-white dark:bg-black border border-black dark:border-white hover:bg-gray-50 dark:hover:bg-zinc-800 rounded-md p-3.5 text-sm font-bold text-black dark:text-white transition-all outline-none">
+                                            <span id="contact-copyright-label" class="truncate pr-4 text-black dark:text-white">Ảnh của tôi bị đăng trái luật lên nền tảng</span>
                                             <i class="fa-solid fa-chevron-down text-gray-400 shrink-0"></i>
                                         </button>
 
@@ -4549,8 +4549,8 @@ html.theme-dark .ct-icon {
                                         <label class="block text-[11px] font-bold text-gray-500 uppercase tracking-widest mb-1.5">Phương pháp xử lý <span class="text-red-500">*</span></label>
                                         <input type="hidden" id="contact-privacy-action" value="blur">
                                         
-                                        <button type="button" id="contact-privacy-action-btn" onclick="document.getElementById('contact-privacy-action-menu').classList.toggle('active')" class="w-full flex items-center justify-between bg-white border border-gray-300 hover:border-black hover:bg-gray-50 rounded-xl p-3.5 text-sm font-bold text-gray-700 transition-all shadow-sm focus:ring-2 focus:ring-black outline-none">
-                                            <span id="contact-privacy-action-label" class="truncate pr-4 text-black">Che mờ các khuôn mặt xuất hiện trong ảnh</span>
+                                        <button type="button" id="contact-privacy-action-btn" onclick="document.getElementById('contact-privacy-action-menu').classList.toggle('active')" class="w-full flex items-center justify-between bg-white dark:bg-black border border-black dark:border-white hover:bg-gray-50 dark:hover:bg-zinc-800 rounded-md p-3.5 text-sm font-bold text-black dark:text-white transition-all outline-none">
+                                            <span id="contact-privacy-action-label" class="truncate pr-4 text-black dark:text-white">Che mờ các khuôn mặt xuất hiện trong ảnh</span>
                                             <i class="fa-solid fa-chevron-down text-gray-400 shrink-0"></i>
                                         </button>
 
@@ -5699,7 +5699,7 @@ html.theme-dark .ct-icon {
 
                                 <!-- Dropdown sắp xếp đã được chuyển lên cùng hàng với Tiêu đề -->
                                 <div class="relative shrink-0 z-40">
-                                    <button onclick="document.getElementById('profile-sort-menu').classList.toggle('active')" id="btn-profile-sort" class="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-gray-300 text-gray-700 text-xs font-bold rounded hover:bg-gray-50 transition whitespace-nowrap shadow-sm">
+                                    <button onclick="document.getElementById('profile-sort-menu').classList.toggle('active')" id="btn-profile-sort" class="flex items-center gap-1.5 px-3 py-1.5 bg-white dark:bg-black border border-black dark:border-white text-black dark:text-white text-xs font-bold rounded-md hover:bg-gray-50 dark:hover:bg-zinc-800 transition whitespace-nowrap">
                                         <span id="profile-sort-label">Mới nhất</span> <i class="fa-solid fa-arrow-down-wide-short ml-0.5"></i>
                                     </button>
                                     <div id="profile-sort-menu" class="filter-menu w-48 right-0 origin-top-right">
@@ -6188,7 +6188,7 @@ html.theme-dark .ct-icon {
                     <!-- Vùng chức năng (Góc dưới trái) -->
                     <div class="absolute bottom-6 left-6 z-[400] flex flex-col items-start justify-end" id="map-panel-wrapper">
                         <!-- Menu Dropdown -->
-                        <div id="map-menu-dropdown" class="dropdown-menu absolute bottom-[110%] left-0 w-48 border border-white/50 rounded-lg shadow-xl z-[9000] overflow-hidden transform opacity-0 scale-95 pointer-events-none transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] origin-bottom-left" style="margin-bottom: 0.5rem; z-index: 1000 !important; display: block;">
+                        <div id="map-menu-dropdown" class="dropdown-menu absolute bottom-[110%] left-0 w-48 border border-black dark:border-white rounded-lg bg-white dark:bg-black z-[9000] overflow-hidden transform opacity-0 scale-95 pointer-events-none transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] origin-bottom-left" style="margin-bottom: 0.5rem; z-index: 1000 !important; display: block;">
                             <button id="map-toggle-type-btn" class="w-full text-left block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 border-b border-gray-100 font-bold">
                                 <i class="fa-solid fa-layer-group w-5 text-center mr-1"></i> <span id="map-toggle-type-text">Bản đồ vệ tinh</span>
                             </button>
@@ -7332,13 +7332,13 @@ html.theme-dark .ct-icon {
                     <!-- Custom Dropdown Lọc Tỉnh Thành -->
                     <div id="route-selector-prov-container" class="relative shrink-0 z-30">
                         <input type="hidden" id="route-selector-prov-filter" value="">
-                        <button type="button" id="btn-route-selector-prov" onclick="app.route.toggleSelectorProvMenu(event)" class="w-full sm:w-auto bg-white border border-black rounded-md px-3 py-2 text-xs font-medium text-black flex items-center justify-between gap-2 hover:bg-gray-50 transition whitespace-nowrap">
+                        <button type="button" id="btn-route-selector-prov" onclick="app.route.toggleSelectorProvMenu(event)" class="w-full sm:w-auto bg-white dark:bg-black border border-black dark:border-white rounded-md px-3 py-2 text-xs font-medium text-black dark:text-white flex items-center justify-between gap-2 hover:bg-gray-50 dark:hover:bg-zinc-800 transition whitespace-nowrap">
                             <span id="route-selector-prov-label" class="truncate max-w-[140px]">Tất cả tỉnh thành</span>
                             <i class="fa-solid fa-chevron-down text-[10px] text-gray-500 shrink-0"></i>
                         </button>
                         <div id="route-selector-prov-menu" class="filter-menu right-0 left-0 sm:left-auto sm:w-60 mt-1 origin-top max-h-60 overflow-y-auto">
-                            <div class="p-1 border-b border-black mb-1 sticky top-0 bg-white z-10">
-                                <input type="text" id="route-selector-prov-search" placeholder="Tìm tỉnh thành..." class="w-full bg-gray-50 border border-black rounded p-1.5 text-xs text-black outline-none" oninput="app.route.filterSelectorProvSearch(this.value)">
+                            <div class="p-1 border-b border-black dark:border-white mb-1 sticky top-0 bg-white dark:bg-black z-10">
+                                <input type="text" id="route-selector-prov-search" placeholder="Tìm tỉnh thành..." class="w-full bg-gray-50 dark:bg-zinc-900 border border-black dark:border-white rounded p-1.5 text-xs text-black dark:text-white outline-none" oninput="app.route.filterSelectorProvSearch(this.value)">
                             </div>
                             <div id="route-selector-prov-list" class="space-y-0.5"></div>
                         </div>
@@ -7426,13 +7426,13 @@ html.theme-dark .ct-icon {
                 <div id="route-edit-province-container" class="relative z-30">
                     <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Tỉnh / Thành phố <span class="text-red-500">*</span></label>
                     <input type="hidden" id="route-edit-province" value="">
-                    <button type="button" id="btn-route-edit-province" onclick="app.route.toggleEditProvMenu(event)" class="w-full bg-white border border-black rounded-md p-3 text-sm font-medium focus:ring-1 focus:ring-black outline-none transition-all text-black flex justify-between items-center text-left">
+                    <button type="button" id="btn-route-edit-province" onclick="app.route.toggleEditProvMenu(event)" class="w-full bg-white dark:bg-black border border-black dark:border-white rounded-md p-3 text-sm font-medium focus:ring-1 focus:ring-black dark:focus:ring-white outline-none transition-all text-black dark:text-white flex justify-between items-center text-left">
                         <span id="route-edit-prov-label">-- Chọn Tỉnh / Thành phố --</span>
                         <i class="fa-solid fa-chevron-down text-gray-500 text-xs shrink-0"></i>
                     </button>
                     <div id="route-edit-prov-menu" class="filter-menu w-full mt-1 left-0 origin-top max-h-60 overflow-y-auto">
-                        <div class="p-1.5 border-b border-black mb-1 sticky top-0 bg-white z-10">
-                            <input type="text" id="route-edit-prov-search" placeholder="Tìm kiếm tỉnh thành..." class="w-full bg-gray-50 border border-black rounded p-1.5 text-xs text-black outline-none" oninput="app.route.filterEditProvinceSearch(this.value)">
+                        <div class="p-1.5 border-b border-black dark:border-white mb-1 sticky top-0 bg-white dark:bg-black z-10">
+                            <input type="text" id="route-edit-prov-search" placeholder="Tìm kiếm tỉnh thành..." class="w-full bg-gray-50 dark:bg-zinc-900 border border-black dark:border-white rounded p-1.5 text-xs text-black dark:text-white outline-none" oninput="app.route.filterEditProvinceSearch(this.value)">
                         </div>
                         <div id="route-edit-prov-list" class="space-y-0.5"></div>
                     </div>
@@ -7487,7 +7487,7 @@ html.theme-dark .ct-icon {
                         <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Kiểu Icon hiển thị</label>
                         <input type="hidden" id="route-edit-icon" value="default">
                         <div class="relative w-full z-40">
-                            <button type="button" onclick="document.getElementById('route-icon-menu').classList.toggle('active')" id="btn-route-icon" class="w-full bg-white border border-black rounded-md p-3 text-sm font-medium focus:ring-1 focus:ring-black outline-none transition-all text-black flex justify-between items-center text-left">
+                            <button type="button" onclick="document.getElementById('route-icon-menu').classList.toggle('active')" id="btn-route-icon" class="w-full bg-white dark:bg-black border border-black dark:border-white rounded-md p-3 text-sm font-medium focus:ring-1 focus:ring-black dark:focus:ring-white outline-none transition-all text-black dark:text-white flex justify-between items-center text-left">
                                 <span id="route-icon-label">Mặc định</span>
                                 <i class="fa-solid fa-chevron-down text-gray-500 text-xs"></i>
                             </button>
@@ -7629,7 +7629,7 @@ html.theme-dark .ct-icon {
                 <div class="relative w-full z-[60]">
                     <label class="block text-[11px] font-bold text-gray-500 uppercase tracking-widest mb-1.5">1. Chọn trường dữ liệu</label>
                     <input type="hidden" id="adv-field-select" value="">
-                    <button type="button" id="adv-field-btn" onclick="document.getElementById('adv-field-menu').classList.toggle('active')" class="w-full flex items-center justify-between bg-white border border-gray-300 hover:border-black hover:bg-gray-50 rounded-xl p-3.5 text-sm font-bold text-gray-700 transition-all shadow-sm focus:ring-2 focus:ring-black outline-none">
+                    <button type="button" id="adv-field-btn" onclick="document.getElementById('adv-field-menu').classList.toggle('active')" class="w-full flex items-center justify-between bg-white dark:bg-black border border-black dark:border-white hover:bg-gray-50 dark:hover:bg-zinc-800 rounded-md p-3.5 text-sm font-bold text-black dark:text-white transition-all outline-none">
                         <span id="adv-field-label" class="truncate pr-4">-- Chọn trường --</span>
                         <i class="fa-solid fa-chevron-down text-gray-400 shrink-0"></i>
                     </button>
@@ -7650,7 +7650,7 @@ html.theme-dark .ct-icon {
                 <div class="relative w-full z-[50]">
                     <label class="block text-[11px] font-bold text-gray-500 uppercase tracking-widest mb-1.5">2. Điều kiện so sánh</label>
                     <input type="hidden" id="adv-operator-select" value="">
-                    <button type="button" id="adv-operator-btn" onclick="if(!this.disabled) document.getElementById('adv-operator-menu').classList.toggle('active')" class="w-full flex items-center justify-between bg-white border border-gray-300 hover:border-black hover:bg-gray-50 rounded-xl p-3.5 text-sm font-bold text-gray-700 transition-all shadow-sm focus:ring-2 focus:ring-black outline-none disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed disabled:hover:border-gray-300 disabled:hover:bg-gray-100" disabled>
+                    <button type="button" id="adv-operator-btn" onclick="if(!this.disabled) document.getElementById('adv-operator-menu').classList.toggle('active')" class="w-full flex items-center justify-between bg-white dark:bg-black border border-black dark:border-white hover:bg-gray-50 dark:hover:bg-zinc-800 rounded-md p-3.5 text-sm font-bold text-black dark:text-white transition-all outline-none disabled:bg-gray-100 dark:disabled:bg-zinc-900 disabled:text-gray-400 dark:disabled:text-zinc-600 disabled:cursor-not-allowed" disabled>
                         <span id="adv-operator-label" class="truncate pr-4">-- Chọn điều kiện --</span>
                         <i class="fa-solid fa-chevron-down text-gray-400 shrink-0"></i>
                     </button>
@@ -7662,17 +7662,17 @@ html.theme-dark .ct-icon {
                 <div class="relative z-[40] w-full">
                     <label class="block text-[11px] font-bold text-gray-500 uppercase tracking-widest mb-1.5">3. Giá trị cần lọc</label>
                     <div id="adv-filter-value-container">
-                        <input type="text" id="adv-filter-value" placeholder="Nhập giá trị..." class="w-full bg-white border border-gray-300 hover:border-black rounded-xl p-3.5 text-sm font-bold text-gray-700 transition-all shadow-sm focus:ring-2 focus:ring-black outline-none disabled:bg-gray-100 disabled:shadow-none disabled:cursor-not-allowed disabled:hover:border-gray-300 disabled:font-medium disabled:text-gray-400" disabled>
+                        <input type="text" id="adv-filter-value" placeholder="Nhập giá trị..." class="w-full bg-white dark:bg-black border border-black dark:border-white hover:border-black dark:hover:border-white rounded-md p-3.5 text-sm font-bold text-black dark:text-white transition-all outline-none disabled:bg-gray-100 dark:disabled:bg-zinc-900 disabled:cursor-not-allowed disabled:font-medium disabled:text-gray-400 dark:disabled:text-zinc-600" disabled>
                     </div>
                     <div id="adv-filter-suggestions" class="filter-menu left-0 right-0 origin-top mt-2 !max-h-[250px] !z-[999]" style="width: 100% !important;"></div>
                 </div>
 
                 <!-- Nút Hủy và Áp dụng -->
                 <div class="flex gap-3 mt-6">
-                    <button onclick="app.search.closeAdvancedFilterModal()" class="w-full py-3 bg-white text-gray-700 border border-gray-300 text-xs font-bold uppercase tracking-wider rounded-xl hover:bg-gray-50 transition shadow-sm">
+                    <button onclick="app.search.closeAdvancedFilterModal()" class="w-full py-3 bg-white dark:bg-black text-black dark:text-white border border-black dark:border-white text-xs font-bold uppercase tracking-wider rounded-md hover:bg-gray-50 dark:hover:bg-zinc-800 transition">
                         Hủy bỏ
                     </button>
-                    <button id="btn-adv-filter-apply" onclick="app.search.applyAdvancedFilter()" class="w-full py-3 bg-black text-white text-xs font-bold uppercase tracking-wider rounded-xl hover:bg-gray-800 transition shadow-md">
+                    <button id="btn-adv-filter-apply" onclick="app.search.applyAdvancedFilter()" class="w-full py-3 bg-black dark:bg-white text-white dark:text-black border border-black dark:border-white text-xs font-bold uppercase tracking-wider rounded-md hover:bg-gray-800 dark:hover:bg-gray-200 transition">
                         Thêm vào bộ lọc
                     </button>
                 </div>

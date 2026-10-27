@@ -349,18 +349,47 @@ input:focus, textarea:focus, select:focus {
 .filter-menu button,
 .filter-menu a,
 #user-dropdown a,
-#user-dropdown button {
+#user-dropdown button,
+.dropdown-menu button,
+.dropdown-menu a {
     border-bottom: 1px solid #18181b !important;
     border-radius: 0 !important;
     margin: 0 !important;
+    color: #374151 !important;
 }
 /* Xoá viền dưới cùng của item cuối */
 .suggestion-box .suggestion-item:last-child,
 .filter-menu button:last-child,
 .filter-menu a:last-child,
 #user-dropdown a:last-child,
-#user-dropdown button:last-child {
+#user-dropdown button:last-child,
+.dropdown-menu button:last-child,
+.dropdown-menu a:last-child {
     border-bottom: none !important;
+}
+
+/* Hover trạng thái các item trong dropdown (Light Mode) */
+.suggestion-box .suggestion-item:hover, 
+.filter-menu .filter-item:hover, 
+.filter-menu button:hover,
+.filter-menu a:hover,
+#user-dropdown a:hover, 
+#user-dropdown button:hover, 
+.dropdown-menu a:hover, 
+.dropdown-menu button:hover {
+    background-color: #f4f4f5 !important;
+    color: #18181b !important;
+}
+
+/* Selected state cho dropdown trong Light Mode */
+.filter-menu .filter-item.selected,
+.dropdown-menu .selected {
+    background-color: #18181b !important;
+    color: #ffffff !important;
+}
+.filter-menu .filter-item.selected *,
+.dropdown-menu .selected * {
+    color: #ffffff !important;
 }
 
 
