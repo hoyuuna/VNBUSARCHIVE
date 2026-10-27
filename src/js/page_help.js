@@ -1384,6 +1384,8 @@ Object.assign(window.app, {
         },
 
         _lastHomeSupportersLoadTime: 0,
+        _homeDisplayCount: 3,
+        _supportUsDisplayCount: 3,
 
         loadHomeSupporters: async (forceRefresh = false) => {
             const container = document.getElementById('home-supporters-list');
@@ -1394,10 +1396,10 @@ Object.assign(window.app, {
             // Client cache: reuse existing top supporters if fetched within last 60s unless forced
             if (!forceRefresh && app.donate._homeSupportersCache?.length > 0 && (now - (app.donate._lastHomeSupportersLoadTime || 0) < 60000)) {
                 if (container && container.children.length === 0) {
-                    app.donate._renderHomeSupporters(app.donate._homeSupportersCache);
+                    app.donate._renderHomeSupporters();
                 }
                 if (supportUsContainer && supportUsContainer.children.length === 0) {
-                    app.donate._renderSupportUsSupporters(app.donate._homeSupportersCache);
+                    app.donate._renderSupportUsSupporters();
                 }
                 return;
             }
@@ -1408,11 +1410,10 @@ Object.assign(window.app, {
                 const resData = await res.json();
                 const list = (resData && resData.success && Array.isArray(resData.data)) ? resData.data : [];
 
-                const top3 = list.slice(0, 3);
-                app.donate._homeSupportersCache = top3;
+                app.donate._homeSupportersCache = list;
                 app.donate._lastHomeSupportersLoadTime = now;
-                app.donate._renderHomeSupporters(top3);
-                app.donate._renderSupportUsSupporters(top3);
+                app.donate._renderHomeSupporters();
+                app.donate._renderSupportUsSupporters();
             } catch (e) {
                 console.error('Error loading supporters:', e);
             }
@@ -1424,7 +1425,7 @@ Object.assign(window.app, {
 
             const now = Date.now();
             if (!forceRefresh && app.donate._homeSupportersCache?.length > 0 && (now - (app.donate._lastHomeSupportersLoadTime || 0) < 60000)) {
-                app.donate._renderSupportUsSupporters(app.donate._homeSupportersCache);
+                app.donate._renderSupportUsSupporters();
                 return;
             }
 
@@ -1434,32 +1435,58 @@ Object.assign(window.app, {
                 const resData = await res.json();
                 const list = (resData && resData.success && Array.isArray(resData.data)) ? resData.data : [];
 
-                const top3 = list.slice(0, 3);
-                app.donate._homeSupportersCache = top3;
+                app.donate._homeSupportersCache = list;
                 app.donate._lastHomeSupportersLoadTime = now;
-                app.donate._renderSupportUsSupporters(top3);
-                app.donate._renderHomeSupporters(top3);
+                app.donate._renderSupportUsSupporters();
+                app.donate._renderHomeSupporters();
             } catch (e) {
                 console.error('Error loading supporters on support-us:', e);
             }
         },
 
-        _renderHomeSupporters: (top3) => {
+        loadMoreSupporters: async (target = 'home') => {
+            const btnId = target === 'home' ? 'btn-home-supporters-more' : 'btn-donate-supporters-more';
+            const btn = document.getElementById(btnId);
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin text-[10px]"></i> Đang tải...';
+            }
+
+            // Brief interaction feedback like home feed load more
+            await new Promise(r => setTimeout(r, 200));
+
+            if (target === 'home') {
+                app.donate._homeDisplayCount = (app.donate._homeDisplayCount || 3) + 3;
+                app.donate._renderHomeSupporters();
+            } else {
+                app.donate._supportUsDisplayCount = (app.donate._supportUsDisplayCount || 3) + 3;
+                app.donate._renderSupportUsSupporters();
+            }
+        },
+
+        _renderHomeSupporters: () => {
             const container = document.getElementById('home-supporters-list');
             if (!container) return;
-            container.innerHTML = app.donate._generateSupportersCardsHtml(top3, true);
+            const all = app.donate._homeSupportersCache || [];
+            const displayCount = app.donate._homeDisplayCount || 3;
+            container.innerHTML = app.donate._generateSupportersCardsHtml(all, displayCount, true, 'home');
         },
 
-        _renderSupportUsSupporters: (top3) => {
+        _renderSupportUsSupporters: () => {
             const container = document.getElementById('donate-recent-supporters-list');
             if (!container) return;
-            container.innerHTML = app.donate._generateSupportersCardsHtml(top3, false);
+            const all = app.donate._homeSupportersCache || [];
+            const displayCount = app.donate._supportUsDisplayCount || 3;
+            container.innerHTML = app.donate._generateSupportersCardsHtml(all, displayCount, false, 'support-us');
         },
 
-        _generateSupportersCardsHtml: (top3, includeActionCard = true) => {
+        _generateSupportersCardsHtml: (allList, displayCount = 3, includeActionCard = true, targetType = 'home') => {
             const cards = [];
-            for (let i = 0; i < 3; i++) {
-                const item = top3[i];
+            const list = allList || [];
+            const countToRender = list.length === 0 ? 3 : Math.min(displayCount, list.length);
+
+            for (let i = 0; i < countToRender; i++) {
+                const item = list[i];
                 if (item) {
                     const amtStr = new Intl.NumberFormat('vi-VN').format(item.amount) + 'đ';
                     const safeName = app.utils.escapeHtml(item.donor_name);
@@ -1522,6 +1549,16 @@ Object.assign(window.app, {
                         </div>
                     `);
                 }
+            }
+
+            // Inline "Xem thêm" button below the loaded supporters if more exist
+            if (list.length > countToRender) {
+                const btnId = targetType === 'home' ? 'btn-home-supporters-more' : 'btn-donate-supporters-more';
+                cards.push(`
+                    <div class="text-center py-1">
+                        <button type="button" id="${btnId}" onclick="app.donate.loadMoreSupporters('${targetType}')" class="text-xs font-semibold text-gray-500 hover:text-black dark:text-gray-400 dark:hover:text-white hover:underline transition cursor-pointer">Xem thêm</button>
+                    </div>
+                `);
             }
 
             if (includeActionCard) {

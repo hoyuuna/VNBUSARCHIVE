@@ -29,13 +29,13 @@ export async function onRequestGet(context) {
         const sb = createClient(env.SUPABASE_URL, env.SUPABASE_KEY);
         const sbAdmin = env.SUPABASE_SERVICE_ROLE_KEY ? createClient(env.SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY) : sb;
 
-        // Fetch top 10 paid donations (homepage only displays top 3)
+        // Fetch top 50 paid donations (recent supporters list)
         const { data: supporters, error: dbErr } = await sbAdmin
             .from('donations')
             .select('id, user_id, donor_name, amount, message, is_anonymous, created_at')
             .eq('status', 'PAID')
             .order('created_at', { ascending: false })
-            .limit(10);
+            .limit(50);
 
         if (dbErr) {
             console.error('Error fetching supporters:', dbErr);

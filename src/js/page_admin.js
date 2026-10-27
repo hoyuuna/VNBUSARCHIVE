@@ -1684,7 +1684,25 @@ if (app.admin._activeLoadToken !== currentLoadToken || app.adminTab !== tab) ret
                                 const { data: curMdls } = await window.sb.from('model_info').select('*').in('model_name', mdlNamesReq);
                                 if (curMdls) curMdls.forEach(m => mdlMap[m.model_name] = m);
                             }
-                            const routeReqs = reqs.filter(r => r.new_data.request_type === 'update_route_info').map(r => r.new_data.route_name).filter(Boolean);
+                            if ((!app.utils.provinceData || !app.utils.provinceData.length) && app.utils.loadProvinceData) {
+                                await app.utils.loadProvinceData();
+                            }
+                            const renderProvinceOptions = (selectedProv = '') => {
+                                const curVal = (selectedProv || '').trim().toLowerCase();
+                                const pData = app.utils.provinceData || [];
+                                let hasCustomMatch = false;
+                                let html = pData.map(p => {
+                                    const isSel = curVal && curVal === (p.ten || '').toLowerCase();
+                                    if (isSel) hasCustomMatch = true;
+                                    return `<option value="${app.utils.escapeAttr(p.ten)}" ${isSel ? 'selected' : ''}>${app.utils.escapeHtml(p.ten)}</option>`;
+                                }).join('');
+                                if (selectedProv && !hasCustomMatch) {
+                                    html = `<option value="${app.utils.escapeAttr(selectedProv)}" selected>${app.utils.escapeHtml(selectedProv)} (Tùy chỉnh)</option>` + html;
+                                }
+                                return html;
+                            };
+
+                            const routeReqs = reqs.filter(r => r.new_data?.request_type === 'update_route_info').flatMap(r => [r.new_data.old_route_name, r.new_data.route_name]).filter(Boolean);
                             let routeMap = {};
                             if (routeReqs.length > 0) {
                                 const { data: curRoutes } = await window.sb.from('route_info').select('*').in('route_name', routeReqs);
@@ -1698,7 +1716,7 @@ if (app.admin._activeLoadToken !== currentLoadToken || app.adminTab !== tab) ret
                                 const curP = pMap[d.photo_id] || {};
                                 const curOp = opMap[d.operator_name] || {};
                                 const curMdl = mdlMap[d.model_name] || {};
-                                const curRoute = routeMap[d.route_name] || {};
+                                const curRoute = routeMap[d.old_route_name] || routeMap[d.route_name] || {};
                                 if (type === 'update_vehicle_info') {
                                     const tagNew = '<span class="text-red-500 font-bold ml-1 text-[9px]">[MỚI]</span>';
                                     if (!app.admin.originalData) app.admin.originalData = {};
@@ -1760,6 +1778,10 @@ if (app.admin._activeLoadToken !== currentLoadToken || app.adminTab !== tab) ret
                                         if (val === 'trapezoid') return 'Hình thang cân';
                                         return 'Mặc định';
                                     };
+                                    const curRouteNo = curRoute.route_no || (!curRoute.route_name ? '' : (curRoute.route_name.includes(' - ') ? curRoute.route_name.split(' - ')[0].trim() : curRoute.route_name));
+                                    const curProv = curRoute.province || (!curRoute.route_name ? '' : (curRoute.route_name.includes(' - ') ? curRoute.route_name.split(' - ').slice(1).join(' - ').trim() : ''));
+                                    const reqRouteNo = d.route_no || curRouteNo || (d.route_name && d.route_name.includes(' - ') ? d.route_name.split(' - ')[0].trim() : (d.route_name || ''));
+                                    const reqProv = d.province || curProv || (d.route_name && d.route_name.includes(' - ') ? d.route_name.split(' - ').slice(1).join(' - ').trim() : '');
                                     
                                     return `
                                     <div class="admin-card overflow-visible">
@@ -1769,6 +1791,7 @@ if (app.admin._activeLoadToken !== currentLoadToken || app.adminTab !== tab) ret
                                             <p class="mb-2 text-xs font-bold text-gray-500">Thông tin gốc (Hiện tại):</p>
                                             <div class="space-y-1 mb-4 text-xs opacity-75 border p-2 rounded bg-gray-50">
                                                 <div><span class="font-bold">Loại xe:</span> ${curRoute.metadata?.vehicle_type === 'coach' ? 'Xe khách' : 'Xe buýt'}</div>
+                                                <div><span class="font-bold">Số hiệu & Tỉnh/TP:</span> ${app.utils.escapeAttr(curRouteNo || '-')} ${curProv ? '(' + app.utils.escapeAttr(curProv) + ')' : ''}</div>
                                                 <div><span class="font-bold">Trạng thái:</span> ${curRoute.is_inactive ? '<span class="text-red-500 font-bold">Dừng hoạt động</span>' : 'Đang hoạt động'}</div>
                                                 <div><span class="font-bold">Lộ trình (Rút gọn):</span> ${app.utils.escapeAttr(curRoute.short_path || '-')}</div>
                                                 <div><span class="font-bold">Mô tả:</span> ${app.utils.escapeAttr(curRoute.description || '-')}</div>
@@ -1779,6 +1802,19 @@ if (app.admin._activeLoadToken !== currentLoadToken || app.adminTab !== tab) ret
                                             </div>
                                             <p class="mb-2 font-bold text-red-500">[MỚI] Yêu cầu cập nhật thành:</p>
                                             
+                                            <div class="grid grid-cols-2 gap-2 mb-2">
+                                                <div>
+                                                    <span class="admin-label">Số hiệu tuyến ${reqRouteNo && curRouteNo && reqRouteNo !== curRouteNo ? '<span class="text-red-500 font-bold ml-1 text-[9px]">[MỚI]</span>' : ''}</span>
+                                                    <input type="text" id="req-route-no-${r.id}" class="admin-input font-bold" value="${app.utils.escapeAttr(reqRouteNo)}">
+                                                </div>
+                                                <div>
+                                                    <span class="admin-label">Tỉnh / Thành phố ${reqProv && curProv && reqProv.toLowerCase() !== curProv.toLowerCase() ? '<span class="text-red-500 font-bold ml-1 text-[9px]">[MỚI]</span>' : ''}</span>
+                                                    <select id="req-route-prov-${r.id}" class="admin-input">
+                                                        <option value="">-- Chọn Tỉnh / Thành phố --</option>
+                                                        ${renderProvinceOptions(reqProv)}
+                                                    </select>
+                                                </div>
+                                            </div>
                                             <div class="mb-2">
                                                 <span class="admin-label">Loại xe ${d.metadata?.vehicle_type && d.metadata?.vehicle_type !== curRoute.metadata?.vehicle_type ? '<span class="text-red-500 font-bold ml-1 text-[9px]">[MỚI]</span>' : ''}</span>
                                                 <select id="req-route-type-${r.id}" class="admin-input">
@@ -1840,7 +1876,10 @@ if (app.admin._activeLoadToken !== currentLoadToken || app.adminTab !== tab) ret
                                                 </div>
                                                 <div>
                                                     <span class="admin-label">Tỉnh / Thành phố</span>
-                                                    <input type="text" id="req-c-route-prov-${r.id}" class="admin-input" value="${app.utils.escapeAttr(d.province || '')}">
+                                                    <select id="req-c-route-prov-${r.id}" class="admin-input">
+                                                        <option value="">-- Chọn Tỉnh / Thành phố --</option>
+                                                        ${renderProvinceOptions(d.province || '')}
+                                                    </select>
                                                 </div>
                                             </div>
                                             <div class="mb-2">
@@ -4297,15 +4336,19 @@ if (cbQuality) newSubroles.push('quality_aud');
                             let metadataObj = Object.keys(metadata).length > 0 ? metadata : null;
                             
                             
-                            const expectedRouteNo = req.new_data.route_no || (!isReqCoach && req.new_data.route_name.includes(' - ') ? req.new_data.route_name.split(' - ')[0].trim() : req.new_data.route_name);
-                            const targetProvince = isReqCoach ? null : (req.new_data.province || (req.new_data.route_name.includes(' - ') ? req.new_data.route_name.split(' - ')[1].trim() : null));
+                            const routeNoEl = document.getElementById(`req-route-no-${id}`);
+                            const provEl = document.getElementById(`req-route-prov-${id}`);
+
+                            const expectedRouteNo = routeNoEl ? routeNoEl.value.trim() : (req.new_data.route_no || (!isReqCoach && req.new_data.route_name.includes(' - ') ? req.new_data.route_name.split(' - ')[0].trim() : req.new_data.route_name));
+                            const targetProvince = isReqCoach ? null : (provEl ? provEl.value.trim() : (req.new_data.province || (req.new_data.route_name.includes(' - ') ? req.new_data.route_name.split(' - ')[1].trim() : null)));
+                            const targetRouteName = (isReqCoach || !targetProvince) ? expectedRouteNo : `${expectedRouteNo} - ${targetProvince}`;
 
                             if (!desc && !shortPath && !isInactive && !metadataObj) {
-                                const { error: delErr } = await window.sb.from('route_info').delete().eq('route_name', req.new_data.route_name);
+                                const { error: delErr } = await window.sb.from('route_info').delete().eq('route_name', targetRouteName);
                                 if (delErr) throw delErr;
                             } else {
                                 const { error: upsertErr } = await window.sb.from('route_info').upsert({
-                                    route_name: req.new_data.route_name,
+                                    route_name: targetRouteName,
                                     route_no: expectedRouteNo,
                                     province: targetProvince,
                                     short_path: shortPath || null,
@@ -4319,9 +4362,10 @@ if (cbQuality) newSubroles.push('quality_aud');
                             if (app.route) app.route.cachedRoutes = null;
                             
                             // Nếu đổi tên tuyến hoặc đổi tỉnh thành, di chuyển dữ liệu ảnh & lịch sử từ tuyến cũ sang tuyến mới và xóa tuyến cũ
-                            if (req.new_data.old_route_name && req.new_data.old_route_name !== req.new_data.route_name) {
+                            const oldRouteName = req.new_data.old_route_name || req.new_data.route_name;
+                            if (oldRouteName && oldRouteName !== targetRouteName) {
                                 if (app.route && app.route.migrateRouteData) {
-                                    await app.route.migrateRouteData(req.new_data.old_route_name, req.new_data.route_name, expectedRouteNo, targetProvince);
+                                    await app.route.migrateRouteData(oldRouteName, targetRouteName, expectedRouteNo, targetProvince);
                                 }
                             }
                             
