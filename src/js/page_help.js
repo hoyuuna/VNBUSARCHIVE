@@ -1568,10 +1568,7 @@ Object.assign(window.app, {
                             <i class="fa-solid fa-heart text-white text-xs"></i>
                         </div>
                         <div class="flex-1 min-w-0 flex flex-col justify-center">
-                            <div class="flex items-center justify-between gap-2">
-                                <span class="truncate font-bold text-white text-sm leading-tight">Tôi cũng muốn ủng hộ!</span>
-                                <span class="text-xs font-bold text-white/80 group-hover:text-white shrink-0">Ủng hộ ngay &rarr;</span>
-                            </div>
+                            <span class="truncate font-bold text-white text-sm leading-tight">Tôi cũng muốn ủng hộ!</span>
                             <span class="block text-white/70 text-xs tracking-wide w-full truncate mt-0.5">Tiếp sức cùng dự án duy trì máy chủ</span>
                         </div>
                     </div>
