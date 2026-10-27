@@ -22310,6 +22310,60 @@ Object.assign(window.app, {
                         console.error('Lỗi checkDuplicateDateAdmin:', err);
                     }
                 },
+                toggleReqProvMenu: (id, pfx, e) => {
+                    if (e) e.stopPropagation();
+                    const tag = pfx ? `${pfx}-` : '';
+                    const menu = document.getElementById(`menu-req-${tag}route-prov-${id}`);
+                    if (menu) {
+                        const wasActive = menu.classList.contains('active');
+                        document.querySelectorAll('.filter-menu.active').forEach(m => m.classList.remove('active'));
+                        if (!wasActive) menu.classList.add('active');
+                    }
+                },
+                selectReqProv: (id, pfx, provName) => {
+                    const tag = pfx ? `${pfx}-` : '';
+                    const input = document.getElementById(`req-${tag}route-prov-${id}`);
+                    const label = document.getElementById(`label-req-${tag}route-prov-${id}`);
+                    const menu = document.getElementById(`menu-req-${tag}route-prov-${id}`);
+                    if (input) input.value = provName || '';
+                    if (label) {
+                        label.innerText = provName || '-- Chọn Tỉnh / Thành phố --';
+                        if (provName) {
+                            label.className = 'truncate text-black dark:text-white font-medium';
+                        } else {
+                            label.className = 'truncate text-gray-400';
+                        }
+                    }
+                    if (menu) menu.classList.remove('active');
+                    
+                    const listEl = document.getElementById(`list-req-${tag}route-prov-${id}`);
+                    if (listEl) {
+                        const items = listEl.querySelectorAll('.filter-item');
+                        items.forEach(item => {
+                            const p = item.dataset.prov || '';
+                            const isSel = (p.toLowerCase() === (provName || '').toLowerCase());
+                            item.classList.toggle('selected', isSel);
+                            let check = item.querySelector('.fa-check');
+                            if (isSel && !check) {
+                                item.insertAdjacentHTML('beforeend', '<i class="fa-solid fa-check text-xs ml-auto"></i>');
+                            } else if (!isSel && check) {
+                                check.remove();
+                            }
+                        });
+                    }
+                },
+                filterReqProvSearch: (id, pfx, q) => {
+                    const tag = pfx ? `${pfx}-` : '';
+                    const query = (q || '').trim().toLowerCase();
+                    const listEl = document.getElementById(`list-req-${tag}route-prov-${id}`);
+                    if (listEl) {
+                        const items = listEl.querySelectorAll('.filter-item');
+                        items.forEach(item => {
+                            const prov = item.dataset.prov || '';
+                            item.style.display = (!query || prov.toLowerCase().includes(query)) ? 'flex' : 'none';
+                        });
+                    }
+                },
                 manager: {
                     activeTab: 'denied',
                     denied: { data: [], filtered:[], page: 1, denierMap: {} },
@@ -22960,19 +23014,54 @@ if (app.admin._activeLoadToken !== currentLoadToken || app.adminTab !== tab) ret
                             if ((!app.utils.provinceData || !app.utils.provinceData.length) && app.utils.loadProvinceData) {
                                 await app.utils.loadProvinceData();
                             }
-                            const renderProvinceOptions = (selectedProv = '') => {
-                                const curVal = (selectedProv || '').trim().toLowerCase();
+                            const renderCustomProvinceDropdown = (id, pfx, selectedProv = '') => {
+                                const tag = pfx ? `${pfx}-` : '';
+                                const curVal = (selectedProv || '').trim();
+                                const curValLower = curVal.toLowerCase();
                                 const pData = app.utils.provinceData || [];
                                 let hasCustomMatch = false;
-                                let html = pData.map(p => {
-                                    const isSel = curVal && curVal === (p.ten || '').toLowerCase();
+                                let listHtml = `
+                                    <div class="filter-item ${!curVal ? 'selected' : ''}" data-prov="" onclick="app.admin.selectReqProv('${id}', '${pfx}', '')">
+                                        <span class="text-gray-400">-- Không chọn Tỉnh / Thành phố --</span>
+                                        ${!curVal ? '<i class="fa-solid fa-check text-xs ml-auto"></i>' : ''}
+                                    </div>
+                                `;
+                                pData.forEach(p => {
+                                    const isSel = curValLower && curValLower === (p.ten || '').toLowerCase();
                                     if (isSel) hasCustomMatch = true;
-                                    return `<option value="${app.utils.escapeAttr(p.ten)}" ${isSel ? 'selected' : ''}>${app.utils.escapeHtml(p.ten)}</option>`;
-                                }).join('');
-                                if (selectedProv && !hasCustomMatch) {
-                                    html = `<option value="${app.utils.escapeAttr(selectedProv)}" selected>${app.utils.escapeHtml(selectedProv)} (Tùy chỉnh)</option>` + html;
+                                    listHtml += `
+                                        <div class="filter-item ${isSel ? 'selected' : ''}" data-prov="${app.utils.escapeAttr(p.ten)}" onclick="app.admin.selectReqProv('${id}', '${pfx}', '${app.utils.escapeAttr(p.ten)}')">
+                                            <span>${app.utils.escapeHtml(p.ten)}</span>
+                                            ${isSel ? '<i class="fa-solid fa-check text-xs ml-auto"></i>' : ''}
+                                        </div>
+                                    `;
+                                });
+                                if (curVal && !hasCustomMatch) {
+                                    listHtml = `
+                                        <div class="filter-item selected" data-prov="${app.utils.escapeAttr(curVal)}" onclick="app.admin.selectReqProv('${id}', '${pfx}', '${app.utils.escapeAttr(curVal)}')">
+                                            <span>${app.utils.escapeHtml(curVal)} (Tùy chỉnh)</span>
+                                            <i class="fa-solid fa-check text-xs ml-auto"></i>
+                                        </div>
+                                    ` + listHtml;
                                 }
-                                return html;
+
+                                return `
+                                    <div class="relative z-30">
+                                        <input type="hidden" id="req-${tag}route-prov-${id}" value="${app.utils.escapeAttr(curVal)}">
+                                        <button type="button" id="btn-req-${tag}route-prov-${id}" onclick="app.admin.toggleReqProvMenu('${id}', '${pfx}', event)" class="admin-input cursor-pointer flex justify-between items-center text-left bg-white dark:bg-[#18181b]">
+                                            <span id="label-req-${tag}route-prov-${id}" class="truncate ${curVal ? 'text-black dark:text-white font-medium' : 'text-gray-400'}">${app.utils.escapeHtml(curVal || '-- Chọn Tỉnh / Thành phố --')}</span>
+                                            <i class="fa-solid fa-chevron-down text-gray-500 text-[10px] shrink-0 ml-1"></i>
+                                        </button>
+                                        <div id="menu-req-${tag}route-prov-${id}" class="filter-menu w-full mt-1 left-0 origin-top max-h-56 overflow-y-auto">
+                                            <div class="p-1.5 border-b border-black mb-1 sticky top-0 bg-white dark:bg-[#18181b] z-10">
+                                                <input type="text" placeholder="Tìm kiếm tỉnh thành..." class="w-full bg-gray-50 dark:bg-black border border-black rounded p-1.5 text-xs text-black dark:text-white outline-none" oninput="app.admin.filterReqProvSearch('${id}', '${pfx}', this.value)">
+                                            </div>
+                                            <div id="list-req-${tag}route-prov-${id}" class="space-y-0.5">
+                                                ${listHtml}
+                                            </div>
+                                        </div>
+                                    </div>
+                                `;
                             };
 
                             const routeReqs = reqs.filter(r => r.new_data?.request_type === 'update_route_info').flatMap(r => [r.new_data.old_route_name, r.new_data.route_name]).filter(Boolean);
@@ -23082,10 +23171,7 @@ if (app.admin._activeLoadToken !== currentLoadToken || app.adminTab !== tab) ret
                                                 </div>
                                                 <div>
                                                     <span class="admin-label">Tỉnh / Thành phố ${reqProv && curProv && reqProv.toLowerCase() !== curProv.toLowerCase() ? '<span class="text-red-500 font-bold ml-1 text-[9px]">[MỚI]</span>' : ''}</span>
-                                                    <select id="req-route-prov-${r.id}" class="admin-input">
-                                                        <option value="">-- Chọn Tỉnh / Thành phố --</option>
-                                                        ${renderProvinceOptions(reqProv)}
-                                                    </select>
+                                                    ${renderCustomProvinceDropdown(r.id, '', reqProv)}
                                                 </div>
                                             </div>
                                             <div class="mb-2">
@@ -23149,10 +23235,7 @@ if (app.admin._activeLoadToken !== currentLoadToken || app.adminTab !== tab) ret
                                                 </div>
                                                 <div>
                                                     <span class="admin-label">Tỉnh / Thành phố</span>
-                                                    <select id="req-c-route-prov-${r.id}" class="admin-input">
-                                                        <option value="">-- Chọn Tỉnh / Thành phố --</option>
-                                                        ${renderProvinceOptions(d.province || '')}
-                                                    </select>
+                                                    ${renderCustomProvinceDropdown(r.id, 'c', d.province || '')}
                                                 </div>
                                             </div>
                                             <div class="mb-2">

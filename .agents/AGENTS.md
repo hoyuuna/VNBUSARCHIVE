@@ -51,6 +51,9 @@
 - **Why:** Because `functions/api/upload.js` inserts new vehicle records with `pending` status upon initial photo upload. If queries do not filter by approved photo status, `pending` or `denied` license plates will prematurely exist in `approvedPlateSet`, causing the `XE MỚI` (New Car) badge logic (`!approvedPlateSet.has(plateKey)`) to fail.
 
 ## Strict UI & Component Rules
+- **Rule (Kiểm tra & Tái sử dụng Custom UI đã có):** Trước khi triển khai bất kỳ thành phần giao diện nào (dropdown, modal, picker, selector, button...), BẮT BUỘC phải rà soát và tìm kiếm trong codebase xem web đã có UI riêng / custom component cho mục đó chưa (ví dụ: custom dropdown chọn tỉnh thành `.filter-menu`, bộ chọn tuyến `route.openSelector`, popup thông báo HoyuUI...).
+  * Nếu web **ĐÃ CÓ UI riêng**: BẮT BUỘC phải tái sử dụng lại đúng custom UI component đó để giữ sự đồng bộ 100% trên toàn hệ thống. Tuyệt đối KHÔNG được dùng mỗi chỗ một kiểu hoặc tùy tiện dùng thẻ mặc định của trình duyệt (như `<select>` thô sơ) khi web đã có custom component tương ứng.
+  * Nếu web **CHƯA CÓ UI riêng**: BẮT BUỘC phải HỎI người dùng trước: muốn dùng thành phần mặc định của web (native HTML) hay thiết kế một UI custom mới. Tuyệt đối không tự ý quyết định.
 - **Rule (Không tự ý chế thêm UI/tính năng):** Hệ thống không cấm chế thêm hoặc đề xuất cải tiến UI/tính năng mới, nhưng **TUYỆT ĐỐI KHÔNG ĐƯỢC TỰ Ý CHẾ THÊM KHI CHƯA HỎI**. Nếu muốn bổ sung bất kỳ thành phần, chi tiết hiển thị hay tính năng nào nằm ngoài yêu cầu trực tiếp của user thì **BẮT BUỘC PHẢI HỎI Ý KIẾN USER TRƯỚC**.
 - **Rule:** ONLY design a new component or custom style for the web WHEN EXPLICITLY REQUESTED by the user.
 - **Rule:** If not explicitly requested, you MUST reuse the existing custom components already available in the web app. If a new component is truly necessary to function, you MUST ask the user for permission before creating it.
