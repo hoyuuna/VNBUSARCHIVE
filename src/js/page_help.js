@@ -950,11 +950,13 @@ Object.assign(window.app, {
             const stepQr = document.getElementById('donate-step-qr');
             const stepThankYou = document.getElementById('donate-step-thankyou');
             const headerTitle = document.getElementById('donate-header-title');
+            const recentSupportersSection = document.getElementById('donate-recent-supporters-section');
 
             if (stepForm) stepForm.classList.toggle('hidden', step !== 'form');
             if (stepQr) stepQr.classList.toggle('hidden', step !== 'qr');
             if (stepThankYou) stepThankYou.classList.toggle('hidden', step !== 'thankyou');
             if (headerTitle) headerTitle.classList.toggle('hidden', step === 'thankyou');
+            if (recentSupportersSection) recentSupportersSection.classList.toggle('hidden', step !== 'form');
         },
 
         selectPreset: (val) => {
@@ -1370,7 +1372,7 @@ Object.assign(window.app, {
                     <div class="text-left">
                         <span class="text-[11px] font-bold text-gray-400 uppercase tracking-wider block mb-1.5">Lời nhắn gửi</span>
                         <div class="p-3 bg-gray-50 rounded-xl border border-gray-200 text-black italic text-xs leading-relaxed">
-                            "${safeMsg || 'Đồng hành cùng dự án duy trì máy chủ lưu trữ hình ảnh xe buýt Việt Nam hoàn toàn miễn phí.'}"
+                            "${safeMsg || 'Đồng hành và tiếp sức duy trì dự án lưu trữ hình ảnh xe buýt Việt Nam hoàn toàn miễn phí.'}"
                         </div>
                     </div>
                 </div>
@@ -1569,7 +1571,7 @@ Object.assign(window.app, {
                         </div>
                         <div class="flex-1 min-w-0 flex flex-col justify-center">
                             <span class="truncate font-bold text-white text-sm leading-tight">Tôi cũng muốn ủng hộ!</span>
-                            <span class="block text-white/70 text-xs tracking-wide w-full truncate mt-0.5">Tiếp sức cùng dự án duy trì máy chủ</span>
+                            <span class="block text-white/70 text-xs tracking-wide w-full truncate mt-0.5">Tiếp sức duy trì dự án</span>
                         </div>
                     </div>
                 `);
