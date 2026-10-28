@@ -427,6 +427,31 @@ input:focus, textarea:focus, select:focus {
 #adm-photo-grid-toggle-bar button:hover i {
     color: #ffffff !important;
 }
+#adm-photo-grid-toggle-bar button.bg-black {
+    background-color: #18181b !important;
+    color: #ffffff !important;
+}
+#adm-photo-grid-toggle-bar button.bg-black i,
+#adm-photo-grid-toggle-bar button.bg-black b {
+    color: #ffffff !important;
+}
+#btn-crop-toggle-ruler {
+    border: 1px solid #18181b !important;
+}
+#btn-crop-toggle-ruler.bg-black {
+    background-color: #18181b !important;
+    color: #ffffff !important;
+}
+#btn-crop-toggle-ruler.bg-black * {
+    color: #ffffff !important;
+}
+#btn-crop-toggle-ruler:not(.bg-black) {
+    background-color: #ffffff !important;
+    color: #18181b !important;
+}
+#btn-crop-toggle-ruler:not(.bg-black) * {
+    color: #18181b !important;
+}
 
 /* Các form nhập liệu, select, card trong Admin nếu có viền xám */
 #admin input, #admin select, #admin textarea,

@@ -18809,7 +18809,20 @@ Object.assign(window.app, {
         sourceImage: null,
         savedRatio: 4/3,
         modeTab: 'ratio',
-        isRulerEnabled: localStorage.getItem('cropRulerEnabled') === 'true',
+        rulerMode: (() => {
+            const saved = localStorage.getItem('cropRulerMode');
+            if (saved !== null) {
+                const val = parseInt(saved, 10);
+                if (!isNaN(val) && val >= 0 && val <= 3) return val;
+            }
+            return localStorage.getItem('cropRulerEnabled') === 'true' ? 2 : 1;
+        })(),
+        get isRulerEnabled() {
+            return this.rulerMode === 2 || this.rulerMode === 3;
+        },
+        set isRulerEnabled(val) {
+            this.rulerMode = val ? 2 : 1;
+        },
         isMandatory: false,
         isProcessing: false,
         closeTimeout: null,
@@ -19189,8 +19202,8 @@ Object.assign(window.app, {
             app.crop.applyTransform();
         },
         toggleRuler: () => {
-            const willEnable = !app.crop.isRulerEnabled;
-            if (willEnable && !localStorage.getItem('vnbus_ruler_guide_shown')) {
+            const nextMode = ((app.crop.rulerMode || 0) + 1) % 4;
+            if (nextMode === 2 && !localStorage.getItem('vnbus_ruler_guide_shown')) {
                 app.ui.showAlert(
                     `<div class="text-left">
                         <p class="text-sm text-gray-700 mb-2">Xác định 2 điểm xa nhất ngoài cùng bên trái và bên phải của xe (mép xe có thể là bất kỳ bộ phận nào, không tính gương chiếu hậu).</p>
@@ -19204,8 +19217,9 @@ Object.assign(window.app, {
                     </div>`,
                     () => {
                         localStorage.setItem('vnbus_ruler_guide_shown', 'true');
-                        app.crop.isRulerEnabled = true;
-                        localStorage.setItem('cropRulerEnabled', true);
+                        app.crop.rulerMode = 2;
+                        localStorage.setItem('cropRulerMode', 2);
+                        localStorage.setItem('cropRulerEnabled', 'true');
                         app.crop.updateRulerUI();
                     },
                     null,
@@ -19213,12 +19227,15 @@ Object.assign(window.app, {
                 );
                 return;
             }
-            app.crop.isRulerEnabled = !app.crop.isRulerEnabled;
-            localStorage.setItem('cropRulerEnabled', app.crop.isRulerEnabled);
+            app.crop.rulerMode = nextMode;
+            localStorage.setItem('cropRulerMode', nextMode);
+            localStorage.setItem('cropRulerEnabled', (nextMode === 2 || nextMode === 3) ? 'true' : 'false');
             app.crop.updateRulerUI();
         },
         getRulerHTML: () => {
-            const isHidden = app.crop.isRulerEnabled ? '' : 'hidden';
+            const isVisible = (app.crop.rulerMode === 2 || app.crop.rulerMode === 3);
+            const isHidden = isVisible ? '' : 'hidden';
+            const showSubClass = (app.crop.rulerMode === 3) ? 'show-sub' : '';
             const levels = [
                 { pos: 8.3333, label: '5' },
                 { pos: 16.6667, label: '4' },
@@ -19232,46 +19249,72 @@ Object.assign(window.app, {
                 { pos: 83.3333, label: '4' },
                 { pos: 91.6667, label: '5' }
             ];
+            const subPositions = [4.1667, 12.5, 20.8333, 29.1667, 37.5, 45.8333, 54.1667, 62.5, 70.8333, 79.1667, 87.5, 95.8333];
             let linesHtml = '';
             levels.forEach(item => {
                 const lineClass = item.isCenter ? 'ruler-line-center' : 'ruler-line-v';
                 const badgeClass = item.isCenter ? 'ruler-badge-center' : 'ruler-badge';
                 linesHtml += `<div class="${lineClass}" style="left: ${item.pos}%;"><span class="${badgeClass} ruler-badge-top">${item.label}</span><span class="${badgeClass} ruler-badge-bottom">${item.label}</span></div>`;
             });
-            return `<div class="crop-ruler-overlay ruler-horizontal-overlay ${isHidden}" style="z-index: 25;">${linesHtml}</div>`;
+            subPositions.forEach(pos => {
+                linesHtml += `<div class="ruler-line-sub" style="left: ${pos}%;"></div>`;
+            });
+            return `<div class="crop-ruler-overlay ruler-horizontal-overlay ${isHidden} ${showSubClass}" style="z-index: 25;">${linesHtml}</div>`;
         },
         updateRulerUI: () => {
             const isAvatar = app.crop.mode === 'avatar';
-            const showRuler = app.crop.isRulerEnabled && !isAvatar;
+            const mode = isAvatar ? 0 : (app.crop.rulerMode != null ? app.crop.rulerMode : 1);
             const btn = document.getElementById('btn-crop-toggle-ruler');
             if (btn) {
-                if (showRuler) {
-                    btn.className = "px-3 py-2 sm:px-3 sm:py-1.5 text-xs bg-black text-white border border-black rounded-md font-bold transition flex items-center justify-center gap-1.5";
+                if (mode === 0) {
+                    btn.className = "px-3 py-2 sm:px-3 sm:py-1.5 text-xs bg-white dark:bg-black text-black dark:text-white border border-black dark:border-white rounded-md hover:bg-gray-50 dark:hover:bg-zinc-800 font-bold transition flex items-center justify-center gap-1.5";
+                    btn.innerHTML = `<i class="fa-solid fa-ruler-horizontal"></i> <span class="hidden sm:inline">Thước ngang</span>`;
                 } else {
-                    btn.className = "px-3 py-2 sm:px-3 sm:py-1.5 text-xs bg-white text-gray-700 border border-gray-300 rounded-md hover:bg-gray-100 font-bold transition flex items-center justify-center gap-1.5";
+                    btn.className = "px-3 py-2 sm:px-3 sm:py-1.5 text-xs bg-black dark:bg-white text-white dark:text-black border border-black dark:border-white rounded-md hover:bg-gray-800 dark:hover:bg-gray-200 font-bold transition flex items-center justify-center gap-1.5";
+                    btn.innerHTML = `<i class="fa-solid fa-ruler-horizontal"></i> <span class="hidden sm:inline">Thước ngang </span><span>${mode}</span>`;
                 }
             }
             const overlayBox = document.getElementById('crop-overlay-box');
             if (!overlayBox) return;
             let overlay = overlayBox.querySelector('.crop-ruler-overlay');
-            if (!overlay) {
+            if (!overlay || !overlay.querySelector('.ruler-line-sub')) {
+                if (overlay) overlay.remove();
                 overlayBox.insertAdjacentHTML('beforeend', app.crop.getRulerHTML());
                 overlay = overlayBox.querySelector('.crop-ruler-overlay');
             }
             const gridV = document.getElementById('crop-grid-v');
+            const gridH = document.getElementById('crop-grid-h');
             const crossH = document.getElementById('crop-crosshair-h');
             const crossV = document.getElementById('crop-crosshair-v');
-            if (overlay) {
-                if (showRuler) {
+
+            if (mode === 0) {
+                if (overlay) overlay.classList.add('hidden');
+                if (gridV) gridV.classList.add('hidden');
+                if (gridH) gridH.classList.add('hidden');
+                if (crossH) crossH.classList.add('hidden');
+                if (crossV) crossV.classList.add('hidden');
+            } else if (mode === 1) {
+                if (overlay) overlay.classList.add('hidden');
+                if (gridV) gridV.classList.remove('hidden');
+                if (gridH) gridH.classList.remove('hidden');
+                if (crossH) crossH.classList.remove('hidden');
+                if (crossV) crossV.classList.remove('hidden');
+            } else if (mode === 2) {
+                if (gridV) gridV.classList.add('hidden');
+                if (gridH) gridH.classList.add('hidden');
+                if (crossH) crossH.classList.add('hidden');
+                if (crossV) crossV.classList.add('hidden');
+                if (overlay) {
+                    overlay.classList.remove('hidden', 'show-sub');
+                }
+            } else if (mode === 3) {
+                if (gridV) gridV.classList.add('hidden');
+                if (gridH) gridH.classList.add('hidden');
+                if (crossH) crossH.classList.add('hidden');
+                if (crossV) crossV.classList.add('hidden');
+                if (overlay) {
                     overlay.classList.remove('hidden');
-                    if(gridV) gridV.classList.add('hidden');
-                    if(crossH) crossH.classList.add('hidden');
-                    if(crossV) crossV.classList.add('hidden');
-                } else {
-                    overlay.classList.add('hidden');
-                    if(gridV) gridV.classList.remove('hidden');
-                    if(crossH) crossH.classList.remove('hidden');
-                    if(crossV) crossV.classList.remove('hidden');
+                    overlay.classList.add('show-sub');
                 }
             }
         },
@@ -21275,7 +21318,20 @@ Object.assign(window.app, {
                 adminInterval: null,
                 commentsData: { data: [], page: 1 },
                 is3x3Enabled: localStorage.getItem('vbs_admin_grid_3x3') === 'true',
-                isRulerEnabled: localStorage.getItem('vbs_admin_ruler_horiz') === 'true',
+                rulerMode: (() => {
+                    const saved = localStorage.getItem('vbs_admin_ruler_mode');
+                    if (saved !== null) {
+                        const val = parseInt(saved, 10);
+                        if (!isNaN(val) && val >= 0 && val <= 3) return val;
+                    }
+                    return localStorage.getItem('vbs_admin_ruler_horiz') === 'true' ? 2 : 0;
+                })(),
+                get isRulerEnabled() {
+                    return this.rulerMode === 2 || this.rulerMode === 3;
+                },
+                set isRulerEnabled(val) {
+                    this.rulerMode = val ? 2 : 0;
+                },
                 isHideMineEnabled: localStorage.getItem('vbs_admin_hide_mine') === 'true',
                 toggle3x3Grid: () => {
                     app.admin.is3x3Enabled = !app.admin.is3x3Enabled;
@@ -21283,8 +21339,9 @@ Object.assign(window.app, {
                     app.admin.update3x3UI();
                 },
                 toggleRuler: () => {
-                    app.admin.isRulerEnabled = !app.admin.isRulerEnabled;
-                    localStorage.setItem('vbs_admin_ruler_horiz', app.admin.isRulerEnabled ? 'true' : 'false');
+                    app.admin.rulerMode = ((app.admin.rulerMode || 0) + 1) % 4;
+                    localStorage.setItem('vbs_admin_ruler_mode', app.admin.rulerMode);
+                    localStorage.setItem('vbs_admin_ruler_horiz', (app.admin.rulerMode === 2 || app.admin.rulerMode === 3) ? 'true' : 'false');
                     app.admin.updateRulerUI();
                 },
                 toggleHideMine: () => {
@@ -22034,43 +22091,77 @@ Object.assign(window.app, {
                     const statusText = document.getElementById('status-3x3');
                     if (btn && statusText) {
                         if (app.admin.is3x3Enabled) {
-                            btn.className = "flex-shrink-0 inline-flex items-center gap-2 px-4 py-2.5 bg-black border border-black rounded-lg text-xs font-bold text-white hover:bg-gray-800 transition shadow-xl whitespace-nowrap";
+                            btn.className = "flex-shrink-0 inline-flex items-center gap-2 px-4 py-2.5 bg-black dark:bg-white border border-black dark:border-white rounded-md text-xs font-bold text-white dark:text-black hover:bg-gray-800 dark:hover:bg-gray-200 transition shadow-none whitespace-nowrap";
                             statusText.innerText = "BẬT";
                         } else {
-                            btn.className = "flex-shrink-0 inline-flex items-center gap-2 px-4 py-2.5 bg-white border border-gray-300 rounded-lg text-xs font-bold text-gray-800 hover:bg-gray-50 hover:text-black transition shadow-xl whitespace-nowrap";
+                            btn.className = "flex-shrink-0 inline-flex items-center gap-2 px-4 py-2.5 bg-white dark:bg-black border border-black dark:border-white rounded-md text-xs font-bold text-black dark:text-white hover:bg-gray-50 dark:hover:bg-zinc-800 transition shadow-none whitespace-nowrap";
                             statusText.innerText = "TẮT";
                         }
                     }
+                    const showGrid = app.admin.is3x3Enabled || app.admin.rulerMode === 1;
                     document.querySelectorAll('.admin-photo-grid-overlay').forEach(el => {
-                        if (app.admin.is3x3Enabled) el.classList.remove('hidden');
+                        if (showGrid) el.classList.remove('hidden');
                         else el.classList.add('hidden');
                     });
                     const zoomGrid = document.getElementById('admin-zoom-grid-overlay');
                     if (zoomGrid) {
-                        if (app.admin.is3x3Enabled) zoomGrid.classList.remove('hidden');
+                        if (showGrid) zoomGrid.classList.remove('hidden');
                         else zoomGrid.classList.add('hidden');
                     }
                 },
                 updateRulerUI: () => {
+                    const mode = app.admin.rulerMode || 0;
                     const btn = document.getElementById('btn-toggle-ruler');
                     const statusText = document.getElementById('status-ruler');
                     if (btn && statusText) {
-                        if (app.admin.isRulerEnabled) {
-                            btn.className = "flex-shrink-0 inline-flex items-center gap-2 px-4 py-2.5 bg-black border border-black rounded-lg text-xs font-bold text-white hover:bg-gray-800 transition shadow-xl whitespace-nowrap";
-                            statusText.innerText = "BẬT";
-                        } else {
-                            btn.className = "flex-shrink-0 inline-flex items-center gap-2 px-4 py-2.5 bg-white border border-gray-300 rounded-lg text-xs font-bold text-gray-800 hover:bg-gray-50 hover:text-black transition shadow-xl whitespace-nowrap";
+                        if (mode === 0) {
+                            btn.className = "flex-shrink-0 inline-flex items-center gap-2 px-4 py-2.5 bg-white dark:bg-black border border-black dark:border-white rounded-md text-xs font-bold text-black dark:text-white hover:bg-gray-50 dark:hover:bg-zinc-800 transition shadow-none whitespace-nowrap";
                             statusText.innerText = "TẮT";
+                        } else {
+                            btn.className = "flex-shrink-0 inline-flex items-center gap-2 px-4 py-2.5 bg-black dark:bg-white border border-black dark:border-white rounded-md text-xs font-bold text-white dark:text-black hover:bg-gray-800 dark:hover:bg-gray-200 transition shadow-none whitespace-nowrap";
+                            statusText.innerText = mode.toString();
                         }
                     }
+                    const subPositions = [4.1667, 12.5, 20.8333, 29.1667, 37.5, 45.8333, 54.1667, 62.5, 70.8333, 79.1667, 87.5, 95.8333];
                     document.querySelectorAll('.admin-photo-ruler-overlay').forEach(el => {
-                        if (app.admin.isRulerEnabled) el.classList.remove('hidden');
-                        else el.classList.add('hidden');
+                        if (!el.querySelector('.ruler-line-sub')) {
+                            let subHtml = '';
+                            subPositions.forEach(pos => {
+                                subHtml += `<div class="ruler-line-sub" style="left: ${pos}%;"></div>`;
+                            });
+                            el.insertAdjacentHTML('beforeend', subHtml);
+                        }
+                        if (mode === 2) {
+                            el.classList.remove('hidden', 'show-sub');
+                        } else if (mode === 3) {
+                            el.classList.remove('hidden');
+                            el.classList.add('show-sub');
+                        } else {
+                            el.classList.add('hidden');
+                            el.classList.remove('show-sub');
+                        }
                     });
                     const zoomRuler = document.getElementById('admin-zoom-ruler-overlay');
                     if (zoomRuler) {
-                        if (app.admin.isRulerEnabled) zoomRuler.classList.remove('hidden');
-                        else zoomRuler.classList.add('hidden');
+                        if (mode === 2) {
+                            zoomRuler.classList.remove('hidden', 'show-sub');
+                        } else if (mode === 3) {
+                            zoomRuler.classList.remove('hidden');
+                            zoomRuler.classList.add('show-sub');
+                        } else {
+                            zoomRuler.classList.add('hidden');
+                            zoomRuler.classList.remove('show-sub');
+                        }
+                    }
+                    const showGrid = app.admin.is3x3Enabled || mode === 1;
+                    document.querySelectorAll('.admin-photo-grid-overlay').forEach(el => {
+                        if (showGrid) el.classList.remove('hidden');
+                        else el.classList.add('hidden');
+                    });
+                    const zoomGrid = document.getElementById('admin-zoom-grid-overlay');
+                    if (zoomGrid) {
+                        if (showGrid) zoomGrid.classList.remove('hidden');
+                        else zoomGrid.classList.add('hidden');
                     }
                 },
                 updateHideMineUI: () => {
@@ -22078,10 +22169,10 @@ Object.assign(window.app, {
                     const statusText = document.getElementById('status-hide-mine');
                     if (btn && statusText) {
                         if (app.admin.isHideMineEnabled) {
-                            btn.className = "flex-shrink-0 inline-flex items-center gap-2 px-4 py-2.5 bg-black border border-black rounded-lg text-xs font-bold text-white hover:bg-gray-800 transition shadow-xl whitespace-nowrap";
+                            btn.className = "flex-shrink-0 inline-flex items-center gap-2 px-4 py-2.5 bg-black dark:bg-white border border-black dark:border-white rounded-md text-xs font-bold text-white dark:text-black hover:bg-gray-800 dark:hover:bg-gray-200 transition shadow-none whitespace-nowrap";
                             statusText.innerText = "BẬT";
                         } else {
-                            btn.className = "flex-shrink-0 inline-flex items-center gap-2 px-4 py-2.5 bg-white border border-gray-300 rounded-lg text-xs font-bold text-gray-800 hover:bg-gray-50 hover:text-black transition shadow-xl whitespace-nowrap";
+                            btn.className = "flex-shrink-0 inline-flex items-center gap-2 px-4 py-2.5 bg-white dark:bg-black border border-black dark:border-white rounded-md text-xs font-bold text-black dark:text-white hover:bg-gray-50 dark:hover:bg-zinc-800 transition shadow-none whitespace-nowrap";
                             statusText.innerText = "TẮT";
                         }
                     }
@@ -22091,7 +22182,9 @@ Object.assign(window.app, {
                     });
                 },
                 getRulerOverlayHTML: () => {
-                    const isHidden = app.admin.isRulerEnabled ? '' : 'hidden';
+                    const isVisible = (app.admin.rulerMode === 2 || app.admin.rulerMode === 3);
+                    const isHidden = isVisible ? '' : 'hidden';
+                    const showSubClass = (app.admin.rulerMode === 3) ? 'show-sub' : '';
                     const levels = [
                         { pos: 8.3333, label: '5' },
                         { pos: 16.6667, label: '4' },
@@ -22105,13 +22198,17 @@ Object.assign(window.app, {
                         { pos: 83.3333, label: '4' },
                         { pos: 91.6667, label: '5' }
                     ];
+                    const subPositions = [4.1667, 12.5, 20.8333, 29.1667, 37.5, 45.8333, 54.1667, 62.5, 70.8333, 79.1667, 87.5, 95.8333];
                     let linesHtml = '';
                     levels.forEach(item => {
                         const lineClass = item.isCenter ? 'ruler-line-center' : 'ruler-line-v';
                         const badgeClass = item.isCenter ? 'ruler-badge-center' : 'ruler-badge';
                         linesHtml += `<div class="${lineClass}" style="left: ${item.pos}%;"><span class="${badgeClass} ruler-badge-top">${item.label}</span><span class="${badgeClass} ruler-badge-bottom">${item.label}</span></div>`;
                     });
-                    return `<div class="admin-photo-ruler-overlay ruler-horizontal-overlay ${isHidden}">${linesHtml}</div>`;
+                    subPositions.forEach(pos => {
+                        linesHtml += `<div class="ruler-line-sub" style="left: ${pos}%;"></div>`;
+                    });
+                    return `<div class="admin-photo-ruler-overlay ruler-horizontal-overlay ${isHidden} ${showSubClass}">${linesHtml}</div>`;
                 },
                 originalData: {},
                 showModelDisabledAlert: (plate, photoId) => {
@@ -22483,7 +22580,7 @@ Object.assign(window.app, {
                     container.classList.add('modal-content-enter');
                     const zoomGrid = document.getElementById('admin-zoom-grid-overlay');
                     if (zoomGrid) {
-                        if (isFromAdminReview && app.admin.is3x3Enabled) {
+                        if (isFromAdminReview && (app.admin.is3x3Enabled || app.admin.rulerMode === 1)) {
                             zoomGrid.classList.remove('hidden');
                         } else {
                             zoomGrid.classList.add('hidden');
@@ -22491,10 +22588,13 @@ Object.assign(window.app, {
                     }
                     const zoomRuler = document.getElementById('admin-zoom-ruler-overlay');
                     if (zoomRuler) {
-                        if (isFromAdminReview && app.admin.isRulerEnabled) {
+                        if (isFromAdminReview && (app.admin.rulerMode === 2 || app.admin.rulerMode === 3)) {
                             zoomRuler.classList.remove('hidden');
+                            if (app.admin.rulerMode === 3) zoomRuler.classList.add('show-sub');
+                            else zoomRuler.classList.remove('show-sub');
                         } else {
                             zoomRuler.classList.add('hidden');
+                            zoomRuler.classList.remove('show-sub');
                         }
                     }
                     const toolbar = document.getElementById('zoom-toolbar');

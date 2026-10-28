@@ -3,7 +3,20 @@ Object.assign(window.app, {
                 adminInterval: null,
                 commentsData: { data: [], page: 1 },
                 is3x3Enabled: localStorage.getItem('vbs_admin_grid_3x3') === 'true',
-                isRulerEnabled: localStorage.getItem('vbs_admin_ruler_horiz') === 'true',
+                rulerMode: (() => {
+                    const saved = localStorage.getItem('vbs_admin_ruler_mode');
+                    if (saved !== null) {
+                        const val = parseInt(saved, 10);
+                        if (!isNaN(val) && val >= 0 && val <= 3) return val;
+                    }
+                    return localStorage.getItem('vbs_admin_ruler_horiz') === 'true' ? 2 : 0;
+                })(),
+                get isRulerEnabled() {
+                    return this.rulerMode === 2 || this.rulerMode === 3;
+                },
+                set isRulerEnabled(val) {
+                    this.rulerMode = val ? 2 : 0;
+                },
                 isHideMineEnabled: localStorage.getItem('vbs_admin_hide_mine') === 'true',
                 toggle3x3Grid: () => {
                     app.admin.is3x3Enabled = !app.admin.is3x3Enabled;
@@ -11,8 +24,9 @@ Object.assign(window.app, {
                     app.admin.update3x3UI();
                 },
                 toggleRuler: () => {
-                    app.admin.isRulerEnabled = !app.admin.isRulerEnabled;
-                    localStorage.setItem('vbs_admin_ruler_horiz', app.admin.isRulerEnabled ? 'true' : 'false');
+                    app.admin.rulerMode = ((app.admin.rulerMode || 0) + 1) % 4;
+                    localStorage.setItem('vbs_admin_ruler_mode', app.admin.rulerMode);
+                    localStorage.setItem('vbs_admin_ruler_horiz', (app.admin.rulerMode === 2 || app.admin.rulerMode === 3) ? 'true' : 'false');
                     app.admin.updateRulerUI();
                 },
                 toggleHideMine: () => {
@@ -762,43 +776,77 @@ Object.assign(window.app, {
                     const statusText = document.getElementById('status-3x3');
                     if (btn && statusText) {
                         if (app.admin.is3x3Enabled) {
-                            btn.className = "flex-shrink-0 inline-flex items-center gap-2 px-4 py-2.5 bg-black border border-black rounded-lg text-xs font-bold text-white hover:bg-gray-800 transition shadow-xl whitespace-nowrap";
+                            btn.className = "flex-shrink-0 inline-flex items-center gap-2 px-4 py-2.5 bg-black dark:bg-white border border-black dark:border-white rounded-md text-xs font-bold text-white dark:text-black hover:bg-gray-800 dark:hover:bg-gray-200 transition shadow-none whitespace-nowrap";
                             statusText.innerText = "BẬT";
                         } else {
-                            btn.className = "flex-shrink-0 inline-flex items-center gap-2 px-4 py-2.5 bg-white border border-gray-300 rounded-lg text-xs font-bold text-gray-800 hover:bg-gray-50 hover:text-black transition shadow-xl whitespace-nowrap";
+                            btn.className = "flex-shrink-0 inline-flex items-center gap-2 px-4 py-2.5 bg-white dark:bg-black border border-black dark:border-white rounded-md text-xs font-bold text-black dark:text-white hover:bg-gray-50 dark:hover:bg-zinc-800 transition shadow-none whitespace-nowrap";
                             statusText.innerText = "TẮT";
                         }
                     }
+                    const showGrid = app.admin.is3x3Enabled || app.admin.rulerMode === 1;
                     document.querySelectorAll('.admin-photo-grid-overlay').forEach(el => {
-                        if (app.admin.is3x3Enabled) el.classList.remove('hidden');
+                        if (showGrid) el.classList.remove('hidden');
                         else el.classList.add('hidden');
                     });
                     const zoomGrid = document.getElementById('admin-zoom-grid-overlay');
                     if (zoomGrid) {
-                        if (app.admin.is3x3Enabled) zoomGrid.classList.remove('hidden');
+                        if (showGrid) zoomGrid.classList.remove('hidden');
                         else zoomGrid.classList.add('hidden');
                     }
                 },
                 updateRulerUI: () => {
+                    const mode = app.admin.rulerMode || 0;
                     const btn = document.getElementById('btn-toggle-ruler');
                     const statusText = document.getElementById('status-ruler');
                     if (btn && statusText) {
-                        if (app.admin.isRulerEnabled) {
-                            btn.className = "flex-shrink-0 inline-flex items-center gap-2 px-4 py-2.5 bg-black border border-black rounded-lg text-xs font-bold text-white hover:bg-gray-800 transition shadow-xl whitespace-nowrap";
-                            statusText.innerText = "BẬT";
-                        } else {
-                            btn.className = "flex-shrink-0 inline-flex items-center gap-2 px-4 py-2.5 bg-white border border-gray-300 rounded-lg text-xs font-bold text-gray-800 hover:bg-gray-50 hover:text-black transition shadow-xl whitespace-nowrap";
+                        if (mode === 0) {
+                            btn.className = "flex-shrink-0 inline-flex items-center gap-2 px-4 py-2.5 bg-white dark:bg-black border border-black dark:border-white rounded-md text-xs font-bold text-black dark:text-white hover:bg-gray-50 dark:hover:bg-zinc-800 transition shadow-none whitespace-nowrap";
                             statusText.innerText = "TẮT";
+                        } else {
+                            btn.className = "flex-shrink-0 inline-flex items-center gap-2 px-4 py-2.5 bg-black dark:bg-white border border-black dark:border-white rounded-md text-xs font-bold text-white dark:text-black hover:bg-gray-800 dark:hover:bg-gray-200 transition shadow-none whitespace-nowrap";
+                            statusText.innerText = mode.toString();
                         }
                     }
+                    const subPositions = [4.1667, 12.5, 20.8333, 29.1667, 37.5, 45.8333, 54.1667, 62.5, 70.8333, 79.1667, 87.5, 95.8333];
                     document.querySelectorAll('.admin-photo-ruler-overlay').forEach(el => {
-                        if (app.admin.isRulerEnabled) el.classList.remove('hidden');
-                        else el.classList.add('hidden');
+                        if (!el.querySelector('.ruler-line-sub')) {
+                            let subHtml = '';
+                            subPositions.forEach(pos => {
+                                subHtml += `<div class="ruler-line-sub" style="left: ${pos}%;"></div>`;
+                            });
+                            el.insertAdjacentHTML('beforeend', subHtml);
+                        }
+                        if (mode === 2) {
+                            el.classList.remove('hidden', 'show-sub');
+                        } else if (mode === 3) {
+                            el.classList.remove('hidden');
+                            el.classList.add('show-sub');
+                        } else {
+                            el.classList.add('hidden');
+                            el.classList.remove('show-sub');
+                        }
                     });
                     const zoomRuler = document.getElementById('admin-zoom-ruler-overlay');
                     if (zoomRuler) {
-                        if (app.admin.isRulerEnabled) zoomRuler.classList.remove('hidden');
-                        else zoomRuler.classList.add('hidden');
+                        if (mode === 2) {
+                            zoomRuler.classList.remove('hidden', 'show-sub');
+                        } else if (mode === 3) {
+                            zoomRuler.classList.remove('hidden');
+                            zoomRuler.classList.add('show-sub');
+                        } else {
+                            zoomRuler.classList.add('hidden');
+                            zoomRuler.classList.remove('show-sub');
+                        }
+                    }
+                    const showGrid = app.admin.is3x3Enabled || mode === 1;
+                    document.querySelectorAll('.admin-photo-grid-overlay').forEach(el => {
+                        if (showGrid) el.classList.remove('hidden');
+                        else el.classList.add('hidden');
+                    });
+                    const zoomGrid = document.getElementById('admin-zoom-grid-overlay');
+                    if (zoomGrid) {
+                        if (showGrid) zoomGrid.classList.remove('hidden');
+                        else zoomGrid.classList.add('hidden');
                     }
                 },
                 updateHideMineUI: () => {
@@ -806,10 +854,10 @@ Object.assign(window.app, {
                     const statusText = document.getElementById('status-hide-mine');
                     if (btn && statusText) {
                         if (app.admin.isHideMineEnabled) {
-                            btn.className = "flex-shrink-0 inline-flex items-center gap-2 px-4 py-2.5 bg-black border border-black rounded-lg text-xs font-bold text-white hover:bg-gray-800 transition shadow-xl whitespace-nowrap";
+                            btn.className = "flex-shrink-0 inline-flex items-center gap-2 px-4 py-2.5 bg-black dark:bg-white border border-black dark:border-white rounded-md text-xs font-bold text-white dark:text-black hover:bg-gray-800 dark:hover:bg-gray-200 transition shadow-none whitespace-nowrap";
                             statusText.innerText = "BẬT";
                         } else {
-                            btn.className = "flex-shrink-0 inline-flex items-center gap-2 px-4 py-2.5 bg-white border border-gray-300 rounded-lg text-xs font-bold text-gray-800 hover:bg-gray-50 hover:text-black transition shadow-xl whitespace-nowrap";
+                            btn.className = "flex-shrink-0 inline-flex items-center gap-2 px-4 py-2.5 bg-white dark:bg-black border border-black dark:border-white rounded-md text-xs font-bold text-black dark:text-white hover:bg-gray-50 dark:hover:bg-zinc-800 transition shadow-none whitespace-nowrap";
                             statusText.innerText = "TẮT";
                         }
                     }
@@ -819,7 +867,9 @@ Object.assign(window.app, {
                     });
                 },
                 getRulerOverlayHTML: () => {
-                    const isHidden = app.admin.isRulerEnabled ? '' : 'hidden';
+                    const isVisible = (app.admin.rulerMode === 2 || app.admin.rulerMode === 3);
+                    const isHidden = isVisible ? '' : 'hidden';
+                    const showSubClass = (app.admin.rulerMode === 3) ? 'show-sub' : '';
                     const levels = [
                         { pos: 8.3333, label: '5' },
                         { pos: 16.6667, label: '4' },
@@ -833,13 +883,17 @@ Object.assign(window.app, {
                         { pos: 83.3333, label: '4' },
                         { pos: 91.6667, label: '5' }
                     ];
+                    const subPositions = [4.1667, 12.5, 20.8333, 29.1667, 37.5, 45.8333, 54.1667, 62.5, 70.8333, 79.1667, 87.5, 95.8333];
                     let linesHtml = '';
                     levels.forEach(item => {
                         const lineClass = item.isCenter ? 'ruler-line-center' : 'ruler-line-v';
                         const badgeClass = item.isCenter ? 'ruler-badge-center' : 'ruler-badge';
                         linesHtml += `<div class="${lineClass}" style="left: ${item.pos}%;"><span class="${badgeClass} ruler-badge-top">${item.label}</span><span class="${badgeClass} ruler-badge-bottom">${item.label}</span></div>`;
                     });
-                    return `<div class="admin-photo-ruler-overlay ruler-horizontal-overlay ${isHidden}">${linesHtml}</div>`;
+                    subPositions.forEach(pos => {
+                        linesHtml += `<div class="ruler-line-sub" style="left: ${pos}%;"></div>`;
+                    });
+                    return `<div class="admin-photo-ruler-overlay ruler-horizontal-overlay ${isHidden} ${showSubClass}">${linesHtml}</div>`;
                 },
                 originalData: {},
                 showModelDisabledAlert: (plate, photoId) => {
@@ -1211,7 +1265,7 @@ Object.assign(window.app, {
                     container.classList.add('modal-content-enter');
                     const zoomGrid = document.getElementById('admin-zoom-grid-overlay');
                     if (zoomGrid) {
-                        if (isFromAdminReview && app.admin.is3x3Enabled) {
+                        if (isFromAdminReview && (app.admin.is3x3Enabled || app.admin.rulerMode === 1)) {
                             zoomGrid.classList.remove('hidden');
                         } else {
                             zoomGrid.classList.add('hidden');
@@ -1219,10 +1273,13 @@ Object.assign(window.app, {
                     }
                     const zoomRuler = document.getElementById('admin-zoom-ruler-overlay');
                     if (zoomRuler) {
-                        if (isFromAdminReview && app.admin.isRulerEnabled) {
+                        if (isFromAdminReview && (app.admin.rulerMode === 2 || app.admin.rulerMode === 3)) {
                             zoomRuler.classList.remove('hidden');
+                            if (app.admin.rulerMode === 3) zoomRuler.classList.add('show-sub');
+                            else zoomRuler.classList.remove('show-sub');
                         } else {
                             zoomRuler.classList.add('hidden');
+                            zoomRuler.classList.remove('show-sub');
                         }
                     }
                     const toolbar = document.getElementById('zoom-toolbar');

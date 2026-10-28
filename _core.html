@@ -2082,6 +2082,19 @@ html.theme-dark .ct-icon {
             background: #ffffff;
             box-shadow: 0 0 4px rgba(0, 0, 0, 0.95), 0 0 1px rgba(0, 0, 0, 1);
         }
+        .ruler-line-sub {
+            display: none;
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 1px;
+            background-image: repeating-linear-gradient(to bottom, rgba(255, 255, 255, 0.55) 0px, rgba(255, 255, 255, 0.55) 5px, transparent 5px, transparent 10px);
+            box-shadow: 0 0 2px rgba(0, 0, 0, 0.9);
+            pointer-events: none;
+        }
+        .ruler-horizontal-overlay.show-sub .ruler-line-sub {
+            display: block;
+        }
         .ruler-badge {
             position: absolute;
             left: 50%;
@@ -2566,7 +2579,7 @@ html.theme-dark .ct-icon {
                     </div>
                     <div class="p-3 md:p-4 flex justify-between items-center w-full">
                         <div class="flex items-center">
-                            <button type="button" id="btn-crop-toggle-ruler" onclick="app.crop.toggleRuler()" class="px-3 py-2 sm:px-3 sm:py-1.5 text-xs bg-white text-gray-700 border border-gray-300 rounded-md hover:bg-gray-100 font-bold transition flex items-center justify-center gap-1.5" title="Bật/Tắt thước ngang canh xe">
+                            <button type="button" id="btn-crop-toggle-ruler" onclick="app.crop.toggleRuler()" class="px-3 py-2 sm:px-3 sm:py-1.5 text-xs bg-white dark:bg-black text-black dark:text-white border border-black dark:border-white rounded-md hover:bg-gray-50 dark:hover:bg-zinc-800 font-bold transition flex items-center justify-center gap-1.5" title="Bật/Tắt thước ngang canh xe">
                                 <i class="fa-solid fa-ruler-horizontal"></i> <span class="hidden sm:inline">Thước ngang</span>
                             </button>
                         </div>
@@ -3063,6 +3076,18 @@ html.theme-dark .ct-icon {
                     <div class="ruler-line-v" style="left: 75%;"><span class="ruler-badge ruler-badge-top">3</span><span class="ruler-badge ruler-badge-bottom">3</span></div>
                     <div class="ruler-line-v" style="left: 83.3333%;"><span class="ruler-badge ruler-badge-top">4</span><span class="ruler-badge ruler-badge-bottom">4</span></div>
                     <div class="ruler-line-v" style="left: 91.6667%;"><span class="ruler-badge ruler-badge-top">5</span><span class="ruler-badge ruler-badge-bottom">5</span></div>
+                    <div class="ruler-line-sub" style="left: 4.1667%;"></div>
+                    <div class="ruler-line-sub" style="left: 12.5%;"></div>
+                    <div class="ruler-line-sub" style="left: 20.8333%;"></div>
+                    <div class="ruler-line-sub" style="left: 29.1667%;"></div>
+                    <div class="ruler-line-sub" style="left: 37.5%;"></div>
+                    <div class="ruler-line-sub" style="left: 45.8333%;"></div>
+                    <div class="ruler-line-sub" style="left: 54.1667%;"></div>
+                    <div class="ruler-line-sub" style="left: 62.5%;"></div>
+                    <div class="ruler-line-sub" style="left: 70.8333%;"></div>
+                    <div class="ruler-line-sub" style="left: 79.1667%;"></div>
+                    <div class="ruler-line-sub" style="left: 87.5%;"></div>
+                    <div class="ruler-line-sub" style="left: 95.8333%;"></div>
                 </div>
             </div>
             <button onclick="app.admin.closeZoom()" title="Đóng (ESC)" class="absolute top-4 right-4 text-black hover:text-red-600 text-3xl z-[4010] p-2 transition-transform active:scale-90"><i class="fa-solid fa-xmark"></i></button>
@@ -5537,16 +5562,16 @@ html.theme-dark .ct-icon {
                 <!-- Toolbar tiện ích duyệt ảnh: căn trái, cuộn ngang khi màn hình nhỏ -->
                 <div id="adm-photo-grid-toggle-bar" class="hidden sticky top-4 z-40 mb-6 pointer-events-none">
                     <div class="inline-flex items-center justify-start gap-3 overflow-x-auto max-w-full pb-1 pointer-events-auto">
-                        <button type="button" id="btn-toggle-3x3" onclick="app.admin.toggle3x3Grid()" class="flex-shrink-0 inline-flex items-center gap-2 px-4 py-2.5 bg-white border border-gray-300 rounded-lg text-xs font-bold text-gray-800 hover:bg-gray-50 hover:text-black transition shadow-xl whitespace-nowrap">
-                            <i class="fa-solid fa-table-cells text-gray-600"></i>
+                        <button type="button" id="btn-toggle-3x3" onclick="app.admin.toggle3x3Grid()" class="flex-shrink-0 inline-flex items-center gap-2 px-4 py-2.5 bg-white dark:bg-black border border-black dark:border-white rounded-md text-xs font-bold text-black dark:text-white hover:bg-gray-50 dark:hover:bg-zinc-800 transition shadow-none whitespace-nowrap">
+                            <i class="fa-solid fa-table-cells text-gray-600 dark:text-gray-300"></i>
                             <span>Đường tham chiếu: <b id="status-3x3">TẮT</b></span>
                         </button>
-                        <button type="button" id="btn-toggle-ruler" onclick="app.admin.toggleRuler()" class="flex-shrink-0 inline-flex items-center gap-2 px-4 py-2.5 bg-white border border-gray-300 rounded-lg text-xs font-bold text-gray-800 hover:bg-gray-50 hover:text-black transition shadow-xl whitespace-nowrap">
-                            <i class="fa-solid fa-ruler-horizontal text-gray-600"></i>
+                        <button type="button" id="btn-toggle-ruler" onclick="app.admin.toggleRuler()" class="flex-shrink-0 inline-flex items-center gap-2 px-4 py-2.5 bg-white dark:bg-black border border-black dark:border-white rounded-md text-xs font-bold text-black dark:text-white hover:bg-gray-50 dark:hover:bg-zinc-800 transition shadow-none whitespace-nowrap">
+                            <i class="fa-solid fa-ruler-horizontal text-gray-600 dark:text-gray-300"></i>
                             <span>Thước ngang: <b id="status-ruler">TẮT</b></span>
                         </button>
-                        <button type="button" id="btn-toggle-hide-mine" onclick="app.admin.toggleHideMine()" class="flex-shrink-0 inline-flex items-center gap-2 px-4 py-2.5 bg-white border border-gray-300 rounded-lg text-xs font-bold text-gray-800 hover:bg-gray-50 hover:text-black transition shadow-xl whitespace-nowrap">
-                            <i class="fa-solid fa-eye-slash text-gray-600"></i>
+                        <button type="button" id="btn-toggle-hide-mine" onclick="app.admin.toggleHideMine()" class="flex-shrink-0 inline-flex items-center gap-2 px-4 py-2.5 bg-white dark:bg-black border border-black dark:border-white rounded-md text-xs font-bold text-black dark:text-white hover:bg-gray-50 dark:hover:bg-zinc-800 transition shadow-none whitespace-nowrap">
+                            <i class="fa-solid fa-eye-slash text-gray-600 dark:text-gray-300"></i>
                             <span>Ẩn ảnh của tôi: <b id="status-hide-mine">TẮT</b></span>
                         </button>
                     </div>

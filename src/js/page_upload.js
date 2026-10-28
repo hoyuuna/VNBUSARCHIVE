@@ -3455,7 +3455,20 @@ Object.assign(window.app, {
         sourceImage: null,
         savedRatio: 4/3,
         modeTab: 'ratio',
-        isRulerEnabled: localStorage.getItem('cropRulerEnabled') === 'true',
+        rulerMode: (() => {
+            const saved = localStorage.getItem('cropRulerMode');
+            if (saved !== null) {
+                const val = parseInt(saved, 10);
+                if (!isNaN(val) && val >= 0 && val <= 3) return val;
+            }
+            return localStorage.getItem('cropRulerEnabled') === 'true' ? 2 : 1;
+        })(),
+        get isRulerEnabled() {
+            return this.rulerMode === 2 || this.rulerMode === 3;
+        },
+        set isRulerEnabled(val) {
+            this.rulerMode = val ? 2 : 1;
+        },
         isMandatory: false,
         isProcessing: false,
         closeTimeout: null,
@@ -3835,8 +3848,8 @@ Object.assign(window.app, {
             app.crop.applyTransform();
         },
         toggleRuler: () => {
-            const willEnable = !app.crop.isRulerEnabled;
-            if (willEnable && !localStorage.getItem('vnbus_ruler_guide_shown')) {
+            const nextMode = ((app.crop.rulerMode || 0) + 1) % 4;
+            if (nextMode === 2 && !localStorage.getItem('vnbus_ruler_guide_shown')) {
                 app.ui.showAlert(
                     `<div class="text-left">
                         <p class="text-sm text-gray-700 mb-2">Xác định 2 điểm xa nhất ngoài cùng bên trái và bên phải của xe (mép xe có thể là bất kỳ bộ phận nào, không tính gương chiếu hậu).</p>
@@ -3850,8 +3863,9 @@ Object.assign(window.app, {
                     </div>`,
                     () => {
                         localStorage.setItem('vnbus_ruler_guide_shown', 'true');
-                        app.crop.isRulerEnabled = true;
-                        localStorage.setItem('cropRulerEnabled', true);
+                        app.crop.rulerMode = 2;
+                        localStorage.setItem('cropRulerMode', 2);
+                        localStorage.setItem('cropRulerEnabled', 'true');
                         app.crop.updateRulerUI();
                     },
                     null,
@@ -3859,12 +3873,15 @@ Object.assign(window.app, {
                 );
                 return;
             }
-            app.crop.isRulerEnabled = !app.crop.isRulerEnabled;
-            localStorage.setItem('cropRulerEnabled', app.crop.isRulerEnabled);
+            app.crop.rulerMode = nextMode;
+            localStorage.setItem('cropRulerMode', nextMode);
+            localStorage.setItem('cropRulerEnabled', (nextMode === 2 || nextMode === 3) ? 'true' : 'false');
             app.crop.updateRulerUI();
         },
         getRulerHTML: () => {
-            const isHidden = app.crop.isRulerEnabled ? '' : 'hidden';
+            const isVisible = (app.crop.rulerMode === 2 || app.crop.rulerMode === 3);
+            const isHidden = isVisible ? '' : 'hidden';
+            const showSubClass = (app.crop.rulerMode === 3) ? 'show-sub' : '';
             const levels = [
                 { pos: 8.3333, label: '5' },
                 { pos: 16.6667, label: '4' },
@@ -3878,46 +3895,72 @@ Object.assign(window.app, {
                 { pos: 83.3333, label: '4' },
                 { pos: 91.6667, label: '5' }
             ];
+            const subPositions = [4.1667, 12.5, 20.8333, 29.1667, 37.5, 45.8333, 54.1667, 62.5, 70.8333, 79.1667, 87.5, 95.8333];
             let linesHtml = '';
             levels.forEach(item => {
                 const lineClass = item.isCenter ? 'ruler-line-center' : 'ruler-line-v';
                 const badgeClass = item.isCenter ? 'ruler-badge-center' : 'ruler-badge';
                 linesHtml += `<div class="${lineClass}" style="left: ${item.pos}%;"><span class="${badgeClass} ruler-badge-top">${item.label}</span><span class="${badgeClass} ruler-badge-bottom">${item.label}</span></div>`;
             });
-            return `<div class="crop-ruler-overlay ruler-horizontal-overlay ${isHidden}" style="z-index: 25;">${linesHtml}</div>`;
+            subPositions.forEach(pos => {
+                linesHtml += `<div class="ruler-line-sub" style="left: ${pos}%;"></div>`;
+            });
+            return `<div class="crop-ruler-overlay ruler-horizontal-overlay ${isHidden} ${showSubClass}" style="z-index: 25;">${linesHtml}</div>`;
         },
         updateRulerUI: () => {
             const isAvatar = app.crop.mode === 'avatar';
-            const showRuler = app.crop.isRulerEnabled && !isAvatar;
+            const mode = isAvatar ? 0 : (app.crop.rulerMode != null ? app.crop.rulerMode : 1);
             const btn = document.getElementById('btn-crop-toggle-ruler');
             if (btn) {
-                if (showRuler) {
-                    btn.className = "px-3 py-2 sm:px-3 sm:py-1.5 text-xs bg-black text-white border border-black rounded-md font-bold transition flex items-center justify-center gap-1.5";
+                if (mode === 0) {
+                    btn.className = "px-3 py-2 sm:px-3 sm:py-1.5 text-xs bg-white dark:bg-black text-black dark:text-white border border-black dark:border-white rounded-md hover:bg-gray-50 dark:hover:bg-zinc-800 font-bold transition flex items-center justify-center gap-1.5";
+                    btn.innerHTML = `<i class="fa-solid fa-ruler-horizontal"></i> <span class="hidden sm:inline">Thước ngang</span>`;
                 } else {
-                    btn.className = "px-3 py-2 sm:px-3 sm:py-1.5 text-xs bg-white text-gray-700 border border-gray-300 rounded-md hover:bg-gray-100 font-bold transition flex items-center justify-center gap-1.5";
+                    btn.className = "px-3 py-2 sm:px-3 sm:py-1.5 text-xs bg-black dark:bg-white text-white dark:text-black border border-black dark:border-white rounded-md hover:bg-gray-800 dark:hover:bg-gray-200 font-bold transition flex items-center justify-center gap-1.5";
+                    btn.innerHTML = `<i class="fa-solid fa-ruler-horizontal"></i> <span class="hidden sm:inline">Thước ngang </span><span>${mode}</span>`;
                 }
             }
             const overlayBox = document.getElementById('crop-overlay-box');
             if (!overlayBox) return;
             let overlay = overlayBox.querySelector('.crop-ruler-overlay');
-            if (!overlay) {
+            if (!overlay || !overlay.querySelector('.ruler-line-sub')) {
+                if (overlay) overlay.remove();
                 overlayBox.insertAdjacentHTML('beforeend', app.crop.getRulerHTML());
                 overlay = overlayBox.querySelector('.crop-ruler-overlay');
             }
             const gridV = document.getElementById('crop-grid-v');
+            const gridH = document.getElementById('crop-grid-h');
             const crossH = document.getElementById('crop-crosshair-h');
             const crossV = document.getElementById('crop-crosshair-v');
-            if (overlay) {
-                if (showRuler) {
+
+            if (mode === 0) {
+                if (overlay) overlay.classList.add('hidden');
+                if (gridV) gridV.classList.add('hidden');
+                if (gridH) gridH.classList.add('hidden');
+                if (crossH) crossH.classList.add('hidden');
+                if (crossV) crossV.classList.add('hidden');
+            } else if (mode === 1) {
+                if (overlay) overlay.classList.add('hidden');
+                if (gridV) gridV.classList.remove('hidden');
+                if (gridH) gridH.classList.remove('hidden');
+                if (crossH) crossH.classList.remove('hidden');
+                if (crossV) crossV.classList.remove('hidden');
+            } else if (mode === 2) {
+                if (gridV) gridV.classList.add('hidden');
+                if (gridH) gridH.classList.add('hidden');
+                if (crossH) crossH.classList.add('hidden');
+                if (crossV) crossV.classList.add('hidden');
+                if (overlay) {
+                    overlay.classList.remove('hidden', 'show-sub');
+                }
+            } else if (mode === 3) {
+                if (gridV) gridV.classList.add('hidden');
+                if (gridH) gridH.classList.add('hidden');
+                if (crossH) crossH.classList.add('hidden');
+                if (crossV) crossV.classList.add('hidden');
+                if (overlay) {
                     overlay.classList.remove('hidden');
-                    if(gridV) gridV.classList.add('hidden');
-                    if(crossH) crossH.classList.add('hidden');
-                    if(crossV) crossV.classList.add('hidden');
-                } else {
-                    overlay.classList.add('hidden');
-                    if(gridV) gridV.classList.remove('hidden');
-                    if(crossH) crossH.classList.remove('hidden');
-                    if(crossV) crossV.classList.remove('hidden');
+                    overlay.classList.add('show-sub');
                 }
             }
         },
