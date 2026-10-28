@@ -2071,6 +2071,7 @@ html.theme-dark .ct-icon {
             top: 0;
             bottom: 0;
             width: 1px;
+            transform: translateX(-50%);
             background: rgba(255, 255, 255, 0.75);
             box-shadow: 0 0 2px rgba(0, 0, 0, 0.95), 0 0 1px rgba(0, 0, 0, 1);
         }
@@ -2079,6 +2080,7 @@ html.theme-dark .ct-icon {
             top: 0;
             bottom: 0;
             width: 2px;
+            transform: translateX(-50%);
             background: #ffffff;
             box-shadow: 0 0 4px rgba(0, 0, 0, 0.95), 0 0 1px rgba(0, 0, 0, 1);
         }
@@ -2088,6 +2090,7 @@ html.theme-dark .ct-icon {
             top: 0;
             bottom: 0;
             width: 1px;
+            transform: translateX(-50%);
             background-image: repeating-linear-gradient(to bottom, rgba(255, 255, 255, 0.55) 0px, rgba(255, 255, 255, 0.55) 5px, transparent 5px, transparent 10px);
             box-shadow: 0 0 2px rgba(0, 0, 0, 0.9);
             pointer-events: none;
@@ -2099,14 +2102,21 @@ html.theme-dark .ct-icon {
             position: absolute;
             left: 50%;
             transform: translateX(-50%);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            width: 16px;
+            height: 16px;
+            padding: 0 !important;
+            box-sizing: border-box;
             background: rgba(0, 0, 0, 0.85);
             color: #ffffff;
-            font-family: monospace;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             font-size: 10px;
             font-weight: 700;
-            line-height: 1;
-            padding: 3px 5px;
-            border-radius: 4px;
+            line-height: 16px;
+            border-radius: 3px;
             border: 1px solid rgba(255, 255, 255, 0.35);
             box-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
             white-space: nowrap;
@@ -2115,14 +2125,21 @@ html.theme-dark .ct-icon {
             position: absolute;
             left: 50%;
             transform: translateX(-50%);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            width: 16px;
+            height: 16px;
+            padding: 0 !important;
+            box-sizing: border-box;
             background: #ffffff;
             color: #000000;
-            font-family: monospace;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             font-size: 10px;
             font-weight: 800;
-            line-height: 1;
-            padding: 3px 5px;
-            border-radius: 4px;
+            line-height: 16px;
+            border-radius: 3px;
             border: 1px solid rgba(0, 0, 0, 0.8);
             box-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
             white-space: nowrap;
@@ -2579,8 +2596,8 @@ html.theme-dark .ct-icon {
                     </div>
                     <div class="p-3 md:p-4 flex justify-between items-center w-full">
                         <div class="flex items-center">
-                            <button type="button" id="btn-crop-toggle-ruler" onclick="app.crop.toggleRuler()" class="px-3 py-2 sm:px-3 sm:py-1.5 text-xs bg-white dark:bg-black text-black dark:text-white border border-black dark:border-white rounded-md hover:bg-gray-50 dark:hover:bg-zinc-800 font-bold transition flex items-center justify-center gap-1.5" title="Bật/Tắt thước ngang canh xe">
-                                <i class="fa-solid fa-ruler-horizontal"></i> <span class="hidden sm:inline">Thước ngang</span>
+                            <button type="button" id="btn-crop-toggle-ruler" onclick="app.crop.toggleRuler()" class="w-[48px] sm:w-[136px] shrink-0 px-2 sm:px-3 py-2 sm:py-1.5 text-xs bg-white dark:bg-black text-black dark:text-white border border-black dark:border-white rounded-md hover:bg-gray-50 dark:hover:bg-zinc-800 font-bold transition flex items-center justify-center gap-1" title="Bật/Tắt thước ngang canh xe">
+                                <i class="fa-solid fa-ruler-horizontal"></i> <span class="hidden sm:inline">Thước ngang</span><span class="hidden sm:inline-block w-2.5"></span>
                             </button>
                         </div>
                         <div class="flex items-center gap-2 sm:gap-4">
@@ -5566,9 +5583,9 @@ html.theme-dark .ct-icon {
                             <i class="fa-solid fa-table-cells text-gray-600 dark:text-gray-300"></i>
                             <span>Đường tham chiếu: <b id="status-3x3">TẮT</b></span>
                         </button>
-                        <button type="button" id="btn-toggle-ruler" onclick="app.admin.toggleRuler()" class="flex-shrink-0 inline-flex items-center gap-2 px-4 py-2.5 bg-white dark:bg-black border border-black dark:border-white rounded-md text-xs font-bold text-black dark:text-white hover:bg-gray-50 dark:hover:bg-zinc-800 transition shadow-none whitespace-nowrap">
+                        <button type="button" id="btn-toggle-ruler" onclick="app.admin.toggleRuler()" class="w-[160px] min-w-[160px] max-w-[160px] flex-shrink-0 inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-white dark:bg-black border border-black dark:border-white rounded-md text-xs font-bold text-black dark:text-white hover:bg-gray-50 dark:hover:bg-zinc-800 transition shadow-none whitespace-nowrap">
                             <i class="fa-solid fa-ruler-horizontal text-gray-600 dark:text-gray-300"></i>
-                            <span>Thước ngang: <b id="status-ruler">TẮT</b></span>
+                            <span>Thước ngang: <b id="status-ruler" class="inline-block text-center min-w-[28px]">TẮT</b></span>
                         </button>
                         <button type="button" id="btn-toggle-hide-mine" onclick="app.admin.toggleHideMine()" class="flex-shrink-0 inline-flex items-center gap-2 px-4 py-2.5 bg-white dark:bg-black border border-black dark:border-white rounded-md text-xs font-bold text-black dark:text-white hover:bg-gray-50 dark:hover:bg-zinc-800 transition shadow-none whitespace-nowrap">
                             <i class="fa-solid fa-eye-slash text-gray-600 dark:text-gray-300"></i>

@@ -800,10 +800,10 @@ Object.assign(window.app, {
                     const statusText = document.getElementById('status-ruler');
                     if (btn && statusText) {
                         if (mode === 0) {
-                            btn.className = "flex-shrink-0 inline-flex items-center gap-2 px-4 py-2.5 bg-white dark:bg-black border border-black dark:border-white rounded-md text-xs font-bold text-black dark:text-white hover:bg-gray-50 dark:hover:bg-zinc-800 transition shadow-none whitespace-nowrap";
+                            btn.className = "w-[160px] min-w-[160px] max-w-[160px] flex-shrink-0 inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-white dark:bg-black border border-black dark:border-white rounded-md text-xs font-bold text-black dark:text-white hover:bg-gray-50 dark:hover:bg-zinc-800 transition shadow-none whitespace-nowrap";
                             statusText.innerText = "TẮT";
                         } else {
-                            btn.className = "flex-shrink-0 inline-flex items-center gap-2 px-4 py-2.5 bg-black dark:bg-white border border-black dark:border-white rounded-md text-xs font-bold text-white dark:text-black hover:bg-gray-800 dark:hover:bg-gray-200 transition shadow-none whitespace-nowrap";
+                            btn.className = "w-[160px] min-w-[160px] max-w-[160px] flex-shrink-0 inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-black dark:bg-white border border-black dark:border-white rounded-md text-xs font-bold text-white dark:text-black hover:bg-gray-800 dark:hover:bg-gray-200 transition shadow-none whitespace-nowrap";
                             statusText.innerText = mode.toString();
                         }
                     }

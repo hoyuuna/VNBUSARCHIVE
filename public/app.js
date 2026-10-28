@@ -19267,11 +19267,11 @@ Object.assign(window.app, {
             const btn = document.getElementById('btn-crop-toggle-ruler');
             if (btn) {
                 if (mode === 0) {
-                    btn.className = "px-3 py-2 sm:px-3 sm:py-1.5 text-xs bg-white dark:bg-black text-black dark:text-white border border-black dark:border-white rounded-md hover:bg-gray-50 dark:hover:bg-zinc-800 font-bold transition flex items-center justify-center gap-1.5";
-                    btn.innerHTML = `<i class="fa-solid fa-ruler-horizontal"></i> <span class="hidden sm:inline">Thước ngang</span>`;
+                    btn.className = "w-[48px] sm:w-[136px] shrink-0 px-2 sm:px-3 py-2 sm:py-1.5 text-xs bg-white dark:bg-black text-black dark:text-white border border-black dark:border-white rounded-md hover:bg-gray-50 dark:hover:bg-zinc-800 font-bold transition flex items-center justify-center gap-1";
+                    btn.innerHTML = `<i class="fa-solid fa-ruler-horizontal"></i> <span class="hidden sm:inline">Thước ngang</span><span class="hidden sm:inline-block w-2.5"></span>`;
                 } else {
-                    btn.className = "px-3 py-2 sm:px-3 sm:py-1.5 text-xs bg-black dark:bg-white text-white dark:text-black border border-black dark:border-white rounded-md hover:bg-gray-800 dark:hover:bg-gray-200 font-bold transition flex items-center justify-center gap-1.5";
-                    btn.innerHTML = `<i class="fa-solid fa-ruler-horizontal"></i> <span class="hidden sm:inline">Thước ngang </span><span>${mode}</span>`;
+                    btn.className = "w-[48px] sm:w-[136px] shrink-0 px-2 sm:px-3 py-2 sm:py-1.5 text-xs bg-black dark:bg-white text-white dark:text-black border border-black dark:border-white rounded-md hover:bg-gray-800 dark:hover:bg-gray-200 font-bold transition flex items-center justify-center gap-1";
+                    btn.innerHTML = `<i class="fa-solid fa-ruler-horizontal"></i> <span class="hidden sm:inline">Thước ngang</span> <span class="font-bold text-center w-2.5 inline-block">${mode}</span>`;
                 }
             }
             const overlayBox = document.getElementById('crop-overlay-box');
@@ -22115,10 +22115,10 @@ Object.assign(window.app, {
                     const statusText = document.getElementById('status-ruler');
                     if (btn && statusText) {
                         if (mode === 0) {
-                            btn.className = "flex-shrink-0 inline-flex items-center gap-2 px-4 py-2.5 bg-white dark:bg-black border border-black dark:border-white rounded-md text-xs font-bold text-black dark:text-white hover:bg-gray-50 dark:hover:bg-zinc-800 transition shadow-none whitespace-nowrap";
+                            btn.className = "w-[160px] min-w-[160px] max-w-[160px] flex-shrink-0 inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-white dark:bg-black border border-black dark:border-white rounded-md text-xs font-bold text-black dark:text-white hover:bg-gray-50 dark:hover:bg-zinc-800 transition shadow-none whitespace-nowrap";
                             statusText.innerText = "TẮT";
                         } else {
-                            btn.className = "flex-shrink-0 inline-flex items-center gap-2 px-4 py-2.5 bg-black dark:bg-white border border-black dark:border-white rounded-md text-xs font-bold text-white dark:text-black hover:bg-gray-800 dark:hover:bg-gray-200 transition shadow-none whitespace-nowrap";
+                            btn.className = "w-[160px] min-w-[160px] max-w-[160px] flex-shrink-0 inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-black dark:bg-white border border-black dark:border-white rounded-md text-xs font-bold text-white dark:text-black hover:bg-gray-800 dark:hover:bg-gray-200 transition shadow-none whitespace-nowrap";
                             statusText.innerText = mode.toString();
                         }
                     }
