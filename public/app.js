@@ -19267,11 +19267,11 @@ Object.assign(window.app, {
             const btn = document.getElementById('btn-crop-toggle-ruler');
             if (btn) {
                 if (mode === 0) {
-                    btn.className = "w-[48px] sm:w-[136px] shrink-0 px-2 sm:px-3 py-2 sm:py-1.5 text-xs bg-white dark:bg-black text-black dark:text-white border border-black dark:border-white rounded-md hover:bg-gray-50 dark:hover:bg-zinc-800 font-bold transition flex items-center justify-center gap-1";
-                    btn.innerHTML = `<i class="fa-solid fa-ruler-horizontal"></i> <span class="hidden sm:inline">Thước ngang</span><span class="hidden sm:inline-block w-2.5"></span>`;
+                    btn.className = "w-[48px] sm:w-[136px] shrink-0 text-xs bg-white dark:bg-black text-black dark:text-white border border-black dark:border-white rounded-md hover:bg-gray-50 dark:hover:bg-zinc-800 font-bold transition flex items-center justify-center";
+                    btn.innerHTML = `<i class="fa-solid fa-ruler-horizontal"></i><span class="hidden sm:inline ml-1.5">Thước ngang</span>`;
                 } else {
-                    btn.className = "w-[48px] sm:w-[136px] shrink-0 px-2 sm:px-3 py-2 sm:py-1.5 text-xs bg-black dark:bg-white text-white dark:text-black border border-black dark:border-white rounded-md hover:bg-gray-800 dark:hover:bg-gray-200 font-bold transition flex items-center justify-center gap-1";
-                    btn.innerHTML = `<i class="fa-solid fa-ruler-horizontal"></i> <span class="hidden sm:inline">Thước ngang</span> <span class="font-bold text-center w-2.5 inline-block">${mode}</span>`;
+                    btn.className = "w-[48px] sm:w-[136px] shrink-0 text-xs bg-black dark:bg-white text-white dark:text-black border border-black dark:border-white rounded-md hover:bg-gray-800 dark:hover:bg-gray-200 font-bold transition flex items-center justify-center";
+                    btn.innerHTML = `<i class="fa-solid fa-ruler-horizontal"></i><span class="hidden sm:inline ml-1.5">Thước ngang <b class="font-mono font-bold">${mode}</b></span><span class="sm:hidden ml-1 font-mono font-bold text-xs leading-none">${mode}</span>`;
                 }
             }
             const overlayBox = document.getElementById('crop-overlay-box');

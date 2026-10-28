@@ -249,11 +249,37 @@ input:focus, textarea:focus, select:focus {
     color: #000000 !important;
 }
 #btn-crop-toggle-ruler {
+    width: 136px !important;
+    min-width: 136px !important;
+    max-width: 136px !important;
+    height: 32px !important;
+    min-height: 32px !important;
+    max-height: 32px !important;
+    padding: 0 8px !important;
+    box-sizing: border-box !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    overflow: hidden !important;
     border-color: #ffffff !important;
+}
+@media (max-width: 639px) {
+    #btn-crop-toggle-ruler {
+        width: 48px !important;
+        min-width: 48px !important;
+        max-width: 48px !important;
+        height: 32px !important;
+        min-height: 32px !important;
+        max-height: 32px !important;
+        padding: 0 !important;
+    }
 }
 #btn-crop-toggle-ruler.bg-black {
     background-color: #ffffff !important;
     color: #000000 !important;
+}
+#btn-crop-toggle-ruler.bg-black:hover {
+    background-color: #e4e4e7 !important;
 }
 #btn-crop-toggle-ruler.bg-black * {
     color: #000000 !important;
@@ -262,8 +288,32 @@ input:focus, textarea:focus, select:focus {
     background-color: #000000 !important;
     color: #ffffff !important;
 }
+#btn-crop-toggle-ruler:not(.bg-black):hover {
+    background-color: #18181b !important;
+}
 #btn-crop-toggle-ruler:not(.bg-black) * {
     color: #ffffff !important;
+}
+
+#btn-toggle-ruler {
+    width: 160px !important;
+    min-width: 160px !important;
+    max-width: 160px !important;
+    height: 38px !important;
+    min-height: 38px !important;
+    max-height: 38px !important;
+    box-sizing: border-box !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    overflow: hidden !important;
+}
+#status-ruler {
+    display: inline-block !important;
+    width: 28px !important;
+    min-width: 28px !important;
+    max-width: 28px !important;
+    text-align: center !important;
 }
 
 #admin input, #admin select, #admin textarea, .admin-card-header, #admin-content .border-gray-200, #admin .bg-gray-100.border-gray-200 {

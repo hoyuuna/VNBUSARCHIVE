@@ -436,11 +436,37 @@ input:focus, textarea:focus, select:focus {
     color: #ffffff !important;
 }
 #btn-crop-toggle-ruler {
+    width: 136px !important;
+    min-width: 136px !important;
+    max-width: 136px !important;
+    height: 32px !important;
+    min-height: 32px !important;
+    max-height: 32px !important;
+    padding: 0 8px !important;
+    box-sizing: border-box !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    overflow: hidden !important;
     border: 1px solid #18181b !important;
+}
+@media (max-width: 639px) {
+    #btn-crop-toggle-ruler {
+        width: 48px !important;
+        min-width: 48px !important;
+        max-width: 48px !important;
+        height: 32px !important;
+        min-height: 32px !important;
+        max-height: 32px !important;
+        padding: 0 !important;
+    }
 }
 #btn-crop-toggle-ruler.bg-black {
     background-color: #18181b !important;
     color: #ffffff !important;
+}
+#btn-crop-toggle-ruler.bg-black:hover {
+    background-color: #27272a !important;
 }
 #btn-crop-toggle-ruler.bg-black * {
     color: #ffffff !important;
@@ -449,8 +475,32 @@ input:focus, textarea:focus, select:focus {
     background-color: #ffffff !important;
     color: #18181b !important;
 }
+#btn-crop-toggle-ruler:not(.bg-black):hover {
+    background-color: #f4f4f5 !important;
+}
 #btn-crop-toggle-ruler:not(.bg-black) * {
     color: #18181b !important;
+}
+
+#btn-toggle-ruler {
+    width: 160px !important;
+    min-width: 160px !important;
+    max-width: 160px !important;
+    height: 38px !important;
+    min-height: 38px !important;
+    max-height: 38px !important;
+    box-sizing: border-box !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    overflow: hidden !important;
+}
+#status-ruler {
+    display: inline-block !important;
+    width: 28px !important;
+    min-width: 28px !important;
+    max-width: 28px !important;
+    text-align: center !important;
 }
 
 /* Các form nhập liệu, select, card trong Admin nếu có viền xám */

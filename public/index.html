@@ -2227,7 +2227,7 @@ html.theme-dark .ct-icon {
             if (stored === 'system') {
                 theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
             }
-            document.write('<link rel="stylesheet" href="/css/' + theme + '.css?v=1793197629221" id="theme-css">');
+            document.write('<link rel="stylesheet" href="/css/' + theme + '.css?v=1793198736127" id="theme-css">');
             document.documentElement.classList.add('theme-' + theme);
             document.documentElement.style.backgroundColor = theme === 'dark' ? '#18181b' : '#fdfcf8';
         })();
@@ -2596,8 +2596,8 @@ html.theme-dark .ct-icon {
                     </div>
                     <div class="p-3 md:p-4 flex justify-between items-center w-full">
                         <div class="flex items-center">
-                            <button type="button" id="btn-crop-toggle-ruler" onclick="app.crop.toggleRuler()" class="w-[48px] sm:w-[136px] shrink-0 px-2 sm:px-3 py-2 sm:py-1.5 text-xs bg-white dark:bg-black text-black dark:text-white border border-black dark:border-white rounded-md hover:bg-gray-50 dark:hover:bg-zinc-800 font-bold transition flex items-center justify-center gap-1" title="Bật/Tắt thước ngang canh xe">
-                                <i class="fa-solid fa-ruler-horizontal"></i> <span class="hidden sm:inline">Thước ngang</span><span class="hidden sm:inline-block w-2.5"></span>
+                            <button type="button" id="btn-crop-toggle-ruler" onclick="app.crop.toggleRuler()" class="w-[48px] sm:w-[136px] shrink-0 text-xs bg-white dark:bg-black text-black dark:text-white border border-black dark:border-white rounded-md hover:bg-gray-50 dark:hover:bg-zinc-800 font-bold transition flex items-center justify-center" title="Bật/Tắt thước ngang canh xe">
+                                <i class="fa-solid fa-ruler-horizontal"></i><span class="hidden sm:inline ml-1.5">Thước ngang</span>
                             </button>
                         </div>
                         <div class="flex items-center gap-2 sm:gap-4">
@@ -5585,7 +5585,7 @@ html.theme-dark .ct-icon {
                         </button>
                         <button type="button" id="btn-toggle-ruler" onclick="app.admin.toggleRuler()" class="w-[160px] min-w-[160px] max-w-[160px] flex-shrink-0 inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-white dark:bg-black border border-black dark:border-white rounded-md text-xs font-bold text-black dark:text-white hover:bg-gray-50 dark:hover:bg-zinc-800 transition shadow-none whitespace-nowrap">
                             <i class="fa-solid fa-ruler-horizontal text-gray-600 dark:text-gray-300"></i>
-                            <span>Thước ngang: <b id="status-ruler" class="inline-block text-center min-w-[28px]">TẮT</b></span>
+                            <span>Thước ngang: <b id="status-ruler">TẮT</b></span>
                         </button>
                         <button type="button" id="btn-toggle-hide-mine" onclick="app.admin.toggleHideMine()" class="flex-shrink-0 inline-flex items-center gap-2 px-4 py-2.5 bg-white dark:bg-black border border-black dark:border-white rounded-md text-xs font-bold text-black dark:text-white hover:bg-gray-50 dark:hover:bg-zinc-800 transition shadow-none whitespace-nowrap">
                             <i class="fa-solid fa-eye-slash text-gray-600 dark:text-gray-300"></i>
@@ -7778,7 +7778,7 @@ html.theme-dark .ct-icon {
 
     <!-- KHAY CHỨA TOAST Z-INDEX CAO NHẤT -->
     <div id="toast-container" class="fixed left-0 w-full flex flex-col items-center gap-2 pointer-events-none z-[99999]" style="z-index: 99999 !important;"></div>
-<script src="/app.fd52c76401f1.js" onerror="if(!window.__app_fallback_loaded){window.__app_fallback_loaded=true;var s=document.createElement('script');s.src='/app.js?v=' + Date.now();document.head.appendChild(s);}"></script>
+<script src="/app.53a51b3894cb.js" onerror="if(!window.__app_fallback_loaded){window.__app_fallback_loaded=true;var s=document.createElement('script');s.src='/app.js?v=' + Date.now();document.head.appendChild(s);}"></script>
 </body>
 </html>
 
