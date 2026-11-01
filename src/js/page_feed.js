@@ -1315,8 +1315,24 @@ Object.assign(window.app, {
                     if (!req || req.status !== 'pending') return;
                     app.ui.showAlert("Bạn có chắc chắn muốn hủy yêu cầu này không? Hành động này không thể hoàn tác.", async () => {
                         try {
-                            const { error } = await window.sb.from('edit_requests').delete().eq('id', id).eq('requester_id', app.user.id);
-                            if (error) throw error;
+                            const { data: { session } } = await window.sb.auth.getSession();
+                            const token = session?.access_token;
+                            if (!token) throw new Error("Chưa đăng nhập.");
+
+                            const res = await fetch('/api/cancel-request', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'Authorization': `Bearer ${token}`
+                                },
+                                body: JSON.stringify({ requestId: id })
+                            });
+                            const result = await res.json().catch(() => ({}));
+                            if (!res.ok || !result.success) {
+                                throw new Error(result.error || "Không thể hủy yêu cầu.");
+                            }
+
+                            delete app.views._requestsCache[id];
                             app.views.fetchProfileRequests(1);
                             app.ui.showAlert("Đã hủy yêu cầu thành công!", null, null, { title: 'Thành công' });
                         } catch (err) {
