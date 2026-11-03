@@ -279,7 +279,7 @@ html.theme-dark .ct-icon {
             color: #09090b;
         }
 
-        h1, h2, h3, h4, h5, h6, .font-heading {
+        h1, h2, h3, h4, h5, h6, .font-heading, #grid-title {
             font-family: "Playfair Display", Georgia, "Times New Roman", serif;
         }
 
@@ -2236,7 +2236,7 @@ html.theme-dark .ct-icon {
             if (stored === 'system') {
                 theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
             }
-            document.write('<link rel="stylesheet" href="/css/' + theme + '.css?v=1793711158980" id="theme-css">');
+            document.write('<link rel="stylesheet" href="/css/' + theme + '.css?v=1793712112560" id="theme-css">');
             document.documentElement.classList.add('theme-' + theme);
             document.documentElement.style.backgroundColor = theme === 'dark' ? '#18181b' : '#fdfcf8';
         })();
@@ -3714,8 +3714,7 @@ html.theme-dark .ct-icon {
 
                 <div
                     class="text-sm text-gray-500 mb-4 font-medium flex flex-col sm:flex-row sm:justify-between sm:items-end gap-2">
-                    <div><span id="grid-title" class="text-black font-bold text-lg tracking-tight">Ảnh mới nhất đã được
-                            duyệt</span></div>
+                    <div><span id="grid-title" class="text-black font-bold text-lg tracking-tight font-heading">Ảnh mới nhất được đăng</span></div>
                 </div>
 
                 <div id="photo-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
