@@ -17,7 +17,7 @@ VNBUSARCHIVE là nền tảng tư liệu mở dành cho cộng đồng quan tâm
 * **Bảo mật tài khoản:** Bạn tự chịu trách nhiệm bảo quản thông tin đăng nhập của mình. VNBUSARCHIVE không chịu trách nhiệm với các tổn thất do tài khoản bị lộ mật khẩu. Quá trình đăng nhập được bảo vệ bởi Cloudflare Turnstile để chống bot tự động.
 * **Mã định danh:** Mỗi tài khoản có một mã User ID để đối soát kỹ thuật khi cần hỗ trợ. Vui lòng không chia sẻ mã này cho người lạ, chỉ cung cấp qua các kênh hỗ trợ chính thức của hệ thống.
 * **Thay đổi thông tin:** Bạn có thể đổi tên hiển thị, email và ảnh đại diện với dung lượng tối đa 3MB. Việc đổi tên hiển thị không làm thay đổi dấu bản quyền trên các ảnh đã được duyệt trước đó.
-* **Khóa tài khoản:** Quản trị viên có quyền tạm khóa hoặc xóa vĩnh viễn tài khoản nếu phát hiện hành vi dò quét lỗ hổng, tấn công mạng, gửi dữ liệu sai lệch nhiều lần hoặc vi phạm bản quyền.
+* **Khóa tài khoản:** Quản trị viên có quyền tạm khóa hoặc xóa vĩnh viễn tài khoản nếu phát hiện hành vi dò quét lỗ hổng, tấn công mạng, gửi dữ liệu sai lệch nhiều lần, vi phạm bản quyền hoặc vi phạm nghiêm trọng đạo đức tác nghiệp (chụp trộm, trèo rào hoặc đột nhập xí nghiệp, bến bãi). Các trường hợp vi phạm đạo đức tác nghiệp sẽ bị khóa vĩnh viễn ngay lập tức và không được giải quyết khiếu nại hay kháng cáo.
 * **Độ tuổi tham gia:** Người dùng cần từ đủ 14 tuổi trở lên. Ban quản trị sẽ khóa tài khoản nếu phát hiện người dùng chưa đủ độ tuổi quy định.
 
 ### 3. Tiêu chuẩn nội dung và đóng góp hình ảnh
@@ -54,7 +54,7 @@ Dữ liệu trên website phục vụ nhu cầu tra cứu phi thương mại c�
 * **Giá trị pháp lý:** Dữ liệu và hình ảnh trên website không dùng làm căn cứ pháp lý để xử phạt vi phạm giao thông hay tranh chấp nội bộ doanh nghiệp.
 * **Tính công cộng của phương tiện giao thông:** Phương tiện giao thông vận tải và biển kiểm soát khi tham gia lưu thông trên đường giao thông công cộng không thuộc phạm vi bí mật đời tư cá nhân.
 * **Trách nhiệm người dùng:** Người dùng tự chịu trách nhiệm về hình ảnh mình tải lên, bao gồm các vấn đề liên quan đến quyền riêng tư hoặc bản quyền với bên thứ ba.
-* **An toàn khi tác nghiệp:** VNBUSARCHIVE không tổ chức, xúi giục hay chịu trách nhiệm đối với hành vi của người dùng trong quá trình đi chụp ảnh ngoài đời thực. Người chụp tự chịu trách nhiệm về an toàn giao thông, tuân thủ an ninh trật tự và không xâm phạm khu vực cấm.
+* **An toàn và đạo đức khi tác nghiệp:** VNBUSARCHIVE không tổ chức, xúi giục hay chịu trách nhiệm đối với hành vi của người dùng trong quá trình đi chụp ảnh ngoài đời thực. Người chụp tự chịu trách nhiệm về an toàn giao thông, tuân thủ an ninh trật tự và không xâm phạm khu vực cấm. Hệ thống kiên quyết từ chối ảnh chụp trộm, trèo tường hoặc đột nhập xí nghiệp, bến bãi; mọi tài khoản có hành vi này sẽ bị khóa vĩnh viễn ngay lập tức không kháng cáo.
 * **Liên hệ và kết nối nhân sự:** Người dùng không có quyền yêu cầu và VNBUSARCHIVE không có trách nhiệm hay nghĩa vụ phải kết nối người dùng với bất kỳ cá nhân, nhân viên, quản trị viên hoặc người đảm nhiệm chức vụ cụ thể nào của hệ thống. Mọi phản hồi, khiếu nại hoặc đề nghị hỗ trợ chỉ được tiếp nhận và xử lý qua các kênh liên hệ chính thức do hệ thống công bố.
 * Trong trường hợp xảy ra sự cố kỹ thuật ngoài tầm kiểm soát hoặc tấn công mạng, VNBUSARCHIVE sẽ nỗ lực khắc phục, thông báo cho người dùng và được miễn trừ nghĩa vụ bồi thường tài chính.
 

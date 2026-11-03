@@ -24,7 +24,7 @@ VNBUSARCHIVE là kho tư liệu chung cho cộng đồng, các tiêu chuẩn duy
 * **Phạm vi châm chước:** 
   * Chấp nhận châm chước các hạn chế về điều kiện chụp khách quan như độ nét, ánh sáng, thời tiết, khoảng cách chụp thời xưa bằng thiết bị cũ.
   * Không châm chước các lỗi do thao tác chủ quan như làm mờ ẩu, che lấp thân xe theo quy tắc B4 hoặc ảnh chứa chi tiết phản cảm, rác thải theo quy định tại B1.3.
-  * **Không thỏa hiệp về đạo đức và pháp luật:** Giá trị tư liệu lịch sử tuyệt đối không phải là lý do để bao biện cho các vi phạm về đạo đức, an toàn hay pháp luật theo quy định tại Phần B5. Những bức ảnh liên quan đến tai nạn có thương vong, xâm nhập trái phép khu vực cấm/quân sự, hoặc người chụp có hành vi vi phạm giao thông nguy hiểm khi tác nghiệp đều bị kiên quyết từ chối.
+  * **Không thỏa hiệp về đạo đức và pháp luật:** Giá trị tư liệu lịch sử không dùng để bao biện cho các vi phạm về đạo đức, an toàn hay pháp luật theo quy định tại Phần B5. Những bức ảnh liên quan đến tai nạn có thương vong, chụp trộm, trèo tường hoặc xâm nhập xí nghiệp, bến bãi, khu vực cấm/quân sự, hoặc người chụp có hành vi vi phạm giao thông nguy hiểm khi tác nghiệp đều bị kiên quyết từ chối. Mọi hành vi vi phạm đạo đức tác nghiệp sẽ bị khóa tài khoản vĩnh viễn ngay lập tức và không được kháng cáo.
 * Ban quản trị giữ quyền áp dụng linh hoạt chính sách ưu tiên tùy thuộc vào giá trị tư liệu thực tế của từng bức ảnh.
 
 ---
@@ -88,7 +88,7 @@ VNBUSARCHIVE là kho tư liệu chung cho cộng đồng, các tiêu chuẩn duy
 
 ### B5. An toàn và đạo đức
 * **B5.1. Quyền sở hữu:** Chỉ tải lên ảnh do chính bạn chụp.
-* **B5.2. Không xâm nhập trái phép:** Từ chối ảnh chụp do xâm nhập bến bãi nội bộ, xưởng sửa chữa hoặc bãi đỗ xe tư nhân khi chưa được phép.
+* **B5.2. Nghiêm cấm chụp trộm và xâm nhập xí nghiệp, bến bãi:** Nghiêm cấm mọi hành vi chụp trộm, chụp lén, trèo tường, trèo rào hoặc đột nhập vào khuôn viên xí nghiệp, depot, xưởng sửa chữa, bến bãi nội bộ của các đơn vị vận tải. Quy định áp dụng cho mọi góc chụp (kể cả đứng ngoài chụp với vào hay chụp từ bên trong) và bất kể người chụp có được nhân viên hay bảo vệ cho phép hay không. Tất cả trường hợp vi phạm đạo đức tác nghiệp này sẽ bị khóa tài khoản vĩnh viễn ngay lập tức và không tiếp nhận kháng cáo.
 * **B5.3. Khu vực cấm:** Không chụp ảnh tại các khu vực quân sự, an ninh quốc phòng hoặc nơi có biển cấm chụp ảnh.
 * **B5.4. An toàn giao thông:** Luôn chú ý an toàn khi chụp ảnh; không đứng giữa lòng đường gây nguy hiểm cho bản thân và cản trở phương tiện khác.
 
