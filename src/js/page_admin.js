@@ -4817,9 +4817,9 @@ if (cbQuality) newSubroles.push('quality_aud');
                     } catch (e) { app.ui.showAlert("Lỗi: " + e.message); }
                     finally { btn.innerText = originalText; btn.disabled = false; }
                 },
-                approveDeleteReq: async (reqId, photoId, btn) => {
-                    if (arguments.length >= 5 && (arguments[4] instanceof HTMLElement || typeof arguments[4] === 'object')) {
-                        btn = arguments[4];
+                approveDeleteReq: async (reqId, photoId, btn, ...rest) => {
+                    if (rest.length >= 2 && (rest[1] instanceof HTMLElement || typeof rest[1] === 'object')) {
+                        btn = rest[1];
                     } else if (typeof photoId === 'object' && photoId instanceof HTMLElement) {
                         btn = photoId;
                         photoId = null;
