@@ -602,7 +602,7 @@ Object.assign(window.app, {
                     if (app._headerLogoTimer) clearTimeout(app._headerLogoTimer);
                     app._headerLogoTimer = setTimeout(() => {
                         app.transitionHeaderLogo();
-                    }, 3000);
+                    }, 5000);
                 }
             },
 
