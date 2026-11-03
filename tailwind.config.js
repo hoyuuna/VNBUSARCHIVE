@@ -17,8 +17,8 @@ module.exports = {
         sans: ['"Be Vietnam Pro"', 'sans-serif'],
         logo: ['"Montserrat"', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', '"Helvetica Neue"', 'Arial', 'sans-serif'],
         watermark: ['"Montserrat"', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', '"Helvetica Neue"', 'Arial', 'sans-serif'],
-        heading: ['"Playfair Display"', 'Georgia', 'serif'],
-        serif: ['"Playfair Display"', 'Georgia', 'serif'],
+        heading: ['"Poltawski Nowy"', 'Georgia', 'serif'],
+        serif: ['"Poltawski Nowy"', 'Georgia', 'serif'],
       },
       colors: {
         'vbs-dark': '#09090b',
