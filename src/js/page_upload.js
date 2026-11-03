@@ -1974,6 +1974,7 @@ Object.assign(window.app, {
                         document.getElementById('up-exif-params').value = app.currentExif.params;
                         document.getElementById('up-date').value = exifData.date;
                         app.upload.checkDuplicateRealtime();
+                        app.currentGps = null;
                         if ((exifData.gps.latDec !== undefined && exifData.gps.lonDec !== undefined) || (exifData.gps.lat && exifData.gps.lon && exifData.gps.latRef && exifData.gps.lonRef)) {
                             let latDec = exifData.gps.latDec;
                             let lonDec = exifData.gps.lonDec;
@@ -1985,6 +1986,16 @@ Object.assign(window.app, {
                                 };
                                 latDec = toDecimal(exifData.gps.lat, exifData.gps.latRef);
                                 lonDec = toDecimal(exifData.gps.lon, exifData.gps.lonRef);
+                            }
+                            if (!isNaN(latDec) && !isNaN(lonDec)) {
+                                app.currentGps = { lat: latDec, lon: lonDec };
+                                if (app.map && app.map.getPointInZones) {
+                                    const bannedZone = await app.map.getPointInZones(latDec, lonDec);
+                                    if (bannedZone) {
+                                        app.currentGps = null;
+                                        throw `Ảnh được chụp tại tọa độ thuộc khu vực cấm: <b>${app.utils.escapeHtml(bannedZone.name || 'Vùng cấm')}</b>.<br><br>Hệ thống nghiêm cấm tải lên hình ảnh được chụp tại các địa điểm hạn chế, xí nghiệp, bến bãi nội bộ hoặc khu vực cấm. Vui lòng chọn ảnh khác được chụp tại nơi công cộng.`;
+                                    }
+                                }
                             }
                             const address = await app.utils.reverseGeocode(latDec, lonDec);
                             if (address && address !== "Vị trí không xác định") {
@@ -2496,6 +2507,15 @@ Object.assign(window.app, {
                         });
                     }
                     if (!app.rawFile) return app.ui.showAlert("Vui lòng chọn ảnh!");
+                    if (app.currentGps && typeof app.currentGps.lat === 'number' && typeof app.currentGps.lon === 'number' && app.map && app.map.getPointInZones) {
+                        const bannedZone = await app.map.getPointInZones(app.currentGps.lat, app.currentGps.lon);
+                        if (bannedZone) {
+                            return app.ui.showAlert(
+                                `Ảnh này có tọa độ GPS nằm trong khu vực cấm: <b>${app.utils.escapeHtml(bannedZone.name || 'Vùng cấm')}</b>.<br><br>Hệ thống nghiêm cấm tải lên hình ảnh được chụp tại các địa điểm này. Vui lòng chọn ảnh khác được chụp tại nơi công cộng.`,
+                                null, null, { title: "Vi phạm ranh giới cấm", isError: true }
+                            );
+                        }
+                    }
                     app.upload.checkModelWarning && app.upload.checkModelWarning();
                     if (app.upload.isBlockedByModelDuplicate) {
                         return app.ui.showAlert("Xe định danh phụ không được trùng dòng xe với xe khác cùng biển kiểm soát.", null, null, { title: "Từ chối tải lên" });

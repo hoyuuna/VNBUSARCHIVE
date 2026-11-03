@@ -495,11 +495,20 @@ app.map = {
     // Kiểm tra xem một điểm có nằm trong bất kỳ vùng cấm nào không
     isPointInZones(lat, lng) {
         if (!this.zones || this.zones.length === 0) return null;
-        const pt = [lat, lng];
+        if (typeof lat !== 'number' || typeof lng !== 'number' || isNaN(lat) || isNaN(lng)) return null;
         for (const zone of this.zones) {
             const polygons = this.parseZoneBounds(zone.bounds);
             for (const polyPoints of polygons) {
-                if (L.polygon(polyPoints).getBounds().contains(pt)) {
+                if (!Array.isArray(polyPoints) || polyPoints.length < 3) continue;
+                let minLat = Infinity, maxLat = -Infinity, minLng = Infinity, maxLng = -Infinity;
+                for (let k = 0; k < polyPoints.length; k++) {
+                    const plat = polyPoints[k][0], plng = polyPoints[k][1];
+                    if (plat < minLat) minLat = plat;
+                    if (plat > maxLat) maxLat = plat;
+                    if (plng < minLng) minLng = plng;
+                    if (plng > maxLng) maxLng = plng;
+                }
+                if (lat >= minLat && lat <= maxLat && lng >= minLng && lng <= maxLng) {
                     // Kiểm tra chính xác hơn bằng ray casting
                     let inside = false;
                     for (let i = 0, j = polyPoints.length - 1; i < polyPoints.length; j = i++) {
@@ -514,6 +523,26 @@ app.map = {
             }
         }
         return null;
+    },
+
+    async getPointInZones(lat, lng) {
+        if (typeof lat !== 'number' || typeof lng !== 'number' || isNaN(lat) || isNaN(lng)) return null;
+        if (!this.zones || this.zones.length === 0) {
+            try {
+                if (!this._loadingZonesPromise) {
+                    this._loadingZonesPromise = window.sb.from('no_photo_zones').select('*');
+                }
+                const { data, error } = await this._loadingZonesPromise;
+                if (!error && data) {
+                    this.zones = data;
+                }
+            } catch (e) {
+                console.error('Lỗi tải danh sách vùng cấm:', e);
+            } finally {
+                this._loadingZonesPromise = null;
+            }
+        }
+        return this.isPointInZones(lat, lng);
     },
 
     updateTheme() {
