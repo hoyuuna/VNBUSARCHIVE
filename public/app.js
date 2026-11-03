@@ -23053,7 +23053,7 @@ if (app.admin._activeLoadToken !== currentLoadToken || app.adminTab !== tab) ret
                                         <div class="mb-3 mt-2"><span class="admin-label">Lý do user nhập:</span><p class="bg-gray-50 p-2 border rounded text-red-700 italic">"${userReason}"</p></div>
                                         <div class="flex gap-2 mt-3">
                                         ${app.role === 'manager' ? `
-                                            <button onclick="app.admin.approveDeleteReq('${req.id}', '${req.new_data.photo_id}', '${req.requester_id}', '${userReason}', this)" class="flex-1 bg-red-600 text-white py-1.5 font-bold rounded hover:bg-red-700">DUYỆT XÓA</button>
+                                            <button onclick="app.admin.approveDeleteReq('${req.id}', '${req.new_data?.photo_id || ''}', this)" class="flex-1 bg-red-600 text-white py-1.5 font-bold rounded hover:bg-red-700">DUYỆT XÓA</button>
                                         ` : `
                                             <div class="flex-1 bg-gray-100 text-gray-400 py-1.5 font-bold rounded text-center border border-gray-200 cursor-not-allowed text-[11px] flex items-center justify-center">Chỉ Manager duyệt xóa</div>
                                         `}
@@ -26148,18 +26148,39 @@ if (cbQuality) newSubroles.push('quality_aud');
                     } catch (e) { app.ui.showAlert("Lỗi: " + e.message); }
                     finally { btn.innerText = originalText; btn.disabled = false; }
                 },
-                approveDeleteReq: async (reqId, photoId, requesterId, userReason, btn) => {
+                approveDeleteReq: async (reqId, photoId, btn) => {
+                    if (arguments.length >= 5 && (arguments[4] instanceof HTMLElement || typeof arguments[4] === 'object')) {
+                        btn = arguments[4];
+                    } else if (typeof photoId === 'object' && photoId instanceof HTMLElement) {
+                        btn = photoId;
+                        photoId = null;
+                    }
+
                     if (app.isRealtimeConnected === false) {
                         return app.ui.showAlert("Mất kết nối Realtime với máy chủ! Đã tạm khóa chức năng duyệt xóa để tránh lệch dữ liệu.");
                     }
                     if (app.role !== 'manager') {
                         return app.ui.showAlert("Chỉ Quản lý mới có quyền duyệt lệnh xóa ảnh khỏi hệ thống!");
                     }
-                    btn.innerText = "Đang xử lý...";
-                    btn.disabled = true;
-                    btn.classList.add('btn-loading');
+
+                    const targetBtn = (btn && btn instanceof HTMLElement) ? btn : (window.event?.currentTarget instanceof HTMLElement ? window.event.currentTarget : null);
+                    if (targetBtn) {
+                        targetBtn.innerText = "Đang xử lý...";
+                        targetBtn.disabled = true;
+                        targetBtn.classList.add('btn-loading');
+                    }
+
                     try {
-                        const { data: photo } = await window.sb.from('photos').select('license_plate, url').eq('id', photoId).single();
+                        if (!photoId || photoId === 'undefined') {
+                            const { data: reqData, error: reqErr } = await window.sb.from('edit_requests').select('new_data').eq('id', reqId).single();
+                            if (reqErr) throw reqErr;
+                            photoId = reqData?.new_data?.photo_id;
+                        }
+                        if (!photoId) {
+                            throw new Error("Không tìm thấy thông tin ID ảnh cần xóa trong yêu cầu.");
+                        }
+
+                        const { data: photo } = await window.sb.from('photos').select('license_plate, url').eq('id', photoId).maybeSingle();
                         const plate = photo ? photo.license_plate : 'đã chọn';
                         const imgUrl = photo ? photo.url : null;
                         if (imgUrl || photoId) {
@@ -26180,12 +26201,15 @@ if (cbQuality) newSubroles.push('quality_aud');
                         app.toast.show('success', 'Thành công', 'Đã duyệt yêu cầu và xóa ảnh vĩnh viễn thành công!');
                         app.admin.logAction('approve_delete_req', photoId, { plate: plate });
                         if (document.activeElement) document.activeElement.blur();
+                        if (app.admin.refreshCounts) app.admin.refreshCounts();
                         app.admin.loadTab('delete', false, true);
                     } catch (err) {
                         app.ui.showAlert("Lỗi khi duyệt xóa: " + err.message);
-                        btn.innerText = "DUYỆT XÓA";
-                        btn.disabled = false;
-                        btn.classList.remove('btn-loading');
+                        if (targetBtn) {
+                            targetBtn.innerText = "DUYỆT XÓA";
+                            targetBtn.disabled = false;
+                            targetBtn.classList.remove('btn-loading');
+                        }
                     }
                 },
                 denyReq: async (reqId, btn) => {
