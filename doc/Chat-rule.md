@@ -19,7 +19,7 @@ Mỗi bức ảnh tải lên là đóng góp của thành viên cho kho tư li�
 - Không bàn luận về chính trị, tôn giáo, sắc tộc hoặc các chủ đề không liên quan đến xe buýt và giao thông công cộng.
 - Không giải quyết mâu thuẫn cá nhân trong mục bình luận. Những tranh cãi ngoài lề sẽ bị xóa.
 - Về việc gặp mặt và chia sẻ thông tin cá nhân:
-  - VNBUSARCHIVE là nền tảng lưu trữ và thảo luận trực tuyến, không tổ chức hay quản lý các buổi gặp mặt tự phát ngoài đời thực.
+  - VNBUSARCHIVE là nền tảng lưu trữ và thảo luận trực tuyến, không tổ chức, điều hành hay quản lý bất kỳ buổi gặp mặt tự phát nào giữa các thành viên bên ngoài nền tảng.
   - Không lợi dụng bình luận để rủ rê, tụ tập đông người tại bến xe, bãi đỗ hoặc các khu vực công cộng.
   - Để bảo vệ an toàn và quyền riêng tư, vui lòng không đăng số điện thoại, địa chỉ nhà riêng hay link nhóm chat kín (Zalo, Messenger...) trong bình luận. Thành viên tự chịu trách nhiệm với các rủi ro phát sinh từ những cuộc gặp bên ngoài hệ thống.
 

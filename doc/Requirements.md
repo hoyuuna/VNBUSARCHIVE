@@ -24,7 +24,7 @@ VNBUSARCHIVE là kho tư liệu chung cho cộng đồng, các tiêu chuẩn duy
 * **Phạm vi châm chước:** 
   * Chấp nhận châm chước các hạn chế về điều kiện chụp khách quan như độ nét, ánh sáng, thời tiết, khoảng cách chụp thời xưa bằng thiết bị cũ.
   * Không châm chước các lỗi do thao tác chủ quan như làm mờ ẩu, che lấp thân xe theo quy tắc B4 hoặc ảnh chứa chi tiết phản cảm, rác thải theo quy định tại B1.3.
-  * **Không thỏa hiệp về đạo đức và pháp luật:** Giá trị tư liệu lịch sử không dùng để bao biện cho các vi phạm về đạo đức, an toàn hay pháp luật theo quy định tại Phần B5. Ảnh tải lên bắt buộc phải được chụp tại nơi công cộng. Những bức ảnh liên quan đến tai nạn có thương vong, chụp trộm, trèo tường hoặc xâm nhập xí nghiệp, bến bãi, khu vực cấm hoặc quân sự, các khu vực nhạy cảm, vi phạm giao thông nguy hiểm đều bị kiên quyết từ chối. Người có hành vi vi phạm đạo đức tác nghiệp sẽ bị khóa tài khoản.
+  * **Không thỏa hiệp về tính hợp pháp và quy chuẩn tác nghiệp:** Giá trị tư liệu lịch sử không được sử dụng để bao biện cho các hành vi xâm phạm an toàn, trật tự xã hội hoặc quy định pháp luật theo Phần B5. Hình ảnh gửi lên bắt buộc phải được ghi nhận tại nơi công cộng. Mọi hình ảnh liên quan đến tai nạn giao thông có thương vong, chụp lén, leo trèo hoặc xâm nhập trái phép khuôn viên doanh nghiệp vận tải, khu vực quân sự, khu vực cấm hoặc địa bàn nhạy cảm đều bị từ chối phê duyệt. Người dùng vi phạm quy chuẩn tác nghiệp sẽ bị đình chỉ tài khoản.
 * Ban quản trị giữ quyền áp dụng linh hoạt chính sách ưu tiên tùy thuộc vào giá trị tư liệu thực tế của từng bức ảnh.
 
 ---
@@ -88,7 +88,7 @@ VNBUSARCHIVE là kho tư liệu chung cho cộng đồng, các tiêu chuẩn duy
 
 ### B5. An toàn và đạo đức
 * **B5.1. Quyền sở hữu:** Chỉ tải lên ảnh do chính bạn chụp.
-* **B5.2. Bắt buộc chụp ở nơi công cộng:** Tất cả hình ảnh tải lên hệ thống bắt buộc phải được chụp tại các địa điểm công cộng (như đường phố, trạm dừng, bến xe công cộng). Nghiêm cấm hành vi chụp trộm, trèo tường, trèo rào hoặc đột nhập vào khu vực xí nghiệp, depot, xưởng sửa chữa, bến bãi nội bộ, kể cả khu vực cấm và các khu vực nhạy cảm dù đã được cho phép hay chưa. Tài khoản vi phạm đạo đức tác nghiệp sẽ bị khóa.
+* **B5.2. Bắt buộc chụp tại nơi công cộng:** Toàn bộ hình ảnh gửi lên hệ thống bắt buộc phải được chụp tại các địa điểm công cộng (đường phố, trạm dừng, nhà chờ, bến xe công cộng). Nghiêm cấm các hành vi chụp lén, leo trèo hoặc xâm nhập trái phép khuôn viên xí nghiệp, depot, xưởng kỹ thuật, bến bãi nội bộ, khu vực cấm và các khu vực hạn chế, nhạy cảm dù có sự cho phép hay không. Tài khoản vi phạm quy chuẩn tác nghiệp sẽ bị đình chỉ hoạt động.
 * **B5.3. Khu vực cấm:** Không chụp ảnh tại các khu vực quân sự, an ninh quốc phòng hoặc nơi có biển cấm chụp ảnh.
 * **B5.4. An toàn giao thông:** Luôn chú ý an toàn khi chụp ảnh; không đứng giữa lòng đường gây nguy hiểm cho bản thân và cản trở phương tiện khác.
 
