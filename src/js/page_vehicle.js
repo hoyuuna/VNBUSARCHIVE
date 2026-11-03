@@ -96,24 +96,7 @@ Object.assign(window.app, {
                         };
                         const isSameRoute = (r1, r2) => (r1 || '').trim().toLowerCase() === (r2 || '').trim().toLowerCase();
 
-                        if (!approvedPhotos || approvedPhotos.length === 0) {
-                            for (const h of history) {
-                                if (!isProtectedMilestone(h)) {
-                                    await window.sb.from('vehicle_history').delete().eq('id', h.id);
-                                }
-                            }
-                            return;
-                        }
-
-                        const activePhotos = approvedPhotos.filter(p => !isSpecialRoute(p.route_no) && !isStopped(p.route_no));
-                        for (const h of history) {
-                            if (!isProtectedMilestone(h)) {
-                                const hasMatchingPhoto = activePhotos.some(p => isSameRoute(p.route_no, h.route));
-                                if (!hasMatchingPhoto) {
-                                    await window.sb.from('vehicle_history').delete().eq('id', h.id);
-                                }
-                            }
-                        }
+                        // Không tự ý xóa mốc lịch sử khi chưa có ảnh tương ứng
 
                         // Gộp các mốc lịch sử liền kề có cùng số tuyến
                         let { data: freshHistory } = await window.sb.from('vehicle_history')
@@ -587,11 +570,28 @@ Object.assign(window.app, {
                                         }
                                         needInsert = false;
                                     } else {
-                                        await window.sb.from('vehicle_history').update({
-                                            route: route,
-                                            operator: op
-                                        }).eq('id', H_cov.id);
-                                        needInsert = false;
+                                        // Tuyến mới khác tuyến của mốc tại targetDate
+                                        const hasNewerMilestones = allHistory.some(h => h.effective_date && h.effective_date > targetDate);
+                                        const todayStr = new Date().toISOString().split('T')[0];
+                                        // Nếu có các mốc sau targetDate hoặc ảnh được chụp trong quá khứ (< today) và H_cov lưu tuyến cũ:
+                                        // Giữ nguyên mốc cũ và tạo mốc mới cho hôm nay để không làm mất lịch sử tuyến cũ!
+                                        if (hasNewerMilestones || (targetDate < todayStr && oldData && oldData.route_no && isSameRoute(H_cov.route, oldData.route_no))) {
+                                            const { count } = await window.sb.from('vehicle_history').select('*', { count: 'exact', head: true }).eq('license_plate', plate);
+                                            await window.sb.from('vehicle_history').insert({
+                                                license_plate: plate,
+                                                effective_date: todayStr,
+                                                operator: op,
+                                                route: route,
+                                                display_order: count || 0
+                                            });
+                                            needInsert = false;
+                                        } else {
+                                            await window.sb.from('vehicle_history').update({
+                                                route: route,
+                                                operator: op
+                                            }).eq('id', H_cov.id);
+                                            needInsert = false;
+                                        }
                                     }
                                 } else {
                                     // H_cov.effective_date < targetDate

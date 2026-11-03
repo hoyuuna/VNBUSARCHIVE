@@ -308,19 +308,28 @@ Object.assign(window.app, {
                                 if (typeVal === 'coach' || specialRoutes.includes(this.value.trim())) {
                                     app.searchRedirect(this.value, fieldMap[id]);
                                 } else {
+                                    let rawVal = (this.value || '').trim();
+                                    let cleanRoute = rawVal;
                                     let provName = '';
-                                    if (el.dataset.borrowed && el.dataset.borrowed.includes(' - ')) {
-                                        provName = el.dataset.borrowed.split(' - ')[1];
-                                    } else if (el.dataset.routeName && el.dataset.routeName.includes(' - ')) {
-                                        provName = el.dataset.routeName.split(' - ')[1];
-                                    } else {
-                                        const plateValue = document.getElementById('info-plate')?.value;
-                                        if (plateValue) provName = app.utils.getProvinceFromPlate(plateValue);
+                                    if (rawVal.includes(' - ')) {
+                                        const parts = rawVal.split(' - ');
+                                        cleanRoute = parts[0].trim();
+                                        provName = parts.slice(1).join(' - ').trim();
+                                    }
+                                    if (!provName) {
+                                        if (el.dataset.borrowed && el.dataset.borrowed.includes(' - ')) {
+                                            provName = el.dataset.borrowed.split(' - ')[1].trim();
+                                        } else if (el.dataset.routeName && el.dataset.routeName.includes(' - ')) {
+                                            provName = el.dataset.routeName.split(' - ')[1].trim();
+                                        } else {
+                                            const plateValue = document.getElementById('info-plate')?.value;
+                                            if (plateValue) provName = app.utils.getProvinceFromPlate(plateValue);
+                                        }
                                     }
                                     if (provName && provName !== 'Không xác định' && provName !== 'Biển tạm') {
-                                        app.utils.navigate(`/route/${encodeURIComponent(provName)}/${encodeURIComponent(this.value)}`);
+                                        app.utils.navigate(`/route/${encodeURIComponent(provName)}/${encodeURIComponent(cleanRoute)}`);
                                     } else {
-                                        app.utils.navigate(`/route/${encodeURIComponent(this.value)}`);
+                                        app.utils.navigate(`/route/${encodeURIComponent(cleanRoute)}`);
                                     }
                                 }
                             }

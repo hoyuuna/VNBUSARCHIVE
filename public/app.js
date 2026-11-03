@@ -4882,19 +4882,28 @@ Object.assign(window.app, {
                                 if (typeVal === 'coach' || specialRoutes.includes(this.value.trim())) {
                                     app.searchRedirect(this.value, fieldMap[id]);
                                 } else {
+                                    let rawVal = (this.value || '').trim();
+                                    let cleanRoute = rawVal;
                                     let provName = '';
-                                    if (el.dataset.borrowed && el.dataset.borrowed.includes(' - ')) {
-                                        provName = el.dataset.borrowed.split(' - ')[1];
-                                    } else if (el.dataset.routeName && el.dataset.routeName.includes(' - ')) {
-                                        provName = el.dataset.routeName.split(' - ')[1];
-                                    } else {
-                                        const plateValue = document.getElementById('info-plate')?.value;
-                                        if (plateValue) provName = app.utils.getProvinceFromPlate(plateValue);
+                                    if (rawVal.includes(' - ')) {
+                                        const parts = rawVal.split(' - ');
+                                        cleanRoute = parts[0].trim();
+                                        provName = parts.slice(1).join(' - ').trim();
+                                    }
+                                    if (!provName) {
+                                        if (el.dataset.borrowed && el.dataset.borrowed.includes(' - ')) {
+                                            provName = el.dataset.borrowed.split(' - ')[1].trim();
+                                        } else if (el.dataset.routeName && el.dataset.routeName.includes(' - ')) {
+                                            provName = el.dataset.routeName.split(' - ')[1].trim();
+                                        } else {
+                                            const plateValue = document.getElementById('info-plate')?.value;
+                                            if (plateValue) provName = app.utils.getProvinceFromPlate(plateValue);
+                                        }
                                     }
                                     if (provName && provName !== 'Không xác định' && provName !== 'Biển tạm') {
-                                        app.utils.navigate(`/route/${encodeURIComponent(provName)}/${encodeURIComponent(this.value)}`);
+                                        app.utils.navigate(`/route/${encodeURIComponent(provName)}/${encodeURIComponent(cleanRoute)}`);
                                     } else {
-                                        app.utils.navigate(`/route/${encodeURIComponent(this.value)}`);
+                                        app.utils.navigate(`/route/${encodeURIComponent(cleanRoute)}`);
                                     }
                                 }
                             }
@@ -9276,7 +9285,7 @@ let currentRouteProvName = null;
                                                 <td class="label bg-gray-50 border-r border-b border-gray-200">${isCoach ? 'Lộ trình' : 'Mã số tuyến'} hiện tại</td>
                                                 <td class="value-cell border-b border-gray-200">
                                                     <div class="relative w-full h-full flex flex-col justify-center">
-                                                        <textarea rows="1" id="vehicle-edit-route" autocomplete="off" class="info-input text-gray-700 w-full select-none caret-transparent ${currentRouteClientSide ? 'clickable-search' : 'cursor-not-allowed'}" readonly onfocus="this.blur()" ${currentRouteClientSide ? `onclick="this.blur(); if(this.readOnly && this.value && this.value!=='---') { const special = ['Dừng hoạt động', 'Ngoài giờ hoạt động', 'Chưa hoạt động']; if (${isCoach} || special.includes(this.value.trim())) { app.searchRedirect(this.value, 'route'); } else { app.utils.navigate('${vehProvName}' ? '/route/' + encodeURIComponent('${vehProvName}') + '/' + encodeURIComponent(this.value) : '/route/' + encodeURIComponent(this.value)); } } else if(!this.readOnly) { app.route.openSelector({ targetInputId: 'vehicle-edit-route', vehicleType: '${isCoach ? 'coach' : 'bus'}', selectedRoute: this.dataset.routeName || this.value }); }"` : ''}>${currentRouteClientSide}</textarea>
+                                                        <textarea rows="1" id="vehicle-edit-route" autocomplete="off" class="info-input text-gray-700 w-full select-none caret-transparent ${currentRouteClientSide ? 'clickable-search' : 'cursor-not-allowed'}" readonly onfocus="this.blur()" ${currentRouteClientSide ? `onclick="this.blur(); if(this.readOnly && this.value && this.value!=='---') { const special = ['Dừng hoạt động', 'Ngoài giờ hoạt động', 'Chưa hoạt động']; if (${isCoach} || special.includes(this.value.trim())) { app.searchRedirect(this.value, 'route'); } else { const rawR = (this.value || '').trim(); const clnR = rawR.includes(' - ') ? rawR.split(' - ')[0].trim() : rawR; const pName = rawR.includes(' - ') ? rawR.split(' - ').slice(1).join(' - ').trim() : '${vehProvName}'; if (pName && pName !== 'Không xác định' && pName !== 'Biển tạm') { app.utils.navigate('/route/' + encodeURIComponent(pName) + '/' + encodeURIComponent(clnR)); } else { app.utils.navigate('/route/' + encodeURIComponent(clnR)); } } } else if(!this.readOnly) { app.route.openSelector({ targetInputId: 'vehicle-edit-route', vehicleType: '${isCoach ? 'coach' : 'bus'}', selectedRoute: this.dataset.routeName || this.value }); }"` : ''}>${currentRouteClientSide}</textarea>
                                                     </div>
                                                 </td>
                                             </tr>
@@ -13534,8 +13543,18 @@ Object.assign(window.app, {
                 routePhotos: [],
                 ROUTE_PAGE_SIZE: 12,
                 loadRoutePage: async (provinceName, routeNo, forceRefresh = false) => {
-                    const decodedProvince = decodeURIComponent(provinceName || '');
-                    const decodedRoute = decodeURIComponent(routeNo);
+                    let decodedProvince = decodeURIComponent(provinceName || '').trim();
+                    let decodedRoute = decodeURIComponent(routeNo || '').trim();
+
+                    if (decodedRoute.includes(' - ')) {
+                        const parts = decodedRoute.split(' - ');
+                        const cleanNo = parts[0].trim();
+                        const provFromRoute = parts.slice(1).join(' - ').trim();
+                        if (!decodedProvince && provFromRoute) {
+                            decodedProvince = provFromRoute;
+                        }
+                        decodedRoute = cleanNo;
+                    }
                     
 if (!decodedProvince || decodedProvince.trim() === '') {
                         app.toast.show('error', 'Lỗi truy cập', 'Tuyến này không tồn tại thông tin tỉnh thành. Nó có thể là xe khách hoặc dữ liệu không hợp lệ nên không được hỗ trợ hồ sơ.');
@@ -20672,24 +20691,7 @@ Object.assign(window.app, {
                         };
                         const isSameRoute = (r1, r2) => (r1 || '').trim().toLowerCase() === (r2 || '').trim().toLowerCase();
 
-                        if (!approvedPhotos || approvedPhotos.length === 0) {
-                            for (const h of history) {
-                                if (!isProtectedMilestone(h)) {
-                                    await window.sb.from('vehicle_history').delete().eq('id', h.id);
-                                }
-                            }
-                            return;
-                        }
-
-                        const activePhotos = approvedPhotos.filter(p => !isSpecialRoute(p.route_no) && !isStopped(p.route_no));
-                        for (const h of history) {
-                            if (!isProtectedMilestone(h)) {
-                                const hasMatchingPhoto = activePhotos.some(p => isSameRoute(p.route_no, h.route));
-                                if (!hasMatchingPhoto) {
-                                    await window.sb.from('vehicle_history').delete().eq('id', h.id);
-                                }
-                            }
-                        }
+                        // Không tự ý xóa mốc lịch sử khi chưa có ảnh tương ứng
 
                         // Gộp các mốc lịch sử liền kề có cùng số tuyến
                         let { data: freshHistory } = await window.sb.from('vehicle_history')
@@ -21163,11 +21165,28 @@ Object.assign(window.app, {
                                         }
                                         needInsert = false;
                                     } else {
-                                        await window.sb.from('vehicle_history').update({
-                                            route: route,
-                                            operator: op
-                                        }).eq('id', H_cov.id);
-                                        needInsert = false;
+                                        // Tuyến mới khác tuyến của mốc tại targetDate
+                                        const hasNewerMilestones = allHistory.some(h => h.effective_date && h.effective_date > targetDate);
+                                        const todayStr = new Date().toISOString().split('T')[0];
+                                        // Nếu có các mốc sau targetDate hoặc ảnh được chụp trong quá khứ (< today) và H_cov lưu tuyến cũ:
+                                        // Giữ nguyên mốc cũ và tạo mốc mới cho hôm nay để không làm mất lịch sử tuyến cũ!
+                                        if (hasNewerMilestones || (targetDate < todayStr && oldData && oldData.route_no && isSameRoute(H_cov.route, oldData.route_no))) {
+                                            const { count } = await window.sb.from('vehicle_history').select('*', { count: 'exact', head: true }).eq('license_plate', plate);
+                                            await window.sb.from('vehicle_history').insert({
+                                                license_plate: plate,
+                                                effective_date: todayStr,
+                                                operator: op,
+                                                route: route,
+                                                display_order: count || 0
+                                            });
+                                            needInsert = false;
+                                        } else {
+                                            await window.sb.from('vehicle_history').update({
+                                                route: route,
+                                                operator: op
+                                            }).eq('id', H_cov.id);
+                                            needInsert = false;
+                                        }
                                     }
                                 } else {
                                     // H_cov.effective_date < targetDate

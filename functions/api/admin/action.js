@@ -379,26 +379,7 @@ export async function onRequestPost(context) {
                 try {
                     const oldPlate = photo.license_plate;
                     const { data: oldApprovedPhotos } = await sbAdmin.from('photos').select('route_no, operator').eq('license_plate', oldPlate).eq('status', 'approved');
-                    const { data: oldHist } = await sbAdmin.from('vehicle_history').select('*').eq('license_plate', oldPlate);
-                    if (oldHist && oldHist.length > 0) {
-                        if (!oldApprovedPhotos || oldApprovedPhotos.length === 0) {
-                            for (const h of oldHist) {
-                                if (!isProtectedMilestone(h)) {
-                                    await sbAdmin.from('vehicle_history').delete().eq('id', h.id);
-                                }
-                            }
-                        } else {
-                            const activePhotos = oldApprovedPhotos.filter(p => !isSpecialRoute(p.route_no) && !isStoppedRoute(p.route_no));
-                            for (const h of oldHist) {
-                                if (!isProtectedMilestone(h)) {
-                                    const hasPhoto = activePhotos.some(p => isSameRoute(p.route_no, h.route));
-                                    if (!hasPhoto) {
-                                        await sbAdmin.from('vehicle_history').delete().eq('id', h.id);
-                                    }
-                                }
-                            }
-                        }
-                    }
+                    // Giữ nguyên lịch sử biển số cũ, không tự ý xóa mốc khi đổi biển
                 } catch (cleanOldErr) {
                     console.warn('[WARN] Lỗi dọn dẹp lịch sử biển số cũ khi duyệt:', cleanOldErr);
                 }
@@ -433,26 +414,7 @@ export async function onRequestPost(context) {
             if (targetPlate) {
                 try {
                     const { data: approvedPhotos } = await sbAdmin.from('photos').select('route_no, operator').eq('license_plate', targetPlate).eq('status', 'approved');
-                    const { data: history } = await sbAdmin.from('vehicle_history').select('*').eq('license_plate', targetPlate);
-                    if (history && history.length > 0) {
-                        if (!approvedPhotos || approvedPhotos.length === 0) {
-                            for (const h of history) {
-                                if (!isProtectedMilestone(h)) {
-                                    await sbAdmin.from('vehicle_history').delete().eq('id', h.id);
-                                }
-                            }
-                        } else {
-                            const activePhotos = approvedPhotos.filter(p => !isSpecialRoute(p.route_no) && !isStoppedRoute(p.route_no));
-                            for (const h of history) {
-                                if (!isProtectedMilestone(h)) {
-                                    const hasPhoto = activePhotos.some(p => isSameRoute(p.route_no, h.route));
-                                    if (!hasPhoto) {
-                                        await sbAdmin.from('vehicle_history').delete().eq('id', h.id);
-                                    }
-                                }
-                            }
-                        }
-                    }
+                    // Giữ nguyên lịch sử xe, không tự ý xóa mốc khi từ chối ảnh
                 } catch (histErr) {
                     console.warn('[WARN] Lỗi dọn dẹp lịch sử xe sau khi xóa ảnh:', histErr);
                 }

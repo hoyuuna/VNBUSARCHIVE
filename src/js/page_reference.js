@@ -557,8 +557,18 @@ Object.assign(window.app, {
                 routePhotos: [],
                 ROUTE_PAGE_SIZE: 12,
                 loadRoutePage: async (provinceName, routeNo, forceRefresh = false) => {
-                    const decodedProvince = decodeURIComponent(provinceName || '');
-                    const decodedRoute = decodeURIComponent(routeNo);
+                    let decodedProvince = decodeURIComponent(provinceName || '').trim();
+                    let decodedRoute = decodeURIComponent(routeNo || '').trim();
+
+                    if (decodedRoute.includes(' - ')) {
+                        const parts = decodedRoute.split(' - ');
+                        const cleanNo = parts[0].trim();
+                        const provFromRoute = parts.slice(1).join(' - ').trim();
+                        if (!decodedProvince && provFromRoute) {
+                            decodedProvince = provFromRoute;
+                        }
+                        decodedRoute = cleanNo;
+                    }
                     
 if (!decodedProvince || decodedProvince.trim() === '') {
                         app.toast.show('error', 'Lỗi truy cập', 'Tuyến này không tồn tại thông tin tỉnh thành. Nó có thể là xe khách hoặc dữ liệu không hợp lệ nên không được hỗ trợ hồ sơ.');

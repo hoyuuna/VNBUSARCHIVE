@@ -4,7 +4,12 @@ export async function onRequest(context) {
     if (params.path && params.path.length > 0) {
         routeId = params.path[params.path.length - 1];
     }
-    try { routeId = decodeURIComponent(routeId); } catch(e) {}
+    try {
+        routeId = decodeURIComponent(routeId);
+        if (routeId.includes(' - ')) {
+            routeId = routeId.split(' - ')[0].trim();
+        }
+    } catch(e) {}
     
     const url = new URL(request.url);
     const indexReq = new Request(url.origin + '/', request);
