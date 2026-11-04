@@ -356,7 +356,7 @@ Object.assign(window.app, {
                     const container = document.getElementById('upload-rules-content');
                     if (!container || container.dataset.loaded === 'true') return;
                     try {
-                        const res = await fetch('https://raw.githubusercontent.com/hoyuuna/VNBUSARCHIVE/refs/heads/main/doc/Requirements.md');
+                        const res = await fetch(`https://raw.githubusercontent.com/hoyuuna/VNBUSARCHIVE/refs/heads/main/doc/Requirements.md?v=${Date.now()}`);
                         if (!res.ok) throw new Error('Network error');
                         let text = await res.text();
                         

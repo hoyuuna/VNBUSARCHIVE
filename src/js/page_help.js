@@ -246,7 +246,7 @@ Object.assign(window.app, {
                     document.getElementById('policy-breadcrumb-title').innerText = policy.title;
                     document.getElementById('policy-detail-title').innerText = policy.title;
                     try {
-                        const res = await fetch(policy.url);
+                        const res = await fetch(`${policy.url}?v=${Date.now()}`);
                         if (!res.ok) throw new Error('Không thể tải nội dung tài liệu.');
                         let text = await res.text();
                         

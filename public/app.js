@@ -11319,7 +11319,7 @@ Object.assign(window.app, {
                     document.getElementById('policy-breadcrumb-title').innerText = policy.title;
                     document.getElementById('policy-detail-title').innerText = policy.title;
                     try {
-                        const res = await fetch(policy.url);
+                        const res = await fetch(`${policy.url}?v=${Date.now()}`);
                         if (!res.ok) throw new Error('Không thể tải nội dung tài liệu.');
                         let text = await res.text();
                         
@@ -15725,7 +15725,7 @@ Object.assign(window.app, {
                     const container = document.getElementById('upload-rules-content');
                     if (!container || container.dataset.loaded === 'true') return;
                     try {
-                        const res = await fetch('https://raw.githubusercontent.com/hoyuuna/VNBUSARCHIVE/refs/heads/main/doc/Requirements.md');
+                        const res = await fetch(`https://raw.githubusercontent.com/hoyuuna/VNBUSARCHIVE/refs/heads/main/doc/Requirements.md?v=${Date.now()}`);
                         if (!res.ok) throw new Error('Network error');
                         let text = await res.text();
                         

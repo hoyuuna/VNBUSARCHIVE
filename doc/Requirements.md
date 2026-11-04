@@ -52,72 +52,72 @@
 ## Chương II: Tiêu chuẩn kỹ thuật hình ảnh
 
 ### Điều 4. Yêu cầu đối tượng và bối cảnh không gian
-1. **[B1.1] Phạm vi lãnh thổ:** Phương tiện ghi nhận bắt buộc phải đăng ký biển kiểm soát và vận hành hợp pháp trong phạm vi lãnh thổ nước Cộng hòa Xã hội Chủ nghĩa Việt Nam.
-2. **[B1.2] Tính hợp lệ của chủ thể:** Phương tiện phải thuộc danh mục được tiếp nhận theo quy định tại Điều 2 của Quy chuẩn này.
-3. **[B1.3] Vệ sinh thị giác và trật tự bối cảnh:** Bối cảnh không gian xung quanh phương tiện phải bảo đảm tính thông thoáng, sạch sẽ. Không để chất thải, rác thải sinh hoạt, phế liệu xây dựng... xuất hiện tại tiền cảnh phía trước phương tiện. Nghiêm cấm gửi hình ảnh chụp xuyên qua bề mặt kính xe khác bị ố bẩn, bám vệt nước mưa hoặc in bóng phản chiếu làm suy giảm độ rõ nét của chủ thể.
-4. **[B1.4] Giá trị tư liệu và định hướng ghi hình:** Phương tiện phải được thể hiện với bố cục có chủ đích rõ ràng. Hệ thống từ chối các tác phẩm ghi hình vội vã, chụp đối phó, hoặc ghi hình từ khoảng cách quá xa trong điều kiện giao thông hỗn tạp không bảo đảm giá trị lưu trữ lâu dài.
+1. **[B1.1] Sai phạm vi địa lý:** Phương tiện ghi nhận bắt buộc phải đăng ký biển kiểm soát và vận hành hợp pháp trong phạm vi lãnh thổ nước Cộng hòa Xã hội Chủ nghĩa Việt Nam. Các phương tiện đăng ký hoặc hoạt động ngoài lãnh thổ Việt Nam sẽ bị từ chối phê duyệt.
+2. **[B1.2] Chủ thể không hợp lệ:** Phương tiện phải thuộc danh mục được tiếp nhận theo quy định tại Điều 2 của Quy chuẩn này. Hệ thống không tiếp nhận phương tiện cá nhân, xe hộ gia đình nhỏ lẻ, xe tiện chuyến, xe ghép, xe dù không có luồng tuyến hợp pháp, xe mang biển xanh công vụ, biển đỏ quân sự, hoặc phương tiện đang gặp tai nạn, va chạm, biến dạng kết cấu thân vỏ.
+3. **[B1.3] Bối cảnh không đạt yêu cầu:** Bối cảnh không gian xung quanh phương tiện phải bảo đảm tính thông thoáng, sạch sẽ. Không để chất thải, rác thải sinh hoạt, phế liệu xây dựng... xuất hiện tại tiền cảnh phía trước phương tiện. Nghiêm cấm gửi hình ảnh chụp xuyên qua bề mặt kính xe khác bị ố bẩn, bám vệt nước mưa hoặc in bóng phản chiếu làm suy giảm độ rõ nét của chủ thể.
+4. **[B1.4] Giá trị Lưu trữ và Thẩm mỹ:** Phương tiện phải được thể hiện với bố cục có chủ đích rõ ràng và đạt chất lượng thị giác chung của hệ thống. Từ chối các tác phẩm ghi hình vội vã, chụp đối phó, hoặc ghi hình từ khoảng cách quá xa trong điều kiện giao thông hỗn tạp không bảo đảm giá trị lưu trữ lâu dài.
 
 ---
 
 ### Điều 5. Tiêu chuẩn bố cục và hình học khung hình
-1. **[B2.1] Tính toàn vẹn của kết cấu ngoại thất:** Khung hình phải bao quát đầy đủ 100% kết cấu bên ngoài của phương tiện. Mép khung hình không được cắt phạm vào bất kỳ chi tiết cấu thành nào sau đây:
+1. **[B2.1] Khuyết thiếu bộ phận:** Khung hình phải bao quát đầy đủ 100% kết cấu bên ngoài của phương tiện. Mép khung hình không được cắt phạm vào bất kỳ chi tiết cấu thành nào sau đây:
    * Toàn bộ nóc xe, bao gồm hệ thống điều hòa không khí, chụp hút gió khí động học, bình chứa nhiên liệu khí nén (CNG)... nếu có.
    * Kết cấu đầu xe và đuôi xe.
    * Toàn bộ hệ thống bánh xe và điểm tiếp xúc giữa lốp xe với mặt đường.
    * Hệ thống gương chiếu hậu ở phía bên thân xe hướng về ống kính ghi hình.
-2. **[B2.2] Tỷ lệ chủ thể và khoảng cách quang học:**
+2. **[B2.2] Tỷ lệ và vị trí không đạt:** 
    * Phương tiện phải là chủ thể trung tâm chiếm ưu thế quang học trong khung hình. Cự ly ghi hình phải bảo đảm mắt thường có thể phân định rõ ràng các chi tiết nhận diện kỹ thuật (mặt ca-lăng, cụm đèn, kính xe, tem nhận diện luồng tuyến, biển kiểm soát...).
    * Tác phẩm bị từ chối nếu cự ly ghi hình quá lớn khiến kích thước phương tiện chiếm tỷ trọng không đáng kể so với tổng thể cảnh quan hoặc phương tiện bị chìm khuất giữa dòng giao thông.
    * Thiết lập khoảng đệm thị giác hợp lý giữa mép thân xe và 4 cạnh của khung hình (dao động trong khoảng 3% đến 5% chiều rộng ảnh). Không để thân xe tiếp xúc sát mép ảnh, đồng thời không bố trí phương tiện lệch hoàn toàn về một góc gây mất cân đối thị giác.
-3. **[B2.3] Cân bằng đường chân trời:**
+3. **[B2.3] Sai lệch độ cân bằng:**
    * Tỉ lệ khung hình ngang tiêu chuẩn: `4:3`, `3:2` hoặc `16:9`.
    * Đối với hình ảnh ghi nhận trên địa hình bằng phẳng, đường chân trời và các yếu tố kiến trúc nền phía sau (trụ đèn chiếu sáng, góc tường công trình kiến trúc, trụ biển báo hiệu đường bộ...) phải bảo đảm phương thẳng đứng tuyệt đối, song song với cạnh dọc của khung hình.
    * Đối với hình ảnh ghi nhận khi phương tiện đang vận hành trên đoạn đường đèo dốc hoặc vào cua nghiêng: Chấp thuận độ nghiêng động học tự nhiên của phương tiện theo độ nghiêng mặt đường, nhưng tổng thể hậu cảnh không được nghiêng lệch do lỗi thao tác của người vận hành thiết bị.
-4. **[B2.4] Phương vị và góc độ ghi hình:**
+4. **[B2.4] Góc chụp không hợp lệ:**
    * Góc chụp tiêu chuẩn được phê duyệt bao gồm: Góc 3/4 phía trước (quan sát đồng thời mặt trước và sườn xe), góc 3/4 phía sau (quan sát đồng thời mặt sau và sườn xe), hoặc góc vuông góc với toàn bộ thân sườn xe.
    * Hệ thống không tiếp nhận hình ảnh chụp trực diện duy nhất mặt trước hoặc mặt sau phương tiện (ngoại trừ trường hợp khung hình ghi nhận từ 2 phương tiện trở lên di chuyển theo đội hình).
    * Hệ thống không tiếp nhận các tác phẩm chụp độc lập khoang nội thất, vị trí lái hoặc chi tiết khoang động cơ.
-5. **[B2.5] Quy chuẩn tuyệt đối về vật cản:**
+5. **[B2.5] Vật cản che khuất:** 
    * Phương tiện phải hoàn toàn thông suốt trong trường nhìn của thiết bị ghi hình.
    * Bất kỳ vật thể ngoại lai nào (người đi bộ, phương tiện giao thông khác, cột điện, thân cây, biển báo giao thông, dải phân cách cơ giới, rào chắn, động vật...) che khuất hoặc cắt ngang vào thân xe, đầu xe, bánh xe hoặc biển kiểm soát đều xác định là **vi phạm quy chuẩn và bị từ chối phê duyệt**. Tiêu chuẩn này được áp dụng tuyệt đối, không xét mức độ che khuất ít hay nhiều.
 
 ---
 
 ### Điều 6. Yêu cầu kỹ thuật quang học và giới hạn hậu kỳ
-1. **[B3.1] Chất lượng quang học và phơi sáng:**
+1. **[B3.1] Chất lượng hình ảnh kém:**
    * Hình ảnh phải bảo đảm độ nét cao, mặt lấy nét đặt chính xác vào thân xe; không phát sinh hiện tượng nhòe mờ do rung lắc thiết bị hoặc nhòe chuyển động của phương tiện.
    * Mức độ phơi sáng phải cân bằng và chuẩn xác. Mặt chính của phương tiện hướng về ống kính phải thu nhận đủ dải sáng nhằm phân biệt rõ sắc độ màu sơn, các đường gân dập nổi trên thân vỏ và nội dung hiển thị trên tem tuyến.
    * Không tiếp nhận ảnh chụp ngược sáng khiến phương tiện trở thành bóng đen mất chi tiết (silhouette), hoặc ảnh dư sáng làm cháy trắng chi tiết bề mặt vật liệu.
-2. **[B3.2] Tính xác thực và giới hạn can thiệp kỹ thuật số:**
+2. **[B3.2] Tính nguyên bản & Hậu kỳ:**
    * **Các thao tác điều chỉnh được chấp thuận:** Cân chỉnh độ phơi sáng tổng thể, nâng sáng vùng tối (shadows) ở mức độ vừa phải nhằm tái hiện chi tiết khu vực gầm xe, cân bằng trắng theo màu sắc trung thực tại hiện trường, nắn chỉnh góc nghiêng và cắt cúp tỷ lệ ảnh...
    * **Các hành vi bị nghiêm cấm hoàn toàn:**
      * Lạm dụng công cụ gia tăng độ sắc nét (Clarity, Sharpening, Texture...) tạo quầng sáng nhân tạo xung quanh đường bao thân xe.
      * Tăng cường độ bão hòa màu sắc (Saturation) quá mức làm sai lệch màu sơn nhận diện thương hiệu nguyên bản của đơn vị khai thác vận tải.
      * Áp dụng các bộ lọc màu nghệ thuật (cinematic, vintage, filter đơn sắc...) làm biến đổi tính chân thực lịch sử của phương tiện.
      * Ứng dụng các thuật toán trí tuệ nhân tạo (AI Generative Fill, AI Upscaling...) để vẽ thêm chi tiết, tái tạo biển số hoặc xóa bỏ các chi tiết vật lý trên bề mặt phương tiện.
-3. **[B3.3] Tính toàn vẹn của siêu dữ liệu EXIF:** Tệp ảnh tải lên phải bảo lưu toàn bộ siêu dữ liệu gốc trích xuất từ phần cứng thiết bị ghi hình (nhãn hiệu thiết bị, thời gian ghi nhận thực tế, khẩu độ, tốc độ màn trập, độ nhạy sáng ISO...). Tệp tin bảo toàn thông số EXIF chuẩn xác sẽ được hưởng cơ chế cộng điểm ưu tiên khi thẩm định.
-4. **[B3.4] Tính nguyên bản về bản quyền hiển thị:** Tác giả không tự ý chèn chữ ký số, hình mờ (watermark), ký tự nhận dạng cá nhân hoặc biểu trưng của các hội nhóm thứ ba lên tệp ảnh. Hệ thống sẽ tự động đồng bộ và tích hợp dấu bản quyền pháp lý của dự án khi tác phẩm được phê duyệt xuất bản.
-5. **[B3.5] Hạn chế sai lệch tiêu cự quang học:** Không sử dụng ống kính có góc nhìn siêu rộng (ultrawide) ở khoảng cách tiếp cận quá gần phương tiện nhằm tránh gây ra hiện tượng méo hình học, làm biến dạng tỷ lệ khung gầm và kích thước thực tế của xe.
+3. **[B3.3] Dữ liệu EXIF:** Tệp ảnh tải lên phải bảo lưu toàn bộ siêu dữ liệu gốc trích xuất từ phần cứng thiết bị ghi hình (nhãn hiệu thiết bị, thời gian ghi nhận thực tế, khẩu độ, tốc độ màn trập, độ nhạy sáng ISO...). Tệp tin bảo toàn thông số EXIF chuẩn xác sẽ được hưởng cơ chế cộng điểm ưu tiên khi thẩm định.
+4. **[B3.4] Mờ đè bản quyền:** Tác giả không tự ý chèn chữ ký số, hình mờ (watermark), ký tự nhận dạng cá nhân hoặc biểu trưng của các hội nhóm thứ ba lên tệp ảnh. Hệ thống sẽ tự động đồng bộ và tích hợp dấu bản quyền pháp lý của dự án khi tác phẩm được phê duyệt xuất bản.
+5. **[B3.5] Sai lệch tiêu cự:** Không sử dụng ống kính có góc nhìn siêu rộng (ultrawide) ở khoảng cách tiếp cận quá gần phương tiện nhằm tránh gây ra hiện tượng méo hình học, làm biến dạng tỷ lệ khung gầm và kích thước thực tế của xe.
 
 ---
 
 ### Điều 7. Định danh kỹ thuật và quyền riêng tư cá nhân
-1. **[B4.1] Khả năng nhận diện biển kiểm soát:** Biển kiểm soát của phương tiện phải hiển thị rõ ràng, cho phép định danh chính xác bằng mắt thường tại tỷ lệ hiển thị 100% (áp dụng thống nhất đối với biển dập kim loại, biển số in decal, biển số dán tạm thời...). Từ chối tiếp nhận nếu biển kiểm soát bị lóa sáng, lệch nét hoặc bị bụi bẩn che lấp ký tự.
-2. **[B4.2] Nghĩa vụ bảo vệ quyền riêng tư cá nhân:**
+1. **[B4.1] Lỗi định danh phương tiện:** Biển kiểm soát của phương tiện phải hiển thị rõ ràng, cho phép định danh chính xác bằng mắt thường tại tỷ lệ hiển thị 100% (áp dụng thống nhất đối với biển dập kim loại, biển số in decal, biển số dán tạm thời...). Từ chối tiếp nhận nếu biển kiểm soát bị lóa sáng, lệch nét hoặc bị bụi bẩn che lấp ký tự.
+2. **[B4.2] Vi phạm quyền riêng tư:** 
    * Thành viên có nghĩa vụ làm mờ nhận diện khuôn mặt của người điều khiển phương tiện, nhân viên phục vụ, hành khách hoặc người tham gia giao thông xung quanh nếu khuôn mặt hiển thị rõ đặc điểm nhân dạng tại cự ly tiếp cận gần.
    * Trường hợp nhân sự hoặc hành khách ngồi bên trong xe sau lớp phim cách nhiệt tối màu, hoặc ở cự ly xa không thể xác định đặc điểm nhân dạng thì không thuộc diện bắt buộc làm mờ.
-3. **[B4.3] Kỹ thuật xử lý vùng che mờ:** Thao tác làm mờ phải được giới hạn vừa vặn trong phạm vi vùng mặt của đối tượng cần che chắn. Nghiêm cấm tạo vùng làm mờ có diện tích quá rộng lan sang kính chắn gió, trụ xe hoặc các bộ phận kết cấu của phương tiện làm tổn hại bố cục tác phẩm.
-4. **[B4.4] Trách nhiệm bảo vệ thông tin phương tiện liên quan:** Trường hợp trong khung hình xuất hiện phương tiện giao thông khác đang có dấu hiệu vi phạm pháp luật trật tự an toàn giao thông, thành viên bắt buộc phải làm mờ biển kiểm soát của phương tiện đó trước khi gửi thẩm định.
+3. **[B4.3] Xử lý vùng mờ sai quy chuẩn:** Thao tác làm mờ phải được giới hạn vừa vặn trong phạm vi vùng mặt của đối tượng cần che chắn. Nghiêm cấm lạm dụng vùng che mờ có kích thước quá lớn, thiếu chính xác hoặc làm đè lấn lên kính chắn gió, trụ xe hoặc các bộ phận kết cấu của phương tiện làm tổn hại bố cục tác phẩm.
+4. **[B4.4] Bỏ sót vùng làm mờ:** Trường hợp trong khung hình xuất hiện phương tiện giao thông khác đang có dấu hiệu vi phạm pháp luật trật tự an toàn giao thông, thành viên bắt buộc phải làm mờ biển kiểm soát của phương tiện đó trước khi gửi thẩm định.
 
 ---
 
 ### Điều 8. Chuẩn mực pháp lý và an toàn tác nghiệp
-1. **[B5.1] Xác thực quyền tác giả:** Người đăng tải bắt buộc phải là tác giả trực tiếp thực hiện việc ghi nhận tác phẩm. Nghiêm cấm sao chép, trích xuất hình ảnh thuộc quyền sở hữu của cá nhân khác, hình ảnh từ báo chí, diễn đàn hoặc các nền tảng mạng xã hội... Mọi vi phạm quyền sở hữu trí tuệ đều dẫn đến hình thức đình chỉ tài khoản vĩnh viễn.
-2. **[B5.2] Quy chuẩn không gian tác nghiệp công cộng:**
+1. **[B5.1] Vi phạm bản quyền:** Người đăng tải bắt buộc phải là tác giả trực tiếp thực hiện việc ghi nhận tác phẩm. Nghiêm cấm sao chép, trích xuất hình ảnh thuộc quyền sở hữu của cá nhân khác, hình ảnh từ báo chí, diễn đàn hoặc các nền tảng mạng xã hội... Mọi vi phạm quyền sở hữu trí tuệ đều dẫn đến hình thức đình chỉ tài khoản vĩnh viễn.
+2. **[B5.2] Vi phạm quy chuẩn tác nghiệp:** 
    * Toàn bộ tác phẩm gửi về hệ thống bắt buộc phải được ghi nhận tại các **không gian công cộng hợp pháp** (vỉa hè đường bộ, cầu vượt bộ hành, nhà chờ xe buýt, sảnh đón trả khách công cộng của bến xe khách...).
    * Nghiêm cấm các hành vi chụp lén, trèo tường rào, vượt rào chắn bảo vệ, hoặc xâm nhập trái phép vào khuôn viên doanh nghiệp vận tải, khu vực sửa chữa bảo dưỡng, depot xe buýt/đường sắt đô thị, bãi đỗ xe nội bộ hoặc các công trình giao thông có kiểm soát tiếp cận...
-3. **[B5.3] Tuân thủ quy định khu vực an ninh:** Tuyệt đối không thực hiện việc ghi hình phương tiện tại các địa bàn quân sự, khu vực trọng yếu an ninh quốc gia, hoặc các địa điểm có biển báo cấm quay phim chụp ảnh theo quy định của pháp luật.
-4. **[B5.4] Tuân thủ an toàn giao thông đường bộ:** Người chụp ảnh có nghĩa vụ bảo đảm an toàn tính mạng cho bản thân và trật tự an toàn giao thông công cộng. Nghiêm cấm hành vi đứng dưới lòng đường cơ giới, trèo lên dải phân cách giữa làn đường cao tốc, hoặc tạo lập tình huống gây nguy hiểm, cản trở dòng lưu thông để chụp ảnh phương tiện.
+3. **[B5.3] Vi phạm khu vực cấm:** Tuyệt đối không thực hiện việc ghi hình phương tiện tại các địa bàn quân sự, khu vực trọng yếu an ninh quốc gia, hoặc các địa điểm có biển báo cấm quay phim chụp ảnh theo quy định của pháp luật.
+4. **[B5.4] Vi phạm an toàn giao thông:** Người chụp ảnh có nghĩa vụ bảo đảm an toàn tính mạng cho bản thân và trật tự an toàn giao thông công cộng. Nghiêm cấm hành vi đứng dưới lòng đường cơ giới, trèo lên dải phân cách giữa làn đường cao tốc, hoặc tạo lập tình huống gây nguy hiểm, cản trở dòng lưu thông để chụp ảnh phương tiện.
 
 ---
 
@@ -140,19 +140,19 @@
 ## Chương III: Quy cách chuẩn hóa dữ liệu định danh
 
 ### Điều 10. Dữ liệu định danh kỹ thuật
-1. **Biển kiểm soát phương tiện:**
+1. **[C1.1] Biển kiểm soát phương tiện:**
    * Nhập ký tự liên tục, viết hoa, không sử dụng khoảng trắng, dấu chấm hoặc dấu gạch nối (ví dụ: `29B12345`, `51B67890`...).
    * Định dạng biển số 4 chữ số thời kỳ trước: Nhập chuỗi ký tự liền mạch tương ứng (ví dụ: `29H1234`, `53N5678`...).
    * Biển số đăng ký tạm thời: Thêm tiền tố `T` phía trước chuỗi ký tự (ví dụ: `T1234567`...).
    * Phân tách định danh trùng biển số (trường hợp phương tiện thay đổi vòng đời hoặc cơ quan quản lý cấp lại biển số): Áp dụng hậu tố số thứ tự (ví dụ: `29B12345-1`, `29B12345-2`...).
    * Trường hợp khung hình ghi nhận nhiều phương tiện: Ưu tiên lập chỉ mục cho phương tiện chưa có dữ liệu trên hệ thống; trường hợp các phương tiện đều chưa có dữ liệu, ưu tiên phương tiện ở cự ly tiếp cận gần nhất hoặc ghi nhận theo thứ tự từ trái sang phải.
-2. **Phân loại chủng loại:** Xác định chính xác danh mục **Xe buýt** hoặc **Xe khách**.
-3. **Tên dòng phương tiện:** Lựa chọn tên dòng xe từ cơ sở dữ liệu chuẩn hóa của hệ thống. Trường hợp bổ sung mới thủ công, người nhập có nghĩa vụ nhập chính xác tên thương mại do nhà sản xuất công bố (ví dụ: `Thaco Meadow 85SL`, `Hyundai New Super Aero City`, `VinFast EB8`...).
+2. **[C1.2] Phân loại chủng loại:** Xác định chính xác danh mục **Xe buýt** hoặc **Xe khách**.
+3. **[C1.3] Tên dòng phương tiện:** Lựa chọn tên dòng xe từ cơ sở dữ liệu chuẩn hóa của hệ thống. Trường hợp bổ sung mới thủ công, người nhập có nghĩa vụ nhập chính xác tên thương mại do nhà sản xuất công bố (ví dụ: `Thaco Meadow 85SL`, `Hyundai New Super Aero City`, `VinFast EB8`...).
 
 ---
 
 ### Điều 11. Dữ liệu vận hành luồng tuyến
-1. **Đơn vị khai thác vận hành:** Lựa chọn từ danh mục pháp nhân có sẵn. Trường hợp nhập thủ công, áp dụng chuẩn hóa tên pháp nhân theo bảng ký hiệu quy ước:
+1. **[C2.1] Đơn vị khai thác vận hành:** Lựa chọn từ danh mục pháp nhân có sẵn. Trường hợp nhập thủ công, áp dụng chuẩn hóa tên pháp nhân theo bảng ký hiệu quy ước:
 
    | Loại hình pháp nhân | Ký hiệu chuẩn hóa | Ví dụ áp dụng thực tế |
    | :--- | :--- | :--- |
@@ -161,7 +161,7 @@
    | Hợp tác xã | **HTX** | *Hợp tác xã Vận tải 19/5* ➔ `HTX Vận tải 19/5`... |
    | Trách nhiệm hữu hạn | **TNHH** | *Công ty TNHH Vận tải Kumho Samco* ➔ `Công ty TNHH Vận tải Kumho Samco`... |
 
-2. **Tuyến vận hành:**
+2. **[C2.2] Tuyến vận hành:**
    * **Đối với xe buýt:** Chỉ nhập số hiệu nhận diện tuyến chính thức (ví dụ: `01`, `08A`, `109`, `E03`...). Toàn bộ lộ trình chi tiết không nhập tại trường này mà ghi nhận tại phần *Ghi chú*.
    * **Đối với xe khách:** Nhập theo định dạng cấu trúc `[Điểm xuất phát] - [Điểm đến]` theo địa danh hành chính cấp tỉnh hoặc thành phố trực thuộc trung ương (ví dụ: `Hà Nội - Hải Phòng`, `TP. Hồ Chí Minh - Cần Thơ`...).
    * **Trạng thái khai thác đặc thù:** Trường hợp phương tiện không vận hành trên tuyến thông thường, lựa chọn thuộc tính tương ứng: `Dừng hoạt động`, `Chưa hoạt động`, `Ngoài giờ hoạt động`, hoặc `Hợp đồng`...
@@ -169,6 +169,6 @@
 ---
 
 ### Điều 12. Dữ liệu bổ trợ
-1. **Thời gian ghi nhận:** Hệ thống tự động trích xuất từ siêu dữ liệu EXIF. Trường hợp tệp ảnh không lưu giữ EXIF, người đóng góp có trách nhiệm khai báo chính xác ngày ghi nhận thực tế.
-2. **Vị trí địa lý ghi nhận:** Nhập tên tuyến đường, nút giao thông hoặc địa danh hành chính nơi phương tiện đang di chuyển qua tại thời điểm ghi hình (ví dụ: *"Đường Giải Phóng, khu vực đối diện Bến xe Giáp Bát"*...). Không khai báo vị trí đứng của người thực hiện tác phẩm.
-3. **Thuyết minh bổ trợ:** Ghi nhận các dữ liệu có giá trị nghiên cứu lịch sử (chuyến xe khai trương luồng tuyến mới, phương án sơn nghiệm thu, sự kiện hoán cải động cơ...). Trường hợp chưa thu thập đủ dữ liệu đối với các trường bắt buộc, ghi rõ: `"Chưa rõ thông tin [tên trường dữ liệu]"`.
+1. **[C3.1] Thời gian ghi nhận:** Hệ thống tự động trích xuất từ siêu dữ liệu EXIF. Trường hợp tệp ảnh không lưu giữ EXIF, người đóng góp có trách nhiệm khai báo chính xác ngày ghi nhận thực tế.
+2. **[C3.2] Vị trí địa lý ghi nhận:** Nhập tên tuyến đường, nút giao thông hoặc địa danh hành chính nơi phương tiện đang di chuyển qua tại thời điểm ghi hình (ví dụ: *"Đường Giải Phóng, khu vực đối diện Bến xe Giáp Bát"*...). Không khai báo vị trí đứng của người thực hiện tác phẩm.
+3. **[C3.3] Thuyết minh bổ trợ (Ghi chú):** Ghi nhận các dữ liệu có giá trị nghiên cứu lịch sử (chuyến xe khai trương luồng tuyến mới, phương án sơn nghiệm thu, sự kiện hoán cải động cơ...). Trường hợp chưa thu thập đủ dữ liệu đối với các trường bắt buộc, ghi rõ: `"Chưa rõ thông tin [tên trường dữ liệu]"`.
