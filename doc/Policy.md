@@ -1,9 +1,5 @@
 # Điều khoản dịch vụ và chính sách bảo mật thông tin
 
-**Văn bản số:** CS-01/VNBUS/2026  
-**Đơn vị ban hành:** Ban Quản trị VNBUSARCHIVE  
-**Ngày có hiệu lực:** Áp dụng thống nhất trên toàn bộ hạ tầng dịch vụ VNBUSARCHIVE.
-
 ---
 
 ## Chương I: Điều khoản dịch vụ

@@ -1,9 +1,5 @@
 # Quy chế văn hóa cộng đồng và tiêu chuẩn tương tác bình luận
 
-**Văn bản số:** QC-02/VNBUS/2026  
-**Đơn vị ban hành:** Ban Quản trị VNBUSARCHIVE  
-**Phạm vi áp dụng:** Toàn bộ khu vực thảo luận, đóng góp ý kiến và bình luận công khai trên hệ thống VNBUSARCHIVE.
-
 ---
 
 ## Điều 1. Mục đích và nguyên tắc điều chỉnh

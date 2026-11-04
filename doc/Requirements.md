@@ -1,9 +1,5 @@
 # Quy chuẩn kỹ thuật và tiêu chuẩn thẩm định hình ảnh phương tiện
 
-**Văn bản số:** QC-01/VNBUS/2026  
-**Đơn vị ban hành:** Ban Quản trị VNBUSARCHIVE  
-**Phạm vi áp dụng:** Toàn bộ thành viên, cộng tác viên và đội ngũ kiểm duyệt viên trên toàn hệ thống VNBUSARCHIVE.
-
 ---
 
 ## Chương I: Quy định chung
