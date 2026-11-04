@@ -1,139 +1,155 @@
-# Chính sách bảo mật và điều khoản dịch vụ - VNBUSARCHIVE
+# Điều khoản dịch vụ và chính sách bảo mật thông tin
 
-Chào mừng bạn đến với VNBUSARCHIVE. Đây là dự án cộng đồng phi lợi nhuận nhằm lưu trữ, bảo tồn hình ảnh và dữ liệu lịch sử của các phương tiện giao thông công cộng tại Việt Nam.
-
-Bằng việc truy cập, đăng ký tài khoản, sử dụng API hoặc đóng góp hình ảnh và dữ liệu, bạn đồng ý tuân thủ toàn bộ Điều khoản Dịch vụ và Chính sách Bảo mật dưới đây. Vui lòng đọc kỹ trước khi sử dụng. Nếu không đồng ý với bất kỳ điều khoản nào, bạn có thể ngừng sử dụng hệ thống.
-
----
-
-## Phần 1: Điều khoản dịch vụ
-
-### 1. Giới thiệu dịch vụ
-VNBUSARCHIVE là nền tảng tư liệu mở dành cho cộng đồng quan tâm đến giao thông công cộng. Hệ thống gồm kho lưu trữ hình ảnh, cơ sở dữ liệu phương tiện (biển số, đơn vị vận hành, tuyến xe, dòng xe, lịch sử hoạt động) và API mở phục vụ mục đích tra cứu, nghiên cứu phi thương mại.
-
-### 2. Quy định về tài khoản người dùng
-Để đóng góp ảnh, bình luận và sử dụng các tính năng cá nhân, bạn cần tạo tài khoản:
-* **Đăng ký và liên kết:** Bạn có thể đăng ký bằng email và mật khẩu tối thiểu 6 ký tự, hoặc đăng nhập qua bên thứ ba như Google, Discord, GitHub. Tên hiển thị có độ dài từ 3 đến 20 ký tự.
-* **Bảo mật tài khoản:** Bạn tự chịu trách nhiệm bảo quản thông tin đăng nhập của mình. VNBUSARCHIVE không chịu trách nhiệm với các tổn thất do tài khoản bị lộ mật khẩu. Quá trình đăng nhập được bảo vệ bởi Cloudflare Turnstile để chống bot tự động.
-* **Mã định danh:** Mỗi tài khoản có một mã User ID để đối soát kỹ thuật khi cần hỗ trợ. Vui lòng không chia sẻ mã này cho người lạ, chỉ cung cấp qua các kênh hỗ trợ chính thức của hệ thống.
-* **Thay đổi thông tin:** Bạn có thể đổi tên hiển thị, email và ảnh đại diện với dung lượng tối đa 3MB. Việc đổi tên hiển thị không làm thay đổi dấu bản quyền trên các ảnh đã được duyệt trước đó.
-* **Đình chỉ tài khoản:** Ban quản trị có quyền tạm dừng hoặc chấm dứt vĩnh viễn tài khoản nếu phát hiện hành vi tấn công hệ thống, phá hoại dữ liệu, vi phạm bản quyền hoặc vi phạm quy chuẩn tác nghiệp (chụp lén, leo trèo rào chắn, xâm nhập trái phép khuôn viên xí nghiệp, depot, bến bãi, khu vực cấm hoặc các khu vực hạn chế, nhạy cảm). Thẩm quyền xử lý được áp dụng đối với mọi hành vi thu thập tư liệu thực tế, không giới hạn trong phạm vi tương tác trực tuyến trên website.
-* **Độ tuổi tham gia:** Người dùng cần từ đủ 14 tuổi trở lên. Ban quản trị sẽ khóa tài khoản nếu phát hiện người dùng chưa đủ độ tuổi quy định.
-
-### 3. Tiêu chuẩn nội dung và đóng góp hình ảnh
-Khi tải ảnh lên hệ thống, bạn cần tuân thủ các quy chuẩn sau:
-* **Quyền sở hữu:** Chỉ tải lên hình ảnh do chính bạn chụp, không sao chép từ các nguồn khác.
-* **Bố cục:** Ảnh cần lấy trọn vẹn thân xe, không bị cắt cụt các bộ phận chính. Bạn có thể dùng công cụ cắt ảnh có sẵn trên web với các tỉ lệ chuẩn 16:9, 3:2, 4:3.
-* **Chất lượng ảnh:** Ảnh cần rõ nét, đủ sáng và nhìn rõ biển số xe. Không dùng AI để làm nét nhân tạo hay can thiệp làm sai lệch chi tiết gốc. Bạn có thể chỉnh màu cơ bản như độ sáng, tương phản, độ bão hòa nhưng tránh lạm dụng làm mất tính chân thực. Dung lượng tệp tải lên tối đa là 20MB.
-* **Dấu bản quyền:** Không tự chèn chữ ký cá nhân vào ảnh. Hệ thống sẽ tự động đóng dấu bản quyền mang tên hiển thị của bạn. Bạn có thể chọn màu dấu trắng/đen và vị trí phù hợp trên bức ảnh.
-* **Quyền riêng tư:** Bạn cần làm mờ khuôn mặt của người xuất hiện rõ trong ảnh như hành khách, tài xế hoặc biển số của các phương tiện khác nếu cần thiết bằng công cụ làm mờ trên web.
-* **Giới hạn tải lên:** Nhằm duy trì độ ổn định của máy chủ và khuyến khích chất lượng đóng góp, hệ thống áp dụng hạn mức tải lên trong ngày dựa trên điểm uy tín của tài khoản (từ 1 đến 50 ảnh/ngày, mặc định tài khoản mới là 15 ảnh/ngày). Hạn mức này tự động làm mới vào lúc 7:00 sáng hàng ngày theo giờ Việt Nam.
-
-### 4. Quyền sở hữu trí tuệ và cấp phép
-* **Quyền của người chụp và giấy phép không hủy ngang:** Bạn giữ toàn bộ bản quyền đối với tệp ảnh gốc của mình. Khi tải lên và được duyệt vào hệ thống, bạn cấp cho VNBUSARCHIVE giấy phép không độc quyền, miễn phí, vĩnh viễn và không hủy ngang để lưu trữ, hiển thị, tối ưu hóa và gắn nhãn bản quyền phục vụ mục đích phi thương mại của cộng đồng. Giấy phép này tiếp tục có hiệu lực ngay cả khi bạn ngừng sử dụng dịch vụ hoặc xóa tài khoản. Bạn tự chịu trách nhiệm về bản quyền của ảnh gốc.
-* **Quyền của cộng đồng:** Người dùng khi sử dụng lại ảnh hoặc dữ liệu từ hệ thống cần ghi nguồn rõ ràng. Không tự ý cào dữ liệu tự động quy mô lớn để kinh doanh hoặc thương mại hóa.
-* **Bảo vệ tác phẩm:** Khi tải ảnh lên và đóng dấu hệ thống, bạn đồng ý để VNBUSARCHIVE hỗ trợ bảo vệ hình ảnh trên không gian mạng:
-  * Bạn có quyền tự mình khiếu nại bản quyền DMCA với bất kỳ bên nào sử dụng ảnh của bạn trái phép.
-  * VNBUSARCHIVE có quyền chủ động yêu cầu gỡ bỏ hoặc khiếu nại bản quyền nếu phát hiện ảnh có gắn nhãn của dự án bị lợi dụng vào mục đích xấu như xóa watermark, bôi nhọ, xuyên tạc hoặc thương mại hóa trái phép.
-* **Chống giả mạo và xuyên tạc:** Không dùng ảnh tải từ hệ thống để cắt ghép, lồng ghép vào thông tin sai sự thật hay kích động bôi nhọ trên mạng xã hội. VNBUSARCHIVE không chịu trách nhiệm với các hành vi giả mạo từ bên thứ ba.
-* **Xử lý bản quyền khi tài khoản bị khóa:**
-  * **Đối với ảnh đã gắn watermark hệ thống:** VNBUSARCHIVE tiếp tục duy trì lưu trữ và hiển thị các bức ảnh đã duyệt để bảo đảm tính liên tục của dữ liệu lịch sử.
-  * **Đối với tệp ảnh gốc:** Bạn vẫn toàn quyền sở hữu và định đoạt tệp ảnh gốc bên ngoài hệ thống. VNBUSARCHIVE không can thiệp hay chịu trách nhiệm đối với ảnh gốc ngoài nền tảng.
-
-### 5. Kiểm duyệt và chỉnh sửa dữ liệu
-* Ảnh tải lên, thông tin bổ sung và lịch sử phương tiện đều được kiểm duyệt thủ công bởi ban quản trị.
-* Quản trị viên có thể chấp nhận, từ chối hoặc điều chỉnh thông tin bạn nhập để đảm bảo tính đồng bộ của dữ liệu.
-* Khi ảnh bị từ chối, lý do sẽ được ghi rõ trong thông báo. Khi ảnh hoặc dữ liệu đã bị xóa khỏi hệ thống, chúng tôi không tiếp nhận khiếu nại khôi phục tệp đó.
-
-### 6. Sử dụng hệ thống và dữ liệu
-Dữ liệu trên website phục vụ nhu cầu tra cứu phi thương mại của cộng đồng. Hệ thống hiện chưa cung cấp API công khai cho bên thứ ba. Các hành vi sử dụng công cụ tự động để cào dữ liệu quy mô lớn hoặc gửi request ồ ạt gây ảnh hưởng dịch vụ đều bị chặn địa chỉ IP.
-
-### 7. Miễn trừ trách nhiệm
-* **Tính chính xác:** Dữ liệu do cộng đồng đóng góp mang tính tham khảo. Chúng tôi cố gắng kiểm tra nhưng không cam kết dữ liệu luôn chính xác 100% ở mọi thời điểm.
-* **Lưu trữ kỹ thuật:** Chúng tôi nỗ lực duy trì hệ thống hoạt động ổn định, nhưng không chịu trách nhiệm trong các tình huống mất mát dữ liệu do sự cố bất khả kháng. Bạn nên chủ động lưu trữ bản gốc hình ảnh của mình.
-* **Giá trị pháp lý:** Dữ liệu và hình ảnh trên website không dùng làm căn cứ pháp lý để xử phạt vi phạm giao thông hay tranh chấp nội bộ doanh nghiệp.
-* **Tính công cộng của phương tiện giao thông:** Phương tiện giao thông vận tải và biển kiểm soát khi tham gia lưu thông trên đường giao thông công cộng không thuộc phạm vi bí mật đời tư cá nhân.
-* **Trách nhiệm người dùng:** Người dùng tự chịu trách nhiệm về hình ảnh mình tải lên, bao gồm các vấn đề liên quan đến quyền riêng tư hoặc bản quyền với bên thứ ba.
-* **Trách nhiệm pháp lý và quy chuẩn tác nghiệp:** VNBUSARCHIVE không tổ chức, điều phối, định hướng hay chịu trách nhiệm đối với bất kỳ hành vi tác nghiệp nào của người dùng. Mọi hình ảnh gửi lên hệ thống bắt buộc phải được ghi nhận tại các địa điểm công cộng (đường giao thông công cộng, trạm dừng, nhà chờ, bến xe khách). Tác giả tự chịu trách nhiệm pháp lý về an toàn giao thông, an ninh trật tự và phương thức tác nghiệp. Hệ thống có quyền từ chối phê duyệt hình ảnh và đình chỉ tài khoản nếu phát hiện hành vi vi phạm pháp luật hoặc vi phạm quy chuẩn tác nghiệp (bao gồm xâm nhập trái phép cơ sở hạ tầng giao thông, depot, xưởng kỹ thuật, bến bãi nội bộ, khu vực cấm, địa điểm nhạy cảm, chụp lén hoặc gây rối trật tự công cộng).
-* **Liên hệ và kết nối nhân sự:** Người dùng không có quyền yêu cầu và VNBUSARCHIVE không có trách nhiệm hay nghĩa vụ phải kết nối người dùng với bất kỳ cá nhân, nhân viên, quản trị viên hoặc người đảm nhiệm chức vụ cụ thể nào của hệ thống. Mọi phản hồi, khiếu nại hoặc đề nghị hỗ trợ chỉ được tiếp nhận và xử lý qua các kênh liên hệ chính thức do hệ thống công bố.
-* Trong trường hợp xảy ra sự cố kỹ thuật ngoài tầm kiểm soát hoặc tấn công mạng, VNBUSARCHIVE sẽ nỗ lực khắc phục, thông báo cho người dùng và được miễn trừ nghĩa vụ bồi thường tài chính.
-
-### 8. Tiêu chuẩn về tên hiển thị và ảnh đại diện
-Hồ sơ cá nhân được hiển thị công khai trên hệ thống. Để giữ môi trường văn minh, người dùng cần tuân thủ các quy tắc sau:
-
-**8.1. Tên hiển thị:**
-* Độ dài từ 3 đến 20 ký tự, chỉ gồm chữ cái (hỗ trợ tiếng Việt có dấu), chữ số và dấu cách. Hệ thống không chấp nhận ký tự đặc biệt, dấu câu, emoji hay ký hiệu.
-* Không đặt tên gây nhầm lẫn với ban quản trị VNBUSARCHIVE, cơ quan nhà nước hay các đơn vị vận tải.
-* Không chèn số điện thoại, email, link website, tên miền hay nội dung quảng cáo vào tên hiển thị.
-* Không dùng từ ngữ thô tục, xúc phạm, phân biệt vùng miền hoặc nhắc đến các chủ đề chính trị, tôn giáo nhạy cảm.
-
-**8.2. Ảnh đại diện:**
-* **Quyền riêng tư:** Không dùng ảnh chụp rõ mặt người khác khi chưa có sự đồng ý của họ. Không dùng công nghệ deepfake để bôi nhọ hay giả mạo.
-* **Thương hiệu:** Không lấy logo, con dấu của VNBUSARCHIVE, cơ quan nhà nước, lực lượng vũ trang hoặc các hãng xe làm ảnh đại diện cá nhân.
-* **Nội dung nhạy cảm:** Không dùng ảnh khỏa thân, bán khỏa thân, tạo dáng khêu gợi hoặc ảnh cắt cúp zoom vào vùng nhạy cảm. Quy định áp dụng cho cả người thật, tranh vẽ và nhân vật hư cấu.
-* **Bạo lực và kinh dị:** Không dùng hình ảnh máu me, tai nạn, vũ khí sát thương hay nội dung gây ám ảnh thị giác.
-* **An toàn:** Không dùng ảnh chứa mã QR dẫn tới liên kết độc hại. Tránh dùng ảnh GIF chớp nháy nhanh liên tục có thể gây ảnh hưởng thị giác cho người xem.
-
-### 9. Tiếp nhận và xử lý khiếu nại quyền riêng tư
-Nhằm đảm bảo quyền riêng tư cá nhân theo quy định pháp luật:
-* **Quyền yêu cầu:** Nếu bạn xuất hiện rõ mặt hoặc có thông tin nhận diện riêng tư trong ảnh lưu trữ trên hệ thống, bạn có quyền gửi yêu cầu hỗ trợ qua mục [Liên hệ] của website để được hỗ trợ làm mờ.
-* **Quy trình tiếp nhận:** Ban quản trị sẽ phản hồi và kiểm tra nội dung trong vòng 24–72 giờ sau khi nhận đủ thông tin.
-* **Biện pháp xử lý:** Tùy trường hợp, ban quản trị sẽ làm mờ phần nhận diện cá nhân trực tiếp trên ảnh hoặc tạm ẩn ảnh trong thời gian xử lý.
-* **Yêu cầu gỡ ảnh từ phía nhà xe hoặc tài xế:** Để phục vụ mục đích tư liệu lịch sử giao thông công cộng, VNBUSARCHIVE luôn hỗ trợ làm mờ khuôn mặt người (tài xế, tiếp viên, hành khách) khi nhận được yêu cầu hợp lệ. Tuy nhiên, hệ thống **từ chối các yêu cầu gỡ bỏ hình ảnh phương tiện** được chụp hợp pháp tại không gian công cộng, trừ khi có yêu cầu bằng văn bản chính thức từ cơ quan quản lý Nhà nước có thẩm quyền.
-* Để đảm bảo an toàn cho dự án, ban quản trị có quyền chủ động làm mờ bổ sung hoặc gỡ ảnh có khiếu nại mà không cần sự đồng ý trước của người đã tải ảnh.
-
-### 10. Quy chuẩn nhận diện thương hiệu và logo VNBUSARCHIVE
-Logo và nhận diện thương hiệu thuộc quyền sở hữu của dự án VNBUSARCHIVE. Khi sử dụng, vui lòng lưu ý:
-
-**10.1. Cấu trúc logo:**
-Hệ thống nhận diện gồm hai phần:
-* **Logo biểu tượng:** Biểu trưng đồ họa chính thức của dự án.
-* **Logo chữ:** Sử dụng phông chữ Montserrat ExtraBold Italic, phiên bản màu trắng cho nền tối hoặc đen cho nền sáng.
-* **Quy tắc hiển thị:** Có thể dùng riêng lẻ từng phần khi được cho phép. Khi kết hợp, logo chữ luôn nằm bên phải logo biểu tượng. Không kéo giãn, bóp méo tỷ lệ, thay đổi phông chữ hay đổi màu thiết kế gốc.
-
-**10.2. Điều kiện sử dụng:**
-* Không sử dụng logo VNBUSARCHIVE theo cách gây hiểu lầm rằng dự án tài trợ, đồng hành hay bảo trợ cho sản phẩm, sự kiện của bên thứ ba khi chưa có thỏa thuận.
-* Việc sử dụng logo trên các ấn phẩm in ấn, tài liệu nghiên cứu hay sản phẩm truyền thông bên ngoài cần trao đổi trước với ban quản trị.
-* Mọi hành vi tự ý cắt ghép, mạo danh thương hiệu sẽ bị yêu cầu gỡ bỏ và xử lý theo quy định.
+**Văn bản số:** CS-01/VNBUS/2026  
+**Đơn vị ban hành:** Ban Quản trị VNBUSARCHIVE  
+**Ngày có hiệu lực:** Áp dụng thống nhất trên toàn bộ hạ tầng dịch vụ VNBUSARCHIVE.
 
 ---
 
-## Phần 2: Chính sách bảo mật
+## Chương I: Điều khoản dịch vụ
 
-Dưới đây là cách VNBUSARCHIVE thu thập, sử dụng và bảo vệ thông tin người dùng:
-
-### 1. Dữ liệu thu thập
-* **Thông tin tài khoản:** Email, mật khẩu đã được mã hóa một chiều, tên hiển thị và thông tin cơ bản từ tài khoản liên kết như Google, Discord, GitHub.
-* **Dữ liệu đóng góp:** Hình ảnh tải lên, bình luận, thông tin phương tiện đóng góp, lý do duyệt hoặc từ chối ảnh.
-* **Liên hệ hỗ trợ:** Nội dung trao đổi qua kênh Discord, email hỗ trợ hoặc biểu mẫu liên hệ.
-* **Thông tin EXIF từ ảnh:** Khi tải ảnh lên, hệ thống tự động đọc siêu dữ liệu máy ảnh gồm dòng máy, khẩu độ, tốc độ chụp, ISO, thời gian chụp và tọa độ GPS nếu có để phục vụ tra cứu.
-* **Dữ liệu kỹ thuật:** Hệ thống ghi nhớ thiết lập bộ lọc xe và giao diện trên trình duyệt; ghi nhận địa chỉ IP cùng thông tin trình duyệt khi truy cập để chống tấn công và xác thực bảo mật qua Cloudflare.
-
-### 2. Mục đích sử dụng dữ liệu
-* Quản lý tài khoản và duy trì bảo mật hệ thống.
-* Hiển thị tên người đóng góp, thông số máy ảnh và địa điểm bên cạnh bức ảnh.
-* Đề xuất nội dung phù hợp theo lịch sử xem xe của người dùng.
-* Gửi thông báo hệ thống và xử lý các yêu cầu hỗ trợ.
-* Lưu nhật ký hoạt động để đối soát kỹ thuật và ngăn chặn gian lận.
-
-### 3. Chia sẻ dữ liệu
-Chúng tôi không bán, cho thuê hay chia sẻ dữ liệu cá nhân của người dùng cho bên thứ ba vì mục đích thương mại.
-* Dữ liệu công khai như ảnh, thông số chụp và thông tin xe được mở để cộng đồng tra cứu.
-* Dữ liệu được lưu trữ trên các nền tảng hạ tầng bảo mật gồm mạng lưới phân phối nội dung của Cloudflare và máy chủ cơ sở dữ liệu riêng của dự án theo tiêu chuẩn mã hóa an toàn.
-
-### 4. Lưu trữ và bảo vệ thông tin
-* Mọi kết nối tới hệ thống đều được mã hóa qua giao thức HTTPS.
-* Mật khẩu tài khoản được băm và mã hóa ở tầng máy chủ, quản trị viên không thể xem mật khẩu gốc của bạn.
-
-### 5. Quyền của người dùng với dữ liệu
-* **Xem và chỉnh sửa:** Bạn có thể tự do cập nhật thông tin cá nhân và liên kết mạng xã hội trong phần Cài đặt.
-* **Xóa ảnh:** Bạn có thể rút lại ảnh khi đang chờ duyệt. Với ảnh đã được duyệt, bạn có thể gửi yêu cầu gỡ ảnh để quản trị viên xem xét.
-* **Xóa tài khoản:** Khi bạn yêu cầu xóa tài khoản, các thông tin cá nhân như email, mật khẩu, tên hiển thị và liên kết tài khoản sẽ bị xóa hoàn toàn. Theo giấy phép vĩnh viễn và không hủy ngang đã cấp khi duyệt ảnh (Mục 4 Phần 1), việc xóa tài khoản không làm phát sinh nghĩa vụ phải gỡ bỏ các hình ảnh và dữ liệu đã được duyệt. Để đảm bảo tính toàn vẹn và liên tục của kho tư liệu lịch sử phục vụ cộng đồng, các bức ảnh này sẽ tiếp tục được lưu giữ công khai trên hệ thống và chuyển quyền hiển thị dưới tên "Người dùng ẩn danh". Dấu bản quyền đã đóng trên ảnh tại thời điểm duyệt sẽ được giữ nguyên.
-* **Vị trí chụp:** Nếu không muốn chia sẻ tọa độ GPS, bạn có thể tắt tính năng vị trí trên máy ảnh hoặc điện thoại trước khi chụp.
-
-### 6. Độ tuổi sử dụng
-Người dùng cần từ đủ 14 tuổi trở lên. Nếu phát hiện tài khoản của người chưa đủ tuổi quy định, ban quản trị sẽ khóa tài khoản và xóa thông tin cá nhân liên quan để tuân thủ quy định an toàn cho trẻ vị thành niên trên không gian mạng.
+### Điều 1. Phạm vi áp dụng và giải thích từ ngữ
+1. **Phạm vi điều chỉnh:** Văn bản này xác lập các quyền, nghĩa vụ và trách nhiệm pháp lý giữa Ban Quản trị VNBUSARCHIVE (sau đây gọi là "Ban Quản trị" hoặc "Hệ thống") và các cá nhân, tổ chức truy cập, đăng ký tài khoản, gửi dữ liệu hoặc khai thác thông tin trên nền tảng số VNBUSARCHIVE (sau đây gọi là "Người dùng").
+2. **Bản chất dịch vụ:** VNBUSARCHIVE là nền tảng số lưu trữ tư liệu cộng đồng phi lợi nhuận, vận hành với mục đích bảo tồn các giá trị lịch sử và cung cấp kho dữ liệu hình ảnh, thông số kỹ thuật mở về mạng lưới giao thông vận tải hành khách tại Việt Nam.
+3. **Hiệu lực thỏa thuận:** Việc truy cập hoặc đăng ký sử dụng bất kỳ dịch vụ nào trên hệ thống đồng nghĩa với việc Người dùng đã đọc, hiểu và cam kết tuân thủ vô điều kiện toàn bộ các điều khoản được quy định tại văn bản này.
 
 ---
 
-VNBUSARCHIVE có thể cập nhật chính sách này khi hệ thống phát triển thêm tính năng mới hoặc để phù hợp với quy định pháp luật. Khi có thay đổi quan trọng, chúng tôi sẽ thông báo trên trang chủ hoặc qua kênh tin tức của hệ thống.
+### Điều 2. Quản trị và bảo mật tài khoản người dùng
+1. **Khởi tạo định danh:** Người dùng thực hiện việc tạo lập tài khoản thông qua thư điện tử cá nhân hoặc xác thực liên kết danh tính từ các dịch vụ bên thứ ba được hỗ trợ (Google, Discord, GitHub...). Hệ thống áp dụng công nghệ Cloudflare Turnstile nhằm thẩm tra danh tính số và ngăn chặn các hành vi tấn công tự động từ mạng máy tính ma (botnet).
+2. **Độ tuổi tối thiểu:** Người dùng tham gia hệ thống bắt buộc phải từ **đủ 14 tuổi trở lên**. Ban Quản trị sẽ tiến hành khóa tài khoản vĩnh viễn và xóa bỏ toàn bộ dữ liệu định danh khi phát hiện hành vi cung cấp sai lệch độ tuổi theo quy định này.
+3. **Trách nhiệm bảo mật tài khoản:** Người dùng có nghĩa vụ tự bảo quản bí mật mật khẩu và kiểm soát quyền truy cập trên các thiết bị cá nhân. Mỗi tài khoản được gán một mã định danh kỹ thuật duy nhất (User ID); Người dùng chỉ cung cấp thông tin này khi có yêu cầu bằng văn bản từ các kênh tiếp nhận hỗ trợ chính thức của Ban Quản trị.
+4. **Quyền điều chỉnh hồ sơ:** Người dùng có quyền thay đổi tên hiển thị, ảnh đại diện và liên kết cá nhân tại mục Cài đặt. Việc thay đổi tên hiển thị không làm phát sinh nghĩa vụ thay đổi dấu bản quyền đã được xác lập trên các tác phẩm hình ảnh đã được phê duyệt xuất bản trước thời điểm thay đổi.
+5. **Đình chỉ và chấm dứt tư cách thành viên:** Ban Quản trị bảo lưu toàn quyền đình chỉ có thời hạn hoặc chấm dứt vĩnh viễn tư cách thành viên mà không cần báo trước đối với các tài khoản có hành vi: tấn công kỹ thuật, phá hoại cấu trúc dữ liệu, xâm phạm quyền sở hữu trí tuệ, hoặc vi phạm quy chuẩn an toàn tác nghiệp thực địa quy định tại Điều 7 văn bản này...
+
+---
+
+### Điều 3. Cơ chế Điểm uy tín và phân bổ hạn mức tải ảnh hàng ngày
+Nhằm tối ưu hóa tài nguyên máy chủ và duy trì chất lượng kiểm duyệt, hệ thống vận hành cơ chế quản lý bằng **Điểm uy tín (Reputation Score)** để tự động điều tiết hạn mức gửi tác phẩm mỗi ngày của từng tài khoản.
+
+1. **Nguyên tắc phân bổ điểm số:**
+   * **Điểm khởi tạo:** Mỗi tài khoản sau khi hoàn tất xác thực đăng ký được cấp mức điểm cơ sở là **100 điểm**. Hạn mức điểm tối đa có thể tích lũy là **220 điểm**.
+   * **Cơ chế cộng điểm khi tác phẩm được phê duyệt:**
+     * Tác phẩm đạt chuẩn kỹ thuật xuất bản: Cộng **+3 điểm** (trường hợp tệp tin lưu giữ nguyên vẹn thông số EXIF: cộng bổ sung +1 điểm, tổng là **+4 điểm**).
+     * Tác phẩm thuộc diện tư liệu lịch sử được phê duyệt: Cộng **+6 điểm** (lưu giữ đầy đủ EXIF: cộng **+7 điểm**).
+   * **Cơ chế trừ điểm khi tác phẩm bị từ chối phê duyệt:**
+     * *Nhóm vi phạm định dạng nhẹ* (`[B1.4]` Giá trị lưu trữ, `[B2.3]` Nghiêng khung hình, `[C1/C2/C3]` Sai lệch nhập liệu...): Khấu trừ **-3 điểm** đối với mỗi mã lỗi.
+     * *Nhóm vi phạm kỹ thuật quang học và bố cục* (`[B2.1]` Khuyết thiếu bộ phận, `[B2.2]` Cự ly/vị trí không đạt, `[B2.4]` Sai góc chụp, `[B2.5]` Có vật cản che khuất, `[B3.1]` Nhòe nét/lỗi phơi sáng, `[B3.4]` Dấu bản quyền cá nhân, `[B3.5]` Méo góc tiêu cự, `[B4.2]` Bỏ sót làm mờ khuôn mặt, `[B4.3]` Làm mờ phạm vào kết cấu xe, `[B4.4]` Bỏ sót làm mờ biển số vi phạm...): Khấu trừ **-5 điểm** đối với mỗi mã lỗi.
+     * *Nhóm vi phạm tiêu chuẩn chủ thể và tính chân thực* (`[B1.1]` Ngoài phạm vi Việt Nam, `[B1.2]` Sai chủng loại chủ thể, `[B1.3]` Bối cảnh phản cảm, `[B3.2]` Lạm dụng AI hoặc hậu kỳ sai thực tế, `[B4.1]` Biển số không nhận diện được, `[B5.3]` Ghi hình tại khu vực cấm...): Khấu trừ **-10 điểm** đối với mỗi mã lỗi.
+     * *Nhóm vi phạm quy chuẩn tác nghiệp và sở hữu trí tuệ* (`[B5.1]` Xâm phạm bản quyền tác giả, `[B5.2]` Xâm nhập trái phép công trình giao thông, `[B5.4]` Tác nghiệp gây nguy hiểm giao thông...): Khấu trừ **-15 điểm** đối với mỗi mã lỗi.
+     * *Chế tài đối với hành vi gian lận nhãn tư liệu:* Cố ý tích chọn sai thuộc tính "Ảnh tư liệu" đối với phương tiện đời mới đang hoạt động bình thường sẽ bị khấu trừ trực tiếp **-50 điểm**.
+
+2. **Bảng phân bổ hạn mức tải ảnh hàng ngày căn cứ theo Điểm uy tín:**
+
+| Điểm uy tín tại thời điểm đăng tải | Hạn mức tải ảnh tối đa / 24 giờ |
+| :--- | :---: |
+| **Từ 200 điểm trở lên** | **50 tác phẩm / ngày** |
+| **Từ 161 đến 199 điểm** | **40 tác phẩm / ngày** |
+| **Từ 131 đến 160 điểm** | **30 tác phẩm / ngày** |
+| **Từ 101 đến 130 điểm** | **20 tác phẩm / ngày** |
+| **Đạt 100 điểm (Mức cơ sở)** | **15 tác phẩm / ngày** |
+| **Từ 50 đến 99 điểm** | **12 tác phẩm / ngày** |
+| **Từ 1 đến 49 điểm** | **8 tác phẩm / ngày** |
+| **Từ -50 đến 0 điểm** | **5 tác phẩm / ngày** |
+| **Dưới -50 điểm** | **1 tác phẩm / ngày** |
+
+*Ghi chú chu kỳ:* Hạn mức tải ảnh được hệ thống tự động làm mới vào lúc **07:00:00 (GMT+7) hàng ngày**.
+
+---
+
+### Điều 4. Quyền sở hữu trí tuệ và phạm vi cấp phép sử dụng tác phẩm
+1. **Xác lập quyền tác giả:** Tác giả giữ toàn bộ quyền nhân thân và quyền tác giả đối với tệp ảnh gốc do mình trực tiếp ghi nhận. Người đăng tải tự chịu trách nhiệm pháp lý trước pháp luật về tính hợp pháp và quyền sở hữu đối với tệp tin đóng góp.
+2. **Cấp phép không hủy ngang cho hệ thống:** Khi gửi hình ảnh và được phê duyệt xuất bản vào kho lưu trữ, Người dùng cấp cho VNBUSARCHIVE giấy phép sử dụng không độc quyền, miễn phí bản quyền, có hiệu lực trên toàn thế giới, vĩnh viễn và không hủy ngang để thực hiện các hành vi: lưu trữ số, biên tập kỹ thuật, lập chỉ mục tra cứu, hiển thị công khai và đóng dấu bản quyền chuẩn của dự án nhằm phục vụ mục đích nghiên cứu, giáo dục và lưu trữ tư liệu cộng đồng phi thương mại. Giấy phép này tiếp tục duy trì hiệu lực vô thời hạn kể cả khi Người dùng chấm dứt tư cách thành viên hoặc yêu cầu xóa tài khoản.
+3. **Quy định trích dẫn và sử dụng thứ cấp:** Các bên thứ ba khi khai thác, trích dẫn hình ảnh hoặc số liệu từ hệ thống bắt buộc phải thực hiện việc viện dẫn nguồn rõ ràng theo định dạng `Nguồn: VNBUSARCHIVE / [Tên Tác Giả]`. Nghiêm cấm hành vi tự ý sử dụng các công cụ trích xuất dữ liệu tự động (data crawling, scraping...) nhằm mục đích thương mại hóa dữ liệu mà không có sự đồng thuận bằng văn bản của Ban Quản trị.
+4. **Bảo vệ tính toàn vẹn của tác phẩm:** Nghiêm cấm mọi hành vi sử dụng hình ảnh từ hệ thống để cắt ghép, chỉnh sửa nhằm mục đích công kích, xúc phạm danh dự của đơn vị vận tải, người lao động hoặc tán phát các thông tin xuyên tạc. Ban Quản trị giữ quyền áp dụng các biện pháp bảo vệ bản quyền quốc tế (DMCA) và đề nghị cơ quan có thẩm quyền xử lý theo quy định của pháp luật.
+
+---
+
+### Điều 5. Quy trình kiểm duyệt và thủ tục kháng cáo quyết định từ chối
+Toàn bộ tác phẩm đóng góp được thẩm định độc lập theo các tiêu chí kỹ thuật quy định tại văn bản `Requirements.md`.
+
+Trường hợp tác giả nhận thấy tác phẩm đáp ứng đầy đủ tiêu chuẩn nhưng bị từ chối do sai sót nghiệp vụ của kiểm duyệt viên, tác giả có quyền kích hoạt thủ tục kháng cáo chính thức:
+1. **Điều kiện thụ lý kháng cáo:**
+   * Người gửi kháng cáo bắt buộc phải đăng nhập chính xác tài khoản đã tải lên tác phẩm đó.
+   * Tác phẩm kháng cáo bắt buộc phải đang ở trạng thái **Bị từ chối** (`denied`). Hệ thống tự động từ chối thụ lý đối với các tệp tin đang trong hàng đợi thẩm định hoặc tệp tin đã được phê duyệt xuất bản.
+2. **Trình tự nộp hồ sơ kháng cáo:**
+   * **Bước 1:** Truy cập cổng tiếp nhận tại mục **Hỗ trợ** (đường dẫn hệ thống: `/contact`).
+   * **Bước 2:** Tại danh mục *Chủ đề cần hỗ trợ*, chọn chính xác: **`Thắc mắc kiểm duyệt / Kháng cáo ảnh từ chối`**.
+   * **Bước 3:** Cung cấp liên kết chính thức của tác phẩm bị từ chối trên hệ thống vào ô xác thực để máy chủ truy xuất dữ liệu.
+   * **Bước 4:** Trình bày đầy đủ các luận điểm kỹ thuật chứng minh tác phẩm thỏa mãn quy chuẩn tại mục *Lý do bạn cho rằng ảnh hợp lệ* và tiến hành xác nhận gửi.
+3. **Quy trình giải quyết và chế độ phục hồi quyền lợi:**
+   * Yêu cầu kháng cáo được chuyển tiếp trực tiếp đến cấp quản lý độc lập để tiến hành rà soát chuyên môn.
+   * Trường hợp kháng cáo được chấp thuận và tác phẩm được phê duyệt xuất bản: Hệ thống tự động **hoàn trả 100% số điểm uy tín đã bị khấu trừ**, đồng thời **áp dụng mức nhân đôi điểm thưởng** (+6 điểm đối với ảnh thông thường, +12 điểm đối với ảnh tư liệu lịch sử).
+   * Quyết định của Ban Quản trị tại vòng thẩm định kháng cáo là quyết định cuối cùng có hiệu lực thi hành.
+
+---
+
+### Điều 6. An ninh mạng và giới hạn khai thác hệ thống
+Dữ liệu trên nền tảng được tối ưu hóa phục vụ nhu cầu tra cứu trực tuyến phi thương mại. Hệ thống hiện không mở cổng giao diện lập trình ứng dụng (API) công khai cho bên thứ ba. Nghiêm cấm các hành vi gửi yêu cầu dồn dập (DDoS), can thiệp luồng dữ liệu, khai thác lỗ hổng bảo mật hoặc sử dụng phần mềm tự động gây ảnh hưởng tiêu cực đến hiệu năng vận hành của máy chủ... Toàn bộ các địa chỉ mạng (IP) phát sinh hành vi phá hoại sẽ bị chặn truy cập vĩnh viễn thông qua hệ thống tường lửa Cloudflare.
+
+---
+
+### Điều 7. Giới hạn trách nhiệm pháp lý và quy chuẩn an toàn tác nghiệp
+1. **Giá trị pháp lý của dữ liệu:** Dữ liệu lịch sử, chủng loại phương tiện và luồng tuyến được tổng hợp từ nguồn lực đóng góp của cộng đồng. Ban Quản trị nỗ lực tối đa trong công tác xác minh nhưng không đưa ra cam kết về tính chính xác tuyệt đối của dữ liệu trong mọi thời kỳ. Dữ liệu trên hệ thống không mang giá trị thay thế văn bản quy phạm pháp luật hoặc kết luận chính thức của cơ quan nhà nước.
+2. **Quy chuẩn không gian tác nghiệp:** VNBUSARCHIVE không thuê mướn, chỉ định hay điều phối bất kỳ cá nhân nào thực hiện hoạt động ghi hình thực địa. Toàn bộ hoạt động thu thập tư liệu do Người dùng tự giác thực hiện dưới tư cách cá nhân độc lập.
+   * **Khu vực hợp chuẩn:** Người dùng chỉ thực hiện việc chụp ảnh tại các địa điểm công cộng theo quy định của pháp luật (vỉa hè đường bộ, cầu vượt đi bộ, nhà chờ xe buýt, sảnh đón trả khách công cộng của bến xe khách...).
+   * **Khu vực nghiêm cấm tác nghiệp:** Nghiêm cấm hành vi đột nhập, trèo tường rào, vượt chốt an ninh, hoặc tiếp cận trái phép vào bên trong khu vực xưởng bảo dưỡng, depot xe buýt/đường sắt đô thị, bãi đỗ xe nội bộ của doanh nghiệp, các mục tiêu an ninh quốc phòng hoặc nơi có biển cấm ghi hình... Tác giả tự chịu hoàn toàn trách nhiệm hành chính và hình sự trước cơ quan chức năng về phương thức tác nghiệp của mình.
+3. **Tính chất công cộng của phương tiện:** Phương tiện vận tải hành khách và biển kiểm soát khi tham gia lưu thông trên mạng lưới giao thông đường bộ công cộng không cấu thành phạm vi bí mật đời tư cá nhân theo quy định pháp luật.
+4. **Miễn trừ trách nhiệm kỹ thuật:** Hệ thống được miễn trừ trách nhiệm bồi thường trong các tình huống bất khả kháng dẫn đến gián đoạn dịch vụ, tấn công mạng diện rộng hoặc sự cố đường truyền viễn thông quốc tế. Người dùng có trách nhiệm tự bảo quản bản sao tác phẩm gốc.
+
+---
+
+### Điều 8. Quy chuẩn hồ sơ cá nhân và nhận diện người dùng
+1. **Tiêu chuẩn tên hiển thị:** Độ dài quy định từ 3 đến 20 ký tự; cho phép sử dụng chữ cái tiếng Việt có dấu, chữ số và khoảng trắng. Nghiêm cấm đặt tên gây nhầm lẫn với ban điều hành hệ thống, cơ quan quản lý nhà nước hoặc các pháp nhân vận tải; không chèn số điện thoại, đường dẫn quảng cáo thương mại hoặc từ ngữ vi phạm thuần phong mỹ tục...
+2. **Tiêu chuẩn ảnh đại diện:** Nghiêm cấm sử dụng hình ảnh nhận diện rõ khuôn mặt của cá nhân khác khi chưa có văn bản chấp thuận; không sử dụng con dấu, biểu trưng của cơ quan nhà nước, lực lượng vũ trang hoặc thương hiệu các doanh nghiệp vận tải; không sử dụng hình ảnh có nội dung phản cảm, bạo lực hoặc trái pháp luật...
+
+---
+
+### Điều 9. Thủ tục tiếp nhận và xử lý khiếu nại quyền riêng tư
+1. **Quyền yêu cầu bảo vệ quyền riêng tư:** Trường hợp cá nhân nhận thấy khuôn mặt của mình xuất hiện rõ ràng trong tác phẩm lưu trữ trên hệ thống, cá nhân đó có quyền gửi thông báo đề nghị hỗ trợ qua mục **Liên hệ** (chọn danh mục: *Khiếu nại quyền riêng tư*).
+2. **Thời hạn giải quyết:** Ban Quản trị tiếp nhận, xác minh và áp dụng biện pháp kỹ thuật làm mờ nhận diện danh tính trực tiếp trên tệp ảnh lưu trữ trong thời hạn từ 24 đến 72 giờ làm việc kể từ thời điểm nhận đủ thông tin hợp lệ.
+3. **Nguyên tắc đối với hình ảnh phương tiện:** Hệ thống bảo lưu quyền từ chối các yêu cầu gỡ bỏ hình ảnh phương tiện giao thông vận tải được ghi nhận hợp pháp tại không gian công cộng, trừ trường hợp có văn bản yêu cầu chính thức từ cơ quan quản lý nhà nước có thẩm quyền theo quy định của pháp luật Việt Nam.
+
+---
+
+### Điều 10. Quyền sở hữu trí tuệ đối với thương hiệu dự án
+Biểu trưng (logo), nhãn hiệu đồ họa và kiểu chữ nhận diện VNBUSARCHIVE thuộc quyền sở hữu trí tuệ của dự án. Mọi hành vi tự ý sử dụng các yếu tố nhận diện này để gắn lên ấn phẩm thương mại, sản phẩm truyền thông ngoài hệ thống hoặc phát hành thông cáo mạo danh Ban Quản trị khi chưa được chấp thuận bằng văn bản đều bị coi là hành vi xâm phạm quyền sở hữu công nghiệp.
+
+---
+
+## Chương II: Chính sách bảo mật dữ liệu cá nhân
+
+### Điều 11. Phạm vi thu thập dữ liệu cá nhân
+Hệ thống chỉ thu thập các trường thông tin kỹ thuật phục vụ trực tiếp cho hoạt động quản trị và thẩm định dữ liệu:
+1. **Dữ liệu đăng ký định danh:** Địa chỉ thư điện tử cá nhân, mật khẩu được mã hóa một chiều qua thuật toán băm an toàn, tên hiển thị công khai và định danh tài khoản liên kết (Google ID, Discord ID, GitHub ID...).
+2. **Dữ liệu tác phẩm:** Tệp tin hình ảnh tải lên, siêu dữ liệu EXIF trích xuất từ phần cứng máy ảnh (thông số quang học, thời gian ghi nhận thực tế...), lịch sử thẩm định và dữ liệu đóng góp định danh phương tiện.
+3. **Dữ liệu nhật ký máy chủ:** Địa chỉ mạng (IP) và chuỗi định danh trình duyệt (User-Agent) trong mỗi phiên truy cập, phục vụ việc đối soát bảo mật và thiết lập hàng rào ngăn ngừa tấn công mạng qua Cloudflare.
+
+---
+
+### Điều 12. Mục đích xử lý dữ liệu cá nhân
+Toàn bộ dữ liệu thu thập được xử lý nhằm các mục đích sau:
+1. Duy trì tính liên tục của phiên đăng nhập, phân quyền chức năng và xác thực danh tính Người dùng.
+2. Hiển thị thông số kỹ thuật và bảo hộ tên tác giả bên cạnh tác phẩm hình ảnh được phê duyệt xuất bản.
+3. Vận hành thuật toán tính toán Điểm uy tín và phân bổ hạn mức tải ảnh tự động định kỳ.
+4. Lưu trữ nhật ký kỹ thuật phục vụ công tác đối soát, xử lý sự cố an ninh thông tin và điều tra các hành vi phá hoại dữ liệu...
+
+---
+
+### Điều 13. Nguyên tắc bảo vệ và lưu trữ dữ liệu
+1. **Cam kết không thương mại hóa:** Hệ thống cam kết không kinh doanh, chuyển nhượng hoặc cung cấp dữ liệu cá nhân của Người dùng cho bất kỳ tổ chức quảng cáo hoặc bên thứ ba nào vì mục đích thương mại.
+2. **Bảo mật kênh truyền:** Toàn bộ luồng dữ liệu trao đổi giữa thiết bị của Người dùng và hệ thống máy chủ được bảo vệ bằng giao thức mã hóa đường truyền an toàn HTTPS (TLS 1.3). Mật khẩu của Người dùng được băm ở tầng máy chủ, Ban Quản trị không thể tiếp cận mật khẩu gốc.
+3. **Cơ sở hạ tầng lưu trữ:** Tệp tin hình ảnh được lưu trữ trên hạ tầng lưu trữ đám mây chuyên dụng kết hợp mạng lưới phân phối nội dung (CDN) nhằm bảo đảm tốc độ truy xuất và tính sẵn sàng cao của hệ thống.
+
+---
+
+### Điều 14. Quyền của chủ thể dữ liệu đối với thông tin cá nhân
+1. **Quyền chỉnh sửa dữ liệu:** Người dùng có quyền truy cập, tra cứu và hiệu chỉnh thông tin hồ sơ cá nhân tại giao diện Cài đặt vào bất kỳ thời điểm nào.
+2. **Quyền thu hồi tác phẩm chờ duyệt:** Người dùng có quyền chủ động hủy bỏ tệp tin tác phẩm khi tác phẩm vẫn đang trong hàng đợi thẩm định và chưa được kiểm duyệt viên tiếp nhận xử lý.
+3. **Quy chế xử lý dữ liệu khi xóa tài khoản:** Khi Người dùng gửi yêu cầu chấm dứt tài khoản, toàn bộ dữ liệu định danh cá nhân (địa chỉ email, mật khẩu, liên kết định danh...) sẽ bị xóa bỏ vĩnh viễn khỏi cơ sở dữ liệu xác thực. Theo thỏa thuận cấp phép sử dụng vĩnh viễn và không hủy ngang quy định tại Khoản 2 Điều 4 văn bản này, các tác phẩm hình ảnh và dữ liệu phương tiện đã được xuất bản sẽ tiếp tục được lưu trữ công khai nhằm bảo vệ tính toàn vẹn của kho dữ liệu lịch sử phục vụ cộng đồng; tên tác giả hiển thị sẽ được chuyển sang định danh "Người dùng ẩn danh" và dấu bản quyền đã tích hợp trên ảnh được giữ nguyên vẹn.
+
+---
+
+### Điều 15. Hiệu lực thi hành và sửa đổi quy chế
+1. Ban Quản trị giữ quyền sửa đổi, bổ sung các điều khoản trong văn bản này nhằm bảo đảm sự phù hợp với định hướng phát triển kỹ thuật của nền tảng và các quy định pháp luật hiện hành.
+2. Mọi nội dung điều chỉnh trọng yếu sẽ được công bố công khai trên trang chủ hoặc mục tin tức hệ thống tối thiểu 03 (ba) ngày trước thời điểm chính thức áp dụng. Việc Người dùng tiếp tục sử dụng hệ thống sau thời điểm điều chỉnh đồng nghĩa với việc chấp thuận toàn bộ nội dung sửa đổi đó.
