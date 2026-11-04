@@ -954,18 +954,7 @@ Object.assign(window.app, {
                                 btnOkText: "Đóng"
                             }
                         );
-                    } else if (type === 'vvbs') {
-                        helpUrl = 'https://www.vnbusarchive.io.vn/help/1537761083090018366';
-                        desc = `Danh hiệu <b>VNBUSARCHIVE Verified Bus Staff</b> được cấp nhằm xác nhận và tôn vinh những cán bộ, công nhân viên đang trực tiếp công tác và cống hiến cho ngành giao thông công cộng.<br><br><a href="${helpUrl}" target="_blank" class="text-black hover:underline font-bold text-[13px] inline-flex items-center">Tìm hiểu thêm về danh hiệu này</a>`;
-                        app.ui.showAlert(desc, 
-                            null, 
-                            null, 
-                            {
-                                title: "VNBUSARCHIVE Verified",
-                                iconHtml: '<i class="fa-solid fa-circle-check text-3xl text-black"></i>',
-                                btnOkText: "Đóng"
-                            }
-                        );
+
                     }
                 },
                 showQuotaInfo: () => {
@@ -3422,16 +3411,7 @@ cleanupState: () => {
                                 html += `<span class="badge-shiny badge-dev" style="${styleStr}" title="VNBUSARCHIVE Code Contributor">${innerHtml}</span>`;
                             }
                         }
-                        const vvbsRole = subroles.find(s => s === 'vvbs');
-                        if (vvbsRole) {
-                            const innerHtml = `<i class="fa-solid fa-check text-[9px]" style="line-height: 15px; display: block;"></i>`;
-                            const styleStr = `background-color: #3b82f6; color: white; padding: 0; width: 15px; height: 15px; border-radius: 50%; justify-content: center; align-items: center;${enableClick ? ' cursor: pointer;' : ''}`;
-                            if (enableClick) {
-                                html += `<span class="badge-shiny" style="${styleStr}" onclick="app.ui.showVerifiedPopup('vvbs', '')" title="Verified Bus Staff">${innerHtml}</span>`;
-                            } else {
-                                html += `<span class="badge-shiny" style="${styleStr}" title="Verified Bus Staff">${innerHtml}</span>`;
-                            }
-                        }
+
                     }
                     
                     if (role === 'admin' || role === 'manager') {
