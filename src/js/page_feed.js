@@ -92,7 +92,7 @@ Object.assign(window.app, {
                         if (mainHeader) mainHeader.style.display = 'none';
                         if (headerSpacer) headerSpacer.style.display = 'none';
                     } else {
-                        if (mainHeader) { mainHeader.style.display = ''; mainHeader.style.transform = 'translateY(0)'; mainHeader.classList.remove('header-droplet-hidden', 'header-droplet-visible'); }
+                        if (mainHeader) { mainHeader.style.display = ''; mainHeader.style.transform = 'translateY(0)'; }
                         if (headerSpacer) headerSpacer.style.display = '';
                         
                         const footer = document.querySelector('footer');

@@ -110,175 +110,19 @@ window.addEventListener('error', function(event) {
 const initCoreHeader = () => {
     const header = document.querySelector('header');
     if (!header) return;
-    const headerNavCard = header.querySelector('.header-nav-card') || header.querySelector(':scope > div');
-    const headerCardContent = header.querySelector('.header-card-content');
+    if (!header.classList.contains('transition-transform')) {
+        header.classList.add('transition-transform', 'duration-300');
+    }
+    const headerInner = header.querySelector(':scope > div');
 
     let lastScrollY = window.scrollY;
-    let targetProgress = 0;   // 0 = fully expanded, 1 = fully collapsed & hidden
-    let currentProgress = 0;
+    let lastScrollDirection = 'up';
     let isMouseNearTop = false;
-    let rafId = null;
-    let lastDropletHiddenState = false;
+    const threshold = 50; 
+    const scrollDelta = 8;
 
-    const SCROLL_RANGE = 160; // Khoảng cách cuộn mượt mà để hoàn tất 1 chu kỳ thu gọn / mở ra (160px)
-    const circleSize = 48;    // Kích thước chuẩn của hình tròn giọt nước (48px x 48px)
-    const targetRadius = circleSize / 2; // 24px: Bán kính để tạo hình tròn 100% chuẩn xác
-
-    let naturalWidth = 0;
-    let naturalHeight = 0;
-
-    const updateNaturalDimensions = () => {
-        if (!headerNavCard || currentProgress > 0.001) return;
-        const rect = headerNavCard.getBoundingClientRect();
-        if (rect.width > 100) naturalWidth = rect.width;
-        if (rect.height > 30) naturalHeight = rect.height;
-    };
-
-    const getFullWidth = () => {
-        if (naturalWidth > 100) return naturalWidth;
-        const clientW = document.documentElement.clientWidth || window.innerWidth;
-        return Math.min(1280, clientW - 32);
-    };
-
-    const getFullHeight = () => {
-        if (naturalHeight > 30) return naturalHeight;
-        return window.innerWidth >= 1024 ? 66 : (headerNavCard.offsetHeight || 66);
-    };
-
-    updateNaturalDimensions();
-
-    const renderHeaderProgress = (p) => {
-        if (!headerNavCard) return;
-
-        const fullW = getFullWidth();
-        const fullH = getFullHeight();
-        const isDark = document.documentElement.classList.contains('theme-dark');
-        const baseRadius = isDark ? 8 : 16;
-
-        // Trạng thái 0: Mở hoàn toàn (100% kích thước tự nhiên, xóa toàn bộ inline styles để không lệch layout)
-        if (p <= 0.001) {
-            headerNavCard.style.width = '';
-            headerNavCard.style.height = '';
-            headerNavCard.style.transform = '';
-            headerNavCard.style.borderRadius = '';
-            headerNavCard.style.opacity = '';
-            headerNavCard.style.pointerEvents = 'auto';
-            if (headerCardContent) {
-                headerCardContent.style.opacity = '';
-                headerCardContent.style.visibility = '';
-                headerCardContent.style.pointerEvents = 'auto';
-            }
-            if (lastDropletHiddenState) {
-                lastDropletHiddenState = false;
-                header.classList.remove('header-droplet-hidden');
-                if (app.toast && app.toast.updatePosition) app.toast.updatePosition();
-            }
-            updateNaturalDimensions();
-            return;
-        }
-
-        // Trạng thái 1: Đã thu thành giọt nước và bay mất hoàn toàn lên mép trên
-        if (p >= 0.999) {
-            headerNavCard.style.width = `${circleSize}px`;
-            headerNavCard.style.height = `${circleSize}px`;
-            headerNavCard.style.borderRadius = '50%';
-            headerNavCard.style.transform = 'translate3d(0, -90px, 0) scale(0.7)';
-            headerNavCard.style.opacity = '0';
-            headerNavCard.style.pointerEvents = 'none';
-            if (headerCardContent) {
-                headerCardContent.style.opacity = '0';
-                headerCardContent.style.visibility = 'hidden';
-                headerCardContent.style.pointerEvents = 'none';
-            }
-            if (!lastDropletHiddenState) {
-                lastDropletHiddenState = true;
-                header.classList.add('header-droplet-hidden');
-                if (app.toast && app.toast.updatePosition) app.toast.updatePosition();
-            }
-            return;
-        }
-
-        if (lastDropletHiddenState) {
-            lastDropletHiddenState = false;
-            header.classList.remove('header-droplet-hidden');
-            if (app.toast && app.toast.updatePosition) app.toast.updatePosition();
-        }
-
-        // Quản lý nội dung bên trong:
-        // Hiển thị mượt mà khi navbar nở ra đủ không gian (p <= 0.18).
-        // Logo, Ô tìm kiếm và Menu hiện đồng thời và đạt 100% độ rõ trước khi chạm đích, không bị trễ hay quên.
-        if (headerCardContent) {
-            if (p <= 0.22) {
-                const op = Math.min(1, (0.22 - p) / 0.16);
-                headerCardContent.style.visibility = 'visible';
-                headerCardContent.style.opacity = op.toFixed(3);
-                headerCardContent.style.pointerEvents = p <= 0.04 ? 'auto' : 'none';
-            } else {
-                headerCardContent.style.opacity = '0';
-                headerCardContent.style.visibility = 'hidden';
-                headerCardContent.style.pointerEvents = 'none';
-            }
-        }
-
-        if (p <= 0.55) {
-            // GIAI ĐOẠN 1: Thu gọn từ thanh navbar thành hình tròn giọt nước (48x48px)
-            // hoặc phóng to từ giọt nước ra thanh navbar theo đúng cử chỉ cuộn của người dùng
-            const t = p / 0.55; // 0 -> 1
-            const ease = t * t * (3 - 2 * t); // Smoothstep mượt mà
-
-            const currentW = fullW - ease * (fullW - circleSize);
-            const currentH = fullH - ease * (fullH - circleSize);
-            const currentR = baseRadius + ease * (targetRadius - baseRadius);
-            const ty = ease * 6; // Lắng nhẹ 6px xuống tạo cảm giác giọt nước gom tụ tự nhiên
-
-            headerNavCard.style.width = `${currentW.toFixed(1)}px`;
-            headerNavCard.style.height = `${currentH.toFixed(1)}px`;
-            headerNavCard.style.borderRadius = `${currentR.toFixed(1)}px`;
-            headerNavCard.style.transform = `translate3d(0, ${ty.toFixed(1)}px, 0)`;
-            headerNavCard.style.opacity = '1';
-            headerNavCard.style.pointerEvents = p > 0.35 ? 'none' : 'auto';
-        } else {
-            // GIAI ĐOẠN 2: Đã là HÌNH TRÒN 100% (48x48px, border-radius 50%), trượt vút lên trên ẩn khỏi màn hình
-            const u = (p - 0.55) / 0.45; // 0 -> 1
-            const easeU = u * u;
-            const ty = 6 - easeU * 90;
-            const scale = 1 - easeU * 0.3; // Scale đồng đều 1:1, tuyệt đối không bị méo mó
-            const cardOpacity = Math.max(0, 1 - u * 1.6);
-
-            headerNavCard.style.width = `${circleSize}px`;
-            headerNavCard.style.height = `${circleSize}px`;
-            headerNavCard.style.borderRadius = '50%';
-            headerNavCard.style.transform = `translate3d(0, ${ty.toFixed(1)}px, 0) scale(${scale.toFixed(3)})`;
-            headerNavCard.style.opacity = cardOpacity.toFixed(3);
-            headerNavCard.style.pointerEvents = 'none';
-        }
-    };
-
-    const updateLoop = () => {
-        const diff = targetProgress - currentProgress;
-        if (Math.abs(diff) > 0.002) {
-            currentProgress += diff * 0.45;
-            renderHeaderProgress(currentProgress);
-            rafId = window.requestAnimationFrame(updateLoop);
-        } else {
-            currentProgress = targetProgress;
-            renderHeaderProgress(currentProgress);
-            rafId = null;
-        }
-    };
-
-    const requestUpdate = () => {
-        if (!rafId) {
-            rafId = window.requestAnimationFrame(updateLoop);
-        }
-    };
-
-    window.addEventListener('scroll', () => {
+    const checkHeaderState = () => {
         const currentScrollY = window.scrollY;
-        const diff = currentScrollY - lastScrollY;
-        lastScrollY = currentScrollY;
-
-        // Nếu ở sát đỉnh trang (scrollY <= 10) hoặc đang mở popup/menu, luôn mở hoàn toàn
         const isSearchFocused = document.activeElement && document.activeElement.id === 'search-input';
         const userMenu = document.getElementById('user-dropdown');
         const isUserMenuOpen = userMenu && userMenu.classList.contains('opacity-100');
@@ -286,55 +130,93 @@ const initCoreHeader = () => {
         const isFilterMenuOpen = filterMenu && filterMenu.classList.contains('active');
         const searchSuggestions = document.getElementById('main-search-suggestions');
         const isSuggestionsOpen = searchSuggestions && searchSuggestions.classList.contains('active');
+        const isHoveringCard = headerInner && headerInner.matches(':hover');
 
-        const anyMenuOpen = (isSearchFocused || isUserMenuOpen || isFilterMenuOpen || isSuggestionsOpen);
-        header.classList.toggle('menu-open', !!anyMenuOpen);
-
-        if (anyMenuOpen || currentScrollY <= 10) {
-            targetProgress = 0;
-            requestUpdate();
+        if (isSearchFocused || isUserMenuOpen || isFilterMenuOpen || isSuggestionsOpen || isHoveringCard || isMouseNearTop) {
+            header.style.transform = 'translateY(0)';
             return;
         }
 
-        // Cuộn xuống (diff > 0): 120px để thu gọn nhẹ nhàng vào giọt nước
-        // Cuộn lên (diff < 0): chỉ cần 75px là bung ra trọn vẹn ngay lập tức, cực kỳ nhạy bén khi đang kéo sâu
-        const scrollDeltaRange = diff < 0 ? 75 : 120;
-        targetProgress = Math.max(0, Math.min(1, targetProgress + diff / scrollDeltaRange));
-        requestUpdate();
-    }, { passive: true });
+        if (currentScrollY <= threshold) {
+            header.style.transform = 'translateY(0)';
+            return;
+        }
 
-    window.addEventListener('mousemove', (e) => {
-        // Chỉ khi chuột rê lên sát mép trên cùng (<= 15px) mới gọi header xuống
-        const nearTop = e.clientY <= 15;
-        if (nearTop !== isMouseNearTop) {
-            isMouseNearTop = nearTop;
-            if (isMouseNearTop) {
-                targetProgress = 0;
-                requestUpdate();
-            }
+        if (lastScrollDirection === 'down') {
+            header.style.transform = 'translateY(-100%)';
+        } else {
+            header.style.transform = 'translateY(0)';
+        }
+    };
+
+    const syncHeader = () => {
+        checkHeaderState();
+        if (app.toast && app.toast.updatePosition) app.toast.updatePosition();
+    };
+
+    let scrollTicking = false;
+    window.addEventListener('scroll', () => {
+        const currentScrollY = window.scrollY;
+        const diff = currentScrollY - lastScrollY;
+        if (Math.abs(diff) >= scrollDelta) {
+            lastScrollDirection = diff > 0 ? 'down' : 'up';
+            lastScrollY = currentScrollY;
+        }
+        if (!scrollTicking) {
+            window.requestAnimationFrame(() => {
+                syncHeader();
+                scrollTicking = false;
+            });
+            scrollTicking = true;
         }
     }, { passive: true });
+
+    document.addEventListener('click', () => {
+        setTimeout(syncHeader, 50);
+    });
+
+    document.addEventListener('focusout', () => {
+        setTimeout(syncHeader, 50);
+    });
+
+    document.addEventListener('mousemove', (e) => {
+        const wasNearTop = isMouseNearTop;
+        if (e.clientY <= 12) {
+            isMouseNearTop = true;
+        } else {
+            isMouseNearTop = false;
+        }
+        if (wasNearTop !== isMouseNearTop) {
+            syncHeader();
+        }
+    });
 
     document.addEventListener('mouseleave', () => {
         if (isMouseNearTop) {
             isMouseNearTop = false;
+            syncHeader();
         }
     });
+
+    if (headerInner) {
+        headerInner.addEventListener('mouseenter', () => {
+            syncHeader();
+        });
+        headerInner.addEventListener('mouseleave', () => {
+            syncHeader();
+        });
+    }
 
     let resizeTicking = false;
     window.addEventListener('resize', () => {
         if (!resizeTicking) {
             window.requestAnimationFrame(() => {
-                naturalWidth = 0;
-                naturalHeight = 0;
-                updateNaturalDimensions();
                 if (app.toast && app.toast.updatePosition) app.toast.updatePosition();
                 resizeTicking = false;
             });
             resizeTicking = true;
         }
     }, { passive: true });
-
 
     if (app.toast && app.toast.updatePosition) app.toast.updatePosition();
 
@@ -419,7 +301,7 @@ Object.assign(window.app, {
                     if (!container) return;
                     const GAP = 16;
                     const header = document.querySelector('header');
-                    if (!header || header.style.display === 'none' || header.classList.contains('header-droplet-hidden') || (header.style.transform || '').includes('-100%')) {
+                    if (!header || header.style.display === 'none' || (header.style.transform || '').includes('-100%')) {
                         container.style.top = `calc(env(safe-area-inset-top, 0px) + ${GAP}px)`;
                         return;
                     }
