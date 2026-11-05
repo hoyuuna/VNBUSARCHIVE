@@ -205,14 +205,14 @@ const initCoreHeader = () => {
         }
 
         // Quản lý nội dung bên trong:
-        // CHỈ hiển thị khi navbar đã bung ra trọn vẹn (p <= 0.05).
-        // Đồng thời hiển thị đồng bộ 100% tất cả các phần tử (Logo, Thanh tìm kiếm, Nút điều hướng) cùng lúc.
+        // Hiển thị mượt mà khi navbar nở ra đủ không gian (p <= 0.18).
+        // Logo, Ô tìm kiếm và Menu hiện đồng thời và đạt 100% độ rõ trước khi chạm đích, không bị trễ hay quên.
         if (headerCardContent) {
-            if (p <= 0.05) {
-                const op = (0.05 - p) / 0.05;
+            if (p <= 0.18) {
+                const op = Math.min(1, (0.18 - p) / 0.14);
                 headerCardContent.style.visibility = 'visible';
                 headerCardContent.style.opacity = op.toFixed(3);
-                headerCardContent.style.pointerEvents = p <= 0.02 ? 'auto' : 'none';
+                headerCardContent.style.pointerEvents = p <= 0.04 ? 'auto' : 'none';
             } else {
                 headerCardContent.style.opacity = '0';
                 headerCardContent.style.visibility = 'hidden';
@@ -256,8 +256,8 @@ const initCoreHeader = () => {
 
     const updateLoop = () => {
         const diff = targetProgress - currentProgress;
-        if (Math.abs(diff) > 0.001) {
-            currentProgress += diff * 0.25;
+        if (Math.abs(diff) > 0.002) {
+            currentProgress += diff * 0.45;
             renderHeaderProgress(currentProgress);
             rafId = window.requestAnimationFrame(updateLoop);
         } else {
@@ -296,8 +296,10 @@ const initCoreHeader = () => {
             return;
         }
 
-        // Tương tác trực tiếp 1:1 theo độ dài cuộn (kéo chậm animation chậm, dừng thì dừng ngay tại đó)
-        targetProgress = Math.max(0, Math.min(1, targetProgress + diff / SCROLL_RANGE));
+        // Cuộn xuống (diff > 0): 120px để thu gọn nhẹ nhàng vào giọt nước
+        // Cuộn lên (diff < 0): chỉ cần 75px là bung ra trọn vẹn ngay lập tức, cực kỳ nhạy bén khi đang kéo sâu
+        const scrollDeltaRange = diff < 0 ? 75 : 120;
+        targetProgress = Math.max(0, Math.min(1, targetProgress + diff / scrollDeltaRange));
         requestUpdate();
     }, { passive: true });
 
