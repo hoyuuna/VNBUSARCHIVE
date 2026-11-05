@@ -112,10 +112,7 @@ window.addEventListener('error', function(event) {
 const initCoreHeader = () => {
     const header = document.querySelector('header');
     if (!header) return;
-    if (!header.classList.contains('transition-transform')) {
-        header.classList.add('transition-transform', 'duration-300');
-    }
-    const headerInner = header.querySelector(':scope > div');
+    const headerInner = header.querySelector('.header-nav-card') || header.querySelector(':scope > div');
 
     let lastScrollY = window.scrollY;
     let lastScrollDirection = 'up';
@@ -134,20 +131,18 @@ const initCoreHeader = () => {
         const isSuggestionsOpen = searchSuggestions && searchSuggestions.classList.contains('active');
         const isHoveringCard = headerInner && headerInner.matches(':hover');
 
-        if (isSearchFocused || isUserMenuOpen || isFilterMenuOpen || isSuggestionsOpen || isHoveringCard || isMouseNearTop) {
-            header.style.transform = 'translateY(0)';
-            return;
-        }
+        const shouldShow = (isSearchFocused || isUserMenuOpen || isFilterMenuOpen || isSuggestionsOpen || isHoveringCard || isMouseNearTop || currentScrollY <= threshold || lastScrollDirection !== 'down');
 
-        if (currentScrollY <= threshold) {
-            header.style.transform = 'translateY(0)';
-            return;
-        }
-
-        if (lastScrollDirection === 'down') {
-            header.style.transform = 'translateY(-100%)';
+        if (shouldShow) {
+            if (header.classList.contains('header-droplet-hidden')) {
+                header.classList.remove('header-droplet-hidden');
+                header.classList.add('header-droplet-visible');
+            }
         } else {
-            header.style.transform = 'translateY(0)';
+            if (!header.classList.contains('header-droplet-hidden')) {
+                header.classList.remove('header-droplet-visible');
+                header.classList.add('header-droplet-hidden');
+            }
         }
     };
 
@@ -303,7 +298,7 @@ Object.assign(window.app, {
                     if (!container) return;
                     const GAP = 16;
                     const header = document.querySelector('header');
-                    if (!header || header.style.display === 'none' || (header.style.transform || '').includes('-100%')) {
+                    if (!header || header.style.display === 'none' || header.classList.contains('header-droplet-hidden') || (header.style.transform || '').includes('-100%')) {
                         container.style.top = `calc(env(safe-area-inset-top, 0px) + ${GAP}px)`;
                         return;
                     }
@@ -7008,7 +7003,7 @@ Object.assign(window.app, {
                         if (mainHeader) mainHeader.style.display = 'none';
                         if (headerSpacer) headerSpacer.style.display = 'none';
                     } else {
-                        if (mainHeader) { mainHeader.style.display = ''; mainHeader.style.transform = 'translateY(0)'; }
+                        if (mainHeader) { mainHeader.style.display = ''; mainHeader.style.transform = 'translateY(0)'; mainHeader.classList.remove('header-droplet-hidden', 'header-droplet-visible'); }
                         if (headerSpacer) headerSpacer.style.display = '';
                         
                         const footer = document.querySelector('footer');

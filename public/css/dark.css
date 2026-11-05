@@ -32,7 +32,11 @@ body, body.theme-dark, body.theme-light {
     box-shadow: none !important;
     border-color: #ffffff !important;
 }
-.rounded-3xl, .rounded-2xl, .rounded-xl, .rounded-lg { border-radius: 8px !important; }
+:root, html.theme-dark {
+    --header-card-radius: 8px;
+}
+.rounded-3xl:not(.header-nav-card), .rounded-2xl:not(.header-nav-card), .rounded-xl:not(.header-nav-card), .rounded-lg:not(.header-nav-card) { border-radius: 8px !important; }
+.header-nav-card { border-radius: var(--header-card-radius, 8px); }
 .rounded-full { border-radius: 9999px !important; }
 
 .border-white, .border-white\/20, .border-white\/30, .border-gray-100, .border-gray-200, .border-gray-300, .border-gray-400, .border-gray-500, .border-gray-600, .border-gray-700, .border-gray-800, .border-vbs-border, .border-\[\#e4e4e7\], .border-black {
