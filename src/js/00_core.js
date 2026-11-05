@@ -110,16 +110,109 @@ window.addEventListener('error', function(event) {
 const initCoreHeader = () => {
     const header = document.querySelector('header');
     if (!header) return;
-    const headerInner = header.querySelector('.header-nav-card') || header.querySelector(':scope > div');
+    const headerNavCard = header.querySelector('.header-nav-card') || header.querySelector(':scope > div');
+    const headerCardContent = header.querySelector('.header-card-content');
 
     let lastScrollY = window.scrollY;
-    let lastScrollDirection = 'up';
+    let targetProgress = 0;   // 0 = fully expanded, 1 = fully collapsed & hidden
+    let currentProgress = 0;
     let isMouseNearTop = false;
-    const threshold = 50; 
-    const scrollDelta = 8;
+    let rafId = null;
 
-    const checkHeaderState = () => {
-        const currentScrollY = window.scrollY;
+    const SCROLL_RANGE = 90; // Khoảng cách cuộn để hoàn tất 1 chu kỳ thu gọn / mở ra
+
+    const renderHeaderProgress = (p) => {
+        if (!headerNavCard) return;
+
+        // Nếu p <= 0: trở về trạng thái bình thường hoàn toàn
+        if (p <= 0.001) {
+            headerNavCard.style.transform = '';
+            headerNavCard.style.borderRadius = '';
+            headerNavCard.style.opacity = '';
+            headerNavCard.style.pointerEvents = 'auto';
+            if (headerCardContent) {
+                headerCardContent.style.opacity = '';
+                headerCardContent.style.transform = '';
+            }
+            header.classList.remove('header-droplet-hidden');
+            return;
+        }
+
+        // Nếu p >= 1: giọt nước đã biến mất hoàn toàn lên trên
+        if (p >= 0.999) {
+            headerNavCard.style.transform = 'translate3d(0, -160%, 0) scale(0.16, 0.4)';
+            headerNavCard.style.borderRadius = '9999px';
+            headerNavCard.style.opacity = '0';
+            headerNavCard.style.pointerEvents = 'none';
+            if (headerCardContent) {
+                headerCardContent.style.opacity = '0';
+                headerCardContent.style.transform = 'scale(0.85)';
+            }
+            header.classList.add('header-droplet-hidden');
+            return;
+        }
+
+        // Trạng thái thu gọn giọt nước tương tác trực tiếp
+        header.classList.remove('header-droplet-hidden');
+        headerNavCard.style.pointerEvents = p > 0.4 ? 'none' : 'auto';
+
+        let sx, sy, ty, br, contentOpacity, cardOpacity;
+        const baseRadius = document.documentElement.classList.contains('theme-dark') ? 8 : 16;
+
+        if (p <= 0.5) {
+            // Giai đoạn 1: Hai bên co cụm dần vào giữa thành hình giọt nước bầu dục
+            const t = p / 0.5; // 0 -> 1
+            sx = 1 - t * 0.72; // 1 -> 0.28
+            sy = 1 - t * 0.32; // 1 -> 0.68
+            ty = t * 6;        // 0 -> 6px (trũng nhẹ xuống như giọt nước tụ lại)
+            br = baseRadius + t * (9999 - baseRadius);
+            contentOpacity = Math.max(0, 1 - t * 1.6);
+            cardOpacity = 1;
+        } else {
+            // Giai đoạn 2: Giọt nước di chuyển trượt lên trên mép màn hình
+            const u = (p - 0.5) / 0.5; // 0 -> 1
+            sx = 0.28 - u * 0.12;      // 0.28 -> 0.16
+            sy = 0.68 - u * 0.28;      // 0.68 -> 0.40
+            const headerH = headerNavCard.offsetHeight || 64;
+            ty = 6 - u * (headerH + 45); // từ 6px lên trên khỏi màn hình
+            br = 9999;
+            contentOpacity = 0;
+            cardOpacity = Math.max(0, 1 - u * 1.5);
+        }
+
+        headerNavCard.style.transform = `translate3d(0, ${ty.toFixed(1)}px, 0) scale(${sx.toFixed(3)}, ${sy.toFixed(3)})`;
+        headerNavCard.style.borderRadius = `${Math.round(br)}px`;
+        headerNavCard.style.opacity = cardOpacity.toFixed(3);
+
+        if (headerCardContent) {
+            headerCardContent.style.opacity = contentOpacity.toFixed(3);
+            headerCardContent.style.transform = `scale(${(0.85 + contentOpacity * 0.15).toFixed(3)})`;
+        }
+    };
+
+    const updateLoop = () => {
+        // Linear interpolation mượt mà: di chuyển dần về targetProgress
+        const diff = targetProgress - currentProgress;
+        if (Math.abs(diff) > 0.002) {
+            currentProgress += diff * 0.35;
+            renderHeaderProgress(currentProgress);
+            if (app.toast && app.toast.updatePosition) app.toast.updatePosition();
+            rafId = window.requestAnimationFrame(updateLoop);
+        } else {
+            currentProgress = targetProgress;
+            renderHeaderProgress(currentProgress);
+            if (app.toast && app.toast.updatePosition) app.toast.updatePosition();
+            rafId = null;
+        }
+    };
+
+    const requestUpdate = () => {
+        if (!rafId) {
+            rafId = window.requestAnimationFrame(updateLoop);
+        }
+    };
+
+    const syncHeader = () => {
         const isSearchFocused = document.activeElement && document.activeElement.id === 'search-input';
         const userMenu = document.getElementById('user-dropdown');
         const isUserMenuOpen = userMenu && userMenu.classList.contains('opacity-100');
@@ -127,43 +220,30 @@ const initCoreHeader = () => {
         const isFilterMenuOpen = filterMenu && filterMenu.classList.contains('active');
         const searchSuggestions = document.getElementById('main-search-suggestions');
         const isSuggestionsOpen = searchSuggestions && searchSuggestions.classList.contains('active');
-        const isHoveringCard = headerInner && headerInner.matches(':hover');
+        const isHoveringCard = headerNavCard && headerNavCard.matches(':hover');
 
-        const shouldShow = (isSearchFocused || isUserMenuOpen || isFilterMenuOpen || isSuggestionsOpen || isHoveringCard || isMouseNearTop || currentScrollY <= threshold || lastScrollDirection !== 'down');
+        const anyMenuOpen = (isSearchFocused || isUserMenuOpen || isFilterMenuOpen || isSuggestionsOpen);
+        header.classList.toggle('menu-open', !!anyMenuOpen);
 
-        if (shouldShow) {
-            if (header.classList.contains('header-droplet-hidden')) {
-                header.classList.remove('header-droplet-hidden');
-                header.classList.add('header-droplet-visible');
-            }
-        } else {
-            if (!header.classList.contains('header-droplet-hidden')) {
-                header.classList.remove('header-droplet-visible');
-                header.classList.add('header-droplet-hidden');
-            }
+        if (anyMenuOpen || isHoveringCard || isMouseNearTop || window.scrollY <= 10) {
+            targetProgress = 0;
+            requestUpdate();
+            return true;
         }
+        return false;
     };
 
-    const syncHeader = () => {
-        checkHeaderState();
-        if (app.toast && app.toast.updatePosition) app.toast.updatePosition();
-    };
-
-    let scrollTicking = false;
     window.addEventListener('scroll', () => {
         const currentScrollY = window.scrollY;
         const diff = currentScrollY - lastScrollY;
-        if (Math.abs(diff) >= scrollDelta) {
-            lastScrollDirection = diff > 0 ? 'down' : 'up';
-            lastScrollY = currentScrollY;
-        }
-        if (!scrollTicking) {
-            window.requestAnimationFrame(() => {
-                syncHeader();
-                scrollTicking = false;
-            });
-            scrollTicking = true;
-        }
+        lastScrollY = currentScrollY;
+
+        // Nếu ở đầu trang hoặc đang mở menu / hover, luôn mở hoàn toàn
+        if (syncHeader()) return;
+
+        // Cập nhật targetProgress trực tiếp theo độ dài cuộn (kéo chậm animation chậm, dừng thì animation dừng đúng chỗ)
+        targetProgress = Math.max(0, Math.min(1, targetProgress + diff / SCROLL_RANGE));
+        requestUpdate();
     }, { passive: true });
 
     document.addEventListener('click', () => {
@@ -176,11 +256,7 @@ const initCoreHeader = () => {
 
     document.addEventListener('mousemove', (e) => {
         const wasNearTop = isMouseNearTop;
-        if (e.clientY <= 12) {
-            isMouseNearTop = true;
-        } else {
-            isMouseNearTop = false;
-        }
+        isMouseNearTop = (e.clientY <= 12);
         if (wasNearTop !== isMouseNearTop) {
             syncHeader();
         }
@@ -193,13 +269,9 @@ const initCoreHeader = () => {
         }
     });
 
-    if (headerInner) {
-        headerInner.addEventListener('mouseenter', () => {
-            syncHeader();
-        });
-        headerInner.addEventListener('mouseleave', () => {
-            syncHeader();
-        });
+    if (headerNavCard) {
+        headerNavCard.addEventListener('mouseenter', syncHeader);
+        headerNavCard.addEventListener('mouseleave', syncHeader);
     }
 
     let resizeTicking = false;

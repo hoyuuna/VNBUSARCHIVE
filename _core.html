@@ -1757,7 +1757,7 @@ html.theme-dark .ct-icon {
         }
 
         /* ==========================================================
-           HEADER DROPLET COLLAPSE & REVEAL ANIMATION (HIỆU ỨNG GIỌT NƯỚC)
+           HEADER DROPLET INTERACTIVE SCROLL ANIMATION (TƯƠNG TÁC THEO CUỘN)
            ========================================================== */
         :root {
             --header-card-radius: 1rem;
@@ -1766,107 +1766,17 @@ html.theme-dark .ct-icon {
         .header-nav-card {
             transform-origin: top center;
             will-change: transform, border-radius, opacity;
+            overflow: hidden;
         }
 
-        /* Khi cuộn xuống: Thu gọn hai bên vào 1 điểm như giọt nước rồi biến mất lên trên */
-        header.header-droplet-hidden .header-nav-card {
-            overflow: hidden !important;
-            animation: headerDropletHide 0.38s cubic-bezier(0.2, 0.8, 0.2, 1) forwards !important;
-            pointer-events: none !important;
-        }
-        header.header-droplet-hidden .header-card-content {
-            animation: headerContentFadeOut 0.16s ease-out forwards;
+        .header-card-content {
+            transform-origin: top center;
+            will-change: transform, opacity;
         }
 
-        /* Khi cuộn lên: Rơi xuống như giọt nước rồi loang rộng ra thành thanh navbar */
-        header.header-droplet-visible .header-nav-card {
-            animation: headerDropletShow 0.42s cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
-            pointer-events: auto !important;
-        }
-        header.header-droplet-visible .header-card-content {
-            animation: headerContentFadeIn 0.32s ease-out 0.08s both;
-        }
-
-        @keyframes headerDropletHide {
-            0% {
-                transform: translateY(0) scale(1, 1);
-                border-radius: var(--header-card-radius, 1rem);
-                opacity: 1;
-            }
-            35% {
-                /* Co cụm nhanh lại thành khối bầu dục nhỏ như giọt nước tụ ở giữa */
-                transform: translateY(6px) scale(0.26, 0.65);
-                border-radius: 9999px;
-                opacity: 0.95;
-            }
-            100% {
-                /* Bắn vút lên trên ra khỏi mép màn hình */
-                transform: translateY(-160%) scale(0.15, 0.4);
-                border-radius: 9999px;
-                opacity: 0;
-            }
-        }
-
-        @keyframes headerDropletShow {
-            0% {
-                /* Giọt nước rơi từ trên xuống */
-                transform: translateY(-160%) scale(0.18, 0.5);
-                border-radius: 9999px;
-                opacity: 0;
-            }
-            45% {
-                /* Chạm vào vị trí, phồng nhẹ ở giữa */
-                transform: translateY(6px) scale(0.35, 0.85);
-                border-radius: 9999px;
-                opacity: 1;
-            }
-            75% {
-                /* Loang nhanh sang hai bên với độ đàn hồi nhẹ */
-                transform: translateY(-2px) scale(1.02, 0.98);
-                border-radius: 1.25rem;
-                opacity: 1;
-            }
-            100% {
-                /* Định hình lại hoàn hảo */
-                transform: translateY(0) scale(1, 1);
-                border-radius: var(--header-card-radius, 1rem);
-                opacity: 1;
-            }
-        }
-
-        @keyframes headerContentFadeOut {
-            0% {
-                opacity: 1;
-                transform: scale(1);
-            }
-            100% {
-                opacity: 0;
-                transform: scale(0.85);
-            }
-        }
-
-        @keyframes headerContentFadeIn {
-            0% {
-                opacity: 0;
-                transform: scale(0.9);
-            }
-            100% {
-                opacity: 1;
-                transform: scale(1);
-            }
-        }
-
-        @media (prefers-reduced-motion: reduce) {
-            header.header-droplet-hidden .header-nav-card {
-                animation: none !important;
-                transform: translateY(-150%) !important;
-                opacity: 0 !important;
-            }
-            header.header-droplet-visible .header-nav-card {
-                animation: none !important;
-                transform: translateY(0) !important;
-                opacity: 1 !important;
-            }
+        /* Khi mở menu dropdown hoặc gợi ý: giữ overflow visible để không che popup */
+        header.menu-open .header-nav-card {
+            overflow: visible !important;
         }
 
         /* 3. CUSTOM CHECKBOX (.custom-cb-box) */
