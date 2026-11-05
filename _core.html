@@ -1765,9 +1765,10 @@ html.theme-dark .ct-icon {
 
         .header-nav-card {
             transform-origin: top center;
-            will-change: transform, opacity;
+            will-change: width, height, transform, border-radius, opacity;
             overflow: hidden;
             transition: none !important;
+            box-sizing: border-box;
         }
 
         .header-card-content {
@@ -1775,23 +1776,7 @@ html.theme-dark .ct-icon {
             will-change: opacity;
             pointer-events: auto;
             transition: none !important;
-        }
-
-        .header-droplet {
-            position: absolute;
-            top: calc(1rem + env(safe-area-inset-top, 0px));
-            left: 50%;
-            transform: translateX(-50%) scale(0);
-            width: 48px;
-            height: 48px;
-            border-radius: 50% !important;
-            background: #ffffff;
-            border: 1px solid #18181b;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-            opacity: 0;
-            pointer-events: none;
-            will-change: transform, opacity;
-            z-index: 2001;
+            box-sizing: border-box;
         }
 
         /* Khi mở menu dropdown hoặc gợi ý: giữ overflow visible để không che popup */
@@ -3487,7 +3472,6 @@ html.theme-dark .ct-icon {
                 </div>
                 <!-- 👇 DÁN VÀO ĐÂY: KHAY CHỨA TOAST ĐÃ ĐƯỢC CHUYỂN XUỐNG CUỐI TRANG 👇 -->
             </div>
-            <div id="header-droplet" class="header-droplet"></div>
         </header>
 
 

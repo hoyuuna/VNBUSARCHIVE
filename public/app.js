@@ -114,7 +114,6 @@ const initCoreHeader = () => {
     if (!header) return;
     const headerNavCard = header.querySelector('.header-nav-card') || header.querySelector(':scope > div');
     const headerCardContent = header.querySelector('.header-card-content');
-    const headerDroplet = header.querySelector('#header-droplet');
 
     let lastScrollY = window.scrollY;
     let targetProgress = 0;   // 0 = fully expanded, 1 = fully collapsed & hidden
@@ -123,14 +122,47 @@ const initCoreHeader = () => {
     let rafId = null;
     let lastDropletHiddenState = false;
 
-    const SCROLL_RANGE = 150; // Khoảng cách cuộn mượt mà để hoàn tất 1 chu kỳ thu gọn / mở ra
+    const SCROLL_RANGE = 160; // Khoảng cách cuộn mượt mà để hoàn tất 1 chu kỳ thu gọn / mở ra (160px)
+    const circleSize = 48;    // Kích thước chuẩn của hình tròn giọt nước (48px x 48px)
+    const targetRadius = circleSize / 2; // 24px: Bán kính để tạo hình tròn 100% chuẩn xác
+
+    let naturalWidth = 0;
+    let naturalHeight = 0;
+
+    const updateNaturalDimensions = () => {
+        if (!headerNavCard || currentProgress > 0.001) return;
+        const rect = headerNavCard.getBoundingClientRect();
+        if (rect.width > 100) naturalWidth = rect.width;
+        if (rect.height > 30) naturalHeight = rect.height;
+    };
+
+    const getFullWidth = () => {
+        if (naturalWidth > 100) return naturalWidth;
+        const clientW = document.documentElement.clientWidth || window.innerWidth;
+        return Math.min(1280, clientW - 32);
+    };
+
+    const getFullHeight = () => {
+        if (naturalHeight > 30) return naturalHeight;
+        return window.innerWidth >= 1024 ? 66 : (headerNavCard.offsetHeight || 66);
+    };
+
+    updateNaturalDimensions();
 
     const renderHeaderProgress = (p) => {
         if (!headerNavCard) return;
 
-        // Trạng thái 0: Mở hoàn toàn (full-size tự nhiên, không inline transform hay opacity)
+        const fullW = getFullWidth();
+        const fullH = getFullHeight();
+        const isDark = document.documentElement.classList.contains('theme-dark');
+        const baseRadius = isDark ? 8 : 16;
+
+        // Trạng thái 0: Mở hoàn toàn (100% kích thước tự nhiên, xóa toàn bộ inline styles để không lệch layout)
         if (p <= 0.001) {
+            headerNavCard.style.width = '';
+            headerNavCard.style.height = '';
             headerNavCard.style.transform = '';
+            headerNavCard.style.borderRadius = '';
             headerNavCard.style.opacity = '';
             headerNavCard.style.pointerEvents = 'auto';
             if (headerCardContent) {
@@ -138,29 +170,27 @@ const initCoreHeader = () => {
                 headerCardContent.style.visibility = '';
                 headerCardContent.style.pointerEvents = 'auto';
             }
-            if (headerDroplet) {
-                headerDroplet.style.opacity = '0';
-                headerDroplet.style.transform = 'translateX(-50%) scale(0)';
-            }
             if (lastDropletHiddenState) {
                 lastDropletHiddenState = false;
                 header.classList.remove('header-droplet-hidden');
                 if (app.toast && app.toast.updatePosition) app.toast.updatePosition();
             }
+            updateNaturalDimensions();
             return;
         }
 
-        // Trạng thái 1: Đã ẩn hoàn toàn lên mép trên
+        // Trạng thái 1: Đã thu thành giọt nước và bay mất hoàn toàn lên mép trên
         if (p >= 0.999) {
+            headerNavCard.style.width = `${circleSize}px`;
+            headerNavCard.style.height = `${circleSize}px`;
+            headerNavCard.style.borderRadius = '50%';
+            headerNavCard.style.transform = 'translate3d(0, -90px, 0) scale(0.7)';
             headerNavCard.style.opacity = '0';
             headerNavCard.style.pointerEvents = 'none';
             if (headerCardContent) {
                 headerCardContent.style.opacity = '0';
                 headerCardContent.style.visibility = 'hidden';
-            }
-            if (headerDroplet) {
-                headerDroplet.style.opacity = '0';
-                headerDroplet.style.transform = 'translateX(-50%) translate3d(0, -90px, 0) scale(0.6)';
+                headerCardContent.style.pointerEvents = 'none';
             }
             if (!lastDropletHiddenState) {
                 lastDropletHiddenState = true;
@@ -176,50 +206,53 @@ const initCoreHeader = () => {
             if (app.toast && app.toast.updatePosition) app.toast.updatePosition();
         }
 
-        // Nội dung bên trong (thanh tìm kiếm, icon, menu):
-        // CHỈ hiển thị khi navbar đã bung ra hơn 75% (p < 0.25).
-        // Khi đang co lại hoặc chỉ mới mở một chút, nội dung ẩn hoàn toàn để không lộ thanh tìm kiếm bên trong.
+        // Quản lý nội dung bên trong:
+        // CHỈ hiển thị khi navbar đã bung ra hơn 88% diện tích (p <= 0.12).
+        // Khi đang ở dạng giọt nước hoặc đang co/phóng, nội dung ẩn hoàn toàn để không lộ thanh tìm kiếm và không gây reflow lag.
         if (headerCardContent) {
-            const contentOpacity = Math.max(0, 1 - p / 0.25);
-            headerCardContent.style.opacity = contentOpacity.toFixed(3);
-            headerCardContent.style.visibility = contentOpacity <= 0.01 ? 'hidden' : 'visible';
-            headerCardContent.style.pointerEvents = p > 0.05 ? 'none' : 'auto';
+            if (p <= 0.12) {
+                const op = (0.12 - p) / 0.12;
+                headerCardContent.style.visibility = 'visible';
+                headerCardContent.style.opacity = op.toFixed(3);
+                headerCardContent.style.pointerEvents = p <= 0.03 ? 'auto' : 'none';
+            } else {
+                headerCardContent.style.opacity = '0';
+                headerCardContent.style.visibility = 'hidden';
+                headerCardContent.style.pointerEvents = 'none';
+            }
         }
 
-        if (p <= 0.5) {
-            // Giai đoạn 1: Navbar thu gọn nhẹ về tâm trên, giọt nước hình tròn hoàn hảo dần hiện ra
-            const t = p / 0.5; // 0 -> 1
-            const easeT = t * t * (3 - 2 * t);
-            const cardScale = 1 - easeT * 0.45;
-            const cardTy = easeT * 8;
-            const cardOpacity = Math.max(0, 1 - easeT * 1.5);
+        if (p <= 0.55) {
+            // GIAI ĐOẠN 1: Thu gọn từ thanh navbar thành hình tròn giọt nước (48x48px)
+            // hoặc phóng to từ giọt nước ra thanh navbar theo đúng cử chỉ cuộn của người dùng
+            const t = p / 0.55; // 0 -> 1
+            const ease = t * t * (3 - 2 * t); // Smoothstep mượt mà
 
-            headerNavCard.style.transform = `translate3d(0, ${cardTy.toFixed(1)}px, 0) scale(${cardScale.toFixed(3)})`;
-            headerNavCard.style.opacity = cardOpacity.toFixed(3);
-            headerNavCard.style.pointerEvents = p > 0.25 ? 'none' : 'auto';
+            const currentW = fullW - ease * (fullW - circleSize);
+            const currentH = fullH - ease * (fullH - circleSize);
+            const currentR = baseRadius + ease * (targetRadius - baseRadius);
+            const ty = ease * 6; // Lắng nhẹ 6px xuống tạo cảm giác giọt nước gom tụ tự nhiên
 
-            if (headerDroplet) {
-                const dropT = Math.max(0, Math.min(1, (t - 0.2) / 0.8));
-                const dropEase = dropT * dropT * (3 - 2 * dropT);
-                const dropScale = 0.35 + dropEase * 0.65;
-                const dropTy = dropEase * 8;
-                headerDroplet.style.transform = `translateX(-50%) translate3d(0, ${dropTy.toFixed(1)}px, 0) scale(${dropScale.toFixed(3)})`;
-                headerDroplet.style.opacity = dropEase.toFixed(3);
-            }
+            headerNavCard.style.width = `${currentW.toFixed(1)}px`;
+            headerNavCard.style.height = `${currentH.toFixed(1)}px`;
+            headerNavCard.style.borderRadius = `${currentR.toFixed(1)}px`;
+            headerNavCard.style.transform = `translate3d(0, ${ty.toFixed(1)}px, 0)`;
+            headerNavCard.style.opacity = '1';
+            headerNavCard.style.pointerEvents = p > 0.35 ? 'none' : 'auto';
         } else {
-            // Giai đoạn 2: Navbar đã biến mất hoàn toàn, giọt nước hình tròn 100% (48x48) trượt vút lên trên
-            headerNavCard.style.opacity = '0';
-            headerNavCard.style.pointerEvents = 'none';
+            // GIAI ĐOẠN 2: Đã là HÌNH TRÒN 100% (48x48px, border-radius 50%), trượt vút lên trên ẩn khỏi màn hình
+            const u = (p - 0.55) / 0.45; // 0 -> 1
+            const easeU = u * u;
+            const ty = 6 - easeU * 90;
+            const scale = 1 - easeU * 0.3; // Scale đồng đều 1:1, tuyệt đối không bị méo mó
+            const cardOpacity = Math.max(0, 1 - u * 1.6);
 
-            if (headerDroplet) {
-                const u = (p - 0.5) / 0.5; // 0 -> 1
-                const easeU = u * u;
-                const dropTy = 8 - easeU * 90;
-                const dropScale = 1 - easeU * 0.35;
-                const dropOpacity = Math.max(0, 1 - u * 1.6);
-                headerDroplet.style.transform = `translateX(-50%) translate3d(0, ${dropTy.toFixed(1)}px, 0) scale(${dropScale.toFixed(3)})`;
-                headerDroplet.style.opacity = dropOpacity.toFixed(3);
-            }
+            headerNavCard.style.width = `${circleSize}px`;
+            headerNavCard.style.height = `${circleSize}px`;
+            headerNavCard.style.borderRadius = '50%';
+            headerNavCard.style.transform = `translate3d(0, ${ty.toFixed(1)}px, 0) scale(${scale.toFixed(3)})`;
+            headerNavCard.style.opacity = cardOpacity.toFixed(3);
+            headerNavCard.style.pointerEvents = 'none';
         }
     };
 
@@ -247,7 +280,7 @@ const initCoreHeader = () => {
         const diff = currentScrollY - lastScrollY;
         lastScrollY = currentScrollY;
 
-        // Kiểm tra xem có đang mở menu hoặc ở sát đỉnh trang (scrollY <= 10)
+        // Nếu ở sát đỉnh trang (scrollY <= 10) hoặc đang mở popup/menu, luôn mở hoàn toàn
         const isSearchFocused = document.activeElement && document.activeElement.id === 'search-input';
         const userMenu = document.getElementById('user-dropdown');
         const isUserMenuOpen = userMenu && userMenu.classList.contains('opacity-100');
@@ -292,6 +325,9 @@ const initCoreHeader = () => {
     window.addEventListener('resize', () => {
         if (!resizeTicking) {
             window.requestAnimationFrame(() => {
+                naturalWidth = 0;
+                naturalHeight = 0;
+                updateNaturalDimensions();
                 if (app.toast && app.toast.updatePosition) app.toast.updatePosition();
                 resizeTicking = false;
             });
