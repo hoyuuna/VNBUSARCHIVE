@@ -121,85 +121,96 @@ const initCoreHeader = () => {
 
     const SCROLL_RANGE = 90; // Khoảng cách cuộn để hoàn tất 1 chu kỳ thu gọn / mở ra
 
+    let initialCardWidth = 0;
+    let initialCardHeight = 0;
+
     const renderHeaderProgress = (p) => {
         if (!headerNavCard) return;
 
-        // Nếu p <= 0: trở về trạng thái bình thường hoàn toàn
+        // Cập nhật kích thước đầy đủ ban đầu khi ở trạng thái mở
+        if (p <= 0.05) {
+            const w = headerNavCard.offsetWidth;
+            const h = headerNavCard.offsetHeight;
+            if (w > 100) initialCardWidth = w;
+            if (h > 30) initialCardHeight = h;
+        }
+
+        const fullW = initialCardWidth || headerNavCard.offsetWidth || Math.min(1280, window.innerWidth - 32);
+        const fullH = initialCardHeight || headerNavCard.offsetHeight || 64;
+        const circleSize = 52; // Kích thước cố định của hình tròn hoàn hảo (52px x 52px)
+        const targetRadius = circleSize / 2; // 26px: Bán kính để tạo hình tròn 100% chuẩn xác
+        const baseRadius = document.documentElement.classList.contains('theme-dark') ? 8 : 16;
+
+        // Nếu p <= 0: trở về trạng thái bình thường hoàn toàn, xóa inline styles
         if (p <= 0.001) {
+            headerNavCard.style.width = '';
+            headerNavCard.style.height = '';
             headerNavCard.style.transform = '';
             headerNavCard.style.borderRadius = '';
             headerNavCard.style.opacity = '';
             headerNavCard.style.pointerEvents = 'auto';
             if (headerCardContent) {
                 headerCardContent.style.opacity = '';
-                headerCardContent.style.transform = '';
             }
             header.classList.remove('header-droplet-hidden');
             return;
         }
 
-        // Nếu p >= 1: giọt nước đã biến mất hoàn toàn lên trên
+        // Nếu p >= 1: giọt nước hình tròn đã bay mất hoàn toàn lên trên
         if (p >= 0.999) {
-            headerNavCard.style.transform = 'translate3d(0, -160%, 0) scale(0.16, 0.4)';
-            headerNavCard.style.borderRadius = '9999px';
+            headerNavCard.style.width = `${circleSize}px`;
+            headerNavCard.style.height = `${circleSize}px`;
+            headerNavCard.style.transform = 'translate3d(0, -150px, 0) scale(0.7)';
+            headerNavCard.style.borderRadius = '50%';
             headerNavCard.style.opacity = '0';
             headerNavCard.style.pointerEvents = 'none';
             if (headerCardContent) {
                 headerCardContent.style.opacity = '0';
-                headerCardContent.style.transform = 'scale(0.85)';
             }
             header.classList.add('header-droplet-hidden');
             return;
         }
 
-        // Trạng thái thu gọn giọt nước tương tác trực tiếp
         header.classList.remove('header-droplet-hidden');
-        headerNavCard.style.pointerEvents = p > 0.4 ? 'none' : 'auto';
+        headerNavCard.style.pointerEvents = p > 0.45 ? 'none' : 'auto';
 
-        const W = headerNavCard.offsetWidth || 1000;
-        const H = headerNavCard.offsetHeight || 64;
-        const baseRadius = document.documentElement.classList.contains('theme-dark') ? 8 : 16;
-        
-        // Thu gọn chính xác tới hình tròn hoàn hảo tỷ lệ 1:1
-        const circleDiameter = Math.min(H * 0.85, 54);
-        const circleScaleX = Math.max(0.015, circleDiameter / W);
-        const circleScaleY = Math.max(0.015, circleDiameter / H);
-        const targetRadius = circleDiameter / 2; // Bán kính để đạt hình tròn chuẩn xác
+        if (p <= 0.55) {
+            // Giai đoạn 1: Chiều rộng và chiều cao co thực tế về 52x52px, góc bo tăng dần đều thành 50%
+            const t = p / 0.55; // 0 -> 1
+            const ease = t * t * (3 - 2 * t); // Smoothstep mượt mà không khựng giật
 
-        let sx, sy, ty, br, contentOpacity, cardOpacity;
+            const currentW = fullW - ease * (fullW - circleSize);
+            const currentH = fullH - ease * (fullH - circleSize);
+            const currentR = baseRadius + ease * (targetRadius - baseRadius); // Càng kéo càng bo tròn đều
+            const ty = ease * 5; // Trũng nhẹ 5px tạo cảm giác giọt nước gom tụ tự nhiên
+            const contentOpacity = Math.max(0, 1 - t * 3.2);
 
-        if (p <= 0.6) {
-            // Giai đoạn 1: Hai bên thu hẹp dần, góc bo mềm mại tăng dần đều tới khi thành HÌNH TRÒN
-            const t = p / 0.6; // 0 -> 1
-            const ease = t * t * (3 - 2 * t); // Smoothstep làm góc bo và chiều rộng co mượt, không bị giật
-            
-            sx = 1 - ease * (1 - circleScaleX);
-            sy = 1 - ease * (1 - circleScaleY);
-            ty = ease * 5; // Trũng nhẹ 5px tạo cảm giác giọt nước gom tụ tự nhiên
-            br = baseRadius + ease * (targetRadius - baseRadius); // Càng ngày càng bo tròn đều
-            contentOpacity = Math.max(0, 1 - t * 1.8);
-            cardOpacity = 1;
+            headerNavCard.style.width = `${currentW.toFixed(1)}px`;
+            headerNavCard.style.height = `${currentH.toFixed(1)}px`;
+            headerNavCard.style.borderRadius = `${currentR.toFixed(1)}px`;
+            headerNavCard.style.transform = `translate3d(0, ${ty.toFixed(1)}px, 0)`;
+            headerNavCard.style.opacity = '1';
+
+            if (headerCardContent) {
+                headerCardContent.style.opacity = contentOpacity.toFixed(3);
+            }
         } else {
-            // Giai đoạn 2: Giọt nước đã là hình tròn hoàn hảo, tiếp tục trượt vút lên trên mép màn hình
-            const u = (p - 0.6) / 0.4; // 0 -> 1
-            const easeU = u * u; // Tăng tốc khi bay lên
-            
-            const taper = 1 - easeU * 0.2;
-            sx = circleScaleX * taper;
-            sy = circleScaleY * taper;
-            ty = 5 - easeU * (H + 45);
-            br = targetRadius;
-            contentOpacity = 0;
-            cardOpacity = Math.max(0, 1 - u * 1.5);
-        }
+            // Giai đoạn 2: Đã là HÌNH TRÒN 100% chuẩn xác (52x52px), giữ nguyên hình tròn và trượt vút lên trên
+            const u = (p - 0.55) / 0.45; // 0 -> 1
+            const easeU = u * u;
+            const ty = 5 - easeU * (circleSize + 45);
+            const scale = 1 - easeU * 0.25; // Scale đồng đều 1:1, tuyệt đối không bị méo mó hay dẹt
+            const cardOpacity = Math.max(0, 1 - u * 1.5);
 
-        headerNavCard.style.transform = `translate3d(0, ${ty.toFixed(1)}px, 0) scale(${sx.toFixed(4)}, ${sy.toFixed(4)})`;
-        headerNavCard.style.borderRadius = `${br.toFixed(1)}px`;
-        headerNavCard.style.opacity = cardOpacity.toFixed(3);
+            headerNavCard.style.width = `${circleSize}px`;
+            headerNavCard.style.height = `${circleSize}px`;
+            headerNavCard.style.borderRadius = '50%';
+            headerNavCard.style.transform = `translate3d(0, ${ty.toFixed(1)}px, 0) scale(${scale.toFixed(3)})`;
+            headerNavCard.style.opacity = cardOpacity.toFixed(3);
 
-        if (headerCardContent) {
-            headerCardContent.style.opacity = contentOpacity.toFixed(3);
-            headerCardContent.style.transform = `scale(${(0.85 + contentOpacity * 0.15).toFixed(3)})`;
+            if (headerCardContent) {
+                headerCardContent.style.opacity = '0';
+            }
         }
     };
 

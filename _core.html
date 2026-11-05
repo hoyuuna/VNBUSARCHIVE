@@ -1771,7 +1771,9 @@ html.theme-dark .ct-icon {
 
         .header-card-content {
             transform-origin: top center;
-            will-change: transform, opacity;
+            will-change: opacity;
+            flex-shrink: 0;
+            pointer-events: auto;
         }
 
         /* Khi mở menu dropdown hoặc gợi ý: giữ overflow visible để không che popup */
