@@ -118,30 +118,46 @@ const initCoreHeader = () => {
     let currentProgress = 0;
     let isMouseNearTop = false;
     let rafId = null;
+    let lastDropletHiddenState = false;
 
-    const SCROLL_RANGE = 90; // Khoảng cách cuộn để hoàn tất 1 chu kỳ thu gọn / mở ra
+    const SCROLL_RANGE = 140; // Khoảng cách cuộn mượt mà để hoàn tất 1 chu kỳ thu gọn / mở ra (140px)
+    const circleSize = 48;    // Kích thước cố định của hình tròn hoàn hảo (48px x 48px)
+    const targetRadius = circleSize / 2; // 24px: Bán kính để tạo hình tròn 100% chuẩn xác
 
-    let initialCardWidth = 0;
-    let initialCardHeight = 0;
+    let fullW = 0;
+    let fullH = 0;
+
+    const measureFullDimensions = () => {
+        if (!headerNavCard) return;
+        // Chỉ đo khi card không bị ép kích thước inline để luôn lấy đúng 100% responsive width tự nhiên
+        const prevW = headerNavCard.style.width;
+        const prevH = headerNavCard.style.height;
+        if (prevW || prevH) {
+            headerNavCard.style.width = '';
+            headerNavCard.style.height = '';
+        }
+        const w = headerNavCard.offsetWidth;
+        const h = headerNavCard.offsetHeight;
+        if (prevW || prevH) {
+            headerNavCard.style.width = prevW;
+            headerNavCard.style.height = prevH;
+        }
+        if (w > 100) fullW = w;
+        if (h > 30) fullH = h;
+    };
+
+    // Đo kích thước chuẩn ban đầu
+    measureFullDimensions();
 
     const renderHeaderProgress = (p) => {
         if (!headerNavCard) return;
 
-        // Cập nhật kích thước đầy đủ ban đầu khi ở trạng thái mở
-        if (p <= 0.05) {
-            const w = headerNavCard.offsetWidth;
-            const h = headerNavCard.offsetHeight;
-            if (w > 100) initialCardWidth = w;
-            if (h > 30) initialCardHeight = h;
-        }
+        const maxW = fullW || headerNavCard.offsetWidth || Math.min(1280, window.innerWidth - 32);
+        const maxH = fullH || headerNavCard.offsetHeight || 64;
+        const isDark = document.documentElement.classList.contains('theme-dark');
+        const baseRadius = isDark ? 8 : 16;
 
-        const fullW = initialCardWidth || headerNavCard.offsetWidth || Math.min(1280, window.innerWidth - 32);
-        const fullH = initialCardHeight || headerNavCard.offsetHeight || 64;
-        const circleSize = 52; // Kích thước cố định của hình tròn hoàn hảo (52px x 52px)
-        const targetRadius = circleSize / 2; // 26px: Bán kính để tạo hình tròn 100% chuẩn xác
-        const baseRadius = document.documentElement.classList.contains('theme-dark') ? 8 : 16;
-
-        // Nếu p <= 0: trở về trạng thái bình thường hoàn toàn, xóa inline styles
+        // Nếu p <= 0: trở về trạng thái tự nhiên 100%, xóa toàn bộ inline styles
         if (p <= 0.001) {
             headerNavCard.style.width = '';
             headerNavCard.style.height = '';
@@ -150,40 +166,64 @@ const initCoreHeader = () => {
             headerNavCard.style.opacity = '';
             headerNavCard.style.pointerEvents = 'auto';
             if (headerCardContent) {
+                headerCardContent.style.width = '';
                 headerCardContent.style.opacity = '';
+                headerCardContent.style.visibility = '';
+                headerCardContent.style.pointerEvents = 'auto';
             }
-            header.classList.remove('header-droplet-hidden');
+            if (lastDropletHiddenState) {
+                lastDropletHiddenState = false;
+                header.classList.remove('header-droplet-hidden');
+                if (app.toast && app.toast.updatePosition) app.toast.updatePosition();
+            }
             return;
+        }
+
+        // Cố định độ rộng nội dung bằng maxW trong suốt quá trình co lại
+        // Nhờ đó các phần tử con (logo, thanh tìm kiếm, nút) KHÔNG BAO GIỜ bị ép wrap hay reflow gây giật lag
+        if (headerCardContent) {
+            headerCardContent.style.width = `${maxW}px`;
+            headerCardContent.style.pointerEvents = p > 0.1 ? 'none' : 'auto';
         }
 
         // Nếu p >= 1: giọt nước hình tròn đã bay mất hoàn toàn lên trên
         if (p >= 0.999) {
             headerNavCard.style.width = `${circleSize}px`;
             headerNavCard.style.height = `${circleSize}px`;
-            headerNavCard.style.transform = 'translate3d(0, -150px, 0) scale(0.7)';
+            headerNavCard.style.transform = 'translate3d(0, -120px, 0) scale(0.7)';
             headerNavCard.style.borderRadius = '50%';
             headerNavCard.style.opacity = '0';
             headerNavCard.style.pointerEvents = 'none';
             if (headerCardContent) {
                 headerCardContent.style.opacity = '0';
+                headerCardContent.style.visibility = 'hidden';
             }
-            header.classList.add('header-droplet-hidden');
+            if (!lastDropletHiddenState) {
+                lastDropletHiddenState = true;
+                header.classList.add('header-droplet-hidden');
+                if (app.toast && app.toast.updatePosition) app.toast.updatePosition();
+            }
             return;
         }
 
-        header.classList.remove('header-droplet-hidden');
-        headerNavCard.style.pointerEvents = p > 0.45 ? 'none' : 'auto';
+        if (lastDropletHiddenState) {
+            lastDropletHiddenState = false;
+            header.classList.remove('header-droplet-hidden');
+            if (app.toast && app.toast.updatePosition) app.toast.updatePosition();
+        }
+
+        headerNavCard.style.pointerEvents = p > 0.4 ? 'none' : 'auto';
 
         if (p <= 0.55) {
-            // Giai đoạn 1: Chiều rộng và chiều cao co thực tế về 52x52px, góc bo tăng dần đều thành 50%
+            // Giai đoạn 1: Chiều rộng và chiều cao co thực tế về 48x48px, góc bo tăng dần đều thành 50%
             const t = p / 0.55; // 0 -> 1
             const ease = t * t * (3 - 2 * t); // Smoothstep mượt mà không khựng giật
 
-            const currentW = fullW - ease * (fullW - circleSize);
-            const currentH = fullH - ease * (fullH - circleSize);
+            const currentW = maxW - ease * (maxW - circleSize);
+            const currentH = maxH - ease * (maxH - circleSize);
             const currentR = baseRadius + ease * (targetRadius - baseRadius); // Càng kéo càng bo tròn đều
-            const ty = ease * 5; // Trũng nhẹ 5px tạo cảm giác giọt nước gom tụ tự nhiên
-            const contentOpacity = Math.max(0, 1 - t * 3.2);
+            const ty = ease * 4; // Trũng nhẹ 4px tạo cảm giác giọt nước gom tụ tự nhiên
+            const contentOpacity = Math.max(0, 1 - t * 2.8);
 
             headerNavCard.style.width = `${currentW.toFixed(1)}px`;
             headerNavCard.style.height = `${currentH.toFixed(1)}px`;
@@ -193,13 +233,14 @@ const initCoreHeader = () => {
 
             if (headerCardContent) {
                 headerCardContent.style.opacity = contentOpacity.toFixed(3);
+                headerCardContent.style.visibility = contentOpacity <= 0.01 ? 'hidden' : 'visible';
             }
         } else {
-            // Giai đoạn 2: Đã là HÌNH TRÒN 100% chuẩn xác (52x52px), giữ nguyên hình tròn và trượt vút lên trên
+            // Giai đoạn 2: Đã là HÌNH TRÒN 100% chuẩn xác (48x48px), giữ nguyên hình tròn và trượt vút lên trên
             const u = (p - 0.55) / 0.45; // 0 -> 1
             const easeU = u * u;
-            const ty = 5 - easeU * (circleSize + 45);
-            const scale = 1 - easeU * 0.25; // Scale đồng đều 1:1, tuyệt đối không bị méo mó hay dẹt
+            const ty = 4 - easeU * (circleSize + 40);
+            const scale = 1 - easeU * 0.25; // Scale đồng đều 1:1, tuyệt đối không bị méo mó
             const cardOpacity = Math.max(0, 1 - u * 1.5);
 
             headerNavCard.style.width = `${circleSize}px`;
@@ -210,22 +251,20 @@ const initCoreHeader = () => {
 
             if (headerCardContent) {
                 headerCardContent.style.opacity = '0';
+                headerCardContent.style.visibility = 'hidden';
             }
         }
     };
 
     const updateLoop = () => {
-        // Linear interpolation mượt mà: di chuyển dần về targetProgress
         const diff = targetProgress - currentProgress;
-        if (Math.abs(diff) > 0.002) {
-            currentProgress += diff * 0.35;
+        if (Math.abs(diff) > 0.001) {
+            currentProgress += diff * 0.28;
             renderHeaderProgress(currentProgress);
-            if (app.toast && app.toast.updatePosition) app.toast.updatePosition();
             rafId = window.requestAnimationFrame(updateLoop);
         } else {
             currentProgress = targetProgress;
             renderHeaderProgress(currentProgress);
-            if (app.toast && app.toast.updatePosition) app.toast.updatePosition();
             rafId = null;
         }
     };
@@ -270,21 +309,17 @@ const initCoreHeader = () => {
         requestUpdate();
     }, { passive: true });
 
-    document.addEventListener('click', () => {
-        setTimeout(syncHeader, 50);
-    });
-
-    document.addEventListener('focusout', () => {
-        setTimeout(syncHeader, 50);
-    });
-
-    document.addEventListener('mousemove', (e) => {
-        const wasNearTop = isMouseNearTop;
-        isMouseNearTop = (e.clientY <= 12);
-        if (wasNearTop !== isMouseNearTop) {
-            syncHeader();
+    window.addEventListener('mousemove', (e) => {
+        // Vùng rê chuột sát mép trên màn hình (0 -> 45px) để gọi lại header nếu đang ẩn
+        const nearTop = e.clientY <= 45;
+        if (nearTop !== isMouseNearTop) {
+            isMouseNearTop = nearTop;
+            if (isMouseNearTop) {
+                targetProgress = 0;
+                requestUpdate();
+            }
         }
-    });
+    }, { passive: true });
 
     document.addEventListener('mouseleave', () => {
         if (isMouseNearTop) {
@@ -302,12 +337,14 @@ const initCoreHeader = () => {
     window.addEventListener('resize', () => {
         if (!resizeTicking) {
             window.requestAnimationFrame(() => {
+                measureFullDimensions();
                 if (app.toast && app.toast.updatePosition) app.toast.updatePosition();
                 resizeTicking = false;
             });
             resizeTicking = true;
         }
     }, { passive: true });
+
 
     if (app.toast && app.toast.updatePosition) app.toast.updatePosition();
 

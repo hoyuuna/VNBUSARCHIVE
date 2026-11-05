@@ -1765,15 +1765,24 @@ html.theme-dark .ct-icon {
 
         .header-nav-card {
             transform-origin: top center;
-            will-change: transform, border-radius, opacity;
+            will-change: width, height, transform, border-radius, opacity;
             overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: none !important;
+            box-sizing: border-box;
         }
 
         .header-card-content {
+            width: 100%;
             transform-origin: top center;
             will-change: opacity;
             flex-shrink: 0;
             pointer-events: auto;
+            transition: none !important;
+            box-sizing: border-box;
+            max-width: none;
         }
 
         /* Khi mở menu dropdown hoặc gợi ý: giữ overflow visible để không che popup */
