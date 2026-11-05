@@ -207,14 +207,14 @@ const initCoreHeader = () => {
         }
 
         // Quản lý nội dung bên trong:
-        // CHỈ hiển thị khi navbar đã bung ra hơn 88% diện tích (p <= 0.12).
-        // Khi đang ở dạng giọt nước hoặc đang co/phóng, nội dung ẩn hoàn toàn để không lộ thanh tìm kiếm và không gây reflow lag.
+        // CHỈ hiển thị khi navbar đã bung ra trọn vẹn (p <= 0.05).
+        // Đồng thời hiển thị đồng bộ 100% tất cả các phần tử (Logo, Thanh tìm kiếm, Nút điều hướng) cùng lúc.
         if (headerCardContent) {
-            if (p <= 0.12) {
-                const op = (0.12 - p) / 0.12;
+            if (p <= 0.05) {
+                const op = (0.05 - p) / 0.05;
                 headerCardContent.style.visibility = 'visible';
                 headerCardContent.style.opacity = op.toFixed(3);
-                headerCardContent.style.pointerEvents = p <= 0.03 ? 'auto' : 'none';
+                headerCardContent.style.pointerEvents = p <= 0.02 ? 'auto' : 'none';
             } else {
                 headerCardContent.style.opacity = '0';
                 headerCardContent.style.visibility = 'hidden';
