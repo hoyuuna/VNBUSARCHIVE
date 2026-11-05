@@ -156,32 +156,45 @@ const initCoreHeader = () => {
         header.classList.remove('header-droplet-hidden');
         headerNavCard.style.pointerEvents = p > 0.4 ? 'none' : 'auto';
 
-        let sx, sy, ty, br, contentOpacity, cardOpacity;
+        const W = headerNavCard.offsetWidth || 1000;
+        const H = headerNavCard.offsetHeight || 64;
         const baseRadius = document.documentElement.classList.contains('theme-dark') ? 8 : 16;
+        
+        // Thu gọn chính xác tới hình tròn hoàn hảo tỷ lệ 1:1
+        const circleDiameter = Math.min(H * 0.85, 54);
+        const circleScaleX = Math.max(0.015, circleDiameter / W);
+        const circleScaleY = Math.max(0.015, circleDiameter / H);
+        const targetRadius = circleDiameter / 2; // Bán kính để đạt hình tròn chuẩn xác
 
-        if (p <= 0.5) {
-            // Giai đoạn 1: Hai bên co cụm dần vào giữa thành hình giọt nước bầu dục
-            const t = p / 0.5; // 0 -> 1
-            sx = 1 - t * 0.72; // 1 -> 0.28
-            sy = 1 - t * 0.32; // 1 -> 0.68
-            ty = t * 6;        // 0 -> 6px (trũng nhẹ xuống như giọt nước tụ lại)
-            br = baseRadius + t * (9999 - baseRadius);
-            contentOpacity = Math.max(0, 1 - t * 1.6);
+        let sx, sy, ty, br, contentOpacity, cardOpacity;
+
+        if (p <= 0.6) {
+            // Giai đoạn 1: Hai bên thu hẹp dần, góc bo mềm mại tăng dần đều tới khi thành HÌNH TRÒN
+            const t = p / 0.6; // 0 -> 1
+            const ease = t * t * (3 - 2 * t); // Smoothstep làm góc bo và chiều rộng co mượt, không bị giật
+            
+            sx = 1 - ease * (1 - circleScaleX);
+            sy = 1 - ease * (1 - circleScaleY);
+            ty = ease * 5; // Trũng nhẹ 5px tạo cảm giác giọt nước gom tụ tự nhiên
+            br = baseRadius + ease * (targetRadius - baseRadius); // Càng ngày càng bo tròn đều
+            contentOpacity = Math.max(0, 1 - t * 1.8);
             cardOpacity = 1;
         } else {
-            // Giai đoạn 2: Giọt nước di chuyển trượt lên trên mép màn hình
-            const u = (p - 0.5) / 0.5; // 0 -> 1
-            sx = 0.28 - u * 0.12;      // 0.28 -> 0.16
-            sy = 0.68 - u * 0.28;      // 0.68 -> 0.40
-            const headerH = headerNavCard.offsetHeight || 64;
-            ty = 6 - u * (headerH + 45); // từ 6px lên trên khỏi màn hình
-            br = 9999;
+            // Giai đoạn 2: Giọt nước đã là hình tròn hoàn hảo, tiếp tục trượt vút lên trên mép màn hình
+            const u = (p - 0.6) / 0.4; // 0 -> 1
+            const easeU = u * u; // Tăng tốc khi bay lên
+            
+            const taper = 1 - easeU * 0.2;
+            sx = circleScaleX * taper;
+            sy = circleScaleY * taper;
+            ty = 5 - easeU * (H + 45);
+            br = targetRadius;
             contentOpacity = 0;
             cardOpacity = Math.max(0, 1 - u * 1.5);
         }
 
-        headerNavCard.style.transform = `translate3d(0, ${ty.toFixed(1)}px, 0) scale(${sx.toFixed(3)}, ${sy.toFixed(3)})`;
-        headerNavCard.style.borderRadius = `${Math.round(br)}px`;
+        headerNavCard.style.transform = `translate3d(0, ${ty.toFixed(1)}px, 0) scale(${sx.toFixed(4)}, ${sy.toFixed(4)})`;
+        headerNavCard.style.borderRadius = `${br.toFixed(1)}px`;
         headerNavCard.style.opacity = cardOpacity.toFixed(3);
 
         if (headerCardContent) {
