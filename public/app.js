@@ -210,8 +210,8 @@ const initCoreHeader = () => {
         // Hiển thị mượt mà khi navbar nở ra đủ không gian (p <= 0.18).
         // Logo, Ô tìm kiếm và Menu hiện đồng thời và đạt 100% độ rõ trước khi chạm đích, không bị trễ hay quên.
         if (headerCardContent) {
-            if (p <= 0.18) {
-                const op = Math.min(1, (0.18 - p) / 0.14);
+            if (p <= 0.22) {
+                const op = Math.min(1, (0.22 - p) / 0.16);
                 headerCardContent.style.visibility = 'visible';
                 headerCardContent.style.opacity = op.toFixed(3);
                 headerCardContent.style.pointerEvents = p <= 0.04 ? 'auto' : 'none';
