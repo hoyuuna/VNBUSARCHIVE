@@ -107,16 +107,20 @@ window.addEventListener('error', function(event) {
 
 
 
-document.addEventListener('DOMContentLoaded', () => {
+const initCoreHeader = () => {
     const header = document.querySelector('header');
     if (!header) return;
     if (!header.classList.contains('transition-transform')) {
         header.classList.add('transition-transform', 'duration-300');
     }
+    const headerInner = header.querySelector(':scope > div');
+
     let lastScrollY = window.scrollY;
     let lastScrollDirection = 'up';
-    let isHoveringHeaderArea = false;
-    const threshold = 200; 
+    let isMouseNearTop = false;
+    const threshold = 50; 
+    const scrollDelta = 8;
+
     const checkHeaderState = () => {
         const currentScrollY = window.scrollY;
         const isSearchFocused = document.activeElement && document.activeElement.id === 'search-input';
@@ -126,33 +130,38 @@ document.addEventListener('DOMContentLoaded', () => {
         const isFilterMenuOpen = filterMenu && filterMenu.classList.contains('active');
         const searchSuggestions = document.getElementById('main-search-suggestions');
         const isSuggestionsOpen = searchSuggestions && searchSuggestions.classList.contains('active');
-        if (isSearchFocused || isUserMenuOpen || isFilterMenuOpen || isSuggestionsOpen || isHoveringHeaderArea) {
+        const isHoveringCard = headerInner && headerInner.matches(':hover');
+
+        if (isSearchFocused || isUserMenuOpen || isFilterMenuOpen || isSuggestionsOpen || isHoveringCard || isMouseNearTop) {
             header.style.transform = 'translateY(0)';
             return;
         }
-        if (currentScrollY > threshold) {
-            if (lastScrollDirection === 'down') {
-                header.style.transform = 'translateY(-100%)';
-            } else {
-                header.style.transform = 'translateY(0)';
-            }
+
+        if (currentScrollY <= threshold) {
+            header.style.transform = 'translateY(0)';
+            return;
+        }
+
+        if (lastScrollDirection === 'down') {
+            header.style.transform = 'translateY(-100%)';
         } else {
             header.style.transform = 'translateY(0)';
         }
     };
+
     const syncHeader = () => {
         checkHeaderState();
         if (app.toast && app.toast.updatePosition) app.toast.updatePosition();
     };
+
     let scrollTicking = false;
     window.addEventListener('scroll', () => {
         const currentScrollY = window.scrollY;
-        if (currentScrollY > lastScrollY) {
-            lastScrollDirection = 'down';
-        } else if (currentScrollY < lastScrollY) {
-            lastScrollDirection = 'up';
+        const diff = currentScrollY - lastScrollY;
+        if (Math.abs(diff) >= scrollDelta) {
+            lastScrollDirection = diff > 0 ? 'down' : 'up';
+            lastScrollY = currentScrollY;
         }
-        lastScrollY = currentScrollY;
         if (!scrollTicking) {
             window.requestAnimationFrame(() => {
                 syncHeader();
@@ -161,29 +170,43 @@ document.addEventListener('DOMContentLoaded', () => {
             scrollTicking = true;
         }
     }, { passive: true });
+
     document.addEventListener('click', () => {
         setTimeout(syncHeader, 50);
     });
+
     document.addEventListener('focusout', () => {
         setTimeout(syncHeader, 50);
     });
+
     document.addEventListener('mousemove', (e) => {
-        const wasHovering = isHoveringHeaderArea;
-        if (e.clientY <= 90) {
-            isHoveringHeaderArea = true;
+        const wasNearTop = isMouseNearTop;
+        if (e.clientY <= 12) {
+            isMouseNearTop = true;
         } else {
-            isHoveringHeaderArea = false;
+            isMouseNearTop = false;
         }
-        if (wasHovering !== isHoveringHeaderArea) {
+        if (wasNearTop !== isMouseNearTop) {
             syncHeader();
         }
     });
+
     document.addEventListener('mouseleave', () => {
-        if (isHoveringHeaderArea) {
-            isHoveringHeaderArea = false;
+        if (isMouseNearTop) {
+            isMouseNearTop = false;
             syncHeader();
         }
     });
+
+    if (headerInner) {
+        headerInner.addEventListener('mouseenter', () => {
+            syncHeader();
+        });
+        headerInner.addEventListener('mouseleave', () => {
+            syncHeader();
+        });
+    }
+
     let resizeTicking = false;
     window.addEventListener('resize', () => {
         if (!resizeTicking) {
@@ -194,7 +217,9 @@ document.addEventListener('DOMContentLoaded', () => {
             resizeTicking = true;
         }
     }, { passive: true });
+
     if (app.toast && app.toast.updatePosition) app.toast.updatePosition();
+
     document.addEventListener('input', (e) => {
         if (e.target && e.target.tagName === 'TEXTAREA' && e.target.classList && e.target.classList.contains('info-input')) {
             if (window.app && window.app.utils && window.app.utils.autoResizeTextarea) {
@@ -202,10 +227,17 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
     });
+
     if (window.app && window.app.ui && window.app.ui.initSliderEditableBadges) {
         window.app.ui.initSliderEditableBadges();
     }
-});
+};
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initCoreHeader);
+} else {
+    initCoreHeader();
+}
 
 Object.assign(window.app, {
     db: {

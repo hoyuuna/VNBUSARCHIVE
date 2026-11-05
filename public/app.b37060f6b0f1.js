@@ -109,16 +109,20 @@ window.addEventListener('error', function(event) {
 
 
 
-document.addEventListener('DOMContentLoaded', () => {
+const initCoreHeader = () => {
     const header = document.querySelector('header');
     if (!header) return;
     if (!header.classList.contains('transition-transform')) {
         header.classList.add('transition-transform', 'duration-300');
     }
+    const headerInner = header.querySelector(':scope > div');
+
     let lastScrollY = window.scrollY;
     let lastScrollDirection = 'up';
-    let isHoveringHeaderArea = false;
-    const threshold = 200; 
+    let isMouseNearTop = false;
+    const threshold = 50; 
+    const scrollDelta = 8;
+
     const checkHeaderState = () => {
         const currentScrollY = window.scrollY;
         const isSearchFocused = document.activeElement && document.activeElement.id === 'search-input';
@@ -128,33 +132,38 @@ document.addEventListener('DOMContentLoaded', () => {
         const isFilterMenuOpen = filterMenu && filterMenu.classList.contains('active');
         const searchSuggestions = document.getElementById('main-search-suggestions');
         const isSuggestionsOpen = searchSuggestions && searchSuggestions.classList.contains('active');
-        if (isSearchFocused || isUserMenuOpen || isFilterMenuOpen || isSuggestionsOpen || isHoveringHeaderArea) {
+        const isHoveringCard = headerInner && headerInner.matches(':hover');
+
+        if (isSearchFocused || isUserMenuOpen || isFilterMenuOpen || isSuggestionsOpen || isHoveringCard || isMouseNearTop) {
             header.style.transform = 'translateY(0)';
             return;
         }
-        if (currentScrollY > threshold) {
-            if (lastScrollDirection === 'down') {
-                header.style.transform = 'translateY(-100%)';
-            } else {
-                header.style.transform = 'translateY(0)';
-            }
+
+        if (currentScrollY <= threshold) {
+            header.style.transform = 'translateY(0)';
+            return;
+        }
+
+        if (lastScrollDirection === 'down') {
+            header.style.transform = 'translateY(-100%)';
         } else {
             header.style.transform = 'translateY(0)';
         }
     };
+
     const syncHeader = () => {
         checkHeaderState();
         if (app.toast && app.toast.updatePosition) app.toast.updatePosition();
     };
+
     let scrollTicking = false;
     window.addEventListener('scroll', () => {
         const currentScrollY = window.scrollY;
-        if (currentScrollY > lastScrollY) {
-            lastScrollDirection = 'down';
-        } else if (currentScrollY < lastScrollY) {
-            lastScrollDirection = 'up';
+        const diff = currentScrollY - lastScrollY;
+        if (Math.abs(diff) >= scrollDelta) {
+            lastScrollDirection = diff > 0 ? 'down' : 'up';
+            lastScrollY = currentScrollY;
         }
-        lastScrollY = currentScrollY;
         if (!scrollTicking) {
             window.requestAnimationFrame(() => {
                 syncHeader();
@@ -163,29 +172,43 @@ document.addEventListener('DOMContentLoaded', () => {
             scrollTicking = true;
         }
     }, { passive: true });
+
     document.addEventListener('click', () => {
         setTimeout(syncHeader, 50);
     });
+
     document.addEventListener('focusout', () => {
         setTimeout(syncHeader, 50);
     });
+
     document.addEventListener('mousemove', (e) => {
-        const wasHovering = isHoveringHeaderArea;
-        if (e.clientY <= 90) {
-            isHoveringHeaderArea = true;
+        const wasNearTop = isMouseNearTop;
+        if (e.clientY <= 12) {
+            isMouseNearTop = true;
         } else {
-            isHoveringHeaderArea = false;
+            isMouseNearTop = false;
         }
-        if (wasHovering !== isHoveringHeaderArea) {
+        if (wasNearTop !== isMouseNearTop) {
             syncHeader();
         }
     });
+
     document.addEventListener('mouseleave', () => {
-        if (isHoveringHeaderArea) {
-            isHoveringHeaderArea = false;
+        if (isMouseNearTop) {
+            isMouseNearTop = false;
             syncHeader();
         }
     });
+
+    if (headerInner) {
+        headerInner.addEventListener('mouseenter', () => {
+            syncHeader();
+        });
+        headerInner.addEventListener('mouseleave', () => {
+            syncHeader();
+        });
+    }
+
     let resizeTicking = false;
     window.addEventListener('resize', () => {
         if (!resizeTicking) {
@@ -196,7 +219,9 @@ document.addEventListener('DOMContentLoaded', () => {
             resizeTicking = true;
         }
     }, { passive: true });
+
     if (app.toast && app.toast.updatePosition) app.toast.updatePosition();
+
     document.addEventListener('input', (e) => {
         if (e.target && e.target.tagName === 'TEXTAREA' && e.target.classList && e.target.classList.contains('info-input')) {
             if (window.app && window.app.utils && window.app.utils.autoResizeTextarea) {
@@ -204,10 +229,17 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
     });
+
     if (window.app && window.app.ui && window.app.ui.initSliderEditableBadges) {
         window.app.ui.initSliderEditableBadges();
     }
-});
+};
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initCoreHeader);
+} else {
+    initCoreHeader();
+}
 
 Object.assign(window.app, {
     db: {
@@ -956,18 +988,7 @@ Object.assign(window.app, {
                                 btnOkText: "Đóng"
                             }
                         );
-                    } else if (type === 'vvbs') {
-                        helpUrl = 'https://www.vnbusarchive.io.vn/help/1537761083090018366';
-                        desc = `Danh hiệu <b>VNBUSARCHIVE Verified Bus Staff</b> được cấp nhằm xác nhận và tôn vinh những cán bộ, công nhân viên đang trực tiếp công tác và cống hiến cho ngành giao thông công cộng.<br><br><a href="${helpUrl}" target="_blank" class="text-black hover:underline font-bold text-[13px] inline-flex items-center">Tìm hiểu thêm về danh hiệu này</a>`;
-                        app.ui.showAlert(desc, 
-                            null, 
-                            null, 
-                            {
-                                title: "VNBUSARCHIVE Verified",
-                                iconHtml: '<i class="fa-solid fa-circle-check text-3xl text-black"></i>',
-                                btnOkText: "Đóng"
-                            }
-                        );
+
                     }
                 },
                 showQuotaInfo: () => {
@@ -3424,16 +3445,7 @@ cleanupState: () => {
                                 html += `<span class="badge-shiny badge-dev" style="${styleStr}" title="VNBUSARCHIVE Code Contributor">${innerHtml}</span>`;
                             }
                         }
-                        const vvbsRole = subroles.find(s => s === 'vvbs');
-                        if (vvbsRole) {
-                            const innerHtml = `<i class="fa-solid fa-check text-[9px]" style="line-height: 15px; display: block;"></i>`;
-                            const styleStr = `background-color: #3b82f6; color: white; padding: 0; width: 15px; height: 15px; border-radius: 50%; justify-content: center; align-items: center;${enableClick ? ' cursor: pointer;' : ''}`;
-                            if (enableClick) {
-                                html += `<span class="badge-shiny" style="${styleStr}" onclick="app.ui.showVerifiedPopup('vvbs', '')" title="Verified Bus Staff">${innerHtml}</span>`;
-                            } else {
-                                html += `<span class="badge-shiny" style="${styleStr}" title="Verified Bus Staff">${innerHtml}</span>`;
-                            }
-                        }
+
                     }
                     
                     if (role === 'admin' || role === 'manager') {
@@ -4490,7 +4502,7 @@ dropdown.innerHTML = `
                          <button onclick="app.settings.open()" class="w-full text-left block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 border-b border-gray-100 font-bold"><i class="fa-solid fa-gear w-5 text-center mr-1"></i> Cài đặt</button>
                          <a href="/help" class="block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 border-b border-gray-100 font-bold"><i class="fa-solid fa-book-open w-5 text-center mr-1"></i> Trung tâm hỗ trợ</a>
                          <a href="/contact" class="w-full text-left block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 border-b border-gray-100 font-bold"><i class="fa-solid fa-headset w-5 text-center mr-1"></i> Liên hệ hỗ trợ</a>
-                         <button onclick="app.auth.logout()" class="w-full text-left block px-4 py-3 text-sm text-black hover:bg-gray-100 font-bold"><i class="fa-solid fa-right-from-bracket w-5 text-center mr-1"></i> Đăng xuất</button>
+                         <button onclick="app.auth.logout()" class="w-full text-left block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 font-bold"><i class="fa-solid fa-right-from-bracket w-5 text-center mr-1"></i> Đăng xuất</button>
                      `;
                     app.auth.close();
                     if (app.role === 'admin' || app.role === 'manager') {
@@ -4882,19 +4894,28 @@ Object.assign(window.app, {
                                 if (typeVal === 'coach' || specialRoutes.includes(this.value.trim())) {
                                     app.searchRedirect(this.value, fieldMap[id]);
                                 } else {
+                                    let rawVal = (this.value || '').trim();
+                                    let cleanRoute = rawVal;
                                     let provName = '';
-                                    if (el.dataset.borrowed && el.dataset.borrowed.includes(' - ')) {
-                                        provName = el.dataset.borrowed.split(' - ')[1];
-                                    } else if (el.dataset.routeName && el.dataset.routeName.includes(' - ')) {
-                                        provName = el.dataset.routeName.split(' - ')[1];
-                                    } else {
-                                        const plateValue = document.getElementById('info-plate')?.value;
-                                        if (plateValue) provName = app.utils.getProvinceFromPlate(plateValue);
+                                    if (rawVal.includes(' - ')) {
+                                        const parts = rawVal.split(' - ');
+                                        cleanRoute = parts[0].trim();
+                                        provName = parts.slice(1).join(' - ').trim();
+                                    }
+                                    if (!provName) {
+                                        if (el.dataset.borrowed && el.dataset.borrowed.includes(' - ')) {
+                                            provName = el.dataset.borrowed.split(' - ')[1].trim();
+                                        } else if (el.dataset.routeName && el.dataset.routeName.includes(' - ')) {
+                                            provName = el.dataset.routeName.split(' - ')[1].trim();
+                                        } else {
+                                            const plateValue = document.getElementById('info-plate')?.value;
+                                            if (plateValue) provName = app.utils.getProvinceFromPlate(plateValue);
+                                        }
                                     }
                                     if (provName && provName !== 'Không xác định' && provName !== 'Biển tạm') {
-                                        app.utils.navigate(`/route/${encodeURIComponent(provName)}/${encodeURIComponent(this.value)}`);
+                                        app.utils.navigate(`/route/${encodeURIComponent(provName)}/${encodeURIComponent(cleanRoute)}`);
                                     } else {
-                                        app.utils.navigate(`/route/${encodeURIComponent(this.value)}`);
+                                        app.utils.navigate(`/route/${encodeURIComponent(cleanRoute)}`);
                                     }
                                 }
                             }
@@ -8210,8 +8231,24 @@ Object.assign(window.app, {
                     if (!req || req.status !== 'pending') return;
                     app.ui.showAlert("Bạn có chắc chắn muốn hủy yêu cầu này không? Hành động này không thể hoàn tác.", async () => {
                         try {
-                            const { error } = await window.sb.from('edit_requests').delete().eq('id', id).eq('requester_id', app.user.id);
-                            if (error) throw error;
+                            const { data: { session } } = await window.sb.auth.getSession();
+                            const token = session?.access_token;
+                            if (!token) throw new Error("Chưa đăng nhập.");
+
+                            const res = await fetch('/api/cancel-request', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'Authorization': `Bearer ${token}`
+                                },
+                                body: JSON.stringify({ requestId: id })
+                            });
+                            const result = await res.json().catch(() => ({}));
+                            if (!res.ok || !result.success) {
+                                throw new Error(result.error || "Không thể hủy yêu cầu.");
+                            }
+
+                            delete app.views._requestsCache[id];
                             app.views.fetchProfileRequests(1);
                             app.ui.showAlert("Đã hủy yêu cầu thành công!", null, null, { title: 'Thành công' });
                         } catch (err) {
@@ -8445,7 +8482,7 @@ Object.assign(window.app, {
                                 'B4.3': 'Vùng che mờ của bạn đang bị lem ra ngoài thân xe mất rồi. Nhớ là chúng ta chỉ sử dụng công cụ Che mờ có sẵn trên web nhé! Khi thao tác trên web, bạn chịu khó phóng to ảnh lên, chỉnh cỡ ô che nhỏ lại và kéo thật khéo léo đúng vào khuôn mặt cần che. Giữ cho kính xe và khung xe thật sạch sẽ là bức ảnh sẽ hoàn hảo ngay.',
                                 'B4.4': 'Khung hình của bạn đang lọt biển số của các phương tiện khác đang có hành vi vi phạm giao thông. Để bảo vệ quyền riêng tư, bạn hãy tải ảnh gốc lên và dùng công cụ Che mờ trên web để che biển số của các phương tiện vi phạm đó đi (giữ nguyên không che biển số xe lưu thông bình thường) là ảnh sẽ đạt chuẩn duyệt.',
                                 'B5.1': 'Thư viện chỉ tôn vinh những tác phẩm do chính tay bạn đi tác nghiệp. Đừng tải lại ảnh từ Facebook, hội nhóm hay các diễn đàn khác về đăng dưới tên mình nhé. Mỗi bức ảnh tự chụp là một trải nghiệm đẹp, hệ thống rất mong chờ những đóng góp "chính chủ" từ bạn!',
-                                'B5.2': 'Sự an toàn của bạn luôn là ưu tiên số một! Lần sau tác nghiệp, chúng ta chỉ nên đứng ở lề đường, trạm dừng hoặc bến xe công cộng thôi nhé. Tuyệt đối không tiến vào các bến bãi nội bộ, xưởng sửa chữa hay khu vực tư nhân khi chưa xin phép bảo vệ/ban quản lý ở đó để tránh những rắc rối không đáng có.',
+                                'B5.2': 'Hình ảnh gửi duyệt bắt buộc phải được chụp tại các địa điểm công cộng (như đường phố, trạm dừng, bến xe công cộng). Hệ thống nghiêm cấm hành vi chụp lén, leo trèo hoặc xâm nhập trái phép khuôn viên xí nghiệp, depot, xưởng kỹ thuật, bến bãi nội bộ, khu vực cấm và các khu vực hạn chế, nhạy cảm dù có sự đồng thuận hay không. Mọi trường hợp vi phạm sẽ bị từ chối phê duyệt và đình chỉ tài khoản.',
                                 'B5.3': 'Trước khi đưa máy lên chụp ở khu vực lạ, bạn dành vài giây quan sát xem có biển báo "Cấm quay phim, chụp ảnh" không nhé. Kể cả có một chiếc xe cực kỳ hiếm chạy ngang qua các khu vực như an ninh quốc gia hay doanh trại quân đội, chúng ta cũng đành hạ máy xuống để tuân thủ pháp luật thôi. Cơ hội chụp xe đẹp còn rất nhiều mà!',
                                 'B5.4': 'Góc chụp này có vẻ bạn đang đứng ở vị trí hơi nguy hiểm hoặc dưới lòng đường rồi. Khi đi săn ảnh, hãy chọn vị trí an toàn trên vỉa hè hoặc cầu vượt đi bộ nhé. Tuyệt đối không cản trở luồng giao thông. Nếu xe ở xa, cứ tận dụng tính năng zoom của camera. An toàn cho bạn và mọi người xung quanh là quan trọng nhất!'
                             };
@@ -9260,7 +9297,7 @@ let currentRouteProvName = null;
                                                 <td class="label bg-gray-50 border-r border-b border-gray-200">${isCoach ? 'Lộ trình' : 'Mã số tuyến'} hiện tại</td>
                                                 <td class="value-cell border-b border-gray-200">
                                                     <div class="relative w-full h-full flex flex-col justify-center">
-                                                        <textarea rows="1" id="vehicle-edit-route" autocomplete="off" class="info-input text-gray-700 w-full select-none caret-transparent ${currentRouteClientSide ? 'clickable-search' : 'cursor-not-allowed'}" readonly onfocus="this.blur()" ${currentRouteClientSide ? `onclick="this.blur(); if(this.readOnly && this.value && this.value!=='---') { const special = ['Dừng hoạt động', 'Ngoài giờ hoạt động', 'Chưa hoạt động']; if (${isCoach} || special.includes(this.value.trim())) { app.searchRedirect(this.value, 'route'); } else { app.utils.navigate('${vehProvName}' ? '/route/' + encodeURIComponent('${vehProvName}') + '/' + encodeURIComponent(this.value) : '/route/' + encodeURIComponent(this.value)); } } else if(!this.readOnly) { app.route.openSelector({ targetInputId: 'vehicle-edit-route', vehicleType: '${isCoach ? 'coach' : 'bus'}', selectedRoute: this.dataset.routeName || this.value }); }"` : ''}>${currentRouteClientSide}</textarea>
+                                                        <textarea rows="1" id="vehicle-edit-route" autocomplete="off" class="info-input text-gray-700 w-full select-none caret-transparent ${currentRouteClientSide ? 'clickable-search' : 'cursor-not-allowed'}" readonly onfocus="this.blur()" ${currentRouteClientSide ? `onclick="this.blur(); if(this.readOnly && this.value && this.value!=='---') { const special = ['Dừng hoạt động', 'Ngoài giờ hoạt động', 'Chưa hoạt động']; if (${isCoach} || special.includes(this.value.trim())) { app.searchRedirect(this.value, 'route'); } else { const rawR = (this.value || '').trim(); const clnR = rawR.includes(' - ') ? rawR.split(' - ')[0].trim() : rawR; const pName = rawR.includes(' - ') ? rawR.split(' - ').slice(1).join(' - ').trim() : '${vehProvName}'; if (pName && pName !== 'Không xác định' && pName !== 'Biển tạm') { app.utils.navigate('/route/' + encodeURIComponent(pName) + '/' + encodeURIComponent(clnR)); } else { app.utils.navigate('/route/' + encodeURIComponent(clnR)); } } } else if(!this.readOnly) { app.route.openSelector({ targetInputId: 'vehicle-edit-route', vehicleType: '${isCoach ? 'coach' : 'bus'}', selectedRoute: this.dataset.routeName || this.value }); }"` : ''}>${currentRouteClientSide}</textarea>
                                                     </div>
                                                 </td>
                                             </tr>
@@ -11314,7 +11351,7 @@ Object.assign(window.app, {
                     document.getElementById('policy-breadcrumb-title').innerText = policy.title;
                     document.getElementById('policy-detail-title').innerText = policy.title;
                     try {
-                        const res = await fetch(policy.url);
+                        const res = await fetch(`${policy.url}?v=${Date.now()}`);
                         if (!res.ok) throw new Error('Không thể tải nội dung tài liệu.');
                         let text = await res.text();
                         
@@ -12006,6 +12043,11 @@ Object.assign(window.app, {
             app.donate.selectPreset(20000);
             const msgInput = document.getElementById('donate-message');
             if (msgInput) msgInput.value = '';
+
+            // Load 3 recent supporters under container on /support-us
+            if (typeof app.donate.loadSupportUsSupporters === 'function') {
+                app.donate.loadSupportUsSupporters();
+            }
         },
 
         showStep: (step) => {
@@ -12013,11 +12055,13 @@ Object.assign(window.app, {
             const stepQr = document.getElementById('donate-step-qr');
             const stepThankYou = document.getElementById('donate-step-thankyou');
             const headerTitle = document.getElementById('donate-header-title');
+            const recentSupportersSection = document.getElementById('donate-recent-supporters-section');
 
             if (stepForm) stepForm.classList.toggle('hidden', step !== 'form');
             if (stepQr) stepQr.classList.toggle('hidden', step !== 'qr');
             if (stepThankYou) stepThankYou.classList.toggle('hidden', step !== 'thankyou');
             if (headerTitle) headerTitle.classList.toggle('hidden', step === 'thankyou');
+            if (recentSupportersSection) recentSupportersSection.classList.toggle('hidden', step !== 'form');
         },
 
         selectPreset: (val) => {
@@ -12216,7 +12260,7 @@ Object.assign(window.app, {
                                 })
                             });
                             if (typeof app.donate.loadHomeSupporters === 'function') {
-                                app.donate.loadHomeSupporters();
+                                app.donate.loadHomeSupporters(true);
                             }
                         } catch(e) {}
                     };
@@ -12235,7 +12279,7 @@ Object.assign(window.app, {
             app.donate.currentOrder = null;
 
             if (typeof app.donate.loadHomeSupporters === 'function') {
-                app.donate.loadHomeSupporters();
+                app.donate.loadHomeSupporters(true);
             }
 
             app.utils.navigate('/');
@@ -12381,6 +12425,9 @@ Object.assign(window.app, {
             const safeMsg = item.message ? app.utils.escapeHtml(item.message) : '';
             const safeName = app.utils.escapeHtml(item.donor_name);
             const defaultAv = (typeof DEFAULT_AVATAR !== 'undefined') ? DEFAULT_AVATAR : '/media/default-avatar.png';
+            const photoCountText = (!isAnon && typeof item.photo_count === 'number')
+                ? `${new Intl.NumberFormat('vi-VN').format(item.photo_count)} ảnh đã đăng`
+                : 'Thành viên VNBUSARCHIVE';
 
             let accountBoxHtml = '';
             if (!isAnon && item.username) {
@@ -12396,7 +12443,7 @@ Object.assign(window.app, {
                         </div>
                         <div class="min-w-0 flex-1">
                             <div class="font-bold text-sm text-black truncate">${safeName}</div>
-                            <p class="text-[11px] text-gray-500 truncate mt-0.5">Thành viên VNBUSARCHIVE</p>
+                            <p class="text-[11px] text-gray-500 truncate mt-0.5">${photoCountText}</p>
                         </div>
                     </div>
                 `;
@@ -12430,7 +12477,7 @@ Object.assign(window.app, {
                     <div class="text-left">
                         <span class="text-[11px] font-bold text-gray-400 uppercase tracking-wider block mb-1.5">Lời nhắn gửi</span>
                         <div class="p-3 bg-gray-50 rounded-xl border border-gray-200 text-black italic text-xs leading-relaxed">
-                            "${safeMsg || 'Đồng hành cùng dự án duy trì máy chủ lưu trữ hình ảnh xe buýt Việt Nam hoàn toàn miễn phí.'}"
+                            "${safeMsg || 'Đồng hành và tiếp sức duy trì dự án lưu trữ hình ảnh xe buýt Việt Nam hoàn toàn miễn phí.'}"
                         </div>
                     </div>
                 </div>
@@ -12443,106 +12490,199 @@ Object.assign(window.app, {
             });
         },
 
-        loadHomeSupporters: async () => {
+        _lastHomeSupportersLoadTime: 0,
+        _homeDisplayCount: 3,
+        _supportUsDisplayCount: 3,
+
+        loadHomeSupporters: async (forceRefresh = false) => {
             const container = document.getElementById('home-supporters-list');
-            if (!container) return;
+            const supportUsContainer = document.getElementById('donate-recent-supporters-list');
+            if (!container && !supportUsContainer) return;
+
+            const now = Date.now();
+            // Client cache: reuse existing top supporters if fetched within last 60s unless forced
+            if (!forceRefresh && app.donate._homeSupportersCache?.length > 0 && (now - (app.donate._lastHomeSupportersLoadTime || 0) < 60000)) {
+                if (container && container.children.length === 0) {
+                    app.donate._renderHomeSupporters();
+                }
+                if (supportUsContainer && supportUsContainer.children.length === 0) {
+                    app.donate._renderSupportUsSupporters();
+                }
+                return;
+            }
 
             try {
-                const res = await fetch('/api/donate/supporters');
+                const url = forceRefresh ? `/api/donate/supporters?force=1&t=${now}` : '/api/donate/supporters';
+                const res = await fetch(url);
                 const resData = await res.json();
                 const list = (resData && resData.success && Array.isArray(resData.data)) ? resData.data : [];
 
-                const top3 = list.slice(0, 3);
-                app.donate._homeSupportersCache = top3;
-                const cards = [];
+                app.donate._homeSupportersCache = list;
+                app.donate._lastHomeSupportersLoadTime = now;
+                app.donate._renderHomeSupporters();
+                app.donate._renderSupportUsSupporters();
+            } catch (e) {
+                console.error('Error loading supporters:', e);
+            }
+        },
 
-                for (let i = 0; i < 3; i++) {
-                    const item = top3[i];
-                    if (item) {
-                        const amtStr = new Intl.NumberFormat('vi-VN').format(item.amount) + 'đ';
-                        const safeName = app.utils.escapeHtml(item.donor_name);
-                        const dateStr = item.created_at ? new Date(item.created_at).toLocaleDateString('vi-VN') : '';
-                        const defaultAv = (typeof DEFAULT_AVATAR !== 'undefined') ? DEFAULT_AVATAR : '/media/default-avatar.png';
+        loadSupportUsSupporters: async (forceRefresh = false) => {
+            const container = document.getElementById('donate-recent-supporters-list');
+            if (!container) return;
 
-                        let iconOrAvatarHtml = '';
-                        const clickAttr = `onclick="app.donate.showHomeSupporterModal(${i})"`;
-                        const cursorClass = 'cursor-pointer hover:border-black';
+            const now = Date.now();
+            if (!forceRefresh && app.donate._homeSupportersCache?.length > 0 && (now - (app.donate._lastHomeSupportersLoadTime || 0) < 60000)) {
+                app.donate._renderSupportUsSupporters();
+                return;
+            }
 
-                        if (!item.is_anonymous && item.username) {
-                            const rawAv = item.avatar_url;
-                            const finalAv = rawAv 
-                                ? (rawAv.startsWith('http') && !rawAv.includes('/avatar.jpg') ? app.utils.getProxiedUrl(rawAv.replace(/"/g, ''), 'avatar.jpg', 'avatar') : rawAv)
-                                : defaultAv;
-                            iconOrAvatarHtml = `
-                                <div class="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center shrink-0 border border-gray-200 mr-3 overflow-hidden">
-                                    <img src="${finalAv}" alt="${safeName}" onerror="this.src='${defaultAv}'" class="w-full h-full object-cover">
-                                </div>
-                            `;
-                        } else {
-                            iconOrAvatarHtml = `
-                                <div class="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center shrink-0 border border-gray-200 mr-3">
-                                    <i class="fa-solid fa-user text-black text-xs"></i>
-                                </div>
-                            `;
-                        }
+            try {
+                const url = forceRefresh ? `/api/donate/supporters?force=1&t=${now}` : '/api/donate/supporters';
+                const res = await fetch(url);
+                const resData = await res.json();
+                const list = (resData && resData.success && Array.isArray(resData.data)) ? resData.data : [];
 
-                        const tooltipAttr = item.message ? `title="${app.utils.escapeHtml(item.message)}"` : '';
-                        const subMsg = item.message ? app.utils.escapeHtml(item.message) : '';
+                app.donate._homeSupportersCache = list;
+                app.donate._lastHomeSupportersLoadTime = now;
+                app.donate._renderSupportUsSupporters();
+                app.donate._renderHomeSupporters();
+            } catch (e) {
+                console.error('Error loading supporters on support-us:', e);
+            }
+        },
 
-                        cards.push(`
-                            <div class="${cursorClass} transition-all duration-300 relative flex flex-row items-center p-3 text-left bg-white rounded-xl border border-gray-200 shadow-sm hover:border-black" ${clickAttr} ${tooltipAttr}>
-                                ${iconOrAvatarHtml}
-                                <div class="flex-1 min-w-0 flex flex-col justify-center">
-                                    <div class="flex items-center justify-between gap-2">
-                                        <span class="truncate font-bold text-gray-900 text-sm leading-tight">${safeName}</span>
-                                        <span class="text-xs font-extrabold text-black shrink-0">+${amtStr}</span>
-                                    </div>
-                                    <div class="flex items-center justify-between gap-2 mt-0.5">
-                                        <span class="block text-gray-500 text-xs tracking-wide truncate">${subMsg || 'Đồng hành cùng dự án'}</span>
-                                        <span class="text-[11px] text-gray-400 shrink-0">${dateStr}</span>
-                                    </div>
-                                </div>
+        loadMoreSupporters: async (target = 'home') => {
+            const btnId = target === 'home' ? 'btn-home-supporters-more' : 'btn-donate-supporters-more';
+            const btn = document.getElementById(btnId);
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin text-[10px]"></i> Đang tải...';
+            }
+
+            // Brief interaction feedback like home feed load more
+            await new Promise(r => setTimeout(r, 200));
+
+            if (target === 'home') {
+                app.donate._homeDisplayCount = (app.donate._homeDisplayCount || 3) + 3;
+                app.donate._renderHomeSupporters();
+            } else {
+                app.donate._supportUsDisplayCount = (app.donate._supportUsDisplayCount || 3) + 3;
+                app.donate._renderSupportUsSupporters();
+            }
+        },
+
+        _renderHomeSupporters: () => {
+            const container = document.getElementById('home-supporters-list');
+            if (!container) return;
+            const all = app.donate._homeSupportersCache || [];
+            const displayCount = app.donate._homeDisplayCount || 3;
+            container.innerHTML = app.donate._generateSupportersCardsHtml(all, displayCount, true, 'home');
+        },
+
+        _renderSupportUsSupporters: () => {
+            const container = document.getElementById('donate-recent-supporters-list');
+            if (!container) return;
+            const all = app.donate._homeSupportersCache || [];
+            const displayCount = app.donate._supportUsDisplayCount || 3;
+            container.innerHTML = app.donate._generateSupportersCardsHtml(all, displayCount, false, 'support-us');
+        },
+
+        _generateSupportersCardsHtml: (allList, displayCount = 3, includeActionCard = true, targetType = 'home') => {
+            const cards = [];
+            const list = allList || [];
+            const countToRender = list.length === 0 ? 3 : Math.min(displayCount, list.length);
+
+            for (let i = 0; i < countToRender; i++) {
+                const item = list[i];
+                if (item) {
+                    const amtStr = new Intl.NumberFormat('vi-VN').format(item.amount) + 'đ';
+                    const safeName = app.utils.escapeHtml(item.donor_name);
+                    const dateStr = item.created_at ? new Date(item.created_at).toLocaleDateString('vi-VN') : '';
+                    const defaultAv = (typeof DEFAULT_AVATAR !== 'undefined') ? DEFAULT_AVATAR : '/media/default-avatar.png';
+
+                    let iconOrAvatarHtml = '';
+                    const clickAttr = `onclick="app.donate.showHomeSupporterModal(${i})"`;
+                    const cursorClass = 'cursor-pointer hover:border-black';
+
+                    if (!item.is_anonymous && item.username) {
+                        const rawAv = item.avatar_url;
+                        const finalAv = rawAv 
+                            ? (rawAv.startsWith('http') && !rawAv.includes('/avatar.jpg') ? app.utils.getProxiedUrl(rawAv.replace(/"/g, ''), 'avatar.jpg', 'avatar') : rawAv)
+                            : defaultAv;
+                        iconOrAvatarHtml = `
+                            <div class="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center shrink-0 border border-gray-200 mr-3 overflow-hidden">
+                                <img src="${finalAv}" alt="${safeName}" onerror="this.src='${defaultAv}'" class="w-full h-full object-cover">
                             </div>
-                        `);
+                        `;
                     } else {
-                        cards.push(`
-                            <div class="transition-all duration-300 relative flex flex-row items-center p-3 text-left bg-white rounded-xl border border-gray-200 shadow-sm opacity-60">
-                                <div class="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center shrink-0 border border-gray-200 mr-3">
-                                    <i class="fa-solid fa-heart text-black text-xs"></i>
+                        iconOrAvatarHtml = `
+                            <div class="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center shrink-0 border border-gray-200 mr-3">
+                                <i class="fa-solid fa-user text-black text-xs"></i>
+                            </div>
+                        `;
+                    }
+
+                    const tooltipAttr = item.message ? `title="${app.utils.escapeHtml(item.message)}"` : '';
+                    const subMsg = item.message ? app.utils.escapeHtml(item.message) : '';
+
+                    cards.push(`
+                        <div class="${cursorClass} transition-all duration-300 relative flex flex-row items-center p-3 text-left bg-white rounded-xl border border-gray-200 shadow-sm hover:border-black" ${clickAttr} ${tooltipAttr}>
+                            ${iconOrAvatarHtml}
+                            <div class="flex-1 min-w-0 flex flex-col justify-center">
+                                <div class="flex items-center justify-between gap-2">
+                                    <span class="truncate font-bold text-gray-900 text-sm leading-tight">${safeName}</span>
+                                    <span class="text-xs font-extrabold text-black shrink-0">+${amtStr}</span>
                                 </div>
-                                <div class="flex-1 min-w-0 flex flex-col justify-center">
-                                    <div class="flex items-center justify-between gap-2">
-                                        <span class="truncate font-bold text-gray-500 text-sm leading-tight">Vị trí chờ bạn</span>
-                                        <span class="text-xs text-gray-400 shrink-0">---</span>
-                                    </div>
-                                    <span class="block text-gray-400 text-xs tracking-wide w-full truncate mt-0.5">Chưa có người ủng hộ</span>
+                                <div class="flex items-center justify-between gap-2 mt-0.5">
+                                    <span class="block text-gray-500 text-xs tracking-wide truncate">${subMsg || 'Đồng hành cùng dự án'}</span>
+                                    <span class="text-[11px] text-gray-400 shrink-0">${dateStr}</span>
                                 </div>
                             </div>
-                        `);
-                    }
+                        </div>
+                    `);
+                } else {
+                    cards.push(`
+                        <div class="transition-all duration-300 relative flex flex-row items-center p-3 text-left bg-white rounded-xl border border-gray-200 shadow-sm opacity-60">
+                            <div class="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center shrink-0 border border-gray-200 mr-3">
+                                <i class="fa-solid fa-heart text-black text-xs"></i>
+                            </div>
+                            <div class="flex-1 min-w-0 flex flex-col justify-center">
+                                <div class="flex items-center justify-between gap-2">
+                                    <span class="truncate font-bold text-gray-500 text-sm leading-tight">Vị trí chờ bạn</span>
+                                    <span class="text-xs text-gray-400 shrink-0">---</span>
+                                </div>
+                                <span class="block text-gray-400 text-xs tracking-wide w-full truncate mt-0.5">Chưa có người ủng hộ</span>
+                            </div>
+                        </div>
+                    `);
                 }
+            }
 
-                // 4th card: action card linking to /support-us (inverted contrast like a button)
+            // Inline "Xem thêm" button below the loaded supporters if more exist
+            if (list.length > countToRender) {
+                const btnId = targetType === 'home' ? 'btn-home-supporters-more' : 'btn-donate-supporters-more';
+                cards.push(`
+                    <div class="text-center py-1">
+                        <button type="button" id="${btnId}" onclick="app.donate.loadMoreSupporters('${targetType}')" class="text-xs font-semibold text-gray-500 hover:text-black dark:text-gray-400 dark:hover:text-white hover:underline transition cursor-pointer">Xem thêm</button>
+                    </div>
+                `);
+            }
+
+            if (includeActionCard) {
                 cards.push(`
                     <div id="home-supporters-action-card" onclick="app.utils.navigate('/support-us')" class="cursor-pointer transition-all duration-300 relative flex flex-row items-center p-3 text-left bg-black text-white rounded-xl border border-black shadow-sm hover:bg-gray-900 group">
                         <div class="supporter-action-icon w-8 h-8 rounded-full bg-white/10 text-white flex items-center justify-center shrink-0 border border-white/20 transition mr-3">
                             <i class="fa-solid fa-heart text-white text-xs"></i>
                         </div>
                         <div class="flex-1 min-w-0 flex flex-col justify-center">
-                            <div class="flex items-center justify-between gap-2">
-                                <span class="truncate font-bold text-white text-sm leading-tight">Tôi cũng muốn ủng hộ!</span>
-                                <span class="text-xs font-bold text-white/80 group-hover:text-white shrink-0">Ủng hộ ngay &rarr;</span>
-                            </div>
-                            <span class="block text-white/70 text-xs tracking-wide w-full truncate mt-0.5">Tiếp sức cùng dự án duy trì máy chủ</span>
+                            <span class="truncate font-bold text-white text-sm leading-tight">Tôi cũng muốn ủng hộ!</span>
+                            <span class="block text-white/70 text-xs tracking-wide w-full truncate mt-0.5">Tiếp sức duy trì dự án</span>
                         </div>
                     </div>
                 `);
-
-                container.innerHTML = cards.join('');
-
-            } catch (e) {
-                console.error('Error loading supporters:', e);
             }
+
+            return cards.join('');
         },
 
         _profileCache: {},
@@ -12605,7 +12745,16 @@ Object.assign(window.app, {
         _activeDetailOrderCode: null,
         _activeDetailInitialAnon: false,
         _activeDetailCurrentAnon: false,
+        _detailHasChanged: false,
         _modalAnimTimeout: null,
+
+        onMainBtnClick: () => {
+            if (app.donate._detailHasChanged) {
+                app.donate.saveDetailChanges();
+            } else {
+                app.ui.closeAlert();
+            }
+        },
 
         showDetailAlert: (orderCode) => {
             const item = app.donate._profileCache?.[orderCode];
@@ -12615,6 +12764,7 @@ Object.assign(window.app, {
             app.donate._activeDetailOrderCode = orderCode;
             app.donate._activeDetailInitialAnon = isAnon;
             app.donate._activeDetailCurrentAnon = isAnon;
+            app.donate._detailHasChanged = false;
 
             const amtStr = new Intl.NumberFormat('vi-VN').format(item.amount) + ' VNĐ';
             const dateStr = item.created_at ? new Date(item.created_at).toLocaleString('vi-VN') : '---';
@@ -12650,7 +12800,7 @@ Object.assign(window.app, {
                         <label class="flex items-center justify-between gap-3 p-3 bg-gray-50 rounded-lg border border-black cursor-pointer select-none">
                             <div class="min-w-0 pr-2">
                                 <div class="text-xs font-bold text-black">
-                                    Ẩn danh trên trang chủ
+                                    Ủng hộ ẩn danh
                                 </div>
                                 <p id="donation-modal-anon-desc" class="text-[11px] text-gray-500 mt-0.5 leading-normal">
                                     ${isAnon ? 'Khoản này đang được giấu tên trên danh sách tri ân.' : 'Khoản này đang được công khai tên trên danh sách tri ân.'}
@@ -12665,21 +12815,23 @@ Object.assign(window.app, {
                         </label>
                     </div>
 
-                    <div class="mt-5 pt-1 relative">
-                        <!-- State 1: Chưa thay đổi -> Nút Đóng -->
-                        <div id="donation-modal-btn-close" class="transition-all duration-300 ease-in-out">
-                            <button type="button" onclick="app.ui.closeAlert()" class="w-full py-2.5 px-4 bg-black hover:bg-gray-800 text-white rounded-lg text-xs font-bold transition shadow-sm">
-                                Đóng
+                    <p class="text-[11px] text-gray-500 text-center leading-normal mt-3">
+                        Cảm ơn bạn đã đồng hành cùng VNBUSARCHIVE! Khoản ủng hộ không được hoàn lại, chỉ dùng để duy trì dự án và không đi kèm đặc quyền nào so với người không ủng hộ.
+                    </p>
+
+                    <!-- Morphing Action Buttons Bar -->
+                    <div class="mt-4 pt-1 flex items-center w-full relative" id="donation-modal-button-group">
+                        <!-- Nút Hủy (Trái) -->
+                        <div id="donation-modal-cancel-wrapper" class="overflow-hidden transition-all duration-300 ease-out shrink-0" style="width: 0px; opacity: 0; pointer-events: none; margin-right: 0px;">
+                            <button type="button" onclick="app.donate.cancelDetailChanges()" class="w-full py-2.5 px-4 bg-white border border-black hover:bg-gray-100 text-black rounded-lg text-xs font-bold transition shadow-sm whitespace-nowrap">
+                                Hủy
                             </button>
                         </div>
 
-                        <!-- State 2: Có thay đổi -> 2 nút Hủy và Lưu (Có Animation) -->
-                        <div id="donation-modal-btn-actions" class="hidden opacity-0 translate-y-1 transition-all duration-300 ease-in-out flex items-center gap-2">
-                            <button type="button" onclick="app.donate.cancelDetailChanges()" class="flex-1 py-2.5 px-4 bg-white border border-black hover:bg-gray-100 text-black rounded-lg text-xs font-bold transition shadow-sm">
-                                Hủy
-                            </button>
-                            <button type="button" id="donation-modal-save-btn" onclick="app.donate.saveDetailChanges()" class="flex-1 py-2.5 px-4 bg-black hover:bg-gray-800 text-white rounded-lg text-xs font-bold transition shadow-sm flex items-center justify-center gap-1.5">
-                                Lưu
+                        <!-- Nút Đóng / Lưu (Phải) -->
+                        <div id="donation-modal-main-wrapper" class="flex-1 min-w-0 transition-all duration-300 ease-out">
+                            <button type="button" id="donation-modal-main-btn" onclick="app.donate.onMainBtnClick()" class="w-full py-2.5 px-4 bg-black hover:bg-gray-800 text-white rounded-lg text-xs font-bold transition shadow-sm flex items-center justify-center gap-1.5 overflow-hidden">
+                                <span id="donation-modal-main-label" class="inline-block transition-opacity duration-150">Đóng</span>
                             </button>
                         </div>
                     </div>
@@ -12708,6 +12860,7 @@ Object.assign(window.app, {
         onDetailAnonChange: (isChecked) => {
             app.donate._activeDetailCurrentAnon = isChecked;
             const hasChanged = app.donate._activeDetailCurrentAnon !== app.donate._activeDetailInitialAnon;
+            app.donate._detailHasChanged = hasChanged;
 
             const descEl = document.getElementById('donation-modal-anon-desc');
             if (descEl) {
@@ -12716,37 +12869,42 @@ Object.assign(window.app, {
                     : 'Khoản này đang được công khai tên trên danh sách tri ân.';
             }
 
-            const closeBox = document.getElementById('donation-modal-btn-close');
-            const actionsBox = document.getElementById('donation-modal-btn-actions');
-            if (!closeBox || !actionsBox) return;
+            const cancelWrap = document.getElementById('donation-modal-cancel-wrapper');
+            const mainLabel = document.getElementById('donation-modal-main-label');
+            if (!cancelWrap || !mainLabel) return;
 
             if (app.donate._modalAnimTimeout) {
                 clearTimeout(app.donate._modalAnimTimeout);
             }
 
             if (hasChanged) {
-                // Animate Close out, Actions in
-                closeBox.classList.add('opacity-0', '-translate-y-1');
+                // Thu nút chính về bên phải (chiếm 1 nửa), hiện nút Hủy bên trái
+                cancelWrap.style.width = 'calc(50% - 4px)';
+                cancelWrap.style.marginRight = '8px';
+                cancelWrap.style.opacity = '1';
+                cancelWrap.style.pointerEvents = 'auto';
+
+                // Fade chữ "Đóng" thành "Lưu"
+                mainLabel.style.opacity = '0';
                 app.donate._modalAnimTimeout = setTimeout(() => {
-                    if (app.donate._activeDetailCurrentAnon !== app.donate._activeDetailInitialAnon) {
-                        closeBox.classList.add('hidden');
-                        actionsBox.classList.remove('hidden');
-                        void actionsBox.offsetWidth; // Trigger reflow for CSS transition
-                        actionsBox.classList.remove('opacity-0', 'translate-y-1');
-                        actionsBox.classList.add('opacity-100', 'translate-y-0');
+                    if (app.donate._detailHasChanged) {
+                        mainLabel.innerHTML = 'Lưu';
+                        mainLabel.style.opacity = '1';
                     }
                 }, 150);
             } else {
-                // Reverted back to initial state -> Animate Actions out, Close in
-                actionsBox.classList.remove('opacity-100', 'translate-y-0');
-                actionsBox.classList.add('opacity-0', 'translate-y-1');
+                // Thu gọn nút Hủy về 0, mở rộng nút chính thành full width về bên trái
+                cancelWrap.style.width = '0px';
+                cancelWrap.style.marginRight = '0px';
+                cancelWrap.style.opacity = '0';
+                cancelWrap.style.pointerEvents = 'none';
+
+                // Fade chữ "Lưu" trở lại "Đóng"
+                mainLabel.style.opacity = '0';
                 app.donate._modalAnimTimeout = setTimeout(() => {
-                    if (app.donate._activeDetailCurrentAnon === app.donate._activeDetailInitialAnon) {
-                        actionsBox.classList.add('hidden');
-                        closeBox.classList.remove('hidden');
-                        void closeBox.offsetWidth; // Trigger reflow for CSS transition
-                        closeBox.classList.remove('opacity-0', '-translate-y-1');
-                        closeBox.classList.add('opacity-100', 'translate-y-0');
+                    if (!app.donate._detailHasChanged) {
+                        mainLabel.innerHTML = 'Đóng';
+                        mainLabel.style.opacity = '1';
                     }
                 }, 150);
             }
@@ -12763,11 +12921,12 @@ Object.assign(window.app, {
         saveDetailChanges: async () => {
             const orderCode = app.donate._activeDetailOrderCode;
             const targetAnon = app.donate._activeDetailCurrentAnon;
-            const saveBtn = document.getElementById('donation-modal-save-btn');
+            const mainBtn = document.getElementById('donation-modal-main-btn');
+            const mainLabel = document.getElementById('donation-modal-main-label');
 
-            if (saveBtn) {
-                saveBtn.disabled = true;
-                saveBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1.5"></i> Đang lưu...';
+            if (mainBtn && mainLabel) {
+                mainBtn.disabled = true;
+                mainLabel.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1.5"></i> Đang lưu...';
             }
 
             try {
@@ -12798,24 +12957,26 @@ Object.assign(window.app, {
                 const item = app.donate._profileCache?.[orderCode];
                 if (item) item.is_anonymous = targetAnon;
 
-                // Animate actions out, close button back in
-                const closeBox = document.getElementById('donation-modal-btn-close');
-                const actionsBox = document.getElementById('donation-modal-btn-actions');
-                if (actionsBox && closeBox) {
-                    actionsBox.classList.remove('opacity-100', 'translate-y-0');
-                    actionsBox.classList.add('opacity-0', 'translate-y-1');
+                // Morph back to single full-width "Đóng" button
+                app.donate._detailHasChanged = false;
+                const cancelWrap = document.getElementById('donation-modal-cancel-wrapper');
+                if (cancelWrap) {
+                    cancelWrap.style.width = '0px';
+                    cancelWrap.style.marginRight = '0px';
+                    cancelWrap.style.opacity = '0';
+                    cancelWrap.style.pointerEvents = 'none';
+                }
+                if (mainLabel) {
+                    mainLabel.style.opacity = '0';
                     setTimeout(() => {
-                        actionsBox.classList.add('hidden');
-                        closeBox.classList.remove('hidden');
-                        void closeBox.offsetWidth;
-                        closeBox.classList.remove('opacity-0', '-translate-y-1');
-                        closeBox.classList.add('opacity-100', 'translate-y-0');
+                        mainLabel.innerHTML = 'Đóng';
+                        mainLabel.style.opacity = '1';
                     }, 150);
                 }
 
-                // Refresh home supporters list in real-time
+                // Refresh home supporters list in real-time with force bypass
                 if (typeof app.donate.loadHomeSupporters === 'function') {
-                    app.donate.loadHomeSupporters();
+                    app.donate.loadHomeSupporters(true);
                 }
 
                 if (app.toast && app.toast.show) {
@@ -12826,9 +12987,8 @@ Object.assign(window.app, {
                 console.error('Error saving anonymity setting:', err);
                 app.ui.showAlert('Không thể lưu thay đổi: ' + err.message);
             } finally {
-                if (saveBtn) {
-                    saveBtn.disabled = false;
-                    saveBtn.innerHTML = 'Lưu';
+                if (mainBtn) {
+                    mainBtn.disabled = false;
                 }
             }
         }
@@ -13395,8 +13555,18 @@ Object.assign(window.app, {
                 routePhotos: [],
                 ROUTE_PAGE_SIZE: 12,
                 loadRoutePage: async (provinceName, routeNo, forceRefresh = false) => {
-                    const decodedProvince = decodeURIComponent(provinceName || '');
-                    const decodedRoute = decodeURIComponent(routeNo);
+                    let decodedProvince = decodeURIComponent(provinceName || '').trim();
+                    let decodedRoute = decodeURIComponent(routeNo || '').trim();
+
+                    if (decodedRoute.includes(' - ')) {
+                        const parts = decodedRoute.split(' - ');
+                        const cleanNo = parts[0].trim();
+                        const provFromRoute = parts.slice(1).join(' - ').trim();
+                        if (!decodedProvince && provFromRoute) {
+                            decodedProvince = provFromRoute;
+                        }
+                        decodedRoute = cleanNo;
+                    }
                     
 if (!decodedProvince || decodedProvince.trim() === '') {
                         app.toast.show('error', 'Lỗi truy cập', 'Tuyến này không tồn tại thông tin tỉnh thành. Nó có thể là xe khách hoặc dữ liệu không hợp lệ nên không được hỗ trợ hồ sơ.');
@@ -15587,7 +15757,7 @@ Object.assign(window.app, {
                     const container = document.getElementById('upload-rules-content');
                     if (!container || container.dataset.loaded === 'true') return;
                     try {
-                        const res = await fetch('https://raw.githubusercontent.com/hoyuuna/VNBUSARCHIVE/refs/heads/main/doc/Requirements.md');
+                        const res = await fetch(`https://raw.githubusercontent.com/hoyuuna/VNBUSARCHIVE/refs/heads/main/doc/Requirements.md?v=${Date.now()}`);
                         if (!res.ok) throw new Error('Network error');
                         let text = await res.text();
                         
@@ -17205,6 +17375,7 @@ Object.assign(window.app, {
                         document.getElementById('up-exif-params').value = app.currentExif.params;
                         document.getElementById('up-date').value = exifData.date;
                         app.upload.checkDuplicateRealtime();
+                        app.currentGps = null;
                         if ((exifData.gps.latDec !== undefined && exifData.gps.lonDec !== undefined) || (exifData.gps.lat && exifData.gps.lon && exifData.gps.latRef && exifData.gps.lonRef)) {
                             let latDec = exifData.gps.latDec;
                             let lonDec = exifData.gps.lonDec;
@@ -17216,6 +17387,16 @@ Object.assign(window.app, {
                                 };
                                 latDec = toDecimal(exifData.gps.lat, exifData.gps.latRef);
                                 lonDec = toDecimal(exifData.gps.lon, exifData.gps.lonRef);
+                            }
+                            if (!isNaN(latDec) && !isNaN(lonDec)) {
+                                app.currentGps = { lat: latDec, lon: lonDec };
+                                if (app.map && app.map.getPointInZones) {
+                                    const bannedZone = await app.map.getPointInZones(latDec, lonDec);
+                                    if (bannedZone) {
+                                        app.currentGps = null;
+                                        throw `Ảnh được chụp tại tọa độ thuộc khu vực cấm: <b>${app.utils.escapeHtml(bannedZone.name || 'Vùng cấm')}</b>.<br><br>Hệ thống nghiêm cấm tải lên hình ảnh được chụp tại các địa điểm hạn chế, xí nghiệp, bến bãi nội bộ hoặc khu vực cấm. Vui lòng chọn ảnh khác được chụp tại nơi công cộng.`;
+                                    }
+                                }
                             }
                             const address = await app.utils.reverseGeocode(latDec, lonDec);
                             if (address && address !== "Vị trí không xác định") {
@@ -17727,6 +17908,15 @@ Object.assign(window.app, {
                         });
                     }
                     if (!app.rawFile) return app.ui.showAlert("Vui lòng chọn ảnh!");
+                    if (app.currentGps && typeof app.currentGps.lat === 'number' && typeof app.currentGps.lon === 'number' && app.map && app.map.getPointInZones) {
+                        const bannedZone = await app.map.getPointInZones(app.currentGps.lat, app.currentGps.lon);
+                        if (bannedZone) {
+                            return app.ui.showAlert(
+                                `Ảnh này có tọa độ GPS nằm trong khu vực cấm: <b>${app.utils.escapeHtml(bannedZone.name || 'Vùng cấm')}</b>.<br><br>Hệ thống nghiêm cấm tải lên hình ảnh được chụp tại các địa điểm này. Vui lòng chọn ảnh khác được chụp tại nơi công cộng.`,
+                                null, null, { title: "Vi phạm ranh giới cấm", isError: true }
+                            );
+                        }
+                    }
                     app.upload.checkModelWarning && app.upload.checkModelWarning();
                     if (app.upload.isBlockedByModelDuplicate) {
                         return app.ui.showAlert("Xe định danh phụ không được trùng dòng xe với xe khác cùng biển kiểm soát.", null, null, { title: "Từ chối tải lên" });
@@ -18138,7 +18328,7 @@ Object.assign(window.app, {
                         } catch (e) {}
                         let result = null;
                         let uploadAttempts = 0;
-                        const maxUploadAttempts = 1;
+                        const maxUploadAttempts = 2; // Tự động thử lại 1 lần nếu gặp lỗi mạng chập chờn
                         let lastUploadErr = null;
                         while (uploadAttempts < maxUploadAttempts) {
                             uploadAttempts++;
@@ -18686,7 +18876,20 @@ Object.assign(window.app, {
         sourceImage: null,
         savedRatio: 4/3,
         modeTab: 'ratio',
-        isRulerEnabled: localStorage.getItem('cropRulerEnabled') === 'true',
+        rulerMode: (() => {
+            const saved = localStorage.getItem('cropRulerMode');
+            if (saved !== null) {
+                const val = parseInt(saved, 10);
+                if (!isNaN(val) && val >= 0 && val <= 3) return val;
+            }
+            return localStorage.getItem('cropRulerEnabled') === 'true' ? 2 : 1;
+        })(),
+        get isRulerEnabled() {
+            return this.rulerMode === 2 || this.rulerMode === 3;
+        },
+        set isRulerEnabled(val) {
+            this.rulerMode = val ? 2 : 1;
+        },
         isMandatory: false,
         isProcessing: false,
         closeTimeout: null,
@@ -19066,8 +19269,8 @@ Object.assign(window.app, {
             app.crop.applyTransform();
         },
         toggleRuler: () => {
-            const willEnable = !app.crop.isRulerEnabled;
-            if (willEnable && !localStorage.getItem('vnbus_ruler_guide_shown')) {
+            const nextMode = ((app.crop.rulerMode || 0) + 1) % 4;
+            if (nextMode === 2 && !localStorage.getItem('vnbus_ruler_guide_shown')) {
                 app.ui.showAlert(
                     `<div class="text-left">
                         <p class="text-sm text-gray-700 mb-2">Xác định 2 điểm xa nhất ngoài cùng bên trái và bên phải của xe (mép xe có thể là bất kỳ bộ phận nào, không tính gương chiếu hậu).</p>
@@ -19081,8 +19284,9 @@ Object.assign(window.app, {
                     </div>`,
                     () => {
                         localStorage.setItem('vnbus_ruler_guide_shown', 'true');
-                        app.crop.isRulerEnabled = true;
-                        localStorage.setItem('cropRulerEnabled', true);
+                        app.crop.rulerMode = 2;
+                        localStorage.setItem('cropRulerMode', 2);
+                        localStorage.setItem('cropRulerEnabled', 'true');
                         app.crop.updateRulerUI();
                     },
                     null,
@@ -19090,12 +19294,15 @@ Object.assign(window.app, {
                 );
                 return;
             }
-            app.crop.isRulerEnabled = !app.crop.isRulerEnabled;
-            localStorage.setItem('cropRulerEnabled', app.crop.isRulerEnabled);
+            app.crop.rulerMode = nextMode;
+            localStorage.setItem('cropRulerMode', nextMode);
+            localStorage.setItem('cropRulerEnabled', (nextMode === 2 || nextMode === 3) ? 'true' : 'false');
             app.crop.updateRulerUI();
         },
         getRulerHTML: () => {
-            const isHidden = app.crop.isRulerEnabled ? '' : 'hidden';
+            const isVisible = (app.crop.rulerMode === 2 || app.crop.rulerMode === 3);
+            const isHidden = isVisible ? '' : 'hidden';
+            const showSubClass = (app.crop.rulerMode === 3) ? 'show-sub' : '';
             const levels = [
                 { pos: 8.3333, label: '5' },
                 { pos: 16.6667, label: '4' },
@@ -19109,46 +19316,72 @@ Object.assign(window.app, {
                 { pos: 83.3333, label: '4' },
                 { pos: 91.6667, label: '5' }
             ];
+            const subPositions = [4.1667, 12.5, 20.8333, 29.1667, 37.5, 45.8333, 54.1667, 62.5, 70.8333, 79.1667, 87.5, 95.8333];
             let linesHtml = '';
             levels.forEach(item => {
                 const lineClass = item.isCenter ? 'ruler-line-center' : 'ruler-line-v';
                 const badgeClass = item.isCenter ? 'ruler-badge-center' : 'ruler-badge';
                 linesHtml += `<div class="${lineClass}" style="left: ${item.pos}%;"><span class="${badgeClass} ruler-badge-top">${item.label}</span><span class="${badgeClass} ruler-badge-bottom">${item.label}</span></div>`;
             });
-            return `<div class="crop-ruler-overlay ruler-horizontal-overlay ${isHidden}" style="z-index: 25;">${linesHtml}</div>`;
+            subPositions.forEach(pos => {
+                linesHtml += `<div class="ruler-line-sub" style="left: ${pos}%;"></div>`;
+            });
+            return `<div class="crop-ruler-overlay ruler-horizontal-overlay ${isHidden} ${showSubClass}" style="z-index: 25;">${linesHtml}</div>`;
         },
         updateRulerUI: () => {
             const isAvatar = app.crop.mode === 'avatar';
-            const showRuler = app.crop.isRulerEnabled && !isAvatar;
+            const mode = isAvatar ? 0 : (app.crop.rulerMode != null ? app.crop.rulerMode : 1);
             const btn = document.getElementById('btn-crop-toggle-ruler');
             if (btn) {
-                if (showRuler) {
-                    btn.className = "px-3 py-2 sm:px-3 sm:py-1.5 text-xs bg-black text-white border border-black rounded-md font-bold transition flex items-center justify-center gap-1.5";
+                if (mode === 0) {
+                    btn.className = "w-[48px] sm:w-[136px] shrink-0 text-xs bg-white dark:bg-black text-black dark:text-white border border-black dark:border-white rounded-md hover:bg-gray-50 dark:hover:bg-zinc-800 font-bold transition flex items-center justify-center";
+                    btn.innerHTML = `<i class="fa-solid fa-ruler-horizontal"></i><span class="hidden sm:inline ml-1.5">Thước ngang</span>`;
                 } else {
-                    btn.className = "px-3 py-2 sm:px-3 sm:py-1.5 text-xs bg-white text-gray-700 border border-gray-300 rounded-md hover:bg-gray-100 font-bold transition flex items-center justify-center gap-1.5";
+                    btn.className = "w-[48px] sm:w-[136px] shrink-0 text-xs bg-black dark:bg-white text-white dark:text-black border border-black dark:border-white rounded-md hover:bg-gray-800 dark:hover:bg-gray-200 font-bold transition flex items-center justify-center";
+                    btn.innerHTML = `<i class="fa-solid fa-ruler-horizontal"></i><span class="hidden sm:inline ml-1.5">Thước ngang <b class="font-mono font-bold">${mode}</b></span><span class="sm:hidden ml-1 font-mono font-bold text-xs leading-none">${mode}</span>`;
                 }
             }
             const overlayBox = document.getElementById('crop-overlay-box');
             if (!overlayBox) return;
             let overlay = overlayBox.querySelector('.crop-ruler-overlay');
-            if (!overlay) {
+            if (!overlay || !overlay.querySelector('.ruler-line-sub')) {
+                if (overlay) overlay.remove();
                 overlayBox.insertAdjacentHTML('beforeend', app.crop.getRulerHTML());
                 overlay = overlayBox.querySelector('.crop-ruler-overlay');
             }
             const gridV = document.getElementById('crop-grid-v');
+            const gridH = document.getElementById('crop-grid-h');
             const crossH = document.getElementById('crop-crosshair-h');
             const crossV = document.getElementById('crop-crosshair-v');
-            if (overlay) {
-                if (showRuler) {
+
+            if (mode === 0) {
+                if (overlay) overlay.classList.add('hidden');
+                if (gridV) gridV.classList.add('hidden');
+                if (gridH) gridH.classList.add('hidden');
+                if (crossH) crossH.classList.add('hidden');
+                if (crossV) crossV.classList.add('hidden');
+            } else if (mode === 1) {
+                if (overlay) overlay.classList.add('hidden');
+                if (gridV) gridV.classList.remove('hidden');
+                if (gridH) gridH.classList.remove('hidden');
+                if (crossH) crossH.classList.remove('hidden');
+                if (crossV) crossV.classList.remove('hidden');
+            } else if (mode === 2) {
+                if (gridV) gridV.classList.add('hidden');
+                if (gridH) gridH.classList.add('hidden');
+                if (crossH) crossH.classList.add('hidden');
+                if (crossV) crossV.classList.add('hidden');
+                if (overlay) {
+                    overlay.classList.remove('hidden', 'show-sub');
+                }
+            } else if (mode === 3) {
+                if (gridV) gridV.classList.add('hidden');
+                if (gridH) gridH.classList.add('hidden');
+                if (crossH) crossH.classList.add('hidden');
+                if (crossV) crossV.classList.add('hidden');
+                if (overlay) {
                     overlay.classList.remove('hidden');
-                    if(gridV) gridV.classList.add('hidden');
-                    if(crossH) crossH.classList.add('hidden');
-                    if(crossV) crossV.classList.add('hidden');
-                } else {
-                    overlay.classList.add('hidden');
-                    if(gridV) gridV.classList.remove('hidden');
-                    if(crossH) crossH.classList.remove('hidden');
-                    if(crossV) crossV.classList.remove('hidden');
+                    overlay.classList.add('show-sub');
                 }
             }
         },
@@ -20470,24 +20703,7 @@ Object.assign(window.app, {
                         };
                         const isSameRoute = (r1, r2) => (r1 || '').trim().toLowerCase() === (r2 || '').trim().toLowerCase();
 
-                        if (!approvedPhotos || approvedPhotos.length === 0) {
-                            for (const h of history) {
-                                if (!isProtectedMilestone(h)) {
-                                    await window.sb.from('vehicle_history').delete().eq('id', h.id);
-                                }
-                            }
-                            return;
-                        }
-
-                        const activePhotos = approvedPhotos.filter(p => !isSpecialRoute(p.route_no) && !isStopped(p.route_no));
-                        for (const h of history) {
-                            if (!isProtectedMilestone(h)) {
-                                const hasMatchingPhoto = activePhotos.some(p => isSameRoute(p.route_no, h.route));
-                                if (!hasMatchingPhoto) {
-                                    await window.sb.from('vehicle_history').delete().eq('id', h.id);
-                                }
-                            }
-                        }
+                        // Không tự ý xóa mốc lịch sử khi chưa có ảnh tương ứng
 
                         // Gộp các mốc lịch sử liền kề có cùng số tuyến
                         let { data: freshHistory } = await window.sb.from('vehicle_history')
@@ -20961,11 +21177,28 @@ Object.assign(window.app, {
                                         }
                                         needInsert = false;
                                     } else {
-                                        await window.sb.from('vehicle_history').update({
-                                            route: route,
-                                            operator: op
-                                        }).eq('id', H_cov.id);
-                                        needInsert = false;
+                                        // Tuyến mới khác tuyến của mốc tại targetDate
+                                        const hasNewerMilestones = allHistory.some(h => h.effective_date && h.effective_date > targetDate);
+                                        const todayStr = new Date().toISOString().split('T')[0];
+                                        // Nếu có các mốc sau targetDate hoặc ảnh được chụp trong quá khứ (< today) và H_cov lưu tuyến cũ:
+                                        // Giữ nguyên mốc cũ và tạo mốc mới cho hôm nay để không làm mất lịch sử tuyến cũ!
+                                        if (hasNewerMilestones || (targetDate < todayStr && oldData && oldData.route_no && isSameRoute(H_cov.route, oldData.route_no))) {
+                                            const { count } = await window.sb.from('vehicle_history').select('*', { count: 'exact', head: true }).eq('license_plate', plate);
+                                            await window.sb.from('vehicle_history').insert({
+                                                license_plate: plate,
+                                                effective_date: todayStr,
+                                                operator: op,
+                                                route: route,
+                                                display_order: count || 0
+                                            });
+                                            needInsert = false;
+                                        } else {
+                                            await window.sb.from('vehicle_history').update({
+                                                route: route,
+                                                operator: op
+                                            }).eq('id', H_cov.id);
+                                            needInsert = false;
+                                        }
                                     }
                                 } else {
                                     // H_cov.effective_date < targetDate
@@ -21152,7 +21385,20 @@ Object.assign(window.app, {
                 adminInterval: null,
                 commentsData: { data: [], page: 1 },
                 is3x3Enabled: localStorage.getItem('vbs_admin_grid_3x3') === 'true',
-                isRulerEnabled: localStorage.getItem('vbs_admin_ruler_horiz') === 'true',
+                rulerMode: (() => {
+                    const saved = localStorage.getItem('vbs_admin_ruler_mode');
+                    if (saved !== null) {
+                        const val = parseInt(saved, 10);
+                        if (!isNaN(val) && val >= 0 && val <= 3) return val;
+                    }
+                    return localStorage.getItem('vbs_admin_ruler_horiz') === 'true' ? 2 : 0;
+                })(),
+                get isRulerEnabled() {
+                    return this.rulerMode === 2 || this.rulerMode === 3;
+                },
+                set isRulerEnabled(val) {
+                    this.rulerMode = val ? 2 : 0;
+                },
                 isHideMineEnabled: localStorage.getItem('vbs_admin_hide_mine') === 'true',
                 toggle3x3Grid: () => {
                     app.admin.is3x3Enabled = !app.admin.is3x3Enabled;
@@ -21160,8 +21406,9 @@ Object.assign(window.app, {
                     app.admin.update3x3UI();
                 },
                 toggleRuler: () => {
-                    app.admin.isRulerEnabled = !app.admin.isRulerEnabled;
-                    localStorage.setItem('vbs_admin_ruler_horiz', app.admin.isRulerEnabled ? 'true' : 'false');
+                    app.admin.rulerMode = ((app.admin.rulerMode || 0) + 1) % 4;
+                    localStorage.setItem('vbs_admin_ruler_mode', app.admin.rulerMode);
+                    localStorage.setItem('vbs_admin_ruler_horiz', (app.admin.rulerMode === 2 || app.admin.rulerMode === 3) ? 'true' : 'false');
                     app.admin.updateRulerUI();
                 },
                 toggleHideMine: () => {
@@ -21911,43 +22158,77 @@ Object.assign(window.app, {
                     const statusText = document.getElementById('status-3x3');
                     if (btn && statusText) {
                         if (app.admin.is3x3Enabled) {
-                            btn.className = "flex-shrink-0 inline-flex items-center gap-2 px-4 py-2.5 bg-black border border-black rounded-lg text-xs font-bold text-white hover:bg-gray-800 transition shadow-xl whitespace-nowrap";
+                            btn.className = "flex-shrink-0 inline-flex items-center gap-2 px-4 py-2.5 bg-black dark:bg-white border border-black dark:border-white rounded-md text-xs font-bold text-white dark:text-black hover:bg-gray-800 dark:hover:bg-gray-200 transition shadow-none whitespace-nowrap";
                             statusText.innerText = "BẬT";
                         } else {
-                            btn.className = "flex-shrink-0 inline-flex items-center gap-2 px-4 py-2.5 bg-white border border-gray-300 rounded-lg text-xs font-bold text-gray-800 hover:bg-gray-50 hover:text-black transition shadow-xl whitespace-nowrap";
+                            btn.className = "flex-shrink-0 inline-flex items-center gap-2 px-4 py-2.5 bg-white dark:bg-black border border-black dark:border-white rounded-md text-xs font-bold text-black dark:text-white hover:bg-gray-50 dark:hover:bg-zinc-800 transition shadow-none whitespace-nowrap";
                             statusText.innerText = "TẮT";
                         }
                     }
+                    const showGrid = app.admin.is3x3Enabled || app.admin.rulerMode === 1;
                     document.querySelectorAll('.admin-photo-grid-overlay').forEach(el => {
-                        if (app.admin.is3x3Enabled) el.classList.remove('hidden');
+                        if (showGrid) el.classList.remove('hidden');
                         else el.classList.add('hidden');
                     });
                     const zoomGrid = document.getElementById('admin-zoom-grid-overlay');
                     if (zoomGrid) {
-                        if (app.admin.is3x3Enabled) zoomGrid.classList.remove('hidden');
+                        if (showGrid) zoomGrid.classList.remove('hidden');
                         else zoomGrid.classList.add('hidden');
                     }
                 },
                 updateRulerUI: () => {
+                    const mode = app.admin.rulerMode || 0;
                     const btn = document.getElementById('btn-toggle-ruler');
                     const statusText = document.getElementById('status-ruler');
                     if (btn && statusText) {
-                        if (app.admin.isRulerEnabled) {
-                            btn.className = "flex-shrink-0 inline-flex items-center gap-2 px-4 py-2.5 bg-black border border-black rounded-lg text-xs font-bold text-white hover:bg-gray-800 transition shadow-xl whitespace-nowrap";
-                            statusText.innerText = "BẬT";
-                        } else {
-                            btn.className = "flex-shrink-0 inline-flex items-center gap-2 px-4 py-2.5 bg-white border border-gray-300 rounded-lg text-xs font-bold text-gray-800 hover:bg-gray-50 hover:text-black transition shadow-xl whitespace-nowrap";
+                        if (mode === 0) {
+                            btn.className = "w-[160px] min-w-[160px] max-w-[160px] flex-shrink-0 inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-white dark:bg-black border border-black dark:border-white rounded-md text-xs font-bold text-black dark:text-white hover:bg-gray-50 dark:hover:bg-zinc-800 transition shadow-none whitespace-nowrap";
                             statusText.innerText = "TẮT";
+                        } else {
+                            btn.className = "w-[160px] min-w-[160px] max-w-[160px] flex-shrink-0 inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-black dark:bg-white border border-black dark:border-white rounded-md text-xs font-bold text-white dark:text-black hover:bg-gray-800 dark:hover:bg-gray-200 transition shadow-none whitespace-nowrap";
+                            statusText.innerText = mode.toString();
                         }
                     }
+                    const subPositions = [4.1667, 12.5, 20.8333, 29.1667, 37.5, 45.8333, 54.1667, 62.5, 70.8333, 79.1667, 87.5, 95.8333];
                     document.querySelectorAll('.admin-photo-ruler-overlay').forEach(el => {
-                        if (app.admin.isRulerEnabled) el.classList.remove('hidden');
-                        else el.classList.add('hidden');
+                        if (!el.querySelector('.ruler-line-sub')) {
+                            let subHtml = '';
+                            subPositions.forEach(pos => {
+                                subHtml += `<div class="ruler-line-sub" style="left: ${pos}%;"></div>`;
+                            });
+                            el.insertAdjacentHTML('beforeend', subHtml);
+                        }
+                        if (mode === 2) {
+                            el.classList.remove('hidden', 'show-sub');
+                        } else if (mode === 3) {
+                            el.classList.remove('hidden');
+                            el.classList.add('show-sub');
+                        } else {
+                            el.classList.add('hidden');
+                            el.classList.remove('show-sub');
+                        }
                     });
                     const zoomRuler = document.getElementById('admin-zoom-ruler-overlay');
                     if (zoomRuler) {
-                        if (app.admin.isRulerEnabled) zoomRuler.classList.remove('hidden');
-                        else zoomRuler.classList.add('hidden');
+                        if (mode === 2) {
+                            zoomRuler.classList.remove('hidden', 'show-sub');
+                        } else if (mode === 3) {
+                            zoomRuler.classList.remove('hidden');
+                            zoomRuler.classList.add('show-sub');
+                        } else {
+                            zoomRuler.classList.add('hidden');
+                            zoomRuler.classList.remove('show-sub');
+                        }
+                    }
+                    const showGrid = app.admin.is3x3Enabled || mode === 1;
+                    document.querySelectorAll('.admin-photo-grid-overlay').forEach(el => {
+                        if (showGrid) el.classList.remove('hidden');
+                        else el.classList.add('hidden');
+                    });
+                    const zoomGrid = document.getElementById('admin-zoom-grid-overlay');
+                    if (zoomGrid) {
+                        if (showGrid) zoomGrid.classList.remove('hidden');
+                        else zoomGrid.classList.add('hidden');
                     }
                 },
                 updateHideMineUI: () => {
@@ -21955,10 +22236,10 @@ Object.assign(window.app, {
                     const statusText = document.getElementById('status-hide-mine');
                     if (btn && statusText) {
                         if (app.admin.isHideMineEnabled) {
-                            btn.className = "flex-shrink-0 inline-flex items-center gap-2 px-4 py-2.5 bg-black border border-black rounded-lg text-xs font-bold text-white hover:bg-gray-800 transition shadow-xl whitespace-nowrap";
+                            btn.className = "flex-shrink-0 inline-flex items-center gap-2 px-4 py-2.5 bg-black dark:bg-white border border-black dark:border-white rounded-md text-xs font-bold text-white dark:text-black hover:bg-gray-800 dark:hover:bg-gray-200 transition shadow-none whitespace-nowrap";
                             statusText.innerText = "BẬT";
                         } else {
-                            btn.className = "flex-shrink-0 inline-flex items-center gap-2 px-4 py-2.5 bg-white border border-gray-300 rounded-lg text-xs font-bold text-gray-800 hover:bg-gray-50 hover:text-black transition shadow-xl whitespace-nowrap";
+                            btn.className = "flex-shrink-0 inline-flex items-center gap-2 px-4 py-2.5 bg-white dark:bg-black border border-black dark:border-white rounded-md text-xs font-bold text-black dark:text-white hover:bg-gray-50 dark:hover:bg-zinc-800 transition shadow-none whitespace-nowrap";
                             statusText.innerText = "TẮT";
                         }
                     }
@@ -21968,7 +22249,9 @@ Object.assign(window.app, {
                     });
                 },
                 getRulerOverlayHTML: () => {
-                    const isHidden = app.admin.isRulerEnabled ? '' : 'hidden';
+                    const isVisible = (app.admin.rulerMode === 2 || app.admin.rulerMode === 3);
+                    const isHidden = isVisible ? '' : 'hidden';
+                    const showSubClass = (app.admin.rulerMode === 3) ? 'show-sub' : '';
                     const levels = [
                         { pos: 8.3333, label: '5' },
                         { pos: 16.6667, label: '4' },
@@ -21982,13 +22265,17 @@ Object.assign(window.app, {
                         { pos: 83.3333, label: '4' },
                         { pos: 91.6667, label: '5' }
                     ];
+                    const subPositions = [4.1667, 12.5, 20.8333, 29.1667, 37.5, 45.8333, 54.1667, 62.5, 70.8333, 79.1667, 87.5, 95.8333];
                     let linesHtml = '';
                     levels.forEach(item => {
                         const lineClass = item.isCenter ? 'ruler-line-center' : 'ruler-line-v';
                         const badgeClass = item.isCenter ? 'ruler-badge-center' : 'ruler-badge';
                         linesHtml += `<div class="${lineClass}" style="left: ${item.pos}%;"><span class="${badgeClass} ruler-badge-top">${item.label}</span><span class="${badgeClass} ruler-badge-bottom">${item.label}</span></div>`;
                     });
-                    return `<div class="admin-photo-ruler-overlay ruler-horizontal-overlay ${isHidden}">${linesHtml}</div>`;
+                    subPositions.forEach(pos => {
+                        linesHtml += `<div class="ruler-line-sub" style="left: ${pos}%;"></div>`;
+                    });
+                    return `<div class="admin-photo-ruler-overlay ruler-horizontal-overlay ${isHidden} ${showSubClass}">${linesHtml}</div>`;
                 },
                 originalData: {},
                 showModelDisabledAlert: (plate, photoId) => {
@@ -22186,6 +22473,60 @@ Object.assign(window.app, {
                         console.error('Lỗi checkDuplicateDateAdmin:', err);
                     }
                 },
+                toggleReqProvMenu: (id, pfx, e) => {
+                    if (e) e.stopPropagation();
+                    const tag = pfx ? `${pfx}-` : '';
+                    const menu = document.getElementById(`menu-req-${tag}route-prov-${id}`);
+                    if (menu) {
+                        const wasActive = menu.classList.contains('active');
+                        document.querySelectorAll('.filter-menu.active').forEach(m => m.classList.remove('active'));
+                        if (!wasActive) menu.classList.add('active');
+                    }
+                },
+                selectReqProv: (id, pfx, provName) => {
+                    const tag = pfx ? `${pfx}-` : '';
+                    const input = document.getElementById(`req-${tag}route-prov-${id}`);
+                    const label = document.getElementById(`label-req-${tag}route-prov-${id}`);
+                    const menu = document.getElementById(`menu-req-${tag}route-prov-${id}`);
+                    if (input) input.value = provName || '';
+                    if (label) {
+                        label.innerText = provName || '-- Chọn Tỉnh / Thành phố --';
+                        if (provName) {
+                            label.className = 'truncate text-black dark:text-white font-medium';
+                        } else {
+                            label.className = 'truncate text-gray-400';
+                        }
+                    }
+                    if (menu) menu.classList.remove('active');
+                    
+                    const listEl = document.getElementById(`list-req-${tag}route-prov-${id}`);
+                    if (listEl) {
+                        const items = listEl.querySelectorAll('.filter-item');
+                        items.forEach(item => {
+                            const p = item.dataset.prov || '';
+                            const isSel = (p.toLowerCase() === (provName || '').toLowerCase());
+                            item.classList.toggle('selected', isSel);
+                            let check = item.querySelector('.fa-check');
+                            if (isSel && !check) {
+                                item.insertAdjacentHTML('beforeend', '<i class="fa-solid fa-check text-xs ml-auto"></i>');
+                            } else if (!isSel && check) {
+                                check.remove();
+                            }
+                        });
+                    }
+                },
+                filterReqProvSearch: (id, pfx, q) => {
+                    const tag = pfx ? `${pfx}-` : '';
+                    const query = (q || '').trim().toLowerCase();
+                    const listEl = document.getElementById(`list-req-${tag}route-prov-${id}`);
+                    if (listEl) {
+                        const items = listEl.querySelectorAll('.filter-item');
+                        items.forEach(item => {
+                            const prov = item.dataset.prov || '';
+                            item.style.display = (!query || prov.toLowerCase().includes(query)) ? 'flex' : 'none';
+                        });
+                    }
+                },
                 manager: {
                     activeTab: 'denied',
                     denied: { data: [], filtered:[], page: 1, denierMap: {} },
@@ -22306,7 +22647,7 @@ Object.assign(window.app, {
                     container.classList.add('modal-content-enter');
                     const zoomGrid = document.getElementById('admin-zoom-grid-overlay');
                     if (zoomGrid) {
-                        if (isFromAdminReview && app.admin.is3x3Enabled) {
+                        if (isFromAdminReview && (app.admin.is3x3Enabled || app.admin.rulerMode === 1)) {
                             zoomGrid.classList.remove('hidden');
                         } else {
                             zoomGrid.classList.add('hidden');
@@ -22314,10 +22655,13 @@ Object.assign(window.app, {
                     }
                     const zoomRuler = document.getElementById('admin-zoom-ruler-overlay');
                     if (zoomRuler) {
-                        if (isFromAdminReview && app.admin.isRulerEnabled) {
+                        if (isFromAdminReview && (app.admin.rulerMode === 2 || app.admin.rulerMode === 3)) {
                             zoomRuler.classList.remove('hidden');
+                            if (app.admin.rulerMode === 3) zoomRuler.classList.add('show-sub');
+                            else zoomRuler.classList.remove('show-sub');
                         } else {
                             zoomRuler.classList.add('hidden');
+                            zoomRuler.classList.remove('show-sub');
                         }
                     }
                     const toolbar = document.getElementById('zoom-toolbar');
@@ -22760,7 +23104,7 @@ if (app.admin._activeLoadToken !== currentLoadToken || app.adminTab !== tab) ret
                                         <div class="mb-3 mt-2"><span class="admin-label">Lý do user nhập:</span><p class="bg-gray-50 p-2 border rounded text-red-700 italic">"${userReason}"</p></div>
                                         <div class="flex gap-2 mt-3">
                                         ${app.role === 'manager' ? `
-                                            <button onclick="app.admin.approveDeleteReq('${req.id}', '${req.new_data.photo_id}', '${req.requester_id}', '${userReason}', this)" class="flex-1 bg-red-600 text-white py-1.5 font-bold rounded hover:bg-red-700">DUYỆT XÓA</button>
+                                            <button onclick="app.admin.approveDeleteReq('${req.id}', '${req.new_data?.photo_id || ''}', this)" class="flex-1 bg-red-600 text-white py-1.5 font-bold rounded hover:bg-red-700">DUYỆT XÓA</button>
                                         ` : `
                                             <div class="flex-1 bg-gray-100 text-gray-400 py-1.5 font-bold rounded text-center border border-gray-200 cursor-not-allowed text-[11px] flex items-center justify-center">Chỉ Manager duyệt xóa</div>
                                         `}
@@ -22833,7 +23177,60 @@ if (app.admin._activeLoadToken !== currentLoadToken || app.adminTab !== tab) ret
                                 const { data: curMdls } = await window.sb.from('model_info').select('*').in('model_name', mdlNamesReq);
                                 if (curMdls) curMdls.forEach(m => mdlMap[m.model_name] = m);
                             }
-                            const routeReqs = reqs.filter(r => r.new_data.request_type === 'update_route_info').map(r => r.new_data.route_name).filter(Boolean);
+                            if ((!app.utils.provinceData || !app.utils.provinceData.length) && app.utils.loadProvinceData) {
+                                await app.utils.loadProvinceData();
+                            }
+                            const renderCustomProvinceDropdown = (id, pfx, selectedProv = '') => {
+                                const tag = pfx ? `${pfx}-` : '';
+                                const curVal = (selectedProv || '').trim();
+                                const curValLower = curVal.toLowerCase();
+                                const pData = app.utils.provinceData || [];
+                                let hasCustomMatch = false;
+                                let listHtml = `
+                                    <div class="filter-item ${!curVal ? 'selected' : ''}" data-prov="" onclick="app.admin.selectReqProv('${id}', '${pfx}', '')">
+                                        <span class="text-gray-400">-- Không chọn Tỉnh / Thành phố --</span>
+                                        ${!curVal ? '<i class="fa-solid fa-check text-xs ml-auto"></i>' : ''}
+                                    </div>
+                                `;
+                                pData.forEach(p => {
+                                    const isSel = curValLower && curValLower === (p.ten || '').toLowerCase();
+                                    if (isSel) hasCustomMatch = true;
+                                    listHtml += `
+                                        <div class="filter-item ${isSel ? 'selected' : ''}" data-prov="${app.utils.escapeAttr(p.ten)}" onclick="app.admin.selectReqProv('${id}', '${pfx}', '${app.utils.escapeAttr(p.ten)}')">
+                                            <span>${app.utils.escapeHtml(p.ten)}</span>
+                                            ${isSel ? '<i class="fa-solid fa-check text-xs ml-auto"></i>' : ''}
+                                        </div>
+                                    `;
+                                });
+                                if (curVal && !hasCustomMatch) {
+                                    listHtml = `
+                                        <div class="filter-item selected" data-prov="${app.utils.escapeAttr(curVal)}" onclick="app.admin.selectReqProv('${id}', '${pfx}', '${app.utils.escapeAttr(curVal)}')">
+                                            <span>${app.utils.escapeHtml(curVal)} (Tùy chỉnh)</span>
+                                            <i class="fa-solid fa-check text-xs ml-auto"></i>
+                                        </div>
+                                    ` + listHtml;
+                                }
+
+                                return `
+                                    <div class="relative z-30">
+                                        <input type="hidden" id="req-${tag}route-prov-${id}" value="${app.utils.escapeAttr(curVal)}">
+                                        <button type="button" id="btn-req-${tag}route-prov-${id}" onclick="app.admin.toggleReqProvMenu('${id}', '${pfx}', event)" class="admin-input cursor-pointer flex justify-between items-center text-left bg-white dark:bg-[#18181b]">
+                                            <span id="label-req-${tag}route-prov-${id}" class="truncate ${curVal ? 'text-black dark:text-white font-medium' : 'text-gray-400'}">${app.utils.escapeHtml(curVal || '-- Chọn Tỉnh / Thành phố --')}</span>
+                                            <i class="fa-solid fa-chevron-down text-gray-500 text-[10px] shrink-0 ml-1"></i>
+                                        </button>
+                                        <div id="menu-req-${tag}route-prov-${id}" class="filter-menu w-full mt-1 left-0 origin-top max-h-56 overflow-y-auto">
+                                            <div class="p-1.5 border-b border-black mb-1 sticky top-0 bg-white dark:bg-[#18181b] z-10">
+                                                <input type="text" placeholder="Tìm kiếm tỉnh thành..." class="w-full bg-gray-50 dark:bg-black border border-black rounded p-1.5 text-xs text-black dark:text-white outline-none" oninput="app.admin.filterReqProvSearch('${id}', '${pfx}', this.value)">
+                                            </div>
+                                            <div id="list-req-${tag}route-prov-${id}" class="space-y-0.5">
+                                                ${listHtml}
+                                            </div>
+                                        </div>
+                                    </div>
+                                `;
+                            };
+
+                            const routeReqs = reqs.filter(r => r.new_data?.request_type === 'update_route_info').flatMap(r => [r.new_data.old_route_name, r.new_data.route_name]).filter(Boolean);
                             let routeMap = {};
                             if (routeReqs.length > 0) {
                                 const { data: curRoutes } = await window.sb.from('route_info').select('*').in('route_name', routeReqs);
@@ -22847,7 +23244,7 @@ if (app.admin._activeLoadToken !== currentLoadToken || app.adminTab !== tab) ret
                                 const curP = pMap[d.photo_id] || {};
                                 const curOp = opMap[d.operator_name] || {};
                                 const curMdl = mdlMap[d.model_name] || {};
-                                const curRoute = routeMap[d.route_name] || {};
+                                const curRoute = routeMap[d.old_route_name] || routeMap[d.route_name] || {};
                                 if (type === 'update_vehicle_info') {
                                     const tagNew = '<span class="text-red-500 font-bold ml-1 text-[9px]">[MỚI]</span>';
                                     if (!app.admin.originalData) app.admin.originalData = {};
@@ -22909,6 +23306,10 @@ if (app.admin._activeLoadToken !== currentLoadToken || app.adminTab !== tab) ret
                                         if (val === 'trapezoid') return 'Hình thang cân';
                                         return 'Mặc định';
                                     };
+                                    const curRouteNo = curRoute.route_no || (!curRoute.route_name ? '' : (curRoute.route_name.includes(' - ') ? curRoute.route_name.split(' - ')[0].trim() : curRoute.route_name));
+                                    const curProv = curRoute.province || (!curRoute.route_name ? '' : (curRoute.route_name.includes(' - ') ? curRoute.route_name.split(' - ').slice(1).join(' - ').trim() : ''));
+                                    const reqRouteNo = d.route_no || curRouteNo || (d.route_name && d.route_name.includes(' - ') ? d.route_name.split(' - ')[0].trim() : (d.route_name || ''));
+                                    const reqProv = d.province || curProv || (d.route_name && d.route_name.includes(' - ') ? d.route_name.split(' - ').slice(1).join(' - ').trim() : '');
                                     
                                     return `
                                     <div class="admin-card overflow-visible">
@@ -22918,6 +23319,7 @@ if (app.admin._activeLoadToken !== currentLoadToken || app.adminTab !== tab) ret
                                             <p class="mb-2 text-xs font-bold text-gray-500">Thông tin gốc (Hiện tại):</p>
                                             <div class="space-y-1 mb-4 text-xs opacity-75 border p-2 rounded bg-gray-50">
                                                 <div><span class="font-bold">Loại xe:</span> ${curRoute.metadata?.vehicle_type === 'coach' ? 'Xe khách' : 'Xe buýt'}</div>
+                                                <div><span class="font-bold">Số hiệu & Tỉnh/TP:</span> ${app.utils.escapeAttr(curRouteNo || '-')} ${curProv ? '(' + app.utils.escapeAttr(curProv) + ')' : ''}</div>
                                                 <div><span class="font-bold">Trạng thái:</span> ${curRoute.is_inactive ? '<span class="text-red-500 font-bold">Dừng hoạt động</span>' : 'Đang hoạt động'}</div>
                                                 <div><span class="font-bold">Lộ trình (Rút gọn):</span> ${app.utils.escapeAttr(curRoute.short_path || '-')}</div>
                                                 <div><span class="font-bold">Mô tả:</span> ${app.utils.escapeAttr(curRoute.description || '-')}</div>
@@ -22928,6 +23330,16 @@ if (app.admin._activeLoadToken !== currentLoadToken || app.adminTab !== tab) ret
                                             </div>
                                             <p class="mb-2 font-bold text-red-500">[MỚI] Yêu cầu cập nhật thành:</p>
                                             
+                                            <div class="grid grid-cols-2 gap-2 mb-2">
+                                                <div>
+                                                    <span class="admin-label">Số hiệu tuyến ${reqRouteNo && curRouteNo && reqRouteNo !== curRouteNo ? '<span class="text-red-500 font-bold ml-1 text-[9px]">[MỚI]</span>' : ''}</span>
+                                                    <input type="text" id="req-route-no-${r.id}" class="admin-input font-bold" value="${app.utils.escapeAttr(reqRouteNo)}">
+                                                </div>
+                                                <div>
+                                                    <span class="admin-label">Tỉnh / Thành phố ${reqProv && curProv && reqProv.toLowerCase() !== curProv.toLowerCase() ? '<span class="text-red-500 font-bold ml-1 text-[9px]">[MỚI]</span>' : ''}</span>
+                                                    ${renderCustomProvinceDropdown(r.id, '', reqProv)}
+                                                </div>
+                                            </div>
                                             <div class="mb-2">
                                                 <span class="admin-label">Loại xe ${d.metadata?.vehicle_type && d.metadata?.vehicle_type !== curRoute.metadata?.vehicle_type ? '<span class="text-red-500 font-bold ml-1 text-[9px]">[MỚI]</span>' : ''}</span>
                                                 <select id="req-route-type-${r.id}" class="admin-input">
@@ -22989,7 +23401,7 @@ if (app.admin._activeLoadToken !== currentLoadToken || app.adminTab !== tab) ret
                                                 </div>
                                                 <div>
                                                     <span class="admin-label">Tỉnh / Thành phố</span>
-                                                    <input type="text" id="req-c-route-prov-${r.id}" class="admin-input" value="${app.utils.escapeAttr(d.province || '')}">
+                                                    ${renderCustomProvinceDropdown(r.id, 'c', d.province || '')}
                                                 </div>
                                             </div>
                                             <div class="mb-2">
@@ -24465,8 +24877,7 @@ const isQualityAud = subroles.includes('quality_aud');
                     const vvccRole = subroles.find(s => s === 'vvcc' || s.startsWith('vvcc|'));
                     const isVvcc = !!vvccRole;
                     const vvccLink = (vvccRole && vvccRole.includes('|')) ? vvccRole.split('|')[1] : '';
-                    const isVvbs = subroles.includes('vvbs');
-                    const htmlForm = `
+                                        const htmlForm = `
                         <div class="text-left space-y-4 mt-2 max-h-[60vh] overflow-y-auto">
                             <label class="flex items-start cursor-pointer group select-none">
                                 <input type="checkbox" id="subrole-cb-quality" class="custom-cb-input sr-only" ${isQualityAud ? 'checked' : ''}>
@@ -24485,16 +24896,7 @@ const isQualityAud = subroles.includes('quality_aud');
                                     <span class="text-[10px] text-gray-500 block leading-tight">Danh hiệu dành cho nhà phát triển hệ thống.</span>
                                 </span>
                             </label>
-                            <label class="flex items-start cursor-pointer group select-none mt-4">
-                                <input type="checkbox" id="subrole-cb-vvbs" class="custom-cb-input sr-only" ${isVvbs ? 'checked' : ''}>
-                                <div class="custom-cb-box shrink-0 shadow-sm">
-                                    <i class="fa-solid fa-check"></i>
-                                </div>
-                                <span class="text-xs font-semibold text-gray-800 group-hover:text-black transition leading-relaxed pt-0.5">
-                                    <strong class="text-sm text-gray-900 block leading-none mb-1">VVBS</strong>
-                                    <span class="text-[10px] text-gray-500 block leading-tight">VNBUSARCHIVE Verified Bus Staff.</span>
-                                </span>
-                            </label>
+
                             <label class="flex items-start cursor-pointer group select-none mt-4">
                                 <input type="checkbox" id="subrole-cb-vvcc" class="custom-cb-input sr-only" ${isVvcc ? 'checked' : ''} onchange="document.getElementById('subrole-vvcc-link-wrapper').classList.toggle('hidden', !this.checked)">
                                 <div class="custom-cb-box shrink-0 shadow-sm">
@@ -24513,13 +24915,11 @@ const isQualityAud = subroles.includes('quality_aud');
                     app.ui.showAlert(htmlForm, async () => {
                         const cbDev = document.getElementById('subrole-cb-dev').checked;
 const cbQuality = document.getElementById('subrole-cb-quality').checked;
-                        const cbVvbs = document.getElementById('subrole-cb-vvbs').checked;
-                        const cbVvcc = document.getElementById('subrole-cb-vvcc').checked;
+                                                const cbVvcc = document.getElementById('subrole-cb-vvcc').checked;
                         const linkInput = document.getElementById('subrole-vvcc-link').value.trim();
                         let newSubroles = [];
                         if (cbDev) newSubroles.push('dev');
 if (cbQuality) newSubroles.push('quality_aud');
-                        if (cbVvbs) newSubroles.push('vvbs');
                         if (cbVvcc) {
                             if (linkInput) newSubroles.push(`vvcc|${linkInput}`);
                             else newSubroles.push('vvcc');
@@ -24553,13 +24953,11 @@ if (cbQuality) newSubroles.push('quality_aud');
                     if (!userId) return;
                     const cbDev = document.getElementById('subrole-cb-dev')?.checked;
                     const cbQuality = document.getElementById('subrole-cb-quality')?.checked;
-                    const cbVvbs = document.getElementById('subrole-cb-vvbs')?.checked;
-                    const cbVvcc = document.getElementById('subrole-cb-vvcc')?.checked;
+                                        const cbVvcc = document.getElementById('subrole-cb-vvcc')?.checked;
                     const linkInput = document.getElementById('subrole-vvcc-link')?.value.trim();
                     let newSubroles = [];
                     if (cbQuality) newSubroles.push('quality_aud');
                     if (cbDev) newSubroles.push('dev');
-                    if (cbVvbs) newSubroles.push('vvbs');
                     if (cbVvcc) {
                         if (linkInput) newSubroles.push(`vvcc|${linkInput}`);
                         else newSubroles.push('vvcc');
@@ -25446,15 +25844,19 @@ if (cbQuality) newSubroles.push('quality_aud');
                             let metadataObj = Object.keys(metadata).length > 0 ? metadata : null;
                             
                             
-                            const expectedRouteNo = req.new_data.route_no || (!isReqCoach && req.new_data.route_name.includes(' - ') ? req.new_data.route_name.split(' - ')[0].trim() : req.new_data.route_name);
-                            const targetProvince = isReqCoach ? null : (req.new_data.province || (req.new_data.route_name.includes(' - ') ? req.new_data.route_name.split(' - ')[1].trim() : null));
+                            const routeNoEl = document.getElementById(`req-route-no-${id}`);
+                            const provEl = document.getElementById(`req-route-prov-${id}`);
+
+                            const expectedRouteNo = routeNoEl ? routeNoEl.value.trim() : (req.new_data.route_no || (!isReqCoach && req.new_data.route_name.includes(' - ') ? req.new_data.route_name.split(' - ')[0].trim() : req.new_data.route_name));
+                            const targetProvince = isReqCoach ? null : (provEl ? provEl.value.trim() : (req.new_data.province || (req.new_data.route_name.includes(' - ') ? req.new_data.route_name.split(' - ')[1].trim() : null)));
+                            const targetRouteName = (isReqCoach || !targetProvince) ? expectedRouteNo : `${expectedRouteNo} - ${targetProvince}`;
 
                             if (!desc && !shortPath && !isInactive && !metadataObj) {
-                                const { error: delErr } = await window.sb.from('route_info').delete().eq('route_name', req.new_data.route_name);
+                                const { error: delErr } = await window.sb.from('route_info').delete().eq('route_name', targetRouteName);
                                 if (delErr) throw delErr;
                             } else {
                                 const { error: upsertErr } = await window.sb.from('route_info').upsert({
-                                    route_name: req.new_data.route_name,
+                                    route_name: targetRouteName,
                                     route_no: expectedRouteNo,
                                     province: targetProvince,
                                     short_path: shortPath || null,
@@ -25468,9 +25870,10 @@ if (cbQuality) newSubroles.push('quality_aud');
                             if (app.route) app.route.cachedRoutes = null;
                             
                             // Nếu đổi tên tuyến hoặc đổi tỉnh thành, di chuyển dữ liệu ảnh & lịch sử từ tuyến cũ sang tuyến mới và xóa tuyến cũ
-                            if (req.new_data.old_route_name && req.new_data.old_route_name !== req.new_data.route_name) {
+                            const oldRouteName = req.new_data.old_route_name || req.new_data.route_name;
+                            if (oldRouteName && oldRouteName !== targetRouteName) {
                                 if (app.route && app.route.migrateRouteData) {
-                                    await app.route.migrateRouteData(req.new_data.old_route_name, req.new_data.route_name, expectedRouteNo, targetProvince);
+                                    await app.route.migrateRouteData(oldRouteName, targetRouteName, expectedRouteNo, targetProvince);
                                 }
                             }
                             
@@ -25782,18 +26185,39 @@ if (cbQuality) newSubroles.push('quality_aud');
                     } catch (e) { app.ui.showAlert("Lỗi: " + e.message); }
                     finally { btn.innerText = originalText; btn.disabled = false; }
                 },
-                approveDeleteReq: async (reqId, photoId, requesterId, userReason, btn) => {
+                approveDeleteReq: async (reqId, photoId, btn, ...rest) => {
+                    if (rest.length >= 2 && (rest[1] instanceof HTMLElement || typeof rest[1] === 'object')) {
+                        btn = rest[1];
+                    } else if (typeof photoId === 'object' && photoId instanceof HTMLElement) {
+                        btn = photoId;
+                        photoId = null;
+                    }
+
                     if (app.isRealtimeConnected === false) {
                         return app.ui.showAlert("Mất kết nối Realtime với máy chủ! Đã tạm khóa chức năng duyệt xóa để tránh lệch dữ liệu.");
                     }
                     if (app.role !== 'manager') {
                         return app.ui.showAlert("Chỉ Quản lý mới có quyền duyệt lệnh xóa ảnh khỏi hệ thống!");
                     }
-                    btn.innerText = "Đang xử lý...";
-                    btn.disabled = true;
-                    btn.classList.add('btn-loading');
+
+                    const targetBtn = (btn && btn instanceof HTMLElement) ? btn : (window.event?.currentTarget instanceof HTMLElement ? window.event.currentTarget : null);
+                    if (targetBtn) {
+                        targetBtn.innerText = "Đang xử lý...";
+                        targetBtn.disabled = true;
+                        targetBtn.classList.add('btn-loading');
+                    }
+
                     try {
-                        const { data: photo } = await window.sb.from('photos').select('license_plate, url').eq('id', photoId).single();
+                        if (!photoId || photoId === 'undefined') {
+                            const { data: reqData, error: reqErr } = await window.sb.from('edit_requests').select('new_data').eq('id', reqId).single();
+                            if (reqErr) throw reqErr;
+                            photoId = reqData?.new_data?.photo_id;
+                        }
+                        if (!photoId) {
+                            throw new Error("Không tìm thấy thông tin ID ảnh cần xóa trong yêu cầu.");
+                        }
+
+                        const { data: photo } = await window.sb.from('photos').select('license_plate, url').eq('id', photoId).maybeSingle();
                         const plate = photo ? photo.license_plate : 'đã chọn';
                         const imgUrl = photo ? photo.url : null;
                         if (imgUrl || photoId) {
@@ -25814,12 +26238,15 @@ if (cbQuality) newSubroles.push('quality_aud');
                         app.toast.show('success', 'Thành công', 'Đã duyệt yêu cầu và xóa ảnh vĩnh viễn thành công!');
                         app.admin.logAction('approve_delete_req', photoId, { plate: plate });
                         if (document.activeElement) document.activeElement.blur();
+                        if (app.admin.refreshCounts) app.admin.refreshCounts();
                         app.admin.loadTab('delete', false, true);
                     } catch (err) {
                         app.ui.showAlert("Lỗi khi duyệt xóa: " + err.message);
-                        btn.innerText = "DUYỆT XÓA";
-                        btn.disabled = false;
-                        btn.classList.remove('btn-loading');
+                        if (targetBtn) {
+                            targetBtn.innerText = "DUYỆT XÓA";
+                            targetBtn.disabled = false;
+                            targetBtn.classList.remove('btn-loading');
+                        }
                     }
                 },
                 denyReq: async (reqId, btn) => {
@@ -26422,11 +26849,20 @@ app.map = {
     // Kiểm tra xem một điểm có nằm trong bất kỳ vùng cấm nào không
     isPointInZones(lat, lng) {
         if (!this.zones || this.zones.length === 0) return null;
-        const pt = [lat, lng];
+        if (typeof lat !== 'number' || typeof lng !== 'number' || isNaN(lat) || isNaN(lng)) return null;
         for (const zone of this.zones) {
             const polygons = this.parseZoneBounds(zone.bounds);
             for (const polyPoints of polygons) {
-                if (L.polygon(polyPoints).getBounds().contains(pt)) {
+                if (!Array.isArray(polyPoints) || polyPoints.length < 3) continue;
+                let minLat = Infinity, maxLat = -Infinity, minLng = Infinity, maxLng = -Infinity;
+                for (let k = 0; k < polyPoints.length; k++) {
+                    const plat = polyPoints[k][0], plng = polyPoints[k][1];
+                    if (plat < minLat) minLat = plat;
+                    if (plat > maxLat) maxLat = plat;
+                    if (plng < minLng) minLng = plng;
+                    if (plng > maxLng) maxLng = plng;
+                }
+                if (lat >= minLat && lat <= maxLat && lng >= minLng && lng <= maxLng) {
                     // Kiểm tra chính xác hơn bằng ray casting
                     let inside = false;
                     for (let i = 0, j = polyPoints.length - 1; i < polyPoints.length; j = i++) {
@@ -26441,6 +26877,26 @@ app.map = {
             }
         }
         return null;
+    },
+
+    async getPointInZones(lat, lng) {
+        if (typeof lat !== 'number' || typeof lng !== 'number' || isNaN(lat) || isNaN(lng)) return null;
+        if (!this.zones || this.zones.length === 0) {
+            try {
+                if (!this._loadingZonesPromise) {
+                    this._loadingZonesPromise = window.sb.from('no_photo_zones').select('*');
+                }
+                const { data, error } = await this._loadingZonesPromise;
+                if (!error && data) {
+                    this.zones = data;
+                }
+            } catch (e) {
+                console.error('Lỗi tải danh sách vùng cấm:', e);
+            } finally {
+                this._loadingZonesPromise = null;
+            }
+        }
+        return this.isPointInZones(lat, lng);
     },
 
     updateTheme() {
