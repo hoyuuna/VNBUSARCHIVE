@@ -21,8 +21,9 @@ VNBUSARCHIVE là kho tư liệu chung cho cộng đồng, các tiêu chuẩn duy
   * Xe đã đổi màu sơn hoặc nhận diện thương hiệu mới (ảnh ghi lại màu sơn hoặc logo cũ).
   * Xe đã hết niên hạn sử dụng hoặc bị loại biên.
   * Xe chạy hợp đồng hoặc tăng cường theo sự kiện tạm thời đã kết thúc.
-* **Phạm vi châm chước:** 
-  * Chấp nhận châm chước các hạn chế về điều kiện chụp khách quan như độ nét, ánh sáng, thời tiết, khoảng cách chụp thời xưa bằng thiết bị cũ.
+* **Phạm vi châm chước và giới hạn nhận diện tối thiểu:** 
+  * Chấp nhận châm chước các hạn chế về điều kiện chụp khách quan như độ nét, ánh sáng, thời tiết hoặc khoảng cách chụp bằng thiết bị cũ trước đây.
+  * **Yêu cầu nhận diện và biển kiểm soát:** Dù được áp dụng chính sách ưu tiên, ảnh vẫn phải đủ rõ nét để nhìn rõ tổng thể phương tiện. Đặc biệt, **biển kiểm soát bắt buộc phải nhìn thấy rõ ràng** để đối soát dữ liệu. Hệ thống sẽ từ chối các ảnh bị mờ nhòe, lóa sáng, che khuất hoặc mất góc dẫn tới không đọc được biển kiểm soát.
   * Không châm chước các lỗi do thao tác chủ quan như làm mờ ẩu, che lấp thân xe theo quy tắc B4 hoặc ảnh chứa chi tiết phản cảm, rác thải theo quy định tại B1.3.
   * **Không thỏa hiệp về tính hợp pháp và quy chuẩn tác nghiệp:** Giá trị tư liệu lịch sử không được sử dụng để bao biện cho các hành vi xâm phạm an toàn, trật tự xã hội hoặc quy định pháp luật theo Phần B5. Hình ảnh gửi lên bắt buộc phải được ghi nhận tại nơi công cộng. Mọi hình ảnh liên quan đến tai nạn giao thông có thương vong, chụp lén, leo trèo hoặc xâm nhập trái phép khuôn viên doanh nghiệp vận tải, khu vực quân sự, khu vực cấm hoặc địa bàn nhạy cảm đều bị từ chối phê duyệt. Người dùng vi phạm quy chuẩn tác nghiệp sẽ bị đình chỉ tài khoản.
 * Ban quản trị giữ quyền áp dụng linh hoạt chính sách ưu tiên tùy thuộc vào giá trị tư liệu thực tế của từng bức ảnh.
