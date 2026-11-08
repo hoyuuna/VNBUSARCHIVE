@@ -2236,7 +2236,7 @@ html.theme-dark .ct-icon {
             if (stored === 'system') {
                 theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
             }
-            document.write('<link rel="stylesheet" href="/css/' + theme + '.css?v=1794112353871" id="theme-css">');
+            document.write('<link rel="stylesheet" href="/css/' + theme + '.css?v=1794112915246" id="theme-css">');
             document.documentElement.classList.add('theme-' + theme);
             document.documentElement.style.backgroundColor = theme === 'dark' ? '#18181b' : '#fdfcf8';
         })();
@@ -6388,7 +6388,7 @@ html.theme-dark .ct-icon {
 
         </main>
 
-        <div class="max-w-7xl mx-auto px-4 pb-8 mt-12">
+        <div id="app-footer-wrapper" class="max-w-7xl mx-auto px-4 pb-8 mt-12">
             <footer class="bg-white/80 border border-gray-200 shadow-island rounded-2xl p-6 lg:p-8">
                 <!-- Footer grid: logo col + up to 3 link cols -->
                 <div class="flex flex-col gap-8 lg:grid lg:grid-cols-[auto_auto_auto_auto] lg:gap-16 lg:mx-auto">
@@ -7888,50 +7888,45 @@ html.theme-dark .ct-icon {
     </div>
 
     <!-- THANH ĐIỀU HƯỚNG DƯỚI ĐÁY (BOTTOM NAVIGATION BAR - DÀNH CHO APP ANDROID) -->
-    <nav id="app-bottom-nav" class="hidden fixed bottom-3 left-1/2 -translate-x-1/2 w-[calc(100%-1.5rem)] max-w-md bg-white dark:bg-black border border-black dark:border-white rounded-2xl z-[2500] px-2 py-1.5 flex items-center justify-around select-none transition-all duration-300 transform shadow-2xl" style="padding-bottom: max(0.35rem, env(safe-area-inset-bottom, 0px)); -webkit-tap-highlight-color: transparent;">
+    <nav id="app-bottom-nav" class="hidden fixed bottom-3 left-1/2 -translate-x-1/2 w-[calc(100%-1.5rem)] max-w-md bg-white dark:bg-black border border-black dark:border-white rounded-2xl z-[2500] px-1 py-2 grid grid-cols-5 items-center justify-items-center select-none transition-all duration-300 transform shadow-2xl" style="padding-bottom: max(0.5rem, env(safe-area-inset-bottom, 0px)); -webkit-tap-highlight-color: transparent;">
         <!-- 1. Trang chủ -->
-        <button type="button" onclick="app.bottomNav.navigate('home')" id="bottom-tab-home" class="bottom-nav-item flex-1 py-1 flex flex-col items-center justify-center text-gray-400 dark:text-zinc-500 hover:text-black dark:hover:text-white transition">
-            <i class="fa-solid fa-house text-lg"></i>
-            <span class="text-[10px] font-bold mt-1">Trang chủ</span>
-            <span id="bottom-indicator-home" class="w-1 h-1 rounded-full bg-black dark:bg-white mt-0.5 opacity-0 transition-opacity"></span>
+        <button type="button" onclick="app.bottomNav.navigate('home')" id="bottom-tab-home" class="bottom-nav-item w-full flex flex-col items-center justify-center text-gray-400 dark:text-zinc-500 hover:text-black dark:hover:text-white transition">
+            <i class="fa-solid fa-house text-xl"></i>
+            <span class="text-[10px] font-bold mt-1 text-center">Trang chủ</span>
         </button>
 
         <!-- 2. Tìm kiếm -->
-        <button type="button" onclick="app.bottomNav.navigate('search')" id="bottom-tab-search" class="bottom-nav-item flex-1 py-1 flex flex-col items-center justify-center text-gray-400 dark:text-zinc-500 hover:text-black dark:hover:text-white transition">
-            <i class="fa-solid fa-magnifying-glass text-lg"></i>
-            <span class="text-[10px] font-bold mt-1">Tìm kiếm</span>
-            <span id="bottom-indicator-search" class="w-1 h-1 rounded-full bg-black dark:bg-white mt-0.5 opacity-0 transition-opacity"></span>
+        <button type="button" onclick="app.bottomNav.navigate('search')" id="bottom-tab-search" class="bottom-nav-item w-full flex flex-col items-center justify-center text-gray-400 dark:text-zinc-500 hover:text-black dark:hover:text-white transition">
+            <i class="fa-solid fa-magnifying-glass text-xl"></i>
+            <span class="text-[10px] font-bold mt-1 text-center">Tìm kiếm</span>
         </button>
 
-        <!-- 3. Nút Đăng ảnh trung tâm -->
-        <button type="button" onclick="app.bottomNav.navigate('upload')" id="bottom-tab-upload" class="bottom-nav-item px-2 py-0.5 flex flex-col items-center justify-center">
-            <div class="w-10 h-10 rounded-xl bg-black text-white dark:bg-white dark:text-black flex items-center justify-center text-base shadow-sm hover:scale-105 active:scale-95 transition-transform border border-black dark:border-white">
+        <!-- 3. Nút Đăng ảnh trung tâm (Không chữ, căn thẳng giữa) -->
+        <button type="button" onclick="app.bottomNav.navigate('upload')" id="bottom-tab-upload" class="bottom-nav-item w-full flex items-center justify-center">
+            <div class="w-12 h-12 rounded-xl bg-black text-white dark:bg-white dark:text-black flex items-center justify-center text-xl shadow-sm hover:scale-105 active:scale-95 transition-transform border border-black dark:border-white">
                 <i class="fa-solid fa-plus"></i>
             </div>
-            <span class="text-[9px] font-bold mt-1 text-black dark:text-white uppercase tracking-tight">Đăng</span>
         </button>
 
         <!-- 4. Bản đồ -->
-        <button type="button" onclick="app.bottomNav.navigate('map')" id="bottom-tab-map" class="bottom-nav-item flex-1 py-1 flex flex-col items-center justify-center text-gray-400 dark:text-zinc-500 hover:text-black dark:hover:text-white transition">
-            <i class="fa-solid fa-map-location-dot text-lg"></i>
-            <span class="text-[10px] font-bold mt-1">Bản đồ</span>
-            <span id="bottom-indicator-map" class="w-1 h-1 rounded-full bg-black dark:bg-white mt-0.5 opacity-0 transition-opacity"></span>
+        <button type="button" onclick="app.bottomNav.navigate('map')" id="bottom-tab-map" class="bottom-nav-item w-full flex flex-col items-center justify-center text-gray-400 dark:text-zinc-500 hover:text-black dark:hover:text-white transition">
+            <i class="fa-solid fa-map-location-dot text-xl"></i>
+            <span class="text-[10px] font-bold mt-1 text-center">Bản đồ</span>
         </button>
 
         <!-- 5. Cá nhân -->
-        <button type="button" onclick="app.bottomNav.navigate('profile')" id="bottom-tab-profile" class="bottom-nav-item flex-1 py-1 flex flex-col items-center justify-center text-gray-400 dark:text-zinc-500 hover:text-black dark:hover:text-white transition">
-            <div class="relative w-5 h-5 flex items-center justify-center">
-                <img id="bottom-tab-avatar" src="" class="w-5 h-5 rounded-full object-cover border border-black dark:border-white hidden" alt="Avatar">
-                <i id="bottom-tab-avatar-icon" class="fa-solid fa-circle-user text-lg"></i>
+        <button type="button" onclick="app.bottomNav.navigate('profile')" id="bottom-tab-profile" class="bottom-nav-item w-full flex flex-col items-center justify-center text-gray-400 dark:text-zinc-500 hover:text-black dark:hover:text-white transition">
+            <div class="w-6 h-6 flex items-center justify-center">
+                <img id="bottom-tab-avatar" src="" class="w-6 h-6 rounded-full object-cover border border-black dark:border-white shrink-0" style="display: none;" alt="Avatar">
+                <i id="bottom-tab-avatar-icon" class="fa-solid fa-circle-user text-xl shrink-0"></i>
             </div>
-            <span id="bottom-tab-profile-label" class="text-[10px] font-bold mt-1">Tài khoản</span>
-            <span id="bottom-indicator-profile" class="w-1 h-1 rounded-full bg-black dark:bg-white mt-0.5 opacity-0 transition-opacity"></span>
+            <span id="bottom-tab-profile-label" class="text-[10px] font-bold mt-1 text-center">Tài khoản</span>
         </button>
     </nav>
 
     <!-- KHAY CHỨA TOAST Z-INDEX CAO NHẤT -->
     <div id="toast-container" class="fixed left-0 w-full flex flex-col items-center gap-2 pointer-events-none z-[99999]" style="z-index: 99999 !important;"></div>
-<script src="/app.0bd4029382e3.js" onerror="if(!window.__app_fallback_loaded){window.__app_fallback_loaded=true;var s=document.createElement('script');s.src='/app.js?v=' + Date.now();document.head.appendChild(s);}"></script>
+<script src="/app.43aa985183bf.js" onerror="if(!window.__app_fallback_loaded){window.__app_fallback_loaded=true;var s=document.createElement('script');s.src='/app.js?v=' + Date.now();document.head.appendChild(s);}"></script>
 </body>
 </html>
 

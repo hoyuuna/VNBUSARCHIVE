@@ -22,11 +22,23 @@
   }
 }
 /* Native App layout tweaks */
+body.is-native-app header,
+body.is-native-app #header-spacer,
+body.is-native-app #app-footer-wrapper,
+body.is-native-app footer {
+    display: none !important;
+    height: 0 !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
 body.is-native-app {
+    padding-top: max(0.75rem, env(safe-area-inset-top, 0px)) !important;
     padding-bottom: calc(5.5rem + env(safe-area-inset-bottom, 0px)) !important;
     -webkit-tap-highlight-color: transparent !important;
 }
-body.is-native-app header a[href="/upload"],
-body.is-native-app header button[onclick*="/map"] {
-    display: none !important;
+
+body.is-native-app main {
+    padding-top: max(0.5rem, env(safe-area-inset-top, 0px)) !important;
 }

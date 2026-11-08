@@ -991,11 +991,11 @@ html.theme-dark #app-bottom-nav {
 html.theme-dark #app-bottom-nav .bottom-nav-item.text-black {
     color: #ffffff !important;
 }
+html.theme-dark #app-bottom-nav .bottom-nav-item.text-gray-400 {
+    color: #71717a !important;
+}
 html.theme-dark #app-bottom-nav #bottom-tab-upload div {
     background-color: #ffffff !important;
     color: #000000 !important;
     border-color: #ffffff !important;
-}
-html.theme-dark #app-bottom-nav span[id^="bottom-indicator-"] {
-    background-color: #ffffff !important;
 }

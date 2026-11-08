@@ -3660,7 +3660,21 @@ cleanupState: () => {
                         }
                         app.handleSearch(false);
                     } else {
-                        app.views.loadHome();
+                        app.views.switch('search', false);
+                        const headerInp = document.getElementById('search-input');
+                        const pageInp = document.getElementById('page-search-input');
+                        if (headerInp) headerInp.value = '';
+                        if (pageInp) pageInp.value = '';
+                        app.currentViewMode = 'search';
+                        document.title = 'Tìm kiếm | VNBUSARCHIVE';
+                        const grid = document.getElementById('search-grid');
+                        if (grid) grid.innerHTML = '';
+                        document.getElementById('search-count-container')?.classList.add('hidden');
+                        document.getElementById('search-load-more-container')?.classList.add('hidden');
+                        setTimeout(() => {
+                            const pInp = document.getElementById('page-search-input');
+                            if (pInp) pInp.focus();
+                        }, 200);
                     }
                 } else {
                     app.views.switch('home', false);
@@ -4632,16 +4646,13 @@ Object.assign(window.app, {
             const tabs = ['home', 'search', 'map', 'profile'];
             tabs.forEach(t => {
                 const btn = document.getElementById('bottom-tab-' + t);
-                const indicator = document.getElementById('bottom-indicator-' + t);
                 if (!btn) return;
                 if (t === activeTab) {
-                    btn.classList.add('text-black', 'dark:text-white', 'font-black');
-                    btn.classList.remove('text-gray-400', 'dark:text-zinc-500');
-                    if (indicator) indicator.classList.remove('opacity-0');
+                    btn.classList.add('text-black', 'dark:text-white', 'font-extrabold');
+                    btn.classList.remove('text-gray-400', 'dark:text-zinc-500', 'font-semibold');
                 } else {
-                    btn.classList.remove('text-black', 'dark:text-white', 'font-black');
-                    btn.classList.add('text-gray-400', 'dark:text-zinc-500');
-                    if (indicator) indicator.classList.add('opacity-0');
+                    btn.classList.remove('text-black', 'dark:text-white', 'font-extrabold');
+                    btn.classList.add('text-gray-400', 'dark:text-zinc-500', 'font-semibold');
                 }
             });
         },
@@ -4653,18 +4664,26 @@ Object.assign(window.app, {
 
             if (app.user) {
                 profileLabel.innerText = 'Cá nhân';
-                if (app.avatarUrl && avatarImg) {
+                if (app.avatarUrl && avatarImg && avatarIcon) {
                     avatarImg.src = app.utils.getProxiedUrl(app.avatarUrl.replace(/"/g, ''), 'avatar.jpg', 'avatar');
-                    avatarImg.classList.remove('hidden');
-                    if (avatarIcon) avatarIcon.classList.add('hidden');
+                    avatarImg.onload = () => {
+                        avatarImg.style.display = 'block';
+                        avatarIcon.style.display = 'none';
+                    };
+                    avatarImg.onerror = () => {
+                        avatarImg.style.display = 'none';
+                        avatarIcon.style.display = 'block';
+                    };
+                    avatarImg.style.display = 'block';
+                    avatarIcon.style.display = 'none';
                 } else {
-                    if (avatarImg) avatarImg.classList.add('hidden');
-                    if (avatarIcon) avatarIcon.classList.remove('hidden');
+                    if (avatarImg) avatarImg.style.display = 'none';
+                    if (avatarIcon) avatarIcon.style.display = 'block';
                 }
             } else {
                 profileLabel.innerText = 'Đăng nhập';
-                if (avatarImg) avatarImg.classList.add('hidden');
-                if (avatarIcon) avatarIcon.classList.remove('hidden');
+                if (avatarImg) avatarImg.style.display = 'none';
+                if (avatarIcon) avatarIcon.style.display = 'block';
             }
         },
         navigate: (target) => {
@@ -4675,16 +4694,7 @@ Object.assign(window.app, {
                     app.utils.navigate('/');
                 }
             } else if (target === 'search') {
-                if (window.location.pathname === '/search') {
-                    const input = document.getElementById('search-input');
-                    if (input) input.focus();
-                } else {
-                    app.utils.navigate('/search');
-                    setTimeout(() => {
-                        const input = document.getElementById('search-input');
-                        if (input) input.focus();
-                    }, 300);
-                }
+                app.utils.navigate('/search');
             } else if (target === 'upload') {
                 app.utils.navigate('/upload');
             } else if (target === 'map') {
