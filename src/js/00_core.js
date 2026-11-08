@@ -4620,6 +4620,49 @@ Object.assign(window.app, {
                 nav.classList.remove('hidden');
                 app.bottomNav.updateActiveTab(window.location.pathname);
                 app.bottomNav.updateUserUI();
+
+                // Ẩn thanh bottom-nav khi bàn phím ảo mở để không bị đội lên trên bàn phím
+                if (window.visualViewport && !window._bottomNavViewportListening) {
+                    window._bottomNavViewportListening = true;
+                    window.visualViewport.addEventListener('resize', () => {
+                        const bNav = document.getElementById('app-bottom-nav');
+                        if (!bNav) return;
+                        const isKeyboard = (window.innerHeight - window.visualViewport.height) > 150;
+                        if (isKeyboard) {
+                            bNav.style.display = 'none';
+                        } else {
+                            const isAuth = window.location.pathname === '/auth' || document.getElementById('auth')?.classList.contains('active');
+                            if (!isAuth && !app._bottomNavHiddenByPage) {
+                                bNav.style.display = '';
+                            }
+                        }
+                    });
+                }
+
+                if (!window._bottomNavFocusListening) {
+                    window._bottomNavFocusListening = true;
+                    document.addEventListener('focusin', (e) => {
+                        if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.isContentEditable)) {
+                            const bNav = document.getElementById('app-bottom-nav');
+                            if (bNav) bNav.style.display = 'none';
+                        }
+                    });
+
+                    document.addEventListener('focusout', (e) => {
+                        if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.isContentEditable)) {
+                            setTimeout(() => {
+                                const active = document.activeElement;
+                                if (!active || (active.tagName !== 'INPUT' && active.tagName !== 'TEXTAREA' && !active.isContentEditable)) {
+                                    const bNav = document.getElementById('app-bottom-nav');
+                                    const isAuth = window.location.pathname === '/auth' || document.getElementById('auth')?.classList.contains('active');
+                                    if (bNav && !isAuth && !app._bottomNavHiddenByPage) {
+                                        bNav.style.display = '';
+                                    }
+                                }
+                            }, 150);
+                        }
+                    });
+                }
             } else {
                 nav.classList.add('hidden');
             }
@@ -4627,6 +4670,13 @@ Object.assign(window.app, {
         updateActiveTab: (path) => {
             const nav = document.getElementById('app-bottom-nav');
             if (!nav || nav.classList.contains('hidden')) return;
+
+            if (path === '/auth' || path === '/login') {
+                nav.style.display = 'none';
+                return;
+            } else {
+                nav.style.display = '';
+            }
 
             let activeTab = 'home';
             if (path === '/' || path === '') {
@@ -4731,6 +4781,14 @@ Object.assign(window.app, {
         startY: 0,
         threshold: 380,
         hapticFired: false,
+        enabled: true,
+        setEnabled: (val) => {
+            app.pullRefresh.enabled = !!val;
+            if (!app.pullRefresh.enabled) {
+                const badge = document.getElementById('app-pull-refresh-badge');
+                if (badge) badge.classList.add('opacity-0');
+            }
+        },
         init: () => {
             const isApp = (window.AndroidBridge && typeof window.AndroidBridge.isNativeApp === 'function' && window.AndroidBridge.isNativeApp()) || window.location.search.includes('app_preview=1');
             if (!isApp) return;
@@ -4749,12 +4807,22 @@ Object.assign(window.app, {
             let triggered = false;
 
             window.addEventListener('touchstart', (e) => {
+                if (!app.pullRefresh.enabled) {
+                    canPull = false;
+                    return;
+                }
                 if (document.body.classList.contains('no-scroll')) {
                     canPull = false;
                     return;
                 }
+                // Không kích hoạt khi chạm vào map, ô nhập hoặc phần tử tương tác
+                if (e.target && e.target.closest('#leaflet-map, .leaflet-container, input, textarea, select, .no-pull-refresh')) {
+                    canPull = false;
+                    return;
+                }
                 const sY = window.scrollY || document.documentElement.scrollTop || 0;
-                if (sY <= 2) {
+                // CHỈ kích hoạt khi đang ở chính xác đầu trang (sY <= 0) và bắt đầu kéo ở 35% phía trên của màn hình
+                if (sY <= 0 && e.touches[0].clientY <= window.innerHeight * 0.35) {
                     canPull = true;
                     triggered = false;
                     app.pullRefresh.startY = e.touches[0].clientY;
@@ -4764,12 +4832,19 @@ Object.assign(window.app, {
             }, { passive: true });
 
             window.addEventListener('touchmove', (e) => {
-                if (!canPull || triggered) return;
+                if (!canPull || triggered || !app.pullRefresh.enabled) return;
+                const sY = window.scrollY || document.documentElement.scrollTop || 0;
+                // Nếu trang bị cuộn xuống (sY > 0), lập tức hủy trạng thái kéo làm mới
+                if (sY > 0) {
+                    canPull = false;
+                    badge.classList.add('opacity-0');
+                    return;
+                }
+
                 const touchY = e.touches[0].clientY;
                 const diff = touchY - app.pullRefresh.startY;
 
-                const sY = window.scrollY || document.documentElement.scrollTop || 0;
-                if (diff > 35 && sY <= 2) {
+                if (diff > 35) {
                     badge.classList.remove('opacity-0');
                     if (diff >= app.pullRefresh.threshold) {
                         text.innerText = "Thả tay để làm mới";
@@ -4797,7 +4872,7 @@ Object.assign(window.app, {
             }, { passive: true });
 
             window.addEventListener('touchend', (e) => {
-                if (!canPull) return;
+                if (!canPull || !app.pullRefresh.enabled) return;
                 const touchY = e.changedTouches[0].clientY;
                 const diff = touchY - app.pullRefresh.startY;
                 canPull = false;
