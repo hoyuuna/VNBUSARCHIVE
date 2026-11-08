@@ -577,6 +577,41 @@ Object.assign(window.app, {
                 }
             },
 
+            // Tự động kích hoạt thanh tải trên cùng hoặc pill làm mới khi trang được reload/refresh trong phiên
+            _sessionAutoLoadStarted: (() => {
+                try {
+                    const isAppLoaded = sessionStorage.getItem('vnbus_app_loaded') === '1';
+                    const isRefreshing = sessionStorage.getItem('vnbus_is_refreshing') === '1';
+                    if (isAppLoaded || isRefreshing) {
+                        setTimeout(() => {
+                            if (window.app && app.loadingBar && app.loadingBar.start) {
+                                app.loadingBar.start();
+                            }
+                        }, 10);
+                        if (isRefreshing) {
+                            const setRefreshingPill = () => {
+                                const badge = document.getElementById('app-pull-refresh-badge');
+                                const icon = document.getElementById('app-pull-refresh-icon');
+                                const text = document.getElementById('app-pull-refresh-text');
+                                const inner = document.getElementById('app-pull-refresh-inner');
+                                if (badge) badge.classList.remove('opacity-0');
+                                if (text) text.innerText = 'Đang làm mới...';
+                                if (icon) icon.className = 'fa-solid fa-circle-notch fa-spin text-xs';
+                                if (inner) {
+                                    inner.classList.add('bg-black', 'text-white', 'dark:bg-white', 'dark:text-black');
+                                    inner.classList.remove('bg-white', 'text-black', 'dark:bg-black', 'dark:text-white');
+                                }
+                            };
+                            if (document.readyState === 'loading') {
+                                document.addEventListener('DOMContentLoaded', setRefreshingPill);
+                            } else {
+                                setRefreshingPill();
+                            }
+                        }
+                    }
+                } catch (e) {}
+                return true;
+            })(),
             _initialLoadingDismissed: false,
             _headerLogoTimer: null,
             _headerLogoTransitioned: false,
@@ -614,6 +649,33 @@ Object.assign(window.app, {
                 }, 520);
             },
             dismissInitialLoadingScreen: () => {
+                try {
+                    sessionStorage.setItem('vnbus_app_loaded', '1');
+                } catch (e) {}
+
+                const wasRefreshing = (function() {
+                    try {
+                        return sessionStorage.getItem('vnbus_is_refreshing') === '1';
+                    } catch (e) { return false; }
+                })();
+                try {
+                    sessionStorage.removeItem('vnbus_is_refreshing');
+                } catch (e) {}
+
+                if (app.loadingBar && app.loadingBar.finish) {
+                    app.loadingBar.finish();
+                }
+
+                if (wasRefreshing) {
+                    const badge = document.getElementById('app-pull-refresh-badge');
+                    if (badge) {
+                        setTimeout(() => {
+                            badge.classList.add('opacity-0');
+                            document.documentElement.classList.remove('app-is-refreshing');
+                        }, 300);
+                    }
+                }
+
                 if (app._initialLoadingDismissed) return;
                 app._initialLoadingDismissed = true;
                 const loadingScreen = document.getElementById('loading-screen');
@@ -4918,9 +4980,19 @@ Object.assign(window.app, {
                     triggered = true;
                     text.innerText = "Đang làm mới...";
                     if (icon) icon.className = "fa-solid fa-circle-notch fa-spin text-xs";
+                    if (inner) {
+                        inner.classList.add('bg-black', 'text-white', 'dark:bg-white', 'dark:text-black');
+                        inner.classList.remove('bg-white', 'text-black', 'dark:bg-black', 'dark:text-white');
+                    }
+                    if (app.loadingBar && app.loadingBar.start) {
+                        app.loadingBar.start();
+                    }
+                    try {
+                        sessionStorage.setItem('vnbus_is_refreshing', '1');
+                    } catch (e) {}
                     setTimeout(() => {
                         window.location.reload();
-                    }, 300);
+                    }, 200);
                 } else {
                     badge.classList.add('opacity-0');
                 }

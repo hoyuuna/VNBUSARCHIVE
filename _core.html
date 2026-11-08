@@ -2249,6 +2249,15 @@ html.theme-dark .ct-icon {
             document.write('<link rel="stylesheet" href="/css/' + theme + '.css?v=BUILD_VERSION_PLACEHOLDER" id="theme-css">');
             document.documentElement.classList.add('theme-' + theme);
             document.documentElement.style.backgroundColor = theme === 'dark' ? '#18181b' : '#fdfcf8';
+
+            try {
+                if (sessionStorage.getItem('vnbus_app_loaded') === '1') {
+                    document.documentElement.classList.add('app-already-loaded');
+                }
+                if (sessionStorage.getItem('vnbus_is_refreshing') === '1') {
+                    document.documentElement.classList.add('app-is-refreshing');
+                }
+            } catch (e) {}
         })();
     </script>
     <style>
@@ -2256,6 +2265,17 @@ html.theme-dark .ct-icon {
         html.theme-dark #loading-screen .text-inner span { color: #ffffff !important; }
         html.theme-dark #loading-screen .spinner { border-color: rgba(255, 255, 255, 0.1) !important; border-left-color: #ffffff !important; }
         html.theme-dark #top-loading-bar { background-color: #ffffff !important; box-shadow: 0 0 10px rgba(255, 255, 255, 0.5) !important; }
+
+        html.app-already-loaded #loading-screen {
+            display: none !important;
+        }
+        html.app-already-loaded #app-container {
+            display: block !important;
+            opacity: 1 !important;
+        }
+        html.app-is-refreshing #app-pull-refresh-badge {
+            opacity: 1 !important;
+        }
     </style>
 </head>
 
