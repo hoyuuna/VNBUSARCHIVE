@@ -4621,47 +4621,8 @@ Object.assign(window.app, {
                 app.bottomNav.updateActiveTab(window.location.pathname);
                 app.bottomNav.updateUserUI();
 
-                // Ẩn thanh bottom-nav khi bàn phím ảo mở để không bị đội lên trên bàn phím
-                if (window.visualViewport && !window._bottomNavViewportListening) {
-                    window._bottomNavViewportListening = true;
-                    window.visualViewport.addEventListener('resize', () => {
-                        const bNav = document.getElementById('app-bottom-nav');
-                        if (!bNav) return;
-                        const isKeyboard = (window.innerHeight - window.visualViewport.height) > 150;
-                        if (isKeyboard) {
-                            bNav.style.display = 'none';
-                        } else {
-                            const isAuth = window.location.pathname === '/auth' || document.getElementById('auth')?.classList.contains('active');
-                            if (!isAuth && !app._bottomNavHiddenByPage) {
-                                bNav.style.display = '';
-                            }
-                        }
-                    });
-                }
-
-                if (!window._bottomNavFocusListening) {
-                    window._bottomNavFocusListening = true;
-                    document.addEventListener('focusin', (e) => {
-                        if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.isContentEditable)) {
-                            const bNav = document.getElementById('app-bottom-nav');
-                            if (bNav) bNav.style.display = 'none';
-                        }
-                    });
-
-                    document.addEventListener('focusout', (e) => {
-                        if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.isContentEditable)) {
-                            setTimeout(() => {
-                                const active = document.activeElement;
-                                if (!active || (active.tagName !== 'INPUT' && active.tagName !== 'TEXTAREA' && !active.isContentEditable)) {
-                                    const bNav = document.getElementById('app-bottom-nav');
-                                    const isAuth = window.location.pathname === '/auth' || document.getElementById('auth')?.classList.contains('active');
-                                    if (bNav && !isAuth && !app._bottomNavHiddenByPage) {
-                                        bNav.style.display = '';
-                                    }
-                                }
-                            }, 150);
-                        }
-                    });
+                if ('virtualKeyboard' in navigator) {
+                    try { navigator.virtualKeyboard.overlaysContent = true; } catch (e) {}
                 }
             } else {
                 nav.classList.add('hidden');
