@@ -603,17 +603,18 @@ Object.assign(window.app, {
                         const tag = app.utils.escapeHtml(data.latestVersion);
                         const isPre = data.isPrerelease ? '<span class="ml-2 text-[10px] font-bold px-1.5 py-0.5 rounded bg-yellow-100 text-yellow-800 border border-yellow-300">THỬ NGHIỆM</span>' : '';
                         box.innerHTML = `
-                            <div class="space-y-2">
-                                <div class="flex items-center justify-between">
-                                    <span class="font-bold text-black flex items-center">
-                                        <i class="fa-solid fa-sparkles text-yellow-500 mr-1.5"></i> Có bản cập nhật mới: v${tag}${isPre}
+                            <div class="space-y-3">
+                                <div class="flex flex-wrap items-center justify-between gap-2">
+                                    <span class="font-bold text-black dark:text-white flex items-center text-xs sm:text-sm">
+                                        <i class="fa-solid fa-sparkles text-yellow-500 mr-2"></i> Có bản cập nhật mới: v${tag}${isPre}
                                     </span>
+                                    <span class="text-[10px] text-gray-500 font-mono">Hiện tại: v${app.utils.escapeHtml(data.currentVersion || '')}</span>
                                 </div>
-                                <div class="text-[11px] text-gray-600 leading-relaxed max-h-32 overflow-y-auto whitespace-pre-wrap font-mono p-2 bg-white rounded border border-gray-200">
+                                <div class="text-[11px] text-gray-700 dark:text-zinc-300 leading-relaxed max-h-36 overflow-y-auto whitespace-pre-wrap font-mono p-3 bg-white dark:bg-black rounded-md border border-black dark:border-white">
 ${app.utils.escapeHtml(data.notes || 'Không có mô tả cập nhật.')}
                                 </div>
                                 <div class="pt-1">
-                                    <button onclick="app.androidUpdate.startDownload('${data.downloadUrl}')" class="bg-black text-white px-4 py-2 text-xs font-bold rounded-md hover:bg-gray-800 transition shadow-sm flex items-center gap-1.5">
+                                    <button onclick="app.androidUpdate.startDownload('${data.downloadUrl}')" class="w-full sm:w-auto bg-black text-white dark:bg-white dark:text-black px-5 py-2.5 text-xs font-bold rounded-md hover:bg-gray-800 dark:hover:bg-zinc-200 transition shadow-sm flex items-center justify-center gap-2">
                                         <i class="fa-solid fa-download"></i> Tải về & Cập nhật ngay
                                     </button>
                                 </div>

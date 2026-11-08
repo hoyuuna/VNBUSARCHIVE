@@ -3,6 +3,16 @@ plugins {
     id("org.jetbrains.kotlin.android")
 }
 
+val appVersionName: String = providers.gradleProperty("versionName").orNull
+    ?: rootProject.findProperty("versionName")?.toString()
+    ?: project.findProperty("versionName")?.toString()
+    ?: "0.1.0"
+
+val appVersionCode: Int = (providers.gradleProperty("versionCode").orNull
+    ?: rootProject.findProperty("versionCode")?.toString()
+    ?: project.findProperty("versionCode")?.toString())?.toIntOrNull()
+    ?: 1
+
 android {
     namespace = "hoyu.app.vnbusarchive"
     compileSdk = 34
@@ -11,8 +21,8 @@ android {
         applicationId = "hoyu.app.vnbusarchive"
         minSdk = 26
         targetSdk = 34
-        versionCode = (project.findProperty("versionCode") as? String)?.toIntOrNull() ?: 1
-        versionName = (project.findProperty("versionName") as? String) ?: "0.1.0"
+        versionCode = appVersionCode
+        versionName = appVersionName
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }

@@ -47,6 +47,11 @@ jobs:
           APK_NAME="VNBUSARCHIVE-v${VERSION_NAME}.apk"
           TAG_NAME="v${VERSION_NAME}"
 
+          # Ghi trực tiếp vào gradle.properties để Gradle nhận 100% không bị sót
+          echo "" >> android/gradle.properties
+          echo "versionName=${VERSION_NAME}" >> android/gradle.properties
+          echo "versionCode=${VERSION_CODE}" >> android/gradle.properties
+
           echo "version_name=$VERSION_NAME" >> $GITHUB_OUTPUT
           echo "version_code=$VERSION_CODE" >> $GITHUB_OUTPUT
           echo "short_sha=$SHORT_SHA" >> $GITHUB_OUTPUT
