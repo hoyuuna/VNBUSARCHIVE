@@ -5759,12 +5759,15 @@ html.theme-dark .ct-icon {
                             </button>
                         </div>
                     </div>
-                    <div class="w-full lg:w-3/4">
-                        <div class="bg-white border border-vbs-border shadow-sm p-6 rounded-lg">
-                            <!-- HÀNG NÚT CHỨC NĂNG HỒ SƠ / CÀI ĐẶT -->
-                            <div id="profile-action-buttons" class="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-6">
+                    <div class="w-full lg:w-3/4 space-y-6">
+                        <!-- CARD RIÊNG BIỆT CHO HÀNG NÚT CHỨC NĂNG -->
+                        <div id="profile-actions-card" class="bg-white dark:bg-black border border-black dark:border-white shadow-sm p-4 md:p-5 rounded-lg">
+                            <div id="profile-action-buttons" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5">
                                 <button type="button" onclick="app.settings.open()" class="bg-white dark:bg-black border border-black dark:border-white text-black dark:text-white px-3 py-2.5 rounded-lg text-xs font-bold hover:bg-gray-100 dark:hover:bg-zinc-800 transition shadow-sm flex items-center justify-center gap-2">
                                     <i class="fa-solid fa-gear"></i> Cài đặt
+                                </button>
+                                <button type="button" onclick="app.newsboard.open()" class="bg-white dark:bg-black border border-black dark:border-white text-black dark:text-white px-3 py-2.5 rounded-lg text-xs font-bold hover:bg-gray-100 dark:hover:bg-zinc-800 transition shadow-sm flex items-center justify-center gap-2">
+                                    <i class="fa-solid fa-bell"></i> Bảng tin
                                 </button>
                                 <button type="button" onclick="app.utils.navigate('/help')" class="bg-white dark:bg-black border border-black dark:border-white text-black dark:text-white px-3 py-2.5 rounded-lg text-xs font-bold hover:bg-gray-100 dark:hover:bg-zinc-800 transition shadow-sm flex items-center justify-center gap-2">
                                     <i class="fa-solid fa-book-open"></i> Hỗ trợ
@@ -5772,13 +5775,15 @@ html.theme-dark .ct-icon {
                                 <button type="button" onclick="app.utils.navigate('/contact')" class="bg-white dark:bg-black border border-black dark:border-white text-black dark:text-white px-3 py-2.5 rounded-lg text-xs font-bold hover:bg-gray-100 dark:hover:bg-zinc-800 transition shadow-sm flex items-center justify-center gap-2">
                                     <i class="fa-solid fa-headset"></i> Liên hệ
                                 </button>
-                                <button type="button" id="btn-profile-logout" onclick="app.auth.logout()" class="bg-white dark:bg-black border border-red-500 text-red-600 dark:text-red-400 px-3 py-2.5 rounded-lg text-xs font-bold hover:bg-red-50 dark:hover:bg-red-950/30 transition shadow-sm flex items-center justify-center gap-2">
+                                <button type="button" id="btn-profile-logout" onclick="app.auth.logout()" class="col-span-2 sm:col-span-1 bg-white dark:bg-black border border-red-500 text-red-600 dark:text-red-400 px-3 py-2.5 rounded-lg text-xs font-bold hover:bg-red-50 dark:hover:bg-red-950/30 transition shadow-sm flex items-center justify-center gap-2">
                                     <i class="fa-solid fa-right-from-bracket"></i> Đăng xuất
                                 </button>
                             </div>
+                        </div>
 
-                            <div id="profile-auth-only-content">
-                                <h3 class="font-bold text-lg tracking-tight uppercase text-gray-800 mb-4" id="profile-stats-title">THỐNG KÊ HOẠT ĐỘNG</h3>
+                        <!-- CARD RIÊNG BIỆT CHO THỐNG KÊ & HOẠT ĐỘNG (ẨN VỚI KHÁCH) -->
+                        <div id="profile-auth-only-content" class="bg-white border border-vbs-border shadow-sm p-6 rounded-lg">
+                            <h3 class="font-bold text-lg tracking-tight uppercase text-gray-800 mb-4" id="profile-stats-title">THỐNG KÊ HOẠT ĐỘNG</h3>
                             <div class="stats-grid mb-4">
                                 <div class="stat-item">
                                     <span class="stat-value" id="my-stat-photos">0</span>
@@ -5945,7 +5950,6 @@ html.theme-dark .ct-icon {
                                 </div>
                             </div>
                             </div> <!-- /profile-auth-only-content -->
-                        </div>
                     </div>
                 </div>
             </div>
