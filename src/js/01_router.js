@@ -96,6 +96,13 @@ Object.assign(window.app, {
                             if (session && session.user) {
                                 await app.setUser(session.user);
                             }
+                            const pendingQr = sessionStorage.getItem('pending_qr_login');
+                            if (pendingQr) {
+                                sessionStorage.removeItem('pending_qr_login');
+                                app.views.switch('home', false);
+                                setTimeout(() => app.qrLogin.initClient(pendingQr), 500);
+                                return;
+                            }
                             const hash = window.INITIAL_HASH || window.location.hash;
                             const searchType = new URLSearchParams(window.INITIAL_SEARCH || window.location.search).get('type');
                             if ((hash && hash.includes('type=signup')) || searchType === 'signup') {

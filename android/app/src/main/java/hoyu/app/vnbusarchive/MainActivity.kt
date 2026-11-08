@@ -84,7 +84,6 @@ class MainActivity : AppCompatActivity() {
         setupSwipeRefresh()
         setupBackNavigation()
 
-        // Tự động kiểm tra bản cập nhật khi vào app (nếu người dùng bật)
         triggerAutoUpdateCheck()
 
         if (savedInstanceState == null) {
@@ -107,7 +106,6 @@ class MainActivity : AppCompatActivity() {
         } else if (intent.data != null) {
             webView.loadUrl(intent.data.toString())
         } else if (pendingOpenTab != null) {
-            // Mở modal cài đặt
             webView.evaluateJavascript("if (window.app && app.settings) { app.settings.open('$pendingOpenTab'); }", null)
         }
     }
@@ -152,6 +150,10 @@ class MainActivity : AppCompatActivity() {
         return tab
     }
 
+    fun setSwipeRefreshEnabled(enabled: Boolean) {
+        swipeRefreshLayout.isEnabled = enabled
+    }
+
     private fun triggerAutoUpdateCheck() {
         if (UpdateManager.isAutoCheckEnabled(this)) {
             lifecycleScope.launch(Dispatchers.IO) {
@@ -191,12 +193,10 @@ class MainActivity : AppCompatActivity() {
         settings.allowFileAccess = true
         settings.cacheMode = WebSettings.LOAD_DEFAULT
 
-        // Cho phép cookie bên thứ 3 để quá trình đăng nhập OAuth (Discord, Google, v.v.) không bị rớt session
         val cookieManager = CookieManager.getInstance()
         cookieManager.setAcceptCookie(true)
         cookieManager.setAcceptThirdPartyCookies(webView, true)
 
-        // Loại bỏ 'wv' và 'Version/4.0' để tránh Google/OAuth chặn với lỗi "disallowed_useragent"
         val rawUa = settings.userAgentString
         settings.userAgentString = rawUa.replace("; wv", "").replace("Version/4.0 ", "")
 
@@ -207,12 +207,10 @@ class MainActivity : AppCompatActivity() {
                 val url = request?.url?.toString() ?: return false
                 val host = request.url.host ?: ""
 
-                // Giữ lại bên trong WebView cho cả domain hệ thống và các domain xác thực OAuth (Discord, Google, GitHub...)
                 if (isInternalOrAuthDomain(host)) {
                     return false
                 }
 
-                // Link bên ngoài (YouTube, Facebook pages, báo chí...): Mở bằng trình duyệt ngoài
                 return try {
                     val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
                     startActivity(intent)
@@ -226,7 +224,6 @@ class MainActivity : AppCompatActivity() {
                 super.onPageFinished(view, url)
                 swipeRefreshLayout.isRefreshing = false
 
-                // Nếu có tab đang chờ mở (từ notification)
                 pendingOpenTab?.let { tab ->
                     webView.evaluateJavascript("if (window.app && app.settings) { app.settings.open('$tab'); }", null)
                     pendingOpenTab = null
@@ -274,9 +271,12 @@ class MainActivity : AppCompatActivity() {
     private fun setupSwipeRefresh() {
         swipeRefreshLayout.setColorSchemeColors(0xFFFFFFFF.toInt())
         swipeRefreshLayout.setProgressBackgroundColorSchemeColor(0xFF18181B.toInt())
+        
+        // Không cuộn làm mới khi trang đang cuộn ở phía dưới
         swipeRefreshLayout.setOnChildScrollUpCallback { _, _ ->
-            webView.scrollY > 0
+            webView.canScrollVertically(-1)
         }
+
         swipeRefreshLayout.setOnRefreshListener {
             webView.reload()
         }

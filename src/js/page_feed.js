@@ -83,6 +83,9 @@ Object.assign(window.app, {
                     if (id === 'auth') {
                         window.dispatchEvent(new CustomEvent('auth-opened'));
                         app.utils.resetTurnstile('#auth .cf-turnstile');
+                        if (app.auth && app.auth.updateNativeAppAuthUI) {
+                            app.auth.updateNativeAppAuthUI();
+                        }
                     }
                     const searchBox = document.getElementById('header-search-box');
                     const headerSpacer = document.getElementById('header-spacer');

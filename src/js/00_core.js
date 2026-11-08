@@ -1380,10 +1380,16 @@ closeCustomRolePrompt: () => {
                 lockScroll: () => {
                     document.documentElement.classList.add('no-scroll');
                     document.body.classList.add('no-scroll');
+                    if (window.AndroidBridge && typeof window.AndroidBridge.setSwipeRefreshEnabled === 'function') {
+                        window.AndroidBridge.setSwipeRefreshEnabled(false);
+                    }
                 },
                 unlockScroll: () => {
                     document.documentElement.classList.remove('no-scroll');
                     document.body.classList.remove('no-scroll');
+                    if (window.AndroidBridge && typeof window.AndroidBridge.setSwipeRefreshEnabled === 'function') {
+                        window.AndroidBridge.setSwipeRefreshEnabled(true);
+                    }
                 },
                 toggleUserMenu: (forceOpen = null) => {
                     const menu = document.getElementById('user-dropdown');

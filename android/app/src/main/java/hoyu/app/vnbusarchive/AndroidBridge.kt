@@ -1,6 +1,8 @@
 package hoyu.app.vnbusarchive
 
 import android.content.Context
+import android.content.Intent
+import android.net.Uri
 import android.os.Handler
 import android.os.Looper
 import android.webkit.JavascriptInterface
@@ -39,6 +41,33 @@ class AndroidBridge(
     fun downloadImage(url: String, fileName: String) {
         mainHandler.post {
             DownloadHelper.downloadImage(activity, url, fileName)
+        }
+    }
+
+    /**
+     * Bật / tắt vuốt làm mới trang (Dùng khi mở modal để tránh bị refresh khi cuộn nội dung modal)
+     */
+    @JavascriptInterface
+    fun setSwipeRefreshEnabled(enabled: Boolean) {
+        mainHandler.post {
+            activity.setSwipeRefreshEnabled(enabled)
+        }
+    }
+
+    /**
+     * Mở đường dẫn bằng trình duyệt ngoài của hệ thống (Chrome, Samsung Internet, v.v.)
+     */
+    @JavascriptInterface
+    fun openExternalBrowser(url: String) {
+        mainHandler.post {
+            try {
+                val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url)).apply {
+                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                }
+                activity.startActivity(intent)
+            } catch (e: Exception) {
+                Toast.makeText(activity, "Không thể mở trình duyệt: ${e.message}", Toast.LENGTH_SHORT).show()
+            }
         }
     }
 

@@ -93,6 +93,9 @@ Object.assign(window.app, {
                         if (pendingTab === 'app' && !targetTab) {
                             targetTab = 'app';
                         }
+                        if (app.androidUpdate) {
+                            app.androidUpdate.loadUI();
+                        }
                     }
                     if (app.user) {
                         document.querySelectorAll('.account-only-btn').forEach(el => el.style.display = '');
@@ -172,6 +175,9 @@ Object.assign(window.app, {
                     if (tab === 'badges') {
                         app.settings.loadBadges();
                         app.settings.loadWebBadges();
+                    }
+                    if (tab === 'app' && app.androidUpdate) {
+                        app.androidUpdate.loadUI();
                     }
                 },
                 loadDiscordVerifyStatus: async () => {
