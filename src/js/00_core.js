@@ -4648,11 +4648,11 @@ Object.assign(window.app, {
                 const btn = document.getElementById('bottom-tab-' + t);
                 if (!btn) return;
                 if (t === activeTab) {
-                    btn.classList.add('text-black', 'dark:text-white', 'font-extrabold');
-                    btn.classList.remove('text-gray-400', 'dark:text-zinc-500', 'font-semibold');
+                    btn.classList.add('text-black', 'dark:text-white');
+                    btn.classList.remove('text-gray-400', 'dark:text-zinc-500');
                 } else {
-                    btn.classList.remove('text-black', 'dark:text-white', 'font-extrabold');
-                    btn.classList.add('text-gray-400', 'dark:text-zinc-500', 'font-semibold');
+                    btn.classList.remove('text-black', 'dark:text-white');
+                    btn.classList.add('text-gray-400', 'dark:text-zinc-500');
                 }
             });
             const bAvatarImg = document.getElementById('bottom-tab-avatar');

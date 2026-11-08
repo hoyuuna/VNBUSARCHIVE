@@ -144,11 +144,12 @@ Object.assign(window.app, {
                     const currentId = document.querySelector('.view-section.active')?.id || 'home';
                     const currentDepth = depths[currentId] || 0;
                     const targetDepth = depths[id] || 0;
-                    let animationClass = 'slide-in-right'; 
+                    const isNative = document.body.classList.contains('is-native-app') || (window.AndroidBridge && typeof window.AndroidBridge.isNativeApp === 'function' && window.AndroidBridge.isNativeApp());
+                    let animationClass = isNative ? '' : 'slide-in-right'; 
                     if (targetDepth < currentDepth) {
-                        animationClass = 'slide-in-left';  
+                        animationClass = isNative ? '' : 'slide-in-left';  
                     } else if (targetDepth === currentDepth) {
-                        animationClass = 'fade-zoom-in-page'; 
+                        animationClass = isNative ? '' : 'fade-zoom-in-page'; 
                     }
                     const targetEl = document.getElementById(id);
                     if (targetEl) {
@@ -632,8 +633,7 @@ Object.assign(window.app, {
                     document.getElementById('profile-auth-only-content')?.classList.add('hidden');
                     document.getElementById('btn-profile-logout')?.classList.add('hidden');
                     document.getElementById('btn-profile-admin')?.classList.add('hidden');
-                    document.getElementById('btn-profile-comments')?.classList.add('hidden');
-                    if (app.loadingBar && app.loadingBar.finish) app.loadingBar.finish();
+                                        if (app.loadingBar && app.loadingBar.finish) app.loadingBar.finish();
                 },
                 loadAccount: async (usernameStr = null, forceRefresh = false) => {
                     let targetUsername = usernameStr;
@@ -671,11 +671,9 @@ Object.assign(window.app, {
                         document.getElementById('btn-profile-admin')?.classList.add('hidden');
                     }
                     if (isOwnProfile) {
-                        document.getElementById('btn-profile-comments')?.classList.remove('hidden');
-                        document.getElementById('btn-profile-logout')?.classList.remove('hidden');
+                                                document.getElementById('btn-profile-logout')?.classList.remove('hidden');
                     } else {
-                        document.getElementById('btn-profile-comments')?.classList.add('hidden');
-                        document.getElementById('btn-profile-logout')?.classList.add('hidden');
+                                                document.getElementById('btn-profile-logout')?.classList.add('hidden');
                     }
                     document.getElementById('my-stat-photos').innerHTML = '<i class="fa-solid fa-spinner fa-spin text-gray-400"></i>';
                     document.getElementById('my-stat-views').innerHTML = '<i class="fa-solid fa-spinner fa-spin text-gray-400"></i>';

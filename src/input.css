@@ -51,13 +51,9 @@ body.is-native-app main {
     right: 0 !important;
     margin-left: auto !important;
     margin-right: auto !important;
-    bottom: max(16px, calc(10px + env(safe-area-inset-bottom, 0px))) !important;
-    -webkit-transform: translateZ(0) !important;
-    transform: translateZ(0) !important;
-    -webkit-backface-visibility: hidden !important;
-    backface-visibility: hidden !important;
-    contain: layout paint !important;
-    transition: none !important;
-    animation: none !important;
+    bottom: 18px !important;
     z-index: 2500 !important;
+    transform: none !important;
+    -webkit-transform: none !important;
+    transition: none !important;
 }
