@@ -25,7 +25,7 @@ object NativeImageProcessor {
     suspend fun extractExif(context: Context, uri: Uri): String = withContext(Dispatchers.IO) {
         val result = JSONObject()
         try {
-            var inputStream: InputStream? = context.contentResolver.openInputStream(uri) ?: return@withContext "{}"
+            val inputStream: InputStream = context.contentResolver.openInputStream(uri) ?: return@withContext "{}"
             val exif = ExifInterface(inputStream)
             inputStream.close()
 
@@ -135,10 +135,10 @@ object NativeImageProcessor {
         quality: Int = 92
     ): String = withContext(Dispatchers.IO) {
         try {
-            var inputStream: InputStream? = context.contentResolver.openInputStream(imageUri)
+            val inputStream: InputStream = context.contentResolver.openInputStream(imageUri)
                 ?: return@withContext ""
             val originalBitmap = BitmapFactory.decodeStream(inputStream)
-            inputStream?.close()
+            inputStream.close()
 
             if (originalBitmap == null) return@withContext ""
 
