@@ -1001,9 +1001,10 @@ html.theme-dark #app-bottom-nav #bottom-tab-upload div {
 }
 
 /* Android App Promo Banner Dark Mode */
+html.theme-dark #uptime-section,
 html.theme-dark #android-app-promo-card {
     background-color: #000000 !important;
-    border-color: #27272a !important;
+    border: 1px solid #ffffff !important;
 }
 html.theme-dark #android-app-promo-card h4 {
     color: #ffffff !important;
@@ -1014,6 +1015,7 @@ html.theme-dark #android-app-promo-card p {
 html.theme-dark #android-promo-download-btn {
     background-color: #ffffff !important;
     color: #000000 !important;
+    border: 1px solid #ffffff !important;
 }
 html.theme-dark #android-promo-download-btn:hover {
     background-color: #e4e4e7 !important;

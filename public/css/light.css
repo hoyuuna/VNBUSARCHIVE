@@ -807,9 +807,10 @@ input:disabled, select:disabled, textarea:disabled {
 
 
 /* Android App Promo Banner */
+#uptime-section,
 #android-app-promo-card {
     background-color: #ffffff;
-    border-color: #e4e4e7;
+    border: 1px solid #18181b !important;
 }
 #android-app-promo-card h4 {
     color: #000000;
@@ -820,6 +821,7 @@ input:disabled, select:disabled, textarea:disabled {
 #android-promo-download-btn {
     background-color: #000000;
     color: #ffffff;
+    border: 1px solid #18181b !important;
 }
 #android-promo-download-btn:hover {
     background-color: #27272a;
