@@ -982,3 +982,20 @@ body.theme-dark #donation-modal-main-btn:hover {
 /* Auth Android App View Dark Mode */
 #auth #auth-app-view .border-black { border-color: #ffffff !important; }
 #auth #auth-app-view .bg-gray-50 { background-color: #121212 !important; }
+
+/* Native App Bottom Navigation Bar Dark Mode */
+html.theme-dark #app-bottom-nav {
+    background-color: #000000 !important;
+    border-color: #ffffff !important;
+}
+html.theme-dark #app-bottom-nav .bottom-nav-item.text-black {
+    color: #ffffff !important;
+}
+html.theme-dark #app-bottom-nav #bottom-tab-upload div {
+    background-color: #ffffff !important;
+    color: #000000 !important;
+    border-color: #ffffff !important;
+}
+html.theme-dark #app-bottom-nav span[id^="bottom-indicator-"] {
+    background-color: #ffffff !important;
+}

@@ -1383,6 +1383,8 @@ closeCustomRolePrompt: () => {
                     if (window.AndroidBridge && typeof window.AndroidBridge.setSwipeRefreshEnabled === 'function') {
                         window.AndroidBridge.setSwipeRefreshEnabled(false);
                     }
+                    const bNav = document.getElementById('app-bottom-nav');
+                    if (bNav) bNav.classList.add('translate-y-28', 'opacity-0', 'pointer-events-none');
                 },
                 unlockScroll: () => {
                     document.documentElement.classList.remove('no-scroll');
@@ -1390,6 +1392,8 @@ closeCustomRolePrompt: () => {
                     if (window.AndroidBridge && typeof window.AndroidBridge.setSwipeRefreshEnabled === 'function') {
                         window.AndroidBridge.setSwipeRefreshEnabled(true);
                     }
+                    const bNav = document.getElementById('app-bottom-nav');
+                    if (bNav) bNav.classList.remove('translate-y-28', 'opacity-0', 'pointer-events-none');
                 },
                 toggleUserMenu: (forceOpen = null) => {
                     const menu = document.getElementById('user-dropdown');
@@ -3514,6 +3518,7 @@ cleanupState: () => {
                 const path = window.location.pathname;
                 const searchParams = new URLSearchParams(window.location.search);
                 app.currentPathForScroll = path + window.location.search;
+                if (app.bottomNav && app.bottomNav.updateActiveTab) app.bottomNav.updateActiveTab(path);
                 if (path === '/login' && searchParams.get('qr')) {
                     app.views.switch('home', false);
                     setTimeout(() => app.qrLogin.initClient(searchParams.get('qr')), 500);
@@ -4539,6 +4544,7 @@ dropdown.innerHTML = `
                      `;
                 }
                 if (app.auth && app.auth.updateUUIDBox) app.auth.updateUUIDBox();
+                if (app.bottomNav && app.bottomNav.updateUserUI) app.bottomNav.updateUserUI();
             }
 });
 // UPTIME TIMER
@@ -4586,3 +4592,116 @@ if (window.app && window.app.ui && window.app.ui.initSliderEditableBadges) {
     window.app.ui.initSliderEditableBadges();
 }
 
+
+// Quản lý thanh điều hướng dưới đáy (Bottom Navigation Bar) cho ứng dụng di động Android
+Object.assign(window.app, {
+    bottomNav: {
+        init: () => {
+            const isApp = (window.AndroidBridge && typeof window.AndroidBridge.isNativeApp === 'function' && window.AndroidBridge.isNativeApp()) || window.location.search.includes('app_preview=1');
+            const nav = document.getElementById('app-bottom-nav');
+            if (!nav) return;
+            if (isApp) {
+                document.documentElement.classList.add('is-native-app');
+                document.body.classList.add('is-native-app');
+                nav.classList.remove('hidden');
+                app.bottomNav.updateActiveTab(window.location.pathname);
+                app.bottomNav.updateUserUI();
+            } else {
+                nav.classList.add('hidden');
+            }
+        },
+        updateActiveTab: (path) => {
+            const nav = document.getElementById('app-bottom-nav');
+            if (!nav || nav.classList.contains('hidden')) return;
+
+            let activeTab = 'home';
+            if (path === '/' || path === '') {
+                activeTab = 'home';
+            } else if (path.startsWith('/search')) {
+                activeTab = 'search';
+            } else if (path === '/upload' || path === '/mobile-upload') {
+                activeTab = 'upload';
+            } else if (path === '/map') {
+                activeTab = 'map';
+            } else if (path === '/profile' || path === '/settings' || path === '/setting' || path === '/auth' || path.startsWith('/user/')) {
+                activeTab = 'profile';
+            } else {
+                activeTab = '';
+            }
+
+            const tabs = ['home', 'search', 'map', 'profile'];
+            tabs.forEach(t => {
+                const btn = document.getElementById('bottom-tab-' + t);
+                const indicator = document.getElementById('bottom-indicator-' + t);
+                if (!btn) return;
+                if (t === activeTab) {
+                    btn.classList.add('text-black', 'dark:text-white', 'font-black');
+                    btn.classList.remove('text-gray-400', 'dark:text-zinc-500');
+                    if (indicator) indicator.classList.remove('opacity-0');
+                } else {
+                    btn.classList.remove('text-black', 'dark:text-white', 'font-black');
+                    btn.classList.add('text-gray-400', 'dark:text-zinc-500');
+                    if (indicator) indicator.classList.add('opacity-0');
+                }
+            });
+        },
+        updateUserUI: () => {
+            const avatarImg = document.getElementById('bottom-tab-avatar');
+            const avatarIcon = document.getElementById('bottom-tab-avatar-icon');
+            const profileLabel = document.getElementById('bottom-tab-profile-label');
+            if (!profileLabel) return;
+
+            if (app.user) {
+                profileLabel.innerText = 'Cá nhân';
+                if (app.avatarUrl && avatarImg) {
+                    avatarImg.src = app.utils.getProxiedUrl(app.avatarUrl.replace(/"/g, ''), 'avatar.jpg', 'avatar');
+                    avatarImg.classList.remove('hidden');
+                    if (avatarIcon) avatarIcon.classList.add('hidden');
+                } else {
+                    if (avatarImg) avatarImg.classList.add('hidden');
+                    if (avatarIcon) avatarIcon.classList.remove('hidden');
+                }
+            } else {
+                profileLabel.innerText = 'Đăng nhập';
+                if (avatarImg) avatarImg.classList.add('hidden');
+                if (avatarIcon) avatarIcon.classList.remove('hidden');
+            }
+        },
+        navigate: (target) => {
+            if (target === 'home') {
+                if (window.location.pathname === '/' || window.location.pathname === '') {
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                } else {
+                    app.utils.navigate('/');
+                }
+            } else if (target === 'search') {
+                if (window.location.pathname === '/search') {
+                    const input = document.getElementById('search-input');
+                    if (input) input.focus();
+                } else {
+                    app.utils.navigate('/search');
+                    setTimeout(() => {
+                        const input = document.getElementById('search-input');
+                        if (input) input.focus();
+                    }, 300);
+                }
+            } else if (target === 'upload') {
+                app.utils.navigate('/upload');
+            } else if (target === 'map') {
+                app.utils.navigate('/map');
+            } else if (target === 'profile') {
+                if (app.user) {
+                    app.views.loadAccount();
+                } else {
+                    app.utils.navigate('/auth');
+                }
+            }
+        }
+    }
+});
+
+document.addEventListener('DOMContentLoaded', () => {
+    if (window.app && app.bottomNav && app.bottomNav.init) {
+        app.bottomNav.init();
+    }
+});

@@ -21,3 +21,12 @@
     cursor: not-allowed !important;
   }
 }
+/* Native App layout tweaks */
+body.is-native-app {
+    padding-bottom: calc(5.5rem + env(safe-area-inset-bottom, 0px)) !important;
+    -webkit-tap-highlight-color: transparent !important;
+}
+body.is-native-app header a[href="/upload"],
+body.is-native-app header button[onclick*="/map"] {
+    display: none !important;
+}
