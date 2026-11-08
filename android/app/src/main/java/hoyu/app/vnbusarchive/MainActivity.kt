@@ -1,4 +1,4 @@
-package vn.vnbusarchive.app
+package hoyu.app.vnbusarchive
 
 import android.Manifest
 import android.annotation.SuppressLint
@@ -29,7 +29,6 @@ class MainActivity : AppCompatActivity() {
     private var fileUploadCallback: ValueCallback<Array<Uri>>? = null
     private val pendingSharedUris = mutableListOf<String>()
 
-    // Trình chọn file từ WebChromeClient
     private val filePickerLauncher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
     ) { result ->
@@ -53,10 +52,9 @@ class MainActivity : AppCompatActivity() {
         fileUploadCallback = null
     }
 
-    // Xin quyền gửi thông báo trên Android 13+ (API 33+)
     private val requestNotificationPermission = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
-    ) { /* Người dùng chọn cho phép hoặc từ chối */ }
+    ) { /* User permission response */ }
 
     @SuppressLint("SetJavaScriptEnabled")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -66,7 +64,6 @@ class MainActivity : AppCompatActivity() {
         webView = findViewById(R.id.webView)
         swipeRefreshLayout = findViewById(R.id.swipeRefreshLayout)
 
-        // Kiểm tra quyền thông báo trên Android 13+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             if (ContextCompat.checkSelfPermission(
                     this,
@@ -82,7 +79,6 @@ class MainActivity : AppCompatActivity() {
         setupSwipeRefresh()
         setupBackNavigation()
 
-        // Load trang web chính
         if (savedInstanceState == null) {
             val targetUrl = if (pendingSharedUris.isNotEmpty()) {
                 "https://vnbusarchive.io.vn/upload"
@@ -142,7 +138,6 @@ class MainActivity : AppCompatActivity() {
         settings.cacheMode = WebSettings.LOAD_DEFAULT
         settings.userAgentString = "${settings.userAgentString} VNBUSARCHIVE_APP/1.0"
 
-        // Đăng ký Bridge để Web và Kotlin nói chuyện với nhau
         webView.addJavascriptInterface(AndroidBridge(this, webView), "AndroidBridge")
 
         webView.webViewClient = object : WebViewClient() {
@@ -150,12 +145,10 @@ class MainActivity : AppCompatActivity() {
                 val url = request?.url?.toString() ?: return false
                 val host = request.url.host ?: ""
 
-                // Mở trong WebView nếu thuộc domain chính
                 if (host.contains("vnbusarchive.io.vn") || host.contains("supabase.co")) {
                     return false
                 }
 
-                // Link bên ngoài (Discord, Facebook, v.v.): Mở bằng trình duyệt ngoài
                 return try {
                     val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
                     startActivity(intent)
@@ -211,12 +204,9 @@ class MainActivity : AppCompatActivity() {
     private fun setupSwipeRefresh() {
         swipeRefreshLayout.setColorSchemeColors(0xFFFFFFFF.toInt())
         swipeRefreshLayout.setProgressBackgroundColorSchemeColor(0xFF18181B.toInt())
-        
-        // Chỉ cho phép kéo refresh khi WebView đang cuộn ở vị trí đỉnh trang (scrollY == 0)
         swipeRefreshLayout.setOnChildScrollUpCallback { _, _ ->
             webView.scrollY > 0
         }
-
         swipeRefreshLayout.setOnRefreshListener {
             webView.reload()
         }

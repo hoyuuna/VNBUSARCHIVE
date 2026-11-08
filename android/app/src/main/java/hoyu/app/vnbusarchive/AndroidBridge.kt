@@ -1,4 +1,4 @@
-package vn.vnbusarchive.app
+package hoyu.app.vnbusarchive
 
 import android.content.Context
 import android.os.Handler
@@ -20,7 +20,7 @@ class AndroidBridge(
     fun isNativeApp(): Boolean = true
 
     @JavascriptInterface
-    fun getAppVersion(): String = "1.0.0-android"
+    fun getAppVersion(): String = "hoyu.app.vnbusarchive"
 
     @JavascriptInterface
     fun showToast(message: String) {
@@ -73,8 +73,7 @@ class AndroidBridge(
      */
     @JavascriptInterface
     fun getPendingSharedImages(): String {
-        val json = activity.consumePendingSharedImagesJson()
-        return json
+        return activity.consumePendingSharedImagesJson()
     }
 
     /**

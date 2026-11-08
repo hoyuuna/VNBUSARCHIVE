@@ -4,28 +4,39 @@ plugins {
 }
 
 android {
-    namespace = "vn.vnbusarchive.app"
+    namespace = "hoyu.app.vnbusarchive"
     compileSdk = 34
 
     defaultConfig {
-        applicationId = "vn.vnbusarchive.app"
+        applicationId = "hoyu.app.vnbusarchive"
         minSdk = 26
         targetSdk = 34
-        versionCode = 1
-        versionName = "1.0.0"
+        versionCode = (project.findProperty("versionCode") as? String)?.toIntOrNull() ?: 1
+        versionName = (project.findProperty("versionName") as? String) ?: "0.1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+    }
+
+    signingConfigs {
+        create("release") {
+            storeFile = file("release.jks")
+            storePassword = "vnbusarchive2026"
+            keyAlias = "vnbusarchive"
+            keyPassword = "vnbusarchive2026"
+        }
     }
 
     buildTypes {
         release {
             isMinifyEnabled = false
-            // Tự động ký bằng debug keystore để xuất file APK cài đặt được ngay lập tức
-            signingConfig = signingConfigs.getByName("debug")
+            signingConfig = signingConfigs.getByName("release")
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+        }
+        debug {
+            signingConfig = signingConfigs.getByName("release")
         }
     }
 

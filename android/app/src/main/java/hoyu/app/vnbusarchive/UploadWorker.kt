@@ -1,4 +1,4 @@
-package vn.vnbusarchive.app
+package hoyu.app.vnbusarchive
 
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -24,7 +24,6 @@ import okhttp3.Request
 import okhttp3.RequestBody.Companion.asRequestBody
 import org.json.JSONArray
 import org.json.JSONObject
-import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.FileOutputStream
 import java.io.InputStream
@@ -78,10 +77,10 @@ class UploadWorker(
             updateProgress(i + 1, total, "Đang xử lý ảnh ${i + 1}/$total...")
 
             try {
-                // 1. Tận dụng phần cứng máy: nén & xoay ảnh trực tiếp bằng luồng native
+                // Tận dụng phần cứng máy: nén & xoay ảnh trực tiếp bằng luồng native
                 val compressedFile = processAndCompressImage(uri, i)
 
-                // 2. Tải lên API backend /api/upload
+                // Tải lên API backend /api/upload
                 val uploadSuccess = uploadSingleImage(compressedFile, metadata, token)
                 if (uploadSuccess) {
                     successCount++
@@ -89,7 +88,6 @@ class UploadWorker(
                     failCount++
                 }
 
-                // Xóa file tạm
                 compressedFile.delete()
             } catch (e: Exception) {
                 e.printStackTrace()
@@ -97,7 +95,6 @@ class UploadWorker(
             }
         }
 
-        // Thông báo kết quả cuối cùng
         val finalTitle = if (failCount == 0) "Tải lên hoàn tất!" else "Tải lên xong (có lỗi)"
         val finalDesc = "Đã tải thành công $successCount/$total ảnh."
         showFinalNotification(finalTitle, finalDesc)
@@ -165,9 +162,6 @@ class UploadWorker(
         }
     }
 
-    /**
-     * Tận dụng tối đa phần cứng: Đọc file theo stream, tự động xoay theo EXIF, resize và nén JPEG 92%
-     */
     private fun processAndCompressImage(uri: Uri, index: Int): File {
         var inputStream: InputStream? = context.contentResolver.openInputStream(uri)
         val exif = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N && inputStream != null) {
@@ -179,13 +173,12 @@ class UploadWorker(
             ExifInterface.ORIENTATION_NORMAL
         ) ?: ExifInterface.ORIENTATION_NORMAL
 
-        // Đọc kích thước ảnh trước (inJustDecodeBounds) để tránh OOM
         val options = BitmapFactory.Options().apply { inJustDecodeBounds = true }
         context.contentResolver.openInputStream(uri)?.use {
             BitmapFactory.decodeStream(it, null, options)
         }
 
-        val maxDim = 3840 // Max 4K resolution
+        val maxDim = 3840
         var inSampleSize = 1
         while (options.outWidth / inSampleSize > maxDim || options.outHeight / inSampleSize > maxDim) {
             inSampleSize *= 2
@@ -200,7 +193,6 @@ class UploadWorker(
             BitmapFactory.decodeStream(it, null, decodeOptions)
         } ?: throw IllegalStateException("Không thể đọc ảnh từ Uri")
 
-        // Xoay ảnh theo EXIF nếu cần
         val matrix = Matrix()
         when (orientation) {
             ExifInterface.ORIENTATION_ROTATE_90 -> matrix.postRotate(90f)
@@ -228,14 +220,12 @@ class UploadWorker(
     private fun uploadSingleImage(file: File, metadata: JSONObject, token: String): Boolean {
         val formBodyBuilder = MultipartBody.Builder().setType(MultipartBody.FORM)
 
-        // Metadata fields tương thích với functions/api/upload.js
         val keys = metadata.keys()
         while (keys.hasNext()) {
             val key = keys.next()
             formBodyBuilder.addFormDataPart(key, metadata.optString(key, ""))
         }
 
-        // File đính kèm
         val fileBody = file.asRequestBody("image/jpeg".toMediaTypeOrNull())
         formBodyBuilder.addFormDataPart("file", file.name, fileBody)
         formBodyBuilder.addFormDataPart("fileExtension", "jpg")
@@ -243,7 +233,6 @@ class UploadWorker(
         val requestBuilder = Request.Builder()
             .url("https://vnbusarchive.io.vn/api/upload")
             .post(formBodyBuilder.build())
-            // Tuân thủ quy định bảo mật Origin/Referer của VNBUSARCHIVE backend
             .header("Origin", "https://vnbusarchive.io.vn")
             .header("Referer", "https://vnbusarchive.io.vn/upload")
 

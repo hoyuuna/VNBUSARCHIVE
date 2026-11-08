@@ -1,4 +1,4 @@
-package vn.vnbusarchive.app
+package hoyu.app.vnbusarchive
 
 import android.app.DownloadManager
 import android.content.Context

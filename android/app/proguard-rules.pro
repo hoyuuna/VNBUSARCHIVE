@@ -4,4 +4,4 @@
 }
 
 # Giữ lại các model/worker
--keep class vn.vnbusarchive.app.** { *; }
+-keep class hoyu.app.vnbusarchive.** { *; }

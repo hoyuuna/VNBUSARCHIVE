@@ -32,39 +32,58 @@ jobs:
         with:
           gradle-version: '8.7'
 
+      - name: Compute Version Info
+        id: version_info
+        run: |
+          RUN_NUM="${{ github.run_number }}"
+          # x tự tăng bắt đầu từ 0 (run_number 2 tương ứng với x = 0)
+          X=$(( RUN_NUM - 2 ))
+          if [ $X -lt 0 ]; then
+            X=0
+          fi
+          VERSION_NAME="0.1.${X}"
+          VERSION_CODE=$(( X + 1 ))
+          SHORT_SHA=$(echo "${{ github.sha }}" | cut -c1-7)
+          APK_NAME="VNBUSARCHIVE-v${VERSION_NAME}.apk"
+          TAG_NAME="v${VERSION_NAME}"
+
+          echo "version_name=$VERSION_NAME" >> $GITHUB_OUTPUT
+          echo "version_code=$VERSION_CODE" >> $GITHUB_OUTPUT
+          echo "short_sha=$SHORT_SHA" >> $GITHUB_OUTPUT
+          echo "apk_name=$APK_NAME" >> $GITHUB_OUTPUT
+          echo "tag_name=$TAG_NAME" >> $GITHUB_OUTPUT
+
       - name: Build Release APK
         run: |
           cd android
-          gradle :app:assembleRelease --no-daemon
+          gradle :app:assembleRelease \
+            -PversionCode=${{ steps.version_info.outputs.version_code }} \
+            -PversionName=${{ steps.version_info.outputs.version_name }} \
+            --no-daemon
 
       - name: Prepare APK Asset
         id: prepare_asset
         run: |
-          BUILD_NUM="${{ github.run_number }}"
           APK_SRC="android/app/build/outputs/apk/release/app-release.apk"
-          APK_NAME="VNBUSARCHIVE-v1.0.0-b${BUILD_NUM}.apk"
-          cp "$APK_SRC" "$APK_NAME"
-          echo "apk_path=$APK_NAME" >> $GITHUB_OUTPUT
-          echo "tag_name=android-v1.0.0-b${BUILD_NUM}" >> $GITHUB_OUTPUT
+          APK_DEST="${{ steps.version_info.outputs.apk_name }}"
+          cp "$APK_SRC" "$APK_DEST"
+          echo "apk_path=$APK_DEST" >> $GITHUB_OUTPUT
 
       - name: Create GitHub Pre-Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ steps.prepare_asset.outputs.tag_name }}
-          name: "VNBUSARCHIVE Android v1.0.0 (Pre-release Build ${{ github.run_number }})"
+          tag_name: ${{ steps.version_info.outputs.tag_name }}
+          name: "VNBUSARCHIVE Android v${{ steps.version_info.outputs.version_name }}"
           prerelease: true
           draft: false
           body: |
-            ### 🚌 VNBUSARCHIVE Android Native Hybrid App
-            - **Build Number:** ${{ github.run_number }}
-            - **Commit:** ${{ github.sha }}
-            - **Tính năng nổi bật:**
-              - Hỗ trợ chạy ngầm Foreground Service & WorkManager khi nén/upload nhiều ảnh.
-              - Tải ảnh trực tiếp vào Thư viện ảnh (Pictures/Gallery).
-              - Nhận ảnh chia sẻ trực tiếp từ Camera / Google Photos (Share Intent).
-              - Giao diện đồng bộ 100% với phiên bản Web mới nhất.
-            
-            *File APK đã được tự động ký để cài đặt trực tiếp trên các thiết bị Android.*
+            VNBUSARCHIVE Android
+            Commit: [${{ steps.version_info.outputs.short_sha }}]
+            Phiên bản này được build tự động
+
+            | File | Nền tảng |
+            | :--- | :--- |
+            | `${{ steps.version_info.outputs.apk_name }}` | Android (Universal: ARM64, ARMv7, x86, x86_64 - Android 8.0+) |
           files: ${{ steps.prepare_asset.outputs.apk_path }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
