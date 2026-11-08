@@ -45,6 +45,14 @@ body.is-native-app main {
     padding-top: max(0.5rem, env(safe-area-inset-top, 0px)) !important;
 }
 
+body.is-native-app #map-panel-wrapper {
+    bottom: calc(5.75rem + env(safe-area-inset-bottom, 0px)) !important;
+}
+
+body.is-native-app .leaflet-bottom {
+    bottom: calc(5.5rem + env(safe-area-inset-bottom, 0px)) !important;
+}
+
 #app-bottom-nav {
     position: fixed !important;
     left: 0 !important;
