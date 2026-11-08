@@ -17,6 +17,10 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
+    buildFeatures {
+        buildConfig = true
+    }
+
     signingConfigs {
         create("release") {
             storeFile = file("release.jks")
@@ -62,7 +66,7 @@ dependencies {
     // ExifInterface để đọc metadata và định hướng xoay ảnh
     implementation("androidx.exifinterface:exifinterface:1.3.7")
 
-    // OkHttp xử lý upload file qua multipart request
+    // OkHttp xử lý upload file và kiểm tra update
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
 
     // Coroutines

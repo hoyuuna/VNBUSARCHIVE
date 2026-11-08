@@ -2,4 +2,6 @@
     <string name="app_name">VNBUSARCHIVE</string>
     <string name="channel_upload_name">Tiến độ tải ảnh lên</string>
     <string name="channel_upload_desc">Thông báo tiến độ nén và tải ảnh lên VNBUSARCHIVE</string>
+    <string name="channel_update_name">Cập nhật ứng dụng</string>
+    <string name="channel_update_desc">Thông báo khi có phiên bản VNBUSARCHIVE mới</string>
 </resources>

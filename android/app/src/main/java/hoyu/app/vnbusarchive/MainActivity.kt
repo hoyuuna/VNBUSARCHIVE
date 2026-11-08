@@ -8,6 +8,7 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.Parcelable
+import android.webkit.CookieManager
 import android.webkit.ValueCallback
 import android.webkit.WebChromeClient
 import android.webkit.WebResourceRequest
@@ -18,7 +19,10 @@ import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.lifecycleScope
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import org.json.JSONArray
 
 class MainActivity : AppCompatActivity() {
@@ -28,6 +32,7 @@ class MainActivity : AppCompatActivity() {
 
     private var fileUploadCallback: ValueCallback<Array<Uri>>? = null
     private val pendingSharedUris = mutableListOf<String>()
+    private var pendingOpenTab: String? = null
 
     private val filePickerLauncher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
@@ -74,16 +79,19 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        handleIncomingShareIntent(intent)
+        handleIncomingIntent(intent)
         setupWebView()
         setupSwipeRefresh()
         setupBackNavigation()
 
+        // Tự động kiểm tra bản cập nhật khi vào app (nếu người dùng bật)
+        triggerAutoUpdateCheck()
+
         if (savedInstanceState == null) {
-            val targetUrl = if (pendingSharedUris.isNotEmpty()) {
-                "https://vnbusarchive.io.vn/upload"
-            } else {
-                "https://vnbusarchive.io.vn"
+            val targetUrl = when {
+                pendingSharedUris.isNotEmpty() -> "https://vnbusarchive.io.vn/upload"
+                intent?.data != null -> intent.data.toString()
+                else -> "https://vnbusarchive.io.vn"
             }
             webView.loadUrl(targetUrl)
         }
@@ -92,16 +100,26 @@ class MainActivity : AppCompatActivity() {
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         setIntent(intent)
-        handleIncomingShareIntent(intent)
+        handleIncomingIntent(intent)
+
         if (pendingSharedUris.isNotEmpty()) {
             webView.loadUrl("https://vnbusarchive.io.vn/upload")
+        } else if (intent.data != null) {
+            webView.loadUrl(intent.data.toString())
+        } else if (pendingOpenTab != null) {
+            // Mở modal cài đặt
+            webView.evaluateJavascript("if (window.app && app.settings) { app.settings.open('$pendingOpenTab'); }", null)
         }
     }
 
-    private fun handleIncomingShareIntent(intent: Intent?) {
+    private fun handleIncomingIntent(intent: Intent?) {
         if (intent == null) return
         val action = intent.action
         val type = intent.type
+
+        if (intent.hasExtra("open_tab")) {
+            pendingOpenTab = intent.getStringExtra("open_tab")
+        }
 
         if (Intent.ACTION_SEND == action && type?.startsWith("image/") == true) {
             val imageUri = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
@@ -128,6 +146,42 @@ class MainActivity : AppCompatActivity() {
         return array.toString()
     }
 
+    fun consumePendingOpenTab(): String {
+        val tab = pendingOpenTab ?: ""
+        pendingOpenTab = null
+        return tab
+    }
+
+    private fun triggerAutoUpdateCheck() {
+        if (UpdateManager.isAutoCheckEnabled(this)) {
+            lifecycleScope.launch(Dispatchers.IO) {
+                try {
+                    val info = UpdateManager.checkUpdate(this@MainActivity)
+                    if (info.hasUpdate) {
+                        UpdateManager.showUpdateNotification(this@MainActivity, info.latestVersion)
+                    }
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+            }
+        }
+    }
+
+    private fun isInternalOrAuthDomain(host: String): Boolean {
+        val h = host.lowercase()
+        return h.contains("vnbusarchive.io.vn") ||
+               h.contains("supabase.co") ||
+               h.contains("discord.com") ||
+               h.contains("discordapp.com") ||
+               h.contains("accounts.google.com") ||
+               h.contains("google.com") ||
+               h.contains("github.com") ||
+               h.contains("facebook.com") ||
+               h.contains("appleid.apple.com") ||
+               h.contains("hcaptcha.com") ||
+               h.contains("cloudflare.com")
+    }
+
     @SuppressLint("SetJavaScriptEnabled")
     private fun setupWebView() {
         val settings = webView.settings
@@ -136,7 +190,15 @@ class MainActivity : AppCompatActivity() {
         settings.databaseEnabled = true
         settings.allowFileAccess = true
         settings.cacheMode = WebSettings.LOAD_DEFAULT
-        settings.userAgentString = "${settings.userAgentString} VNBUSARCHIVE_APP/1.0"
+
+        // Cho phép cookie bên thứ 3 để quá trình đăng nhập OAuth (Discord, Google, v.v.) không bị rớt session
+        val cookieManager = CookieManager.getInstance()
+        cookieManager.setAcceptCookie(true)
+        cookieManager.setAcceptThirdPartyCookies(webView, true)
+
+        // Loại bỏ 'wv' và 'Version/4.0' để tránh Google/OAuth chặn với lỗi "disallowed_useragent"
+        val rawUa = settings.userAgentString
+        settings.userAgentString = rawUa.replace("; wv", "").replace("Version/4.0 ", "")
 
         webView.addJavascriptInterface(AndroidBridge(this, webView), "AndroidBridge")
 
@@ -145,10 +207,12 @@ class MainActivity : AppCompatActivity() {
                 val url = request?.url?.toString() ?: return false
                 val host = request.url.host ?: ""
 
-                if (host.contains("vnbusarchive.io.vn") || host.contains("supabase.co")) {
+                // Giữ lại bên trong WebView cho cả domain hệ thống và các domain xác thực OAuth (Discord, Google, GitHub...)
+                if (isInternalOrAuthDomain(host)) {
                     return false
                 }
 
+                // Link bên ngoài (YouTube, Facebook pages, báo chí...): Mở bằng trình duyệt ngoài
                 return try {
                     val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
                     startActivity(intent)
@@ -161,6 +225,12 @@ class MainActivity : AppCompatActivity() {
             override fun onPageFinished(view: WebView?, url: String?) {
                 super.onPageFinished(view, url)
                 swipeRefreshLayout.isRefreshing = false
+
+                // Nếu có tab đang chờ mở (từ notification)
+                pendingOpenTab?.let { tab ->
+                    webView.evaluateJavascript("if (window.app && app.settings) { app.settings.open('$tab'); }", null)
+                    pendingOpenTab = null
+                }
             }
         }
 

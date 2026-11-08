@@ -6,9 +6,13 @@ import android.os.Looper
 import android.webkit.JavascriptInterface
 import android.webkit.WebView
 import android.widget.Toast
+import androidx.lifecycle.lifecycleScope
 import androidx.work.Data
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import org.json.JSONObject
 
 class AndroidBridge(
     private val activity: MainActivity,
@@ -20,7 +24,7 @@ class AndroidBridge(
     fun isNativeApp(): Boolean = true
 
     @JavascriptInterface
-    fun getAppVersion(): String = "hoyu.app.vnbusarchive"
+    fun getAppVersion(): String = BuildConfig.VERSION_NAME
 
     @JavascriptInterface
     fun showToast(message: String) {
@@ -77,12 +81,67 @@ class AndroidBridge(
     }
 
     /**
+     * Lấy tab cần mở (ví dụ 'app' khi người dùng bấm vào notification cập nhật)
+     */
+    @JavascriptInterface
+    fun getPendingOpenTab(): String {
+        return activity.consumePendingOpenTab()
+    }
+
+    /**
      * Mở trực tiếp Photo Picker của Android
      */
     @JavascriptInterface
     fun openPhotoPicker(multiple: Boolean) {
         mainHandler.post {
             activity.launchNativePhotoPicker(multiple)
+        }
+    }
+
+    /**
+     * Lấy cấu hình cập nhật từ SharedPreferences
+     */
+    @JavascriptInterface
+    fun getUpdatePreferences(): String {
+        val obj = JSONObject()
+        obj.put("includePrerelease", UpdateManager.isIncludePrerelease(activity))
+        obj.put("autoCheck", UpdateManager.isAutoCheckEnabled(activity))
+        return obj.toString()
+    }
+
+    /**
+     * Lưu cấu hình cập nhật vào SharedPreferences
+     */
+    @JavascriptInterface
+    fun setUpdatePreferences(includePrerelease: Boolean, autoCheck: Boolean) {
+        UpdateManager.setIncludePrerelease(activity, includePrerelease)
+        UpdateManager.setAutoCheckEnabled(activity, autoCheck)
+    }
+
+    /**
+     * Kiểm tra bản cập nhật và gọi lại callback trong JS
+     */
+    @JavascriptInterface
+    fun checkUpdate(callbackJsName: String) {
+        activity.lifecycleScope.launch(Dispatchers.Main) {
+            val result = UpdateManager.checkUpdate(activity)
+            val jsonString = result.toJson().replace("'", "\\'")
+            webView.evaluateJavascript("$callbackJsName('$jsonString')", null)
+        }
+    }
+
+    /**
+     * Tải file APK mới và mở trình cài đặt
+     */
+    @JavascriptInterface
+    fun startUpdateDownload(downloadUrl: String, progressCallbackJs: String) {
+        activity.lifecycleScope.launch(Dispatchers.Main) {
+            Toast.makeText(activity, "Bắt đầu tải bản cập nhật...", Toast.LENGTH_SHORT).show()
+            UpdateManager.downloadAndInstallApk(activity, downloadUrl) { progress ->
+                if (progressCallbackJs.isNotEmpty()) {
+                    webView.evaluateJavascript("$progressCallbackJs($progress)", null)
+                }
+            }
         }
     }
 }
