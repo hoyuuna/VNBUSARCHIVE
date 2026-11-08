@@ -1384,7 +1384,7 @@ closeCustomRolePrompt: () => {
                         window.AndroidBridge.setSwipeRefreshEnabled(false);
                     }
                     const bNav = document.getElementById('app-bottom-nav');
-                    if (bNav) bNav.classList.add('translate-y-28', 'opacity-0', 'pointer-events-none');
+                    if (bNav) bNav.classList.add('opacity-0', 'pointer-events-none');
                 },
                 unlockScroll: () => {
                     document.documentElement.classList.remove('no-scroll');
@@ -1393,7 +1393,7 @@ closeCustomRolePrompt: () => {
                         window.AndroidBridge.setSwipeRefreshEnabled(true);
                     }
                     const bNav = document.getElementById('app-bottom-nav');
-                    if (bNav) bNav.classList.remove('translate-y-28', 'opacity-0', 'pointer-events-none');
+                    if (bNav) bNav.classList.remove('opacity-0', 'pointer-events-none');
                 },
                 toggleUserMenu: (forceOpen = null) => {
                     const menu = document.getElementById('user-dropdown');
@@ -4700,11 +4700,7 @@ Object.assign(window.app, {
             } else if (target === 'map') {
                 app.utils.navigate('/map');
             } else if (target === 'profile') {
-                if (app.user) {
-                    app.views.loadAccount();
-                } else {
-                    app.utils.navigate('/auth');
-                }
+                app.views.loadAccount();
             }
         }
     }
@@ -4713,5 +4709,96 @@ Object.assign(window.app, {
 document.addEventListener('DOMContentLoaded', () => {
     if (window.app && app.bottomNav && app.bottomNav.init) {
         app.bottomNav.init();
+    }
+});
+
+// Quản lý kéo làm mới (Pull-to-refresh) chuẩn Native App
+Object.assign(window.app, {
+    pullRefresh: {
+        startY: 0,
+        threshold: 130,
+        hapticFired: false,
+        init: () => {
+            const isApp = (window.AndroidBridge && typeof window.AndroidBridge.isNativeApp === 'function' && window.AndroidBridge.isNativeApp()) || window.location.search.includes('app_preview=1');
+            if (!isApp) return;
+
+            if (window.AndroidBridge && typeof window.AndroidBridge.setSwipeRefreshEnabled === 'function') {
+                window.AndroidBridge.setSwipeRefreshEnabled(false);
+            }
+
+            const badge = document.getElementById('app-pull-refresh-badge');
+            const icon = document.getElementById('app-pull-refresh-icon');
+            const text = document.getElementById('app-pull-refresh-text');
+            const inner = document.getElementById('app-pull-refresh-inner');
+            if (!badge) return;
+
+            let canPull = false;
+            let triggered = false;
+
+            window.addEventListener('touchstart', (e) => {
+                if (document.body.classList.contains('no-scroll')) {
+                    canPull = false;
+                    return;
+                }
+                if (window.scrollY <= 1) {
+                    canPull = true;
+                    triggered = false;
+                    app.pullRefresh.startY = e.touches[0].clientY;
+                } else {
+                    canPull = false;
+                }
+            }, { passive: true });
+
+            window.addEventListener('touchmove', (e) => {
+                if (!canPull || triggered) return;
+                const touchY = e.touches[0].clientY;
+                const diff = touchY - app.pullRefresh.startY;
+
+                if (diff > 20 && window.scrollY <= 1) {
+                    badge.classList.remove('opacity-0');
+                    if (diff >= app.pullRefresh.threshold) {
+                        text.innerText = "Thả tay để làm mới";
+                        if (icon) icon.className = "fa-solid fa-arrow-up text-xs";
+                        if (inner) {
+                            inner.classList.add('bg-black', 'text-white', 'dark:bg-white', 'dark:text-black');
+                            inner.classList.remove('bg-white', 'text-black', 'dark:bg-black', 'dark:text-white');
+                        }
+                        if (!app.pullRefresh.hapticFired && navigator.vibrate) {
+                            navigator.vibrate(15);
+                            app.pullRefresh.hapticFired = true;
+                        }
+                    } else {
+                        text.innerText = "Kéo xuống để làm mới";
+                        if (icon) icon.className = "fa-solid fa-arrow-down text-xs";
+                        if (inner) {
+                            inner.classList.remove('bg-black', 'text-white', 'dark:bg-white', 'dark:text-black');
+                            inner.classList.add('bg-white', 'text-black', 'dark:bg-black', 'dark:text-white');
+                        }
+                        app.pullRefresh.hapticFired = false;
+                    }
+                } else if (diff <= 10) {
+                    badge.classList.add('opacity-0');
+                }
+            }, { passive: true });
+
+            window.addEventListener('touchend', (e) => {
+                if (!canPull) return;
+                const touchY = e.changedTouches[0].clientY;
+                const diff = touchY - app.pullRefresh.startY;
+                canPull = false;
+                app.pullRefresh.hapticFired = false;
+
+                if (diff >= app.pullRefresh.threshold && !triggered) {
+                    triggered = true;
+                    text.innerText = "Đang làm mới...";
+                    if (icon) icon.className = "fa-solid fa-circle-notch fa-spin text-xs";
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 300);
+                } else {
+                    badge.classList.add('opacity-0');
+                }
+            }, { passive: true });
+        }
     }
 });

@@ -2236,7 +2236,7 @@ html.theme-dark .ct-icon {
             if (stored === 'system') {
                 theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
             }
-            document.write('<link rel="stylesheet" href="/css/' + theme + '.css?v=1794112915246" id="theme-css">');
+            document.write('<link rel="stylesheet" href="/css/' + theme + '.css?v=1794113565829" id="theme-css">');
             document.documentElement.classList.add('theme-' + theme);
             document.documentElement.style.backgroundColor = theme === 'dark' ? '#18181b' : '#fdfcf8';
         })();
@@ -5732,6 +5732,11 @@ html.theme-dark .ct-icon {
                                 <img id="acc-avatar-img" src="" loading="lazy" decoding="async" class="hidden w-full h-full object-cover z-10">
                             </div>
                             <h2 id="acc-name" class="font-bold text-lg text-black mb-3.5">...</h2>
+                            <div id="btn-guest-login-wrapper" class="hidden mb-4">
+                                <button id="btn-guest-login" onclick="app.utils.navigate('/auth')" class="w-full bg-black text-white dark:bg-white dark:text-black font-bold py-2.5 px-4 rounded-lg text-xs hover:bg-gray-800 dark:hover:bg-zinc-200 transition shadow-sm flex items-center justify-center gap-2">
+                                    <i class="fa-solid fa-arrow-right-to-bracket"></i> Đăng nhập
+                                </button>
+                            </div>
 
                             <div class="flex flex-wrap items-center justify-center gap-2 mb-4 mt-1">
                                 <button id="btn-edit-profile" onclick="app.settings.open('profile', 'account')"
@@ -5756,7 +5761,24 @@ html.theme-dark .ct-icon {
                     </div>
                     <div class="w-full lg:w-3/4">
                         <div class="bg-white border border-vbs-border shadow-sm p-6 rounded-lg">
-                            <h3 class="font-bold text-lg tracking-tight uppercase text-gray-800 mb-4" id="profile-stats-title">THỐNG KÊ HOẠT ĐỘNG</h3>
+                            <!-- HÀNG NÚT CHỨC NĂNG HỒ SƠ / CÀI ĐẶT -->
+                            <div id="profile-action-buttons" class="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-6">
+                                <button type="button" onclick="app.settings.open()" class="bg-white dark:bg-black border border-black dark:border-white text-black dark:text-white px-3 py-2.5 rounded-lg text-xs font-bold hover:bg-gray-100 dark:hover:bg-zinc-800 transition shadow-sm flex items-center justify-center gap-2">
+                                    <i class="fa-solid fa-gear"></i> Cài đặt
+                                </button>
+                                <button type="button" onclick="app.utils.navigate('/help')" class="bg-white dark:bg-black border border-black dark:border-white text-black dark:text-white px-3 py-2.5 rounded-lg text-xs font-bold hover:bg-gray-100 dark:hover:bg-zinc-800 transition shadow-sm flex items-center justify-center gap-2">
+                                    <i class="fa-solid fa-book-open"></i> Hỗ trợ
+                                </button>
+                                <button type="button" onclick="app.utils.navigate('/contact')" class="bg-white dark:bg-black border border-black dark:border-white text-black dark:text-white px-3 py-2.5 rounded-lg text-xs font-bold hover:bg-gray-100 dark:hover:bg-zinc-800 transition shadow-sm flex items-center justify-center gap-2">
+                                    <i class="fa-solid fa-headset"></i> Liên hệ
+                                </button>
+                                <button type="button" id="btn-profile-logout" onclick="app.auth.logout()" class="bg-white dark:bg-black border border-red-500 text-red-600 dark:text-red-400 px-3 py-2.5 rounded-lg text-xs font-bold hover:bg-red-50 dark:hover:bg-red-950/30 transition shadow-sm flex items-center justify-center gap-2">
+                                    <i class="fa-solid fa-right-from-bracket"></i> Đăng xuất
+                                </button>
+                            </div>
+
+                            <div id="profile-auth-only-content">
+                                <h3 class="font-bold text-lg tracking-tight uppercase text-gray-800 mb-4" id="profile-stats-title">THỐNG KÊ HOẠT ĐỘNG</h3>
                             <div class="stats-grid mb-4">
                                 <div class="stat-item">
                                     <span class="stat-value" id="my-stat-photos">0</span>
@@ -5922,6 +5944,7 @@ html.theme-dark .ct-icon {
                                     <p class="text-xs text-gray-500">Đang tải...</p>
                                 </div>
                             </div>
+                            </div> <!-- /profile-auth-only-content -->
                         </div>
                     </div>
                 </div>
@@ -7887,8 +7910,16 @@ html.theme-dark .ct-icon {
         </div>
     </div>
 
+    <!-- BADGE PULL-TO-REFRESH CHO APP ANDROID -->
+    <div id="app-pull-refresh-badge" class="fixed top-3 inset-x-0 mx-auto w-max z-[99999] pointer-events-none opacity-0 transition-opacity duration-150">
+        <div id="app-pull-refresh-inner" class="px-4 py-2 rounded-full border border-black dark:border-white bg-white dark:bg-black text-black dark:text-white shadow-2xl flex items-center gap-2 text-xs font-bold">
+            <i id="app-pull-refresh-icon" class="fa-solid fa-arrow-down text-xs transition-transform duration-200"></i>
+            <span id="app-pull-refresh-text">Kéo xuống để làm mới</span>
+        </div>
+    </div>
+
     <!-- THANH ĐIỀU HƯỚNG DƯỚI ĐÁY (BOTTOM NAVIGATION BAR - DÀNH CHO APP ANDROID) -->
-    <nav id="app-bottom-nav" class="hidden fixed bottom-3 left-1/2 -translate-x-1/2 w-[calc(100%-1.5rem)] max-w-md bg-white dark:bg-black border border-black dark:border-white rounded-2xl z-[2500] px-1 py-2 grid grid-cols-5 items-center justify-items-center select-none transition-all duration-300 transform shadow-2xl" style="padding-bottom: max(0.5rem, env(safe-area-inset-bottom, 0px)); -webkit-tap-highlight-color: transparent;">
+    <nav id="app-bottom-nav" class="hidden fixed bottom-3 inset-x-0 mx-auto w-[calc(100%-1.5rem)] max-w-md bg-white dark:bg-black border border-black dark:border-white rounded-2xl z-[2500] px-1 py-2 grid grid-cols-5 items-center justify-items-center select-none transition-all duration-300 transform shadow-2xl" style="padding-bottom: max(0.5rem, env(safe-area-inset-bottom, 0px)); -webkit-tap-highlight-color: transparent;">
         <!-- 1. Trang chủ -->
         <button type="button" onclick="app.bottomNav.navigate('home')" id="bottom-tab-home" class="bottom-nav-item w-full flex flex-col items-center justify-center text-gray-400 dark:text-zinc-500 hover:text-black dark:hover:text-white transition">
             <i class="fa-solid fa-house text-xl"></i>
@@ -7926,7 +7957,7 @@ html.theme-dark .ct-icon {
 
     <!-- KHAY CHỨA TOAST Z-INDEX CAO NHẤT -->
     <div id="toast-container" class="fixed left-0 w-full flex flex-col items-center gap-2 pointer-events-none z-[99999]" style="z-index: 99999 !important;"></div>
-<script src="/app.43aa985183bf.js" onerror="if(!window.__app_fallback_loaded){window.__app_fallback_loaded=true;var s=document.createElement('script');s.src='/app.js?v=' + Date.now();document.head.appendChild(s);}"></script>
+<script src="/app.eba38906cbfb.js" onerror="if(!window.__app_fallback_loaded){window.__app_fallback_loaded=true;var s=document.createElement('script');s.src='/app.js?v=' + Date.now();document.head.appendChild(s);}"></script>
 </body>
 </html>
 

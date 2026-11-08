@@ -610,11 +610,35 @@ Object.assign(window.app, {
                         </div>
                     `;
                 },
+                
+                renderGuestProfile: () => {
+                    app.views.switch('account', false);
+                    document.title = 'Tài khoản | VNBUSARCHIVE';
+                    const nameEl = document.getElementById('acc-name');
+                    if (nameEl) nameEl.innerText = 'Chưa đăng nhập';
+                    const avatarImg = document.getElementById('acc-avatar-img');
+                    const avatarIcon = document.getElementById('acc-avatar-icon');
+                    if (avatarImg) avatarImg.classList.add('hidden');
+                    if (avatarIcon) avatarIcon.classList.remove('hidden');
+
+                    document.getElementById('btn-edit-profile')?.classList.add('hidden');
+                    document.getElementById('btn-contact-profile')?.classList.add('hidden');
+                    document.getElementById('btn-share-profile')?.classList.add('hidden');
+                    document.getElementById('btn-report-profile')?.classList.add('hidden');
+                    document.getElementById('btn-guest-login-wrapper')?.classList.remove('hidden');
+
+                    document.getElementById('profile-auth-only-content')?.classList.add('hidden');
+                    document.getElementById('btn-profile-logout')?.classList.add('hidden');
+                    if (app.loadingBar && app.loadingBar.finish) app.loadingBar.finish();
+                },
                 loadAccount: async (usernameStr = null, forceRefresh = false) => {
                     let targetUsername = usernameStr;
                     let isOwnProfile = false;
                     if (!targetUsername) {
-                        if (!app.user) return app.utils.navigate('/auth');
+                        if (!app.user) {
+                            app.views.renderGuestProfile();
+                            return;
+                        }
                         targetUsername = app.username;
                         isOwnProfile = true;
                         if (window.location.pathname !== '/profile') return app.utils.navigate('/profile');
@@ -667,6 +691,13 @@ Object.assign(window.app, {
                     document.getElementById('acc-name').innerHTML = isBannedUser 
                         ? '<span class="text-black font-bold">Người dùng bị cấm</span>' 
                         : `${profile.username} ${badges}`;
+                    document.getElementById('btn-guest-login-wrapper')?.classList.add('hidden');
+                    document.getElementById('profile-auth-only-content')?.classList.remove('hidden');
+                    if (isOwnProfile) {
+                        document.getElementById('btn-profile-logout')?.classList.remove('hidden');
+                    } else {
+                        document.getElementById('btn-profile-logout')?.classList.add('hidden');
+                    }
                     const avatarIcon = document.getElementById('acc-avatar-icon');
                     const avatarImg = document.getElementById('acc-avatar-img');
                     const safeAvatar = isBannedUser 

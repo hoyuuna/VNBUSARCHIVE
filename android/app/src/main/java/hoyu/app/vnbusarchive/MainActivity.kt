@@ -82,6 +82,7 @@ class MainActivity : AppCompatActivity() {
         handleIncomingIntent(intent)
         setupWebView()
         setupSwipeRefresh()
+        swipeRefreshLayout.isEnabled = false
         setupBackNavigation()
 
         triggerAutoUpdateCheck()
