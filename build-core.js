@@ -171,6 +171,10 @@ try {
             `  Cache-Control: ${noStore}`,
             `  Pragma: no-cache`,
             `  Expires: 0`,
+            ``,
+            `/.well-known/assetlinks.json`,
+            `  Content-Type: application/json`,
+            `  Cache-Control: max-age=86400`,
             ``
         ].join('\n');
 

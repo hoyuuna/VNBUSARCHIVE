@@ -128,7 +128,8 @@ class MainActivity : AppCompatActivity() {
         if (pendingSharedUris.isNotEmpty()) {
             webView.loadUrl("https://vnbusarchive.io.vn/upload")
         } else if (intent.data != null) {
-            webView.loadUrl(intent.data.toString())
+            val url = intent.data.toString().replace("http://", "https://")
+            webView.loadUrl(url)
         } else if (pendingOpenTab != null) {
             webView.evaluateJavascript("if (window.app && app.settings) { app.settings.open('$pendingOpenTab'); }", null)
         }

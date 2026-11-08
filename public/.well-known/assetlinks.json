@@ -1,0 +1,14 @@
+[
+  {
+    "relation": [
+      "delegate_permission/common.handle_all_urls"
+    ],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "hoyu.app.vnbusarchive",
+      "sha256_cert_fingerprints": [
+        "5B:EF:19:6F:F6:E0:60:C3:D7:5E:09:C0:82:23:DD:FD:08:F7:62:0D:2E:BB:D0:5F:2A:3D:D2:8B:20:89:12:26"
+      ]
+    }
+  }
+]

@@ -61,12 +61,15 @@
                 <data android:mimeType="image/*" />
             </intent-filter>
 
-            <!-- Deep link để nhận OAuth callback (Discord, Google, v.v.) và link trang web -->
-            <intent-filter>
+            <!-- Android App Links & Deep Links để nhận diện và mở các link www.vnbusarchive.io.vn và vnbusarchive.io.vn -->
+            <intent-filter android:autoVerify="true">
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-                <data android:scheme="https" android:host="vnbusarchive.io.vn" />
+                <data android:scheme="https" />
+                <data android:scheme="http" />
+                <data android:host="vnbusarchive.io.vn" />
+                <data android:host="www.vnbusarchive.io.vn" />
             </intent-filter>
 
             <intent-filter>
