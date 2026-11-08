@@ -7599,16 +7599,15 @@ Object.assign(window.app, {
                     }
                     const targetEl = document.getElementById(id);
                     if (targetEl) {
-                        if (!app._initialLoadingDismissed) {
-                            targetEl.classList.add('active');
-                        } else {
-                            targetEl.classList.add('active', animationClass);
+                        targetEl.classList.add('active');
+                        if (animationClass && app._initialLoadingDismissed) {
+                            targetEl.classList.add(animationClass);
                             targetEl.onanimationend = () => {
                                 targetEl.classList.remove(animationClass);
                                 targetEl.onanimationend = null;
                             };
-                            if (app.transitionHeaderLogo) app.transitionHeaderLogo();
                         }
+                        if (app.transitionHeaderLogo) app.transitionHeaderLogo();
                     }
                     document.querySelectorAll('.view-section').forEach(el => {
                         if (el !== targetEl) {
