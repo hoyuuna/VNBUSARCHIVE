@@ -97,10 +97,12 @@ Object.assign(window.app, {
                                 await app.setUser(session.user);
                             }
                             const pendingQr = sessionStorage.getItem('pending_qr_login');
+                            const pendingClient = sessionStorage.getItem('pending_qr_client') || '';
                             if (pendingQr) {
                                 sessionStorage.removeItem('pending_qr_login');
+                                sessionStorage.removeItem('pending_qr_client');
                                 app.views.switch('home', false);
-                                setTimeout(() => app.qrLogin.initClient(pendingQr), 500);
+                                setTimeout(() => app.qrLogin.initClient(pendingQr, pendingClient), 500);
                                 return;
                             }
                             const hash = window.INITIAL_HASH || window.location.hash;

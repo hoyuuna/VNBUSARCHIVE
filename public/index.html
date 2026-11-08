@@ -1670,7 +1670,17 @@ html.theme-dark .ct-icon {
         ============================================= */
 
         /* Fix lỗi Avatar bị lệch và hiện cả 2 */
-        #acc-avatar-icon, #acc-avatar-img {
+        #acc-avatar-icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 100%;
+            line-height: 1;
+            margin: 0;
+            padding: 0;
+        }
+        #acc-avatar-img {
             position: absolute;
             inset: 0;
             margin: auto;
@@ -2236,7 +2246,7 @@ html.theme-dark .ct-icon {
             if (stored === 'system') {
                 theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
             }
-            document.write('<link rel="stylesheet" href="/css/' + theme + '.css?v=1794117053124" id="theme-css">');
+            document.write('<link rel="stylesheet" href="/css/' + theme + '.css?v=1794117851218" id="theme-css">');
             document.documentElement.classList.add('theme-' + theme);
             document.documentElement.style.backgroundColor = theme === 'dark' ? '#18181b' : '#fdfcf8';
         })();
@@ -6883,10 +6893,18 @@ html.theme-dark .ct-icon {
                 </div>
             </div>
 
-            <div class="bg-red-50 border border-red-200 p-3 rounded-lg mb-5">
+            <div class="bg-red-50 border border-red-200 p-3 rounded-lg mb-4">
                 <p class="text-[10px] text-red-700 font-bold leading-relaxed text-justify">
                     <i class="fa-solid fa-triangle-exclamation mr-1 text-red-600"></i>
                     Hành động này sẽ giúp thiết bị còn lại có quyền truy cập vào tài khoản của bạn. Tuyệt đối <b>KHÔNG</b> nhấn đăng nhập nếu bạn được người khác yêu cầu quét mã.
+                </p>
+            </div>
+
+            <!-- Hướng dẫn cho người dùng khi xác thực đăng nhập vào ứng dụng di động -->
+            <div id="qr-confirm-app-hint" class="hidden bg-amber-50 border border-amber-200 p-3 rounded-lg mb-5 text-left">
+                <p class="text-[11px] text-amber-900 font-medium leading-relaxed">
+                    <i class="fa-solid fa-mobile-screen-button mr-1.5 text-amber-600"></i>
+                    Sau khi ấn xác nhận <b>Đăng nhập</b> xong, bạn cần <b>mở hoặc quay lại app VNBUSARCHIVE</b> để ứng dụng hoàn tất nhận phiên đăng nhập.
                 </p>
             </div>
 
@@ -7964,7 +7982,7 @@ html.theme-dark .ct-icon {
 
     <!-- KHAY CHỨA TOAST Z-INDEX CAO NHẤT -->
     <div id="toast-container" class="fixed left-0 w-full flex flex-col items-center gap-2 pointer-events-none z-[99999]" style="z-index: 99999 !important;"></div>
-<script src="/app.42abd5bb391c.js" onerror="if(!window.__app_fallback_loaded){window.__app_fallback_loaded=true;var s=document.createElement('script');s.src='/app.js?v=' + Date.now();document.head.appendChild(s);}"></script>
+<script src="/app.260fea023992.js" onerror="if(!window.__app_fallback_loaded){window.__app_fallback_loaded=true;var s=document.createElement('script');s.src='/app.js?v=' + Date.now();document.head.appendChild(s);}"></script>
 </body>
 </html>
 

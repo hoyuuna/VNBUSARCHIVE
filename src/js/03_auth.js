@@ -1004,15 +1004,18 @@ changePassword: async () => {
                 document.getElementById('qr-login-host-modal').classList.add('hidden');
                 app.ui.unlockScroll();
             },
-            initClient: async (hostId) => {
+            initClient: async (hostId, clientType = '') => {
                 app.qrLogin.isSuccess = false;
+                const searchClient = new URLSearchParams(window.location.search).get('client') || clientType || '';
                 if (!app.user) {
                     sessionStorage.setItem('pending_qr_login', hostId);
+                    if (searchClient) sessionStorage.setItem('pending_qr_client', searchClient);
                     app.ui.showAlert("Bạn cần đăng nhập vào tài khoản trên trình duyệt trước khi cấp quyền cho ứng dụng.", () => {
                         app.utils.navigate('/auth');
                     });
                     return;
                 }
+                app.qrLogin.currentClientType = searchClient;
                 try {
                     window.history.replaceState(null, null, '/');
                 } catch(e){}
@@ -1021,6 +1024,14 @@ changePassword: async () => {
                 const btnConfirm = document.getElementById('qr-confirm-btn');
                 const avatarImg = document.getElementById('qr-confirm-avatar');
                 const deviceText = document.getElementById('qr-confirm-device');
+                const appHint = document.getElementById('qr-confirm-app-hint');
+                if (appHint) {
+                    if (searchClient === 'android_app') {
+                        appHint.classList.remove('hidden');
+                    } else {
+                        appHint.classList.add('hidden');
+                    }
+                }
                 btnConfirm.disabled = true;
                 btnConfirm.classList.add('opacity-50', 'cursor-not-allowed');
                 let timeLeft = 3;
@@ -1080,12 +1091,22 @@ changePassword: async () => {
                         if (data.type === 'host_info') {
                             deviceText.innerText = data.userAgent || 'Trình duyệt không xác định';
                             deviceText.className = "text-[10px] font-mono text-gray-800 break-words leading-tight mt-0.5";
+                            if (data.userAgent && data.userAgent.includes('Android App')) {
+                                app.qrLogin.currentClientType = 'android_app';
+                                const appHintEl = document.getElementById('qr-confirm-app-hint');
+                                if (appHintEl) appHintEl.classList.remove('hidden');
+                            }
                         }
                         else if (data.type === 'success') {
                             app.qrLogin.isSuccess = true;
+                            const isTargetApp = app.qrLogin.currentClientType === 'android_app' || (deviceText.innerText && deviceText.innerText.includes('Android App'));
+                            const appNotice = isTargetApp 
+                                ? '<div class="bg-amber-50 border border-amber-200 p-2.5 rounded-md mb-2 text-left"><p class="text-[11px] text-amber-900 font-semibold m-0"><i class="fa-solid fa-mobile-screen-button mr-1 text-amber-600"></i> Sau khi xác nhận xong, vui lòng <b>mở hoặc quay lại app VNBUSARCHIVE</b> để ứng dụng hoàn tất nhận phiên đăng nhập.</p></div>'
+                                : '';
                             app.ui.showAlert(
                                 '<div class="text-left">' +
                                     '<p class="text-sm font-bold text-green-600 mb-2"><i class="fa-solid fa-check-circle mr-1"></i> Đăng nhập thành công!</p>' +
+                                    appNotice +
                                     '<p class="text-xs text-gray-700 mb-2">Thiết bị yêu cầu đã được cấp quyền truy cập hệ thống.</p>' +
                                     '<div class="bg-gray-50 border border-gray-200 p-3 rounded-md mt-3 shadow-sm">' +
                                         '<p class="text-[10.5px] text-gray-600 font-medium leading-relaxed m-0">' +

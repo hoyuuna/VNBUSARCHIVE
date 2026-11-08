@@ -3518,8 +3518,9 @@ cleanupState: () => {
                 app.currentPathForScroll = path + window.location.search;
                 if (app.bottomNav && app.bottomNav.updateActiveTab) app.bottomNav.updateActiveTab(path);
                 if (path === '/login' && searchParams.get('qr')) {
+                    const qrClient = searchParams.get('client') || '';
                     app.views.switch('home', false);
-                    setTimeout(() => app.qrLogin.initClient(searchParams.get('qr')), 500);
+                    setTimeout(() => app.qrLogin.initClient(searchParams.get('qr'), qrClient), 500);
                 } else if (path === '/auth') {
                     document.title = 'Xác thực | VNBUSARCHIVE';
                     const isRecovery = window.location.hash.includes('type=recovery') || app.auth.mode === 'recovery';
