@@ -176,4 +176,52 @@ class AndroidBridge(
             }
         }
     }
+
+    /**
+     * Trích xuất EXIF siêu tốc bằng Android Native ExifInterface
+     */
+    @JavascriptInterface
+    fun extractExifNative(uriString: String, callbackJsName: String) {
+        activity.lifecycleScope.launch(Dispatchers.Main) {
+            val uri = Uri.parse(uriString)
+            val jsonResult = NativeImageProcessor.extractExif(activity, uri)
+            val base64 = android.util.Base64.encodeToString(jsonResult.toByteArray(Charsets.UTF_8), android.util.Base64.NO_WRAP)
+            webView.evaluateJavascript("if (typeof $callbackJsName === 'function') { $callbackJsName('$base64'); }", null)
+        }
+    }
+
+    /**
+     * Giải mã ảnh HEIC/HEIF bằng Hardware ImageDecoder của Android
+     */
+    @JavascriptInterface
+    fun decodeHeicNative(uriString: String, callbackJsName: String) {
+        activity.lifecycleScope.launch(Dispatchers.Main) {
+            val uri = Uri.parse(uriString)
+            val dataUrl = NativeImageProcessor.decodeImageToBase64(activity, uri)
+            webView.evaluateJavascript("if (typeof $callbackJsName === 'function') { $callbackJsName('$dataUrl'); }", null)
+        }
+    }
+
+    /**
+     * Cắt ảnh và nén bằng Android Native Matrix & Bitmap
+     */
+    @JavascriptInterface
+    fun processCropNative(
+        uriString: String,
+        cropX: Float,
+        cropY: Float,
+        cropW: Float,
+        cropH: Float,
+        rotation: Float,
+        quality: Int,
+        callbackJsName: String
+    ) {
+        activity.lifecycleScope.launch(Dispatchers.Main) {
+            val uri = Uri.parse(uriString)
+            val dataUrl = NativeImageProcessor.processCropNative(
+                activity, uri, cropX, cropY, cropW, cropH, rotation, quality
+            )
+            webView.evaluateJavascript("if (typeof $callbackJsName === 'function') { $callbackJsName('$dataUrl'); }", null)
+        }
+    }
 }

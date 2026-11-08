@@ -1571,6 +1571,28 @@ closeCustomRolePrompt: () => {
                     if (!file) return null;
                     const isHeic = /\.(heic|heif)$/i.test(file.name) || file.type === 'image/heic' || file.type === 'image/heif';
                     if (!isHeic) return file;
+
+                    // Tận dụng Hardware ImageDecoder của Android Native nếu chạy trong App
+                    if (window.AndroidBridge && typeof window.AndroidBridge.decodeHeicNative === 'function' && file.nativeUri) {
+                        try {
+                            const dataUrl = await new Promise((resolve) => {
+                                const cbName = '_onNativeHeic_' + Date.now();
+                                window[cbName] = (res) => {
+                                    delete window[cbName];
+                                    resolve(res);
+                                };
+                                window.AndroidBridge.decodeHeicNative(file.nativeUri, cbName);
+                            });
+                            if (dataUrl && dataUrl.startsWith('data:')) {
+                                const res = await fetch(dataUrl);
+                                const blob = await res.blob();
+                                return new File([blob], file.name.replace(/\.[^/.]+$/, "") + ".jpg", { type: "image/jpeg" });
+                            }
+                        } catch(nativeErr) {
+                            console.warn("Lỗi Native HEIC decoder, fallback sang JS:", nativeErr);
+                        }
+                    }
+
                     let heicBlob = null;
                     if (window.heic2any) {
                         const result = await window.heic2any({ blob: file, toType: 'image/png' });

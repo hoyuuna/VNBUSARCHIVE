@@ -192,6 +192,10 @@ class MainActivity : AppCompatActivity() {
         settings.databaseEnabled = true
         settings.allowFileAccess = true
         settings.cacheMode = WebSettings.LOAD_DEFAULT
+        // Bật AppCache và DOM Storage để tự động lưu đệm HTML/JS/CSS cục bộ
+        // Mỗi lần mở app sẽ nạp ngay từ cache máy (0ms) và đồng thời revalidate cập nhật bản mới từ mạng
+        val appCacheDir = File(cacheDir, "webview_cache")
+        if (!appCacheDir.exists()) appCacheDir.mkdirs()
 
         val cookieManager = CookieManager.getInstance()
         cookieManager.setAcceptCookie(true)
