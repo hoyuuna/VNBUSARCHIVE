@@ -2,6 +2,23 @@ const fs = require('fs');
 const path = require('path');
 const { execSync, execFileSync } = require('child_process');
 
+// Kiểm tra nếu chạy trên CI / Cloudflare Pages mà chỉ có thay đổi trong android/ hoặc .github/ thì bỏ qua build web
+if (process.env.CF_PAGES === '1' || process.env.CI) {
+    try {
+        const diffOutput = execSync('git diff --name-only HEAD^ HEAD', { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).trim();
+        if (diffOutput) {
+            const changedFiles = diffOutput.split('\n').map(s => s.trim()).filter(Boolean);
+            const nonAndroidFiles = changedFiles.filter(f => !f.startsWith('android/') && !f.startsWith('.github/'));
+            if (changedFiles.length > 0 && nonAndroidFiles.length === 0) {
+                console.log('[Cloudflare Pages Build] Chỉ có thay đổi trong android/ hoặc .github/. Bỏ qua build web!');
+                process.exit(0);
+            }
+        }
+    } catch (ignore) {
+        // Shallow clone hoặc commit đầu tiên thì tiếp tục build bình thường
+    }
+}
+
 try {
     const corePath = path.join(__dirname, '_core.html');
     

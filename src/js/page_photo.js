@@ -19,6 +19,10 @@ Object.assign(window.app, {
                         btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1"></i> Đang tải...';
                         try {
                             const plateName = app.utils.displayPlate(app.currentPhoto.license_plate) || 'VNBUSARCHIVE';
+                            if (window.AndroidBridge && typeof window.AndroidBridge.downloadImage === 'function') {
+                                window.AndroidBridge.downloadImage(app.currentPhoto.url, plateName + '.jpg');
+                                return;
+                            }
                             let proxyUrl = app.utils.getProxiedUrl(app.currentPhoto.url, `${plateName}.jpg`);
                             const response = await fetch(proxyUrl);
                             const blob = await response.blob();

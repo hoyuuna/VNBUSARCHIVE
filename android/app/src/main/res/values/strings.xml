@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">VNBUSARCHIVE</string>
+    <string name="channel_upload_name">Tiến độ tải ảnh lên</string>
+    <string name="channel_upload_desc">Thông báo tiến độ nén và tải ảnh lên VNBUSARCHIVE</string>
+</resources>
