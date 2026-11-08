@@ -20,7 +20,6 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
-import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.json.JSONArray
@@ -28,7 +27,6 @@ import org.json.JSONArray
 class MainActivity : AppCompatActivity() {
 
     private lateinit var webView: WebView
-    private lateinit var swipeRefreshLayout: SwipeRefreshLayout
 
     private var fileUploadCallback: ValueCallback<Array<Uri>>? = null
     private val pendingSharedUris = mutableListOf<String>()
@@ -67,7 +65,6 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
         webView = findViewById(R.id.webView)
-        swipeRefreshLayout = findViewById(R.id.swipeRefreshLayout)
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             if (ContextCompat.checkSelfPermission(
@@ -81,8 +78,6 @@ class MainActivity : AppCompatActivity() {
 
         handleIncomingIntent(intent)
         setupWebView()
-        setupSwipeRefresh()
-        swipeRefreshLayout.isEnabled = false
         setupBackNavigation()
 
         triggerAutoUpdateCheck()
@@ -152,7 +147,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun setSwipeRefreshEnabled(enabled: Boolean) {
-        swipeRefreshLayout.isEnabled = enabled
+        // Native SwipeRefreshLayout removed - handled by custom Web UI
     }
 
     private fun triggerAutoUpdateCheck() {
@@ -187,6 +182,7 @@ class MainActivity : AppCompatActivity() {
 
     @SuppressLint("SetJavaScriptEnabled")
     private fun setupWebView() {
+        webView.overScrollMode = View.OVER_SCROLL_NEVER
         val settings = webView.settings
         settings.javaScriptEnabled = true
         settings.domStorageEnabled = true
@@ -223,7 +219,6 @@ class MainActivity : AppCompatActivity() {
 
             override fun onPageFinished(view: WebView?, url: String?) {
                 super.onPageFinished(view, url)
-                swipeRefreshLayout.isRefreshing = false
 
                 pendingOpenTab?.let { tab ->
                     webView.evaluateJavascript("if (window.app && app.settings) { app.settings.open('$tab'); }", null)
@@ -269,19 +264,7 @@ class MainActivity : AppCompatActivity() {
         filePickerLauncher.launch(Intent.createChooser(intent, "Chọn ảnh"))
     }
 
-    private fun setupSwipeRefresh() {
-        swipeRefreshLayout.setColorSchemeColors(0xFFFFFFFF.toInt())
-        swipeRefreshLayout.setProgressBackgroundColorSchemeColor(0xFF18181B.toInt())
-        
-        // Không cuộn làm mới khi trang đang cuộn ở phía dưới
-        swipeRefreshLayout.setOnChildScrollUpCallback { _, _ ->
-            webView.canScrollVertically(-1)
-        }
-
-        swipeRefreshLayout.setOnRefreshListener {
-            webView.reload()
-        }
-    }
+    
 
     private fun setupBackNavigation() {
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {

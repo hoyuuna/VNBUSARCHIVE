@@ -35,7 +35,8 @@ body.is-native-app footer {
 
 body.is-native-app {
     padding-top: max(0.75rem, env(safe-area-inset-top, 0px)) !important;
-    padding-bottom: calc(5.5rem + env(safe-area-inset-bottom, 0px)) !important;
+    padding-bottom: calc(7rem + env(safe-area-inset-bottom, 0px)) !important;
+    overscroll-behavior-y: none !important;
     -webkit-tap-highlight-color: transparent !important;
 }
 

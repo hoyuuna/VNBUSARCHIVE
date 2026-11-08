@@ -1389,9 +1389,7 @@ closeCustomRolePrompt: () => {
                 unlockScroll: () => {
                     document.documentElement.classList.remove('no-scroll');
                     document.body.classList.remove('no-scroll');
-                    if (window.AndroidBridge && typeof window.AndroidBridge.setSwipeRefreshEnabled === 'function') {
-                        window.AndroidBridge.setSwipeRefreshEnabled(true);
-                    }
+                    
                     const bNav = document.getElementById('app-bottom-nav');
                     if (bNav) bNav.classList.remove('opacity-0', 'pointer-events-none');
                 },
@@ -4655,6 +4653,16 @@ Object.assign(window.app, {
                     btn.classList.add('text-gray-400', 'dark:text-zinc-500', 'font-semibold');
                 }
             });
+            const bAvatarImg = document.getElementById('bottom-tab-avatar');
+            if (bAvatarImg) {
+                if (activeTab === 'profile') {
+                    bAvatarImg.classList.add('border-black', 'dark:border-white');
+                    bAvatarImg.classList.remove('border-gray-400', 'dark:border-zinc-600');
+                } else {
+                    bAvatarImg.classList.remove('border-black', 'dark:border-white');
+                    bAvatarImg.classList.add('border-gray-400', 'dark:border-zinc-600');
+                }
+            }
         },
         updateUserUI: () => {
             const avatarImg = document.getElementById('bottom-tab-avatar');
@@ -4710,6 +4718,9 @@ document.addEventListener('DOMContentLoaded', () => {
     if (window.app && app.bottomNav && app.bottomNav.init) {
         app.bottomNav.init();
     }
+    if (window.app && app.pullRefresh && app.pullRefresh.init) {
+        app.pullRefresh.init();
+    }
 });
 
 // Quản lý kéo làm mới (Pull-to-refresh) chuẩn Native App
@@ -4740,7 +4751,8 @@ Object.assign(window.app, {
                     canPull = false;
                     return;
                 }
-                if (window.scrollY <= 1) {
+                const sY = window.scrollY || document.documentElement.scrollTop || 0;
+                if (sY <= 2) {
                     canPull = true;
                     triggered = false;
                     app.pullRefresh.startY = e.touches[0].clientY;
@@ -4754,7 +4766,8 @@ Object.assign(window.app, {
                 const touchY = e.touches[0].clientY;
                 const diff = touchY - app.pullRefresh.startY;
 
-                if (diff > 20 && window.scrollY <= 1) {
+                const sY = window.scrollY || document.documentElement.scrollTop || 0;
+                if (diff > 20 && sY <= 2) {
                     badge.classList.remove('opacity-0');
                     if (diff >= app.pullRefresh.threshold) {
                         text.innerText = "Thả tay để làm mới";
@@ -4802,3 +4815,9 @@ Object.assign(window.app, {
         }
     }
 });
+
+// Khởi chạy ngay nếu DOM đã sẵn sàng
+if (document.readyState === 'complete' || document.readyState === 'interactive') {
+    if (window.app && app.bottomNav && app.bottomNav.init) app.bottomNav.init();
+    if (window.app && app.pullRefresh && app.pullRefresh.init) app.pullRefresh.init();
+}
