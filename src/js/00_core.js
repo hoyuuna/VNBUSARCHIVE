@@ -4761,13 +4761,34 @@ Object.assign(window.app, {
                 if (avatarIcon) avatarIcon.style.display = 'block';
             }
         },
-        navigate: (target) => {
+        isTargetActive: (target) => {
+            const activeSection = document.querySelector('.view-section.active')?.id;
+            const path = window.location.pathname;
+
             if (target === 'home') {
-                if (window.location.pathname === '/' || window.location.pathname === '') {
-                    window.scrollTo({ top: 0, behavior: 'smooth' });
-                } else {
-                    app.utils.navigate('/');
-                }
+                return activeSection === 'home' && (path === '/' || path === '');
+            }
+            if (target === 'search') {
+                return activeSection === 'search';
+            }
+            if (target === 'upload') {
+                return activeSection === 'upload' || activeSection === 'mobile-upload';
+            }
+            if (target === 'map') {
+                return activeSection === 'map';
+            }
+            if (target === 'profile') {
+                return (activeSection === 'account' && (path === '/profile' || path === '')) || (activeSection === 'auth' && (path === '/auth' || path === '/login'));
+            }
+            return false;
+        },
+        navigate: (target) => {
+            if (app.bottomNav.isTargetActive(target)) {
+                return;
+            }
+
+            if (target === 'home') {
+                app.utils.navigate('/');
             } else if (target === 'search') {
                 app.utils.navigate('/search');
             } else if (target === 'upload') {
