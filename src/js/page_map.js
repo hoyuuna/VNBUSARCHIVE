@@ -18,6 +18,7 @@ app.map = {
         } else {
             setTimeout(() => this.instance.invalidateSize(), 150);
         }
+        this.startLocation();
         await this.checkPermission();
         await this.loadZones();
         this.updateTheme();
@@ -355,8 +356,7 @@ app.map = {
             iconAnchor: [7, 7]
         });
 
-        // Bật theo dõi vị trí liên tục
-        this.instance.locate({ watch: true, setView: false, enableHighAccuracy: true, timeout: 60000, maximumAge: 10000 });
+        // Vị trí người dùng sẽ được kích hoạt khi mở trang Bản đồ (startLocation)
 
         this.instance.on('locationfound', (e) => {
             this.userLocation = e.latlng;
@@ -444,7 +444,34 @@ app.map = {
             this.isLocatingUser = true;
             locateBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin text-lg"></i>';
             locateBtn.disabled = true;
+            this.startLocation(true);
         });
+    },
+
+    startLocation(centerOnUser = false) {
+        if (!this.instance) return;
+        this.isWatchingLocation = true;
+        try {
+            this.instance.locate({
+                watch: true,
+                setView: centerOnUser,
+                enableHighAccuracy: true,
+                timeout: 30000,
+                maximumAge: 10000
+            });
+        } catch (e) {
+            console.warn("Lỗi khởi chạy định vị:", e);
+        }
+    },
+
+    stopLocation() {
+        if (!this.instance) return;
+        this.isWatchingLocation = false;
+        try {
+            this.instance.stopLocate();
+        } catch (e) {
+            console.warn("Lỗi dừng định vị:", e);
+        }
     },
 
     clearDrafts() {

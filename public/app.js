@@ -4638,19 +4638,45 @@ Object.assign(window.app, {
         init: () => {
             const isApp = (window.AndroidBridge && typeof window.AndroidBridge.isNativeApp === 'function' && window.AndroidBridge.isNativeApp()) || window.location.search.includes('app_preview=1');
             const nav = document.getElementById('app-bottom-nav');
-            if (!nav) return;
-            if (isApp) {
-                document.documentElement.classList.add('is-native-app');
-                document.body.classList.add('is-native-app');
-                nav.classList.remove('hidden');
-                app.bottomNav.updateActiveTab(window.location.pathname);
-                app.bottomNav.updateUserUI();
+            if (nav) {
+                if (isApp) {
+                    document.documentElement.classList.add('is-native-app');
+                    document.body.classList.add('is-native-app');
+                    nav.classList.remove('hidden');
+                    app.bottomNav.updateActiveTab(window.location.pathname);
+                    app.bottomNav.updateUserUI();
 
-                if ('virtualKeyboard' in navigator) {
-                    try { navigator.virtualKeyboard.overlaysContent = true; } catch (e) {}
+                    if ('virtualKeyboard' in navigator) {
+                        try { navigator.virtualKeyboard.overlaysContent = true; } catch (e) {}
+                    }
+                } else {
+                    nav.classList.add('hidden');
                 }
-            } else {
-                nav.classList.add('hidden');
+            }
+
+            // Quản lý banner quảng cáo app Android trên trình duyệt web di động
+            const promoCard = document.getElementById('android-app-promo-card');
+            if (promoCard) {
+                const isAndroid = /Android/i.test(navigator.userAgent);
+                if (isAndroid && !isApp) {
+                    promoCard.classList.remove('hidden');
+                    fetch('https://api.github.com/repos/hoyuuna/VNBUSARCHIVE/releases')
+                        .then(res => res.json())
+                        .then(releases => {
+                            if (Array.isArray(releases) && releases.length > 0) {
+                                const latest = releases[0];
+                                const apkAsset = latest.assets && latest.assets.find(a => a.name && a.name.endsWith('.apk'));
+                                const downloadBtn = document.getElementById('android-promo-download-btn');
+                                if (downloadBtn && apkAsset && apkAsset.browser_download_url) {
+                                    downloadBtn.href = apkAsset.browser_download_url;
+                                    downloadBtn.setAttribute('download', apkAsset.name);
+                                }
+                            }
+                        })
+                        .catch(() => {});
+                } else {
+                    promoCard.classList.add('hidden');
+                }
             }
         },
         updateActiveTab: (path) => {
@@ -7636,9 +7662,15 @@ Object.assign(window.app, {
                             if (id === 'map') {
                                 footer.parentElement.style.display = 'none';
                                 document.body.style.overflow = 'hidden';
+                                if (app.map && typeof app.map.startLocation === 'function') {
+                                    app.map.startLocation();
+                                }
                             } else {
                                 footer.parentElement.style.display = '';
                                 document.body.style.overflow = '';
+                                if (app.map && typeof app.map.stopLocation === 'function') {
+                                    app.map.stopLocation();
+                                }
                             }
                         }
                         if (app.pullRefresh && typeof app.pullRefresh.setEnabled === 'function') {
@@ -27043,6 +27075,7 @@ app.map = {
         } else {
             setTimeout(() => this.instance.invalidateSize(), 150);
         }
+        this.startLocation();
         await this.checkPermission();
         await this.loadZones();
         this.updateTheme();
@@ -27380,8 +27413,7 @@ app.map = {
             iconAnchor: [7, 7]
         });
 
-        // Bật theo dõi vị trí liên tục
-        this.instance.locate({ watch: true, setView: false, enableHighAccuracy: true, timeout: 60000, maximumAge: 10000 });
+        // Vị trí người dùng sẽ được kích hoạt khi mở trang Bản đồ (startLocation)
 
         this.instance.on('locationfound', (e) => {
             this.userLocation = e.latlng;
@@ -27469,7 +27501,34 @@ app.map = {
             this.isLocatingUser = true;
             locateBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin text-lg"></i>';
             locateBtn.disabled = true;
+            this.startLocation(true);
         });
+    },
+
+    startLocation(centerOnUser = false) {
+        if (!this.instance) return;
+        this.isWatchingLocation = true;
+        try {
+            this.instance.locate({
+                watch: true,
+                setView: centerOnUser,
+                enableHighAccuracy: true,
+                timeout: 30000,
+                maximumAge: 10000
+            });
+        } catch (e) {
+            console.warn("Lỗi khởi chạy định vị:", e);
+        }
+    },
+
+    stopLocation() {
+        if (!this.instance) return;
+        this.isWatchingLocation = false;
+        try {
+            this.instance.stopLocate();
+        } catch (e) {
+            console.warn("Lỗi dừng định vị:", e);
+        }
     },
 
     clearDrafts() {

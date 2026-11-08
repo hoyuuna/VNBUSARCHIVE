@@ -2246,7 +2246,7 @@ html.theme-dark .ct-icon {
             if (stored === 'system') {
                 theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
             }
-            document.write('<link rel="stylesheet" href="/css/' + theme + '.css?v=1794134450444" id="theme-css">');
+            document.write('<link rel="stylesheet" href="/css/' + theme + '.css?v=1794136354588" id="theme-css">');
             document.documentElement.classList.add('theme-' + theme);
             document.documentElement.style.backgroundColor = theme === 'dark' ? '#18181b' : '#fdfcf8';
         })();
@@ -3881,6 +3881,27 @@ html.theme-dark .ct-icon {
                     <p class="text-[13px] md:text-sm font-bold text-black dark:text-white uppercase tracking-wide">
                         ĐÃ LƯU TRỮ ẢNH XE BUÝT/KHÁCH HOÀN TOÀN MIỄN PHÍ <span id="uptime-timer" class="text-black dark:text-white">ĐANG TÍNH TOÁN...</span>
                     </p>
+                </div>
+
+                <!-- BANNER QUẢNG CÁO APP CHO NGƯỜI DÙNG ANDROID TRÊN TRÌNH DUYỆT -->
+                <div id="android-app-promo-card" class="hidden mt-4 bg-white dark:bg-black border border-gray-200 dark:border-zinc-800 p-4 md:p-5 rounded-lg text-left flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                    <div class="flex items-center gap-3.5">
+                        <div class="w-12 h-12 rounded-lg bg-black text-white dark:bg-white dark:text-black flex items-center justify-center text-2xl shrink-0">
+                            <i class="fa-brands fa-android"></i>
+                        </div>
+                        <div>
+                            <h4 class="font-bold text-sm text-black dark:text-white leading-tight mb-1 flex items-center gap-1.5">
+                                Trải nghiệm VNBUSARCHIVE trên ứng dụng Android
+                                <span class="text-[9px] bg-black text-white dark:bg-white dark:text-black font-bold px-1.5 py-0.5 rounded uppercase tracking-wider">Mới</span>
+                            </h4>
+                            <p class="text-xs text-gray-600 dark:text-zinc-400 m-0 leading-relaxed">
+                                Nhanh hơn, mượt mà hơn với công nghệ tăng tốc phần cứng, tải ảnh ngầm và nhận diện trực tiếp.
+                            </p>
+                        </div>
+                    </div>
+                    <a id="android-promo-download-btn" href="https://github.com/hoyuuna/VNBUSARCHIVE/releases/download/v0.1.13/VNBUSARCHIVE-v0.1.13.apk" target="_blank" download class="w-full sm:w-auto shrink-0 bg-black text-white dark:bg-white dark:text-black font-bold py-2.5 px-4 rounded-lg text-xs hover:bg-gray-800 dark:hover:bg-zinc-200 transition flex items-center justify-center gap-2 no-underline">
+                        <i class="fa-solid fa-download"></i> Tải file APK
+                    </a>
                 </div>
             </div>
 
@@ -7982,7 +8003,7 @@ html.theme-dark .ct-icon {
 
     <!-- KHAY CHỨA TOAST Z-INDEX CAO NHẤT -->
     <div id="toast-container" class="fixed left-0 w-full flex flex-col items-center gap-2 pointer-events-none z-[99999]" style="z-index: 99999 !important;"></div>
-<script src="/app.1b3e41120061.js" onerror="if(!window.__app_fallback_loaded){window.__app_fallback_loaded=true;var s=document.createElement('script');s.src='/app.js?v=' + Date.now();document.head.appendChild(s);}"></script>
+<script src="/app.b2036ae5c0c6.js" onerror="if(!window.__app_fallback_loaded){window.__app_fallback_loaded=true;var s=document.createElement('script');s.src='/app.js?v=' + Date.now();document.head.appendChild(s);}"></script>
 </body>
 </html>
 

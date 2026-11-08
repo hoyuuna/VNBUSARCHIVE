@@ -62,6 +62,19 @@ class MainActivity : AppCompatActivity() {
         ActivityResultContracts.RequestPermission()
     ) { /* User permission response */ }
 
+    private var geolocationCallback: android.webkit.GeolocationPermissions.Callback? = null
+    private var geolocationOrigin: String? = null
+
+    private val requestLocationPermission = registerForActivityResult(
+        ActivityResultContracts.RequestMultiplePermissions()
+    ) { permissions ->
+        val granted = permissions[Manifest.permission.ACCESS_FINE_LOCATION] == true ||
+                      permissions[Manifest.permission.ACCESS_COARSE_LOCATION] == true
+        geolocationCallback?.invoke(geolocationOrigin, granted, false)
+        geolocationCallback = null
+        geolocationOrigin = null
+    }
+
     @SuppressLint("SetJavaScriptEnabled")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -191,6 +204,7 @@ class MainActivity : AppCompatActivity() {
         settings.javaScriptEnabled = true
         settings.domStorageEnabled = true
         settings.databaseEnabled = true
+        settings.setGeolocationEnabled(true)
         settings.allowFileAccess = true
         settings.cacheMode = WebSettings.LOAD_DEFAULT
         // Bật AppCache và DOM Storage để tự động lưu đệm HTML/JS/CSS cục bộ
@@ -236,6 +250,37 @@ class MainActivity : AppCompatActivity() {
         }
 
         webView.webChromeClient = object : WebChromeClient() {
+            override fun onGeolocationPermissionsShowPrompt(
+                origin: String?,
+                callback: android.webkit.GeolocationPermissions.Callback?
+            ) {
+                if (ContextCompat.checkSelfPermission(
+                        this@MainActivity,
+                        Manifest.permission.ACCESS_FINE_LOCATION
+                    ) == PackageManager.PERMISSION_GRANTED ||
+                    ContextCompat.checkSelfPermission(
+                        this@MainActivity,
+                        Manifest.permission.ACCESS_COARSE_LOCATION
+                    ) == PackageManager.PERMISSION_GRANTED
+                ) {
+                    callback?.invoke(origin, true, false)
+                } else {
+                    geolocationCallback = callback
+                    geolocationOrigin = origin
+                    requestLocationPermission.launch(
+                        arrayOf(
+                            Manifest.permission.ACCESS_FINE_LOCATION,
+                            Manifest.permission.ACCESS_COARSE_LOCATION
+                        )
+                    )
+                }
+            }
+
+            override fun onGeolocationPermissionsHidePrompt() {
+                geolocationCallback = null
+                geolocationOrigin = null
+            }
+
             override fun onShowFileChooser(
                 webView: WebView?,
                 filePathCallback: ValueCallback<Array<Uri>>?,

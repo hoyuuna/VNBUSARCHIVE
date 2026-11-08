@@ -4636,19 +4636,45 @@ Object.assign(window.app, {
         init: () => {
             const isApp = (window.AndroidBridge && typeof window.AndroidBridge.isNativeApp === 'function' && window.AndroidBridge.isNativeApp()) || window.location.search.includes('app_preview=1');
             const nav = document.getElementById('app-bottom-nav');
-            if (!nav) return;
-            if (isApp) {
-                document.documentElement.classList.add('is-native-app');
-                document.body.classList.add('is-native-app');
-                nav.classList.remove('hidden');
-                app.bottomNav.updateActiveTab(window.location.pathname);
-                app.bottomNav.updateUserUI();
+            if (nav) {
+                if (isApp) {
+                    document.documentElement.classList.add('is-native-app');
+                    document.body.classList.add('is-native-app');
+                    nav.classList.remove('hidden');
+                    app.bottomNav.updateActiveTab(window.location.pathname);
+                    app.bottomNav.updateUserUI();
 
-                if ('virtualKeyboard' in navigator) {
-                    try { navigator.virtualKeyboard.overlaysContent = true; } catch (e) {}
+                    if ('virtualKeyboard' in navigator) {
+                        try { navigator.virtualKeyboard.overlaysContent = true; } catch (e) {}
+                    }
+                } else {
+                    nav.classList.add('hidden');
                 }
-            } else {
-                nav.classList.add('hidden');
+            }
+
+            // Quản lý banner quảng cáo app Android trên trình duyệt web di động
+            const promoCard = document.getElementById('android-app-promo-card');
+            if (promoCard) {
+                const isAndroid = /Android/i.test(navigator.userAgent);
+                if (isAndroid && !isApp) {
+                    promoCard.classList.remove('hidden');
+                    fetch('https://api.github.com/repos/hoyuuna/VNBUSARCHIVE/releases')
+                        .then(res => res.json())
+                        .then(releases => {
+                            if (Array.isArray(releases) && releases.length > 0) {
+                                const latest = releases[0];
+                                const apkAsset = latest.assets && latest.assets.find(a => a.name && a.name.endsWith('.apk'));
+                                const downloadBtn = document.getElementById('android-promo-download-btn');
+                                if (downloadBtn && apkAsset && apkAsset.browser_download_url) {
+                                    downloadBtn.href = apkAsset.browser_download_url;
+                                    downloadBtn.setAttribute('download', apkAsset.name);
+                                }
+                            }
+                        })
+                        .catch(() => {});
+                } else {
+                    promoCard.classList.add('hidden');
+                }
             }
         },
         updateActiveTab: (path) => {

@@ -108,9 +108,15 @@ Object.assign(window.app, {
                             if (id === 'map') {
                                 footer.parentElement.style.display = 'none';
                                 document.body.style.overflow = 'hidden';
+                                if (app.map && typeof app.map.startLocation === 'function') {
+                                    app.map.startLocation();
+                                }
                             } else {
                                 footer.parentElement.style.display = '';
                                 document.body.style.overflow = '';
+                                if (app.map && typeof app.map.stopLocation === 'function') {
+                                    app.map.stopLocation();
+                                }
                             }
                         }
                         if (app.pullRefresh && typeof app.pullRefresh.setEnabled === 'function') {

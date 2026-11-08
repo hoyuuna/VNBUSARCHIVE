@@ -805,3 +805,22 @@ input:disabled, select:disabled, textarea:disabled {
 
 
 
+
+/* Android App Promo Banner */
+#android-app-promo-card {
+    background-color: #ffffff;
+    border-color: #e4e4e7;
+}
+#android-app-promo-card h4 {
+    color: #000000;
+}
+#android-app-promo-card p {
+    color: #52525b;
+}
+#android-promo-download-btn {
+    background-color: #000000;
+    color: #ffffff;
+}
+#android-promo-download-btn:hover {
+    background-color: #27272a;
+}
