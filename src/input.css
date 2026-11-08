@@ -35,11 +35,19 @@ body.is-native-app footer {
 
 body.is-native-app {
     padding-top: max(0.75rem, env(safe-area-inset-top, 0px)) !important;
-    padding-bottom: calc(7rem + env(safe-area-inset-bottom, 0px)) !important;
+    padding-bottom: calc(5.5rem + env(safe-area-inset-bottom, 0px)) !important;
     overscroll-behavior-y: none !important;
     -webkit-tap-highlight-color: transparent !important;
 }
 
 body.is-native-app main {
     padding-top: max(0.5rem, env(safe-area-inset-top, 0px)) !important;
+}
+
+#app-bottom-nav {
+    -webkit-transform: translate3d(0, 0, 0) !important;
+    transform: translate3d(0, 0, 0) !important;
+    -webkit-backface-visibility: hidden !important;
+    backface-visibility: hidden !important;
+    contain: layout paint !important;
 }

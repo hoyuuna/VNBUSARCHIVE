@@ -7923,39 +7923,39 @@ html.theme-dark .ct-icon {
     </div>
 
     <!-- THANH ĐIỀU HƯỚNG DƯỚI ĐÁY (BOTTOM NAVIGATION BAR - DÀNH CHO APP ANDROID) -->
-    <nav id="app-bottom-nav" class="hidden fixed inset-x-0 mx-auto w-[calc(100%-1.5rem)] max-w-md bg-white dark:bg-black border border-black dark:border-white rounded-2xl z-[2500] px-1 py-2 grid grid-cols-5 items-center justify-items-center select-none shadow-2xl min-h-[64px]" style="bottom: max(22px, calc(16px + env(safe-area-inset-bottom, 0px))); padding-bottom: max(0.4rem, env(safe-area-inset-bottom, 0px)); -webkit-tap-highlight-color: transparent; will-change: auto; transform: none !important; transition: none !important;">
+    <nav id="app-bottom-nav" class="hidden fixed inset-x-0 mx-auto w-[calc(100%-1.5rem)] max-w-md bg-white dark:bg-black border border-black dark:border-white rounded-2xl z-[2500] px-1 py-1 grid grid-cols-5 items-center justify-items-center select-none shadow-2xl h-[58px]" style="bottom: max(12px, calc(6px + env(safe-area-inset-bottom, 0px))); padding-bottom: max(0.2rem, calc(env(safe-area-inset-bottom, 0px) / 2)); -webkit-tap-highlight-color: transparent; -webkit-transform: translate3d(0, 0, 0) !important; transform: translate3d(0, 0, 0) !important; -webkit-backface-visibility: hidden; backface-visibility: hidden; contain: layout paint; transition: none !important;">
         <!-- 1. Trang chủ -->
         <button type="button" onclick="app.bottomNav.navigate('home')" id="bottom-tab-home" class="bottom-nav-item w-full flex flex-col items-center justify-center text-gray-400 dark:text-zinc-500 hover:text-black dark:hover:text-white transition">
-            <i class="fa-solid fa-house text-xl"></i>
-            <span class="text-[10px] font-bold mt-1 text-center">Trang chủ</span>
+            <i class="fa-solid fa-house text-lg"></i>
+            <span class="text-[10px] font-bold mt-0.5 text-center">Trang chủ</span>
         </button>
 
         <!-- 2. Tìm kiếm -->
         <button type="button" onclick="app.bottomNav.navigate('search')" id="bottom-tab-search" class="bottom-nav-item w-full flex flex-col items-center justify-center text-gray-400 dark:text-zinc-500 hover:text-black dark:hover:text-white transition">
-            <i class="fa-solid fa-magnifying-glass text-xl"></i>
-            <span class="text-[10px] font-bold mt-1 text-center">Tìm kiếm</span>
+            <i class="fa-solid fa-magnifying-glass text-lg"></i>
+            <span class="text-[10px] font-bold mt-0.5 text-center">Tìm kiếm</span>
         </button>
 
         <!-- 3. Nút Đăng ảnh trung tâm -->
         <button type="button" onclick="app.bottomNav.navigate('upload')" id="bottom-tab-upload" class="bottom-nav-item w-full flex items-center justify-center">
-            <div class="w-12 h-12 rounded-xl bg-black text-white dark:bg-white dark:text-black flex items-center justify-center text-xl shadow-sm hover:scale-105 active:scale-95 transition-transform border border-black dark:border-white">
+            <div class="w-10 h-10 rounded-lg bg-black text-white dark:bg-white dark:text-black flex items-center justify-center text-lg shadow-sm hover:scale-105 active:scale-95 transition-transform border border-black dark:border-white">
                 <i class="fa-solid fa-plus"></i>
             </div>
         </button>
 
         <!-- 4. Bản đồ -->
         <button type="button" onclick="app.bottomNav.navigate('map')" id="bottom-tab-map" class="bottom-nav-item w-full flex flex-col items-center justify-center text-gray-400 dark:text-zinc-500 hover:text-black dark:hover:text-white transition">
-            <i class="fa-solid fa-map-location-dot text-xl"></i>
-            <span class="text-[10px] font-bold mt-1 text-center">Bản đồ</span>
+            <i class="fa-solid fa-map-location-dot text-lg"></i>
+            <span class="text-[10px] font-bold mt-0.5 text-center">Bản đồ</span>
         </button>
 
         <!-- 5. Cá nhân (Avatar viền xám khi chưa chọn) -->
         <button type="button" onclick="app.bottomNav.navigate('profile')" id="bottom-tab-profile" class="bottom-nav-item w-full flex flex-col items-center justify-center text-gray-400 dark:text-zinc-500 hover:text-black dark:hover:text-white transition">
-            <div class="w-6 h-6 flex items-center justify-center">
-                <img id="bottom-tab-avatar" src="" class="w-6 h-6 rounded-full object-cover border border-gray-400 dark:border-zinc-600 shrink-0" style="display: none;" alt="Avatar">
-                <i id="bottom-tab-avatar-icon" class="fa-solid fa-circle-user text-xl shrink-0"></i>
+            <div class="w-5 h-5 flex items-center justify-center">
+                <img id="bottom-tab-avatar" src="" class="w-5 h-5 rounded-full object-cover border border-gray-400 dark:border-zinc-600 shrink-0" style="display: none;" alt="Avatar">
+                <i id="bottom-tab-avatar-icon" class="fa-solid fa-circle-user text-lg shrink-0"></i>
             </div>
-            <span id="bottom-tab-profile-label" class="text-[10px] font-bold mt-1 text-center">Tài khoản</span>
+            <span id="bottom-tab-profile-label" class="text-[10px] font-bold mt-0.5 text-center">Tài khoản</span>
         </button>
     </nav>
 

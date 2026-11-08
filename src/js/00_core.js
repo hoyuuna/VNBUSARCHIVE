@@ -4727,7 +4727,7 @@ document.addEventListener('DOMContentLoaded', () => {
 Object.assign(window.app, {
     pullRefresh: {
         startY: 0,
-        threshold: 130,
+        threshold: 380,
         hapticFired: false,
         init: () => {
             const isApp = (window.AndroidBridge && typeof window.AndroidBridge.isNativeApp === 'function' && window.AndroidBridge.isNativeApp()) || window.location.search.includes('app_preview=1');
@@ -4767,7 +4767,7 @@ Object.assign(window.app, {
                 const diff = touchY - app.pullRefresh.startY;
 
                 const sY = window.scrollY || document.documentElement.scrollTop || 0;
-                if (diff > 20 && sY <= 2) {
+                if (diff > 35 && sY <= 2) {
                     badge.classList.remove('opacity-0');
                     if (diff >= app.pullRefresh.threshold) {
                         text.innerText = "Thả tay để làm mới";
@@ -4789,7 +4789,7 @@ Object.assign(window.app, {
                         }
                         app.pullRefresh.hapticFired = false;
                     }
-                } else if (diff <= 10) {
+                } else if (diff <= 20) {
                     badge.classList.add('opacity-0');
                 }
             }, { passive: true });
