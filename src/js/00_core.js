@@ -4658,12 +4658,17 @@ Object.assign(window.app, {
                 const isAndroid = /Android/i.test(navigator.userAgent);
                 if (isAndroid && !isApp) {
                     promoCard.classList.remove('hidden');
-                    fetch('https://api.github.com/repos/hoyuuna/VNBUSARCHIVE/releases')
-                        .then(res => res.json())
-                        .then(releases => {
-                            if (Array.isArray(releases) && releases.length > 0) {
-                                const latest = releases[0];
-                                const apkAsset = latest.assets && latest.assets.find(a => a.name && a.name.endsWith('.apk'));
+                    // Chỉ lấy bản Release chính thức mới nhất (loại bỏ pre-release và draft)
+                    fetch('https://api.github.com/repos/hoyuuna/VNBUSARCHIVE/releases/latest')
+                        .then(res => {
+                            if (res.ok) return res.json();
+                            return fetch('https://api.github.com/repos/hoyuuna/VNBUSARCHIVE/releases')
+                                .then(r => r.json())
+                                .then(list => Array.isArray(list) ? (list.find(r => !r.prerelease && !r.draft) || list[0]) : null);
+                        })
+                        .then(latest => {
+                            if (latest && latest.assets) {
+                                const apkAsset = latest.assets.find(a => a.name && a.name.endsWith('.apk'));
                                 const downloadBtn = document.getElementById('android-promo-download-btn');
                                 if (downloadBtn && apkAsset && apkAsset.browser_download_url) {
                                     downloadBtn.href = apkAsset.browser_download_url;

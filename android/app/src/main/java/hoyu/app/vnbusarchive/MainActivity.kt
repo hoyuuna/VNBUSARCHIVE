@@ -12,6 +12,7 @@ import android.view.View
 import android.view.WindowManager
 import java.io.File
 import android.webkit.CookieManager
+import android.webkit.RenderProcessGoneDetail
 import android.webkit.ValueCallback
 import android.webkit.WebChromeClient
 import android.webkit.WebResourceRequest
@@ -99,7 +100,17 @@ class MainActivity : AppCompatActivity() {
 
         triggerAutoUpdateCheck()
 
-        if (savedInstanceState == null) {
+        if (savedInstanceState != null) {
+            val restored = webView.restoreState(savedInstanceState)
+            if (restored == null || webView.url.isNullOrEmpty()) {
+                val targetUrl = when {
+                    pendingSharedUris.isNotEmpty() -> "https://vnbusarchive.io.vn/upload"
+                    intent?.data != null -> intent.data.toString()
+                    else -> "https://vnbusarchive.io.vn"
+                }
+                webView.loadUrl(targetUrl)
+            }
+        } else {
             val targetUrl = when {
                 pendingSharedUris.isNotEmpty() -> "https://vnbusarchive.io.vn/upload"
                 intent?.data != null -> intent.data.toString()
@@ -247,6 +258,12 @@ class MainActivity : AppCompatActivity() {
                     pendingOpenTab = null
                 }
             }
+
+            override fun onRenderProcessGone(view: WebView?, detail: RenderProcessGoneDetail?): Boolean {
+                val currentUrl = view?.url ?: "https://vnbusarchive.io.vn"
+                view?.loadUrl(currentUrl)
+                return true
+            }
         }
 
         webView.webChromeClient = object : WebChromeClient() {
@@ -318,6 +335,26 @@ class MainActivity : AppCompatActivity() {
     }
 
     
+
+    override fun onResume() {
+        super.onResume()
+        webView.onResume()
+    }
+
+    override fun onPause() {
+        webView.onPause()
+        super.onPause()
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        webView.saveState(outState)
+    }
+
+    override fun onDestroy() {
+        webView.destroy()
+        super.onDestroy()
+    }
 
     private fun setupBackNavigation() {
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
