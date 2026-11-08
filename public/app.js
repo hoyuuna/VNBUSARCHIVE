@@ -5589,7 +5589,10 @@ Object.assign(window.app, {
             if (!window.AndroidBridge || typeof window.AndroidBridge.isNativeApp !== 'function' || !window.AndroidBridge.isNativeApp()) return;
             const verEl = document.getElementById('app-current-version');
             if (verEl && window.AndroidBridge.getAppVersion) {
-                verEl.innerText = 'v' + window.AndroidBridge.getAppVersion();
+                const v = window.AndroidBridge.getAppVersion();
+                if (v && v !== '--') {
+                    verEl.innerText = v.startsWith('v') ? v : ('v' + v);
+                }
             }
             try {
                 if (window.AndroidBridge.getUpdatePreferences) {
@@ -5613,6 +5616,7 @@ Object.assign(window.app, {
             if (!window.AndroidBridge || !window.AndroidBridge.checkUpdate) {
                 return app.ui.showAlert('Chức năng này chỉ khả dụng trên ứng dụng VNBUSARCHIVE Android.');
             }
+            app.androidUpdate.loadUI();
             const btn = document.getElementById('app-check-update-btn');
             const box = document.getElementById('app-update-result-box');
             if (btn) {
@@ -5624,43 +5628,62 @@ Object.assign(window.app, {
                 box.innerHTML = '<div class="flex items-center gap-2 text-gray-500"><i class="fa-solid fa-circle-notch fa-spin"></i> Đang kết nối tới máy chủ GitHub...</div>';
             }
 
-            window._onAndroidUpdateResult = (rawJson) => {
+            window._onAndroidUpdateResult = (rawPayload, isBase64) => {
                 if (btn) {
                     btn.disabled = false;
                     btn.innerHTML = '<i class="fa-solid fa-rotate mr-1"></i> Kiểm tra cập nhật';
                 }
+                let data;
                 try {
-                    const data = typeof rawJson === 'string' ? JSON.parse(rawJson) : rawJson;
-                    if (data.hasUpdate) {
-                        const tag = app.utils.escapeHtml(data.latestVersion);
-                        const isPre = data.isPrerelease ? '<span class="ml-2 text-[10px] font-bold px-1.5 py-0.5 rounded bg-yellow-100 text-yellow-800 border border-yellow-300">THỬ NGHIỆM</span>' : '';
-                        box.innerHTML = `
-                            <div class="space-y-3">
-                                <div class="flex flex-wrap items-center justify-between gap-2">
-                                    <span class="font-bold text-black dark:text-white flex items-center text-xs sm:text-sm">
-                                        <i class="fa-solid fa-sparkles text-yellow-500 mr-2"></i> Có bản cập nhật mới: v${tag}${isPre}
-                                    </span>
-                                    <span class="text-[10px] text-gray-500 font-mono">Hiện tại: v${app.utils.escapeHtml(data.currentVersion || '')}</span>
-                                </div>
-                                <div class="text-[11px] text-gray-700 dark:text-zinc-300 leading-relaxed max-h-36 overflow-y-auto whitespace-pre-wrap font-mono p-3 bg-white dark:bg-black rounded-md border border-black dark:border-white">
-${app.utils.escapeHtml(data.notes || 'Không có mô tả cập nhật.')}
-                                </div>
-                                <div class="pt-1">
-                                    <button onclick="app.androidUpdate.startDownload('${data.downloadUrl}')" class="w-full sm:w-auto bg-black text-white dark:bg-white dark:text-black px-5 py-2.5 text-xs font-bold rounded-md hover:bg-gray-800 dark:hover:bg-zinc-200 transition shadow-sm flex items-center justify-center gap-2">
-                                        <i class="fa-solid fa-download"></i> Tải về & Cập nhật ngay
-                                    </button>
-                                </div>
-                            </div>
-                        `;
+                    if (isBase64 || (typeof rawPayload === 'string' && !rawPayload.trim().startsWith('{'))) {
+                        const binaryString = atob(rawPayload);
+                        const bytes = new Uint8Array(binaryString.length);
+                        for (let i = 0; i < binaryString.length; i++) {
+                            bytes[i] = binaryString.charCodeAt(i);
+                        }
+                        const jsonText = new TextDecoder('utf-8').decode(bytes);
+                        data = JSON.parse(jsonText);
                     } else {
-                        box.innerHTML = `
-                            <div class="flex items-center gap-2 text-green-700 font-bold">
-                                <i class="fa-solid fa-circle-check text-green-600"></i> Bạn đang sử dụng phiên bản mới nhất (v${app.utils.escapeHtml(data.latestVersion)}).
-                            </div>
-                        `;
+                        data = typeof rawPayload === 'string' ? JSON.parse(rawPayload) : rawPayload;
                     }
                 } catch (err) {
-                    box.innerHTML = `<div class="text-red-500">Lỗi xử lý dữ liệu cập nhật: ${app.utils.escapeHtml(err.message)}</div>`;
+                    if (box) box.innerHTML = `<div class="text-red-500 font-bold">Lỗi xử lý dữ liệu: ${app.utils.escapeHtml(err.message)}</div>`;
+                    return;
+                }
+
+                // Cập nhật số phiên bản hiện tại lên badge thông tin ứng dụng
+                const verEl = document.getElementById('app-current-version');
+                if (verEl && data.currentVersion) {
+                    verEl.innerText = data.currentVersion.startsWith('v') ? data.currentVersion : ('v' + data.currentVersion);
+                }
+
+                if (data.hasUpdate) {
+                    const tag = app.utils.escapeHtml(data.latestVersion);
+                    const isPre = data.isPrerelease ? '<span class="ml-2 text-[10px] font-bold px-1.5 py-0.5 rounded bg-yellow-100 text-yellow-800 border border-yellow-300">THỬ NGHIỆM</span>' : '';
+                    box.innerHTML = `
+                        <div class="space-y-3">
+                            <div class="flex flex-wrap items-center justify-between gap-2">
+                                <span class="font-bold text-black dark:text-white flex items-center text-xs sm:text-sm">
+                                    <i class="fa-solid fa-sparkles text-yellow-500 mr-2"></i> Có bản cập nhật mới: v${tag}${isPre}
+                                </span>
+                                <span class="text-[10px] text-gray-500 font-mono">Phiên bản hiện tại: v${app.utils.escapeHtml(data.currentVersion || '')}</span>
+                            </div>
+                            <div class="text-[11px] text-gray-700 dark:text-zinc-300 leading-relaxed max-h-36 overflow-y-auto whitespace-pre-wrap font-mono p-3 bg-white dark:bg-black rounded-md border border-black dark:border-white">
+${app.utils.escapeHtml(data.notes || 'Không có mô tả cập nhật.')}
+                            </div>
+                            <div class="pt-1">
+                                <button onclick="app.androidUpdate.startDownload('${data.downloadUrl}')" class="w-full sm:w-auto bg-black text-white dark:bg-white dark:text-black px-5 py-2.5 text-xs font-bold rounded-md hover:bg-gray-800 dark:hover:bg-zinc-200 transition shadow-sm flex items-center justify-center gap-2">
+                                    <i class="fa-solid fa-download"></i> Tải về & Cập nhật ngay
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    box.innerHTML = `
+                        <div class="flex items-center gap-2 text-green-700 font-bold">
+                            <i class="fa-solid fa-circle-check text-green-600"></i> Bạn đang sử dụng phiên bản mới nhất (v${app.utils.escapeHtml(data.latestVersion)}).
+                        </div>
+                    `;
                 }
             };
 
@@ -5672,12 +5695,12 @@ ${app.utils.escapeHtml(data.notes || 'Không có mô tả cập nhật.')}
             if (box) {
                 box.innerHTML = `
                     <div class="space-y-2">
-                        <div class="flex items-center justify-between font-bold text-xs text-black">
+                        <div class="flex items-center justify-between font-bold text-xs text-black dark:text-white">
                             <span><i class="fa-solid fa-spinner fa-spin mr-1"></i> Đang tải bản cập nhật...</span>
                             <span id="app-update-percent">0%</span>
                         </div>
-                        <div class="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
-                            <div id="app-update-bar" class="bg-black h-2 transition-all duration-200" style="width: 0%"></div>
+                        <div class="w-full bg-gray-200 dark:bg-zinc-700 rounded-full h-2 overflow-hidden">
+                            <div id="app-update-bar" class="bg-black dark:bg-white h-2 transition-all duration-200" style="width: 0%"></div>
                         </div>
                         <p class="text-[10px] text-gray-500">File APK sau khi tải xong sẽ tự động mở màn hình xác nhận cài đặt đè.</p>
                     </div>

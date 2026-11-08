@@ -24,7 +24,9 @@ class AndroidBridge(
     fun isNativeApp(): Boolean = true
 
     @JavascriptInterface
-    fun getAppVersion(): String = BuildConfig.VERSION_NAME
+    fun getAppVersion(): String {
+        return UpdateManager.getCurrentVersion(activity)
+    }
 
     @JavascriptInterface
     fun showToast(message: String) {
@@ -119,14 +121,15 @@ class AndroidBridge(
     }
 
     /**
-     * Kiểm tra bản cập nhật và gọi lại callback trong JS
+     * Kiểm tra bản cập nhật và gọi lại callback trong JS an toàn qua Base64 (tránh lỗi control characters / newlines)
      */
     @JavascriptInterface
     fun checkUpdate(callbackJsName: String) {
         activity.lifecycleScope.launch(Dispatchers.Main) {
             val result = UpdateManager.checkUpdate(activity)
-            val jsonString = result.toJson().replace("'", "\\'")
-            webView.evaluateJavascript("$callbackJsName('$jsonString')", null)
+            val jsonBytes = result.toJson().toByteArray(Charsets.UTF_8)
+            val base64 = android.util.Base64.encodeToString(jsonBytes, android.util.Base64.NO_WRAP)
+            webView.evaluateJavascript("if (typeof $callbackJsName === 'function') { $callbackJsName('$base64', true); }", null)
         }
     }
 

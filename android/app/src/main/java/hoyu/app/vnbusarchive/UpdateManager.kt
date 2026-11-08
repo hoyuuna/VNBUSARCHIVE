@@ -39,12 +39,25 @@ object UpdateManager {
         .readTimeout(15, TimeUnit.SECONDS)
         .build()
 
+    fun getCurrentVersion(context: Context): String {
+        return try {
+            val pInfo = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                context.packageManager.getPackageInfo(context.packageName, android.content.pm.PackageManager.PackageInfoFlags.of(0))
+            } else {
+                @Suppress("DEPRECATION")
+                context.packageManager.getPackageInfo(context.packageName, 0)
+            }
+            pInfo.versionName ?: BuildConfig.VERSION_NAME
+        } catch (e: Exception) {
+            BuildConfig.VERSION_NAME
+        }
+    }
+
     private fun getPrefs(context: Context): SharedPreferences {
         return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
     }
 
     fun isIncludePrerelease(context: Context): Boolean {
-        // Mặc định false (chỉ lấy bản chính thức)
         return getPrefs(context).getBoolean(KEY_INCLUDE_PRERELEASE, false)
     }
 
@@ -53,7 +66,6 @@ object UpdateManager {
     }
 
     fun isAutoCheckEnabled(context: Context): Boolean {
-        // Mặc định true (tự động kiểm tra khi vào app)
         return getPrefs(context).getBoolean(KEY_AUTO_CHECK, true)
     }
 
@@ -67,7 +79,7 @@ object UpdateManager {
         val downloadUrl: String,
         val notes: String,
         val isPrerelease: Boolean,
-        val currentVersion: String = BuildConfig.VERSION_NAME
+        val currentVersion: String
     ) {
         fun toJson(): String {
             val obj = JSONObject()
@@ -81,10 +93,6 @@ object UpdateManager {
         }
     }
 
-    /**
-     * So sánh 2 chuỗi phiên bản dạng x.y.z
-     * Trả về true nếu latest lớn hơn current
-     */
     fun isNewerVersion(latest: String, current: String): Boolean {
         try {
             val cleanLatest = latest.removePrefix("v").trim()
@@ -106,12 +114,9 @@ object UpdateManager {
         return false
     }
 
-    /**
-     * Kiểm tra bản cập nhật mới (Chạy trên Dispatchers.IO)
-     */
     suspend fun checkUpdate(context: Context, includePrerelease: Boolean = isIncludePrerelease(context)): ReleaseInfo =
         withContext(Dispatchers.IO) {
-            val currentVersion = BuildConfig.VERSION_NAME
+            val currentVersion = getCurrentVersion(context)
 
             // 1. Thử qua GitHub REST API
             var releasesJson: String? = null
@@ -161,7 +166,8 @@ object UpdateManager {
                 latestVersion = currentVersion,
                 downloadUrl = "",
                 notes = "Đang ở phiên bản mới nhất.",
-                isPrerelease = false
+                isPrerelease = false,
+                currentVersion = currentVersion
             )
         }
 
@@ -179,7 +185,6 @@ object UpdateManager {
                 val tagName = item.optString("tag_name", "").removePrefix("v")
                 val notes = item.optString("body", "")
 
-                // Tìm file apk trong assets
                 var apkUrl = ""
                 val assets = item.optJSONArray("assets")
                 if (assets != null) {
@@ -199,7 +204,8 @@ object UpdateManager {
                     latestVersion = tagName,
                     downloadUrl = apkUrl,
                     notes = notes,
-                    isPrerelease = isPrerelease
+                    isPrerelease = isPrerelease,
+                    currentVersion = currentVersion
                 )
             }
         } catch (e: Exception) {
@@ -210,7 +216,6 @@ object UpdateManager {
 
     private fun parseAtomFeed(xml: String, currentVersion: String): ReleaseInfo? {
         try {
-            // Regex lấy tag_name từ link releases/tag/vX.X.X
             val pattern = Pattern.compile("releases/tag/v?([0-9]+\\.[0-9]+\\.[0-9]+)")
             val matcher = pattern.matcher(xml)
             if (matcher.find()) {
@@ -222,7 +227,8 @@ object UpdateManager {
                     latestVersion = tagName,
                     downloadUrl = downloadUrl,
                     notes = "Phiên bản mới nhất trên GitHub.",
-                    isPrerelease = false
+                    isPrerelease = false,
+                    currentVersion = currentVersion
                 )
             }
         } catch (e: Exception) {
@@ -231,9 +237,6 @@ object UpdateManager {
         return null
     }
 
-    /**
-     * Bắn notification khi phát hiện bản cập nhật mới
-     */
     fun showUpdateNotification(context: Context, latestVersion: String) {
         val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 
@@ -272,9 +275,6 @@ object UpdateManager {
         notificationManager.notify(NOTIFICATION_ID, notification)
     }
 
-    /**
-     * Tải file APK mới và mở trình cài đặt đè của Android
-     */
     suspend fun downloadAndInstallApk(context: Context, downloadUrl: String, onProgress: (Int) -> Unit) = withContext(Dispatchers.IO) {
         try {
             val request = Request.Builder().url(downloadUrl).build()
@@ -311,7 +311,6 @@ object UpdateManager {
             }
             response.close()
 
-            // Kích hoạt cài đặt APK
             withContext(Dispatchers.Main) {
                 installApk(context, destFile)
             }
