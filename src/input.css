@@ -21,6 +21,15 @@
     cursor: not-allowed !important;
   }
 }
+/* Chỉ hiển thị card nút chức năng hồ sơ trên Native App Android (trên web dùng header/menu) */
+#profile-actions-card {
+    display: none !important;
+}
+
+body.is-native-app #profile-actions-card {
+    display: block !important;
+}
+
 /* Native App layout tweaks */
 body.is-native-app header,
 body.is-native-app #header-spacer,
