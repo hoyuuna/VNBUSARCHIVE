@@ -4528,6 +4528,7 @@ dropdown.innerHTML = `
                     app.auth.close();
                     if (app.role === 'admin' || app.role === 'manager') {
                         document.getElementById('nav-admin').classList.remove('hidden');
+                        document.getElementById('btn-profile-admin')?.classList.remove('hidden');
                         app.admin.checkNotification();
                         if (app.role === 'manager') {
                             document.getElementById('adm-tab-manager').classList.remove('hidden');
@@ -4535,6 +4536,7 @@ dropdown.innerHTML = `
                         if (typeof app.initRealtimeChannel === 'function') app.initRealtimeChannel();
                     } else {
                         document.getElementById('nav-admin').classList.add('hidden');
+                        document.getElementById('btn-profile-admin')?.classList.add('hidden');
                         if (typeof app.initRealtimeChannel === 'function') app.initRealtimeChannel();
                     }
                 } else {

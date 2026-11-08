@@ -150,15 +150,6 @@ Object.assign(window.app, {
                     } else if (targetDepth === currentDepth) {
                         animationClass = 'fade-zoom-in-page'; 
                     }
-                    document.querySelectorAll('.view-section').forEach(el => {
-                        el.classList.remove('active', 'slide-in-right', 'slide-in-left', 'fade-zoom-in-page');
-                    });
-                    const targetPath = window.location.pathname + window.location.search;
-                    if (app.scrollPositions && app.scrollPositions[targetPath] !== undefined) {
-                        window.scrollTo(0, app.scrollPositions[targetPath]);
-                    } else {
-                        window.scrollTo(0, 0);
-                    }
                     const targetEl = document.getElementById(id);
                     if (targetEl) {
                         if (!app._initialLoadingDismissed) {
@@ -171,6 +162,17 @@ Object.assign(window.app, {
                             };
                             if (app.transitionHeaderLogo) app.transitionHeaderLogo();
                         }
+                    }
+                    document.querySelectorAll('.view-section').forEach(el => {
+                        if (el !== targetEl) {
+                            el.classList.remove('active', 'slide-in-right', 'slide-in-left', 'fade-zoom-in-page');
+                        }
+                    });
+                    const targetPath = window.location.pathname + window.location.search;
+                    if (app.scrollPositions && app.scrollPositions[targetPath] !== undefined) {
+                        window.scrollTo(0, app.scrollPositions[targetPath]);
+                    } else {
+                        window.scrollTo(0, 0);
                     }
                     if (app.utils && app.utils.updateCanonical) app.utils.updateCanonical();
                     if (app.dismissInitialLoadingScreen) app.dismissInitialLoadingScreen();
@@ -629,6 +631,8 @@ Object.assign(window.app, {
 
                     document.getElementById('profile-auth-only-content')?.classList.add('hidden');
                     document.getElementById('btn-profile-logout')?.classList.add('hidden');
+                    document.getElementById('btn-profile-admin')?.classList.add('hidden');
+                    document.getElementById('btn-profile-comments')?.classList.add('hidden');
                     if (app.loadingBar && app.loadingBar.finish) app.loadingBar.finish();
                 },
                 loadAccount: async (usernameStr = null, forceRefresh = false) => {
@@ -661,6 +665,18 @@ Object.assign(window.app, {
                     document.getElementById('acc-avatar-icon').classList.remove('hidden');
                     document.getElementById('profile-bio-content').innerHTML = '<i class="fa-solid fa-spinner fa-spin text-gray-400"></i>';
                     document.getElementById('profile-fav-photo-container').innerHTML = '';
+                    if (app.role === 'admin' || app.role === 'manager') {
+                        document.getElementById('btn-profile-admin')?.classList.remove('hidden');
+                    } else {
+                        document.getElementById('btn-profile-admin')?.classList.add('hidden');
+                    }
+                    if (isOwnProfile) {
+                        document.getElementById('btn-profile-comments')?.classList.remove('hidden');
+                        document.getElementById('btn-profile-logout')?.classList.remove('hidden');
+                    } else {
+                        document.getElementById('btn-profile-comments')?.classList.add('hidden');
+                        document.getElementById('btn-profile-logout')?.classList.add('hidden');
+                    }
                     document.getElementById('my-stat-photos').innerHTML = '<i class="fa-solid fa-spinner fa-spin text-gray-400"></i>';
                     document.getElementById('my-stat-views').innerHTML = '<i class="fa-solid fa-spinner fa-spin text-gray-400"></i>';
                     document.getElementById('my-stat-likes').innerHTML = '<i class="fa-solid fa-spinner fa-spin text-gray-400"></i>';
