@@ -1722,6 +1722,16 @@ Object.assign(window.app, {
                     input.value = next;
                     app.upload.updateFilters();
                 },
+                updateHoyuShotNotice: (software) => {
+                    const noticeEl = document.getElementById('up-hoyushot-thanks');
+                    if (!noticeEl) return;
+                    const clean = typeof software === 'string' ? software.replace(/\0/g, '').trim() : '';
+                    if (clean === 'Hoyuuna HoyuShot') {
+                        noticeEl.classList.remove('hidden');
+                    } else {
+                        noticeEl.classList.add('hidden');
+                    }
+                },
                 removeImage: () => {
                     const upFile = document.getElementById('up-file');
                     if (upFile) upFile.value = '';
@@ -1770,7 +1780,8 @@ Object.assign(window.app, {
                     app.crop.savedCropData = null;
                     app.crop.savedRatio = 4/3;
                     app.crop.savedState = null;
-                    app.currentExif = { camera: 'N/A', params: 'N/A' };
+                    app.currentExif = { camera: 'N/A', params: 'N/A', software: '' };
+                    if (app.upload.updateHoyuShotNotice) app.upload.updateHoyuShotNotice('');
                     const upCamera = document.getElementById('up-camera');
                     if (upCamera) upCamera.value = 'N/A';
                     const upExif = document.getElementById('up-exif-params');
@@ -1789,6 +1800,8 @@ Object.assign(window.app, {
                     if (fileInput && fileInput.disabled) return;
                     const file = e.target.files[0];
                     if (!file) return;
+                    app.currentExif = { camera: 'N/A', params: 'N/A', software: '' };
+                    if (app.upload.updateHoyuShotNotice) app.upload.updateHoyuShotNotice('');
                     app.upload._faceAutoRun = false;
                     app.crop.sourceImage = null;
                     app.crop.originalFile = null;
@@ -1917,7 +1930,8 @@ Object.assign(window.app, {
                             let model = tags.Model;
                             const make = tags.Make;
                             const lens = tags.LensModel || tags.LensInfo;
-                            const software = tags.Software;
+                            const softwareRaw = tags.Software || tags.software || (tags.ifd0 && tags.ifd0.Software) || '';
+                            const software = typeof softwareRaw === 'string' ? softwareRaw.replace(/\0/g, '').trim() : '';
                             const fNumber = tags.FNumber || tags.fNumber;
                             const exposureTime = tags.ExposureTime || tags.exposureTime;
                             const iso = tags.ISO || tags.ISOSpeedRatings || tags.iso || tags.PhotographicSensitivity;
@@ -1951,6 +1965,7 @@ Object.assign(window.app, {
                                     camera: model,
                                     params: fNumber ? `f/${fNumber} | ${shutter}s | ISO ${iso}` : `${shutter}s | ISO ${iso}`,
                                     date: dateStr,
+                                    software: software,
                                     gps: {
                                         latDec: tags.latitude,
                                         lonDec: tags.longitude,
@@ -1969,10 +1984,11 @@ Object.assign(window.app, {
                     });
                     try {
                         const exifData = await checkExif;
-                        app.currentExif = { camera: exifData.camera, params: exifData.params };
+                        app.currentExif = { camera: exifData.camera, params: exifData.params, software: exifData.software || '' };
                         document.getElementById('up-camera').value = app.currentExif.camera;
                         document.getElementById('up-exif-params').value = app.currentExif.params;
                         document.getElementById('up-date').value = exifData.date;
+                        if (app.upload.updateHoyuShotNotice) app.upload.updateHoyuShotNotice(app.currentExif.software);
                         app.upload.checkDuplicateRealtime();
                         app.currentGps = null;
                         if ((exifData.gps.latDec !== undefined && exifData.gps.lonDec !== undefined) || (exifData.gps.lat && exifData.gps.lon && exifData.gps.latRef && exifData.gps.lonRef)) {
@@ -2135,6 +2151,8 @@ Object.assign(window.app, {
                                 newImg.onload = () => {
                                     const w = newImg.width; const h = newImg.height;
                                     if (!isRawFile && !isRawExtracted && h < 1080 && w < 1080) {
+                                        app.currentExif = { camera: 'N/A', params: 'N/A', software: '' };
+                                        if (app.upload.updateHoyuShotNotice) app.upload.updateHoyuShotNotice('');
                                         app.ui.showAlert(`Độ phân giải ảnh quá thấp (${w}x${h}). Yêu cầu chiều cao tối thiểu 1080px.`);
                                         const fileInput = document.getElementById('up-file');
                                         if (fileInput) fileInput.value = ''; URL.revokeObjectURL(newUrl); URL.revokeObjectURL(url);
@@ -2176,6 +2194,8 @@ Object.assign(window.app, {
                         };
                         img.src = url;
                     } catch (errorMsg) {
+                        app.currentExif = { camera: 'N/A', params: 'N/A', software: '' };
+                        if (app.upload.updateHoyuShotNotice) app.upload.updateHoyuShotNotice('');
                         app.ui.showAlert(errorMsg);
                         const fileInput = document.getElementById('up-file');
                         if (fileInput) fileInput.value = ''; 

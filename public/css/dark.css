@@ -1020,3 +1020,15 @@ html.theme-dark #android-promo-download-btn {
 html.theme-dark #android-promo-download-btn:hover {
     background-color: #e4e4e7 !important;
 }
+
+/* HoyuShot EXIF thanks notice Dark Mode */
+html.theme-dark #up-hoyushot-thanks {
+    color: #d4d4d8 !important;
+}
+html.theme-dark #up-hoyushot-thanks a {
+    color: #ffffff !important;
+    text-decoration: underline !important;
+}
+html.theme-dark #up-hoyushot-thanks a:hover {
+    opacity: 0.75;
+}

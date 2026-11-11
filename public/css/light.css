@@ -826,3 +826,15 @@ input:disabled, select:disabled, textarea:disabled {
 #android-promo-download-btn:hover {
     background-color: #27272a;
 }
+
+/* HoyuShot EXIF thanks notice */
+#up-hoyushot-thanks {
+    color: #52525b;
+}
+#up-hoyushot-thanks a {
+    color: #000000;
+    text-decoration: underline !important;
+}
+#up-hoyushot-thanks a:hover {
+    opacity: 0.75;
+}

@@ -3803,7 +3803,7 @@ cleanupState: () => {
 
     detailMarker: null,
 
-    currentExif: { camera: 'N/A', params: 'N/A' },
+    currentExif: { camera: 'N/A', params: 'N/A', software: '' },
 
     searchTimeout: null,
 
