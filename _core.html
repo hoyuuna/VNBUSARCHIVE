@@ -6783,6 +6783,25 @@ html.theme-dark .ct-icon {
                 };
                 // -------------------------
 
+                // PostgREST Render Pool (Trực tiếp, không tốn quota Cloudflare Worker 100k)
+                const RENDER_PRIMARY = 'https://postgrest-latest-p0q8.onrender.com';
+                const RENDER_FALLBACK = 'https://postgrest-latest-se4u.onrender.com';
+                const WORKERS_DEV_FALLBACK = 'https://vnbusarchive-middle-api.nghoanganhtuann.workers.dev';
+                const MIDDLEWARE_API_FALLBACK = 'https://api.vnbusarchive.io.vn';
+
+                let activeRenderPool = [RENDER_PRIMARY, RENDER_FALLBACK];
+                let activeRenderIndex = 0;
+                try {
+                    const savedIdx = parseInt(sessionStorage.getItem('VNBA_RENDER_IDX') || '0', 10);
+                    if (savedIdx === 1) activeRenderIndex = 1;
+                } catch (e) {}
+
+                function switchRenderInstance() {
+                    activeRenderIndex = activeRenderIndex === 0 ? 1 : 0;
+                    try { sessionStorage.setItem('VNBA_RENDER_IDX', String(activeRenderIndex)); } catch (e) {}
+                    console.warn('[Failover] Switched active Render PostgREST instance to:', activeRenderPool[activeRenderIndex]);
+                }
+
                 window.sb = window.supabase.createClient(config.SUPABASE_URL, config.SUPABASE_KEY, {
                     auth: {
                         detectSessionInUrl: true,
@@ -6792,69 +6811,84 @@ html.theme-dark .ct-icon {
                     global: {
                         fetch: async (url, options) => {
                             try {
-                                let targetFetchUrl = url;
                                 const urlStr = typeof url === 'string' ? url : (url?.url || '');
-                                
-                                // Proxy /rest/v1/* qua Cloudflare Pages Functions nội bộ (/api/rest/*) để vượt qua chặn nhà mạng / thiếu Origin
-                                if (urlStr.includes('/rest/v1/')) {
-                                    targetFetchUrl = urlStr.replace(/^https?:\/\/[^\/]+\/rest\/v1\//, '/api/rest/');
-                                    if (typeof url !== 'string' && url) {
-                                        url = targetFetchUrl;
-                                    }
-                                }
+                                const isRestQuery = urlStr.includes('/rest/v1/');
 
-                                if (urlStr.includes('/rest/v1/') && (
-                                    urlStr.includes('pending') ||
-                                    urlStr.includes('denied') ||
-                                    urlStr.includes('edit_requests') ||
-                                    urlStr.includes('photo_reviews') ||
-                                    urlStr.includes('admin_audit_logs') ||
-                                    urlStr.includes('admin_notes') ||
-                                    urlStr.includes('reports') ||
-                                    urlStr.includes('notifications') ||
-                                    urlStr.includes('uploader_id=') ||
-                                    urlStr.includes('status=in.') ||
-                                    urlStr.includes('status=neq.')
-                                )) {
-                                    options = options || {};
-                                    options.headers = options.headers || {};
-                                    if (options.headers instanceof Headers) {
-                                        options.headers.set('Cache-Control', 'no-cache');
-                                        options.headers.set('X-Bypass-Cache', '1');
-                                    } else {
-                                        options.headers['Cache-Control'] = 'no-cache';
-                                        options.headers['X-Bypass-Cache'] = '1';
-                                    }
-                                }
-                                let response;
-                                try {
-                                    response = await window.fetch(targetFetchUrl, options);
-                                } catch (fetchErr) {
-                                    try {
-                                        const workersUrl = urlStr.replace(/^https?:\/\/[^\/]+\/rest\/v1\//, WORKERS_DEV_FALLBACK + '/rest/v1/');
-                                        response = await window.fetch(workersUrl, options);
-                                    } catch (fallbackErr) {
-                                        if (targetFetchUrl !== urlStr) {
-                                            response = await window.fetch(url, options);
+                                // Nếu là truy vấn dữ liệu DB thông thường (/rest/v1/*), gọi trực tiếp Render PostgREST để KHÔNG TỐN quota 100k Cloudflare Worker!
+                                if (isRestQuery) {
+                                    // Tạo danh sách endpoint ưu tiên với cơ chế failover đa tầng
+                                    const primaryRender = activeRenderPool[activeRenderIndex];
+                                    const secondaryRender = activeRenderPool[activeRenderIndex === 0 ? 1 : 0];
+
+                                    const candidateBases = [
+                                        primaryRender,
+                                        secondaryRender,
+                                        MIDDLEWARE_API_FALLBACK + '/rest/v1',
+                                        WORKERS_DEV_FALLBACK + '/rest/v1',
+                                        '/api/rest'
+                                    ];
+
+                                    const subPathAndQuery = urlStr.replace(/^https?:\/\/[^\/]+(\/rest\/v1)?/, '');
+
+                                    let lastResponse = null;
+                                    let lastFetchErr = null;
+
+                                    for (let i = 0; i < candidateBases.length; i++) {
+                                        const base = candidateBases[i];
+                                        let targetUrl = '';
+                                        if (base.endsWith('/rest/v1') || base.endsWith('/api/rest')) {
+                                            targetUrl = base + subPathAndQuery;
                                         } else {
-                                            throw fallbackErr;
+                                            targetUrl = base + subPathAndQuery;
+                                        }
+
+                                        try {
+                                            // Thiết lập timeout 12s cho mỗi ứng viên Render (tránh treo khi Render đang thức dậy)
+                                            const controller = new AbortController();
+                                            const timeoutId = setTimeout(() => controller.abort(), 12000);
+
+                                            const fetchOpts = Object.assign({}, options);
+                                            if (options && options.signal) {
+                                                options.signal.addEventListener('abort', () => controller.abort());
+                                            }
+                                            fetchOpts.signal = controller.signal;
+
+                                            const resp = await window.fetch(targetUrl, fetchOpts);
+                                            clearTimeout(timeoutId);
+
+                                            // Nếu trả về lỗi máy chủ sập hoặc quota Render (502, 503, 504, 402)
+                                            if (resp.status === 502 || resp.status === 503 || resp.status === 504 || resp.status === 402) {
+                                                console.warn(`[Failover] Endpoint ${base} returned status ${resp.status}. Trying next candidate.`);
+                                                if (i === 0) switchRenderInstance();
+                                                lastResponse = resp;
+                                                continue;
+                                            }
+
+                                            // Thành công (hoặc lỗi client 4xx hợp lệ từ DB)
+                                            return resp;
+                                        } catch (fErr) {
+                                            lastFetchErr = fErr;
+                                            console.warn(`[Failover] Connection to ${base} failed (${fErr.name || fErr.message}). Switching to next.`);
+                                            if (i === 0) switchRenderInstance();
                                         }
                                     }
+
+                                    if (lastResponse) return lastResponse;
+                                    if (lastFetchErr) throw lastFetchErr;
                                 }
-                                if (response.status === 503) {
+
+                                // Đối với Auth hoặc các request khác, gọi qua endpoint mặc định (Middleware)
+                                let defaultResp = await window.fetch(url, options);
+                                if (defaultResp.status === 503) {
                                     for (let r = 0; r < 2; r++) {
                                         await new Promise(res => setTimeout(res, 1500));
-                                        response = await window.fetch(url, options);
-                                        if (response.status !== 503) break;
+                                        defaultResp = await window.fetch(url, options);
+                                        if (defaultResp.status !== 503) break;
                                     }
                                 }
-                                if (!response.ok && response.status >= 500) {
-                                    console.error("[DB Server Error] Status:", response.status, "URL:", url);
-                                    throw new Error("VNBUSARCHIVE hiện đang quá tải vì có quá nhiều người sử dụng. Bạn thử lại sau nhé!");
-                                }
-                                return response;
+                                return defaultResp;
                             } catch (err) {
-                                if (err.message === "VNBUSARCHIVE hiện đang quá tải vì có quá nhiều người sử dụng. Bạn thử lại sau nhé!") throw err;
+                                if (err.message && err.message.includes('VNBUSARCHIVE')) throw err;
                                 console.error("[DB Connection Error] Details:", err);
                                 throw new Error("VNBUSARCHIVE hiện đang quá tải vì có quá nhiều người sử dụng. Bạn thử lại sau nhé!");
                             }
