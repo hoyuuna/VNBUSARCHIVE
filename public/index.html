@@ -2245,7 +2245,7 @@ html.theme-dark .ct-icon {
             if (stored === 'system') {
                 theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
             }
-            document.write('<link rel="stylesheet" href="/css/' + theme + '.css?v=1794824845249" id="theme-css">');
+            document.write('<link rel="stylesheet" href="/css/' + theme + '.css?v=1794824963549" id="theme-css">');
             document.documentElement.classList.add('theme-' + theme);
             document.documentElement.style.backgroundColor = theme === 'dark' ? '#18181b' : '#fdfcf8';
 
@@ -6786,7 +6786,6 @@ html.theme-dark .ct-icon {
                 // PostgREST Render Pool (Trực tiếp, không tốn quota Cloudflare Worker 100k)
                 const RENDER_PRIMARY = 'https://postgrest-latest-p0q8.onrender.com';
                 const RENDER_FALLBACK = 'https://postgrest-latest-se4u.onrender.com';
-                const WORKERS_DEV_FALLBACK = 'https://vnbusarchive-middle-api.nghoanganhtuann.workers.dev';
                 const MIDDLEWARE_API_FALLBACK = 'https://api.vnbusarchive.io.vn';
 
                 let activeRenderPool = [RENDER_PRIMARY, RENDER_FALLBACK];
