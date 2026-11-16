@@ -75,6 +75,7 @@
   ],
   "connect-src": [
     "https://*.vnbusarchive.io.vn",
+    "https://vnbusarchive-middle-api.nghoanganhtuann.workers.dev",
     "'self'",
     "blob:",
     "data:",

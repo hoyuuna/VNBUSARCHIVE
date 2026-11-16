@@ -6741,17 +6741,27 @@ html.theme-dark .ct-icon {
                 if (token) headers['Authorization'] = `Bearer ${token}`;
 
                 let config = null;
-                  try {
-                      const cached = sessionStorage.getItem('VNBA_SYS_CONF');
-                      if (cached) config = JSON.parse(cached);
-                  } catch(e) {}
-                  
-                  if (!config) {
-                      const configRes = await fetch('/api/system');
-                      if (!configRes.ok) throw new Error('Kh�ng th? t?i c?u h�nh m�y ch?');
-                      config = await configRes.json();
-                      try { sessionStorage.setItem('VNBA_SYS_CONF', JSON.stringify(config)); } catch(e) {}
-                  }
+                const WORKERS_DEV_FALLBACK = 'https://vnbusarchive-middle-api.nghoanganhtuann.workers.dev';
+                try {
+                    const cached = sessionStorage.getItem('VNBA_SYS_CONF');
+                    if (cached) config = JSON.parse(cached);
+                } catch(e) {}
+                
+                if (!config) {
+                    try {
+                        const configRes = await fetch('/api/system');
+                        if (configRes.ok) config = await configRes.json();
+                    } catch (e) {}
+                    
+                    if (!config || !config.SUPABASE_KEY) {
+                        config = {
+                            FIREBASE_URL: 'https://hbds-bus-tracker-default-rtdb.firebaseio.com/buses.json',
+                            SUPABASE_URL: WORKERS_DEV_FALLBACK,
+                            SUPABASE_KEY: 'sb_publishable_mXaMsiOpwnq-tKQ3BYcKvQ_RMP5Riov'
+                        };
+                    }
+                    try { sessionStorage.setItem('VNBA_SYS_CONF', JSON.stringify(config)); } catch(e) {}
+                }
                 
                 // --- DEBUG INTERCEPTOR ---
                 const originalFetch = window.fetch;
@@ -6821,11 +6831,15 @@ html.theme-dark .ct-icon {
                                 try {
                                     response = await window.fetch(targetFetchUrl, options);
                                 } catch (fetchErr) {
-                                    // Fallback: nếu gọi route nội bộ thất bại, thử gọi lại URL gốc
-                                    if (targetFetchUrl !== urlStr) {
-                                        response = await window.fetch(url, options);
-                                    } else {
-                                        throw fetchErr;
+                                    try {
+                                        const workersUrl = urlStr.replace(/^https?:\/\/[^\/]+\/rest\/v1\//, WORKERS_DEV_FALLBACK + '/rest/v1/');
+                                        response = await window.fetch(workersUrl, options);
+                                    } catch (fallbackErr) {
+                                        if (targetFetchUrl !== urlStr) {
+                                            response = await window.fetch(url, options);
+                                        } else {
+                                            throw fallbackErr;
+                                        }
                                     }
                                 }
                                 if (response.status === 503) {

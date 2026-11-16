@@ -40,11 +40,12 @@ export async function onRequest(context) {
         });
     }
 
-    const targetBase = env.SUPABASE_URL || 'https://api.vnbusarchive.io.vn';
+    const targetBase = env.SUPABASE_URL || 'https://vnbusarchive-middle-api.nghoanganhtuann.workers.dev';
+    const fallbackBase = 'https://vnbusarchive-middle-api.nghoanganhtuann.workers.dev';
     const reqUrl = new URL(request.url);
     const subPath = Array.isArray(params.path) ? params.path.join('/') : (params.path || '');
     
-    const targetUrl = new URL(`/rest/v1/${subPath}`, targetBase);
+    let targetUrl = new URL(`/rest/v1/${subPath}`, targetBase);
     targetUrl.search = reqUrl.search;
 
     const reqHeaders = new Headers(request.headers);
@@ -68,14 +69,34 @@ export async function onRequest(context) {
     }
 
     try {
-        let response = await fetch(targetUrl.toString(), init);
-
-        // Auto retry nếu upstream trả về 502/503/504 (như lúc Render đang tỉnh dậy)
-        if (response.status === 502 || response.status === 503 || response.status === 504) {
-            for (let r = 0; r < 2; r++) {
-                await new Promise(res => setTimeout(res, 1200));
+        let response;
+        try {
+            response = await fetch(targetUrl.toString(), init);
+        } catch (initialNetErr) {
+            // Nếu targetBase (api.vnbusarchive.io.vn) bị lỗi mạng/DNS thì failover sang workers.dev
+            if (targetBase !== fallbackBase) {
+                targetUrl = new URL(`/rest/v1/${subPath}`, fallbackBase);
+                targetUrl.search = reqUrl.search;
                 response = await fetch(targetUrl.toString(), init);
-                if (response.status !== 502 && response.status !== 503 && response.status !== 504) break;
+            } else {
+                throw initialNetErr;
+            }
+        }
+
+        // Auto retry nếu upstream trả về 502/503/504
+        if (response.status === 502 || response.status === 503 || response.status === 504) {
+            // Thử failover sang fallbackBase nếu trước đó dùng targetBase
+            if (targetBase !== fallbackBase) {
+                targetUrl = new URL(`/rest/v1/${subPath}`, fallbackBase);
+                targetUrl.search = reqUrl.search;
+                response = await fetch(targetUrl.toString(), init);
+            }
+            if (response.status === 502 || response.status === 503 || response.status === 504) {
+                for (let r = 0; r < 2; r++) {
+                    await new Promise(res => setTimeout(res, 1200));
+                    response = await fetch(targetUrl.toString(), init);
+                    if (response.status !== 502 && response.status !== 503 && response.status !== 504) break;
+                }
             }
         }
 
