@@ -6783,7 +6783,17 @@ html.theme-dark .ct-icon {
                     global: {
                         fetch: async (url, options) => {
                             try {
+                                let targetFetchUrl = url;
                                 const urlStr = typeof url === 'string' ? url : (url?.url || '');
+                                
+                                // Proxy /rest/v1/* qua Cloudflare Pages Functions nội bộ (/api/rest/*) để vượt qua chặn nhà mạng / thiếu Origin
+                                if (urlStr.includes('/rest/v1/')) {
+                                    targetFetchUrl = urlStr.replace(/^https?:\/\/[^\/]+\/rest\/v1\//, '/api/rest/');
+                                    if (typeof url !== 'string' && url) {
+                                        url = targetFetchUrl;
+                                    }
+                                }
+
                                 if (urlStr.includes('/rest/v1/') && (
                                     urlStr.includes('pending') ||
                                     urlStr.includes('denied') ||
@@ -6807,7 +6817,17 @@ html.theme-dark .ct-icon {
                                         options.headers['X-Bypass-Cache'] = '1';
                                     }
                                 }
-                                let response = await window.fetch(url, options);
+                                let response;
+                                try {
+                                    response = await window.fetch(targetFetchUrl, options);
+                                } catch (fetchErr) {
+                                    // Fallback: nếu gọi route nội bộ thất bại, thử gọi lại URL gốc
+                                    if (targetFetchUrl !== urlStr) {
+                                        response = await window.fetch(url, options);
+                                    } else {
+                                        throw fetchErr;
+                                    }
+                                }
                                 if (response.status === 503) {
                                     for (let r = 0; r < 2; r++) {
                                         await new Promise(res => setTimeout(res, 1500));
