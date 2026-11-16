@@ -1,159 +1,57 @@
-import { Resend } from 'resend';
-import { createClient } from '@supabase/supabase-js';
-import { marked } from 'marked';
-
-function escapeHtml(unsafe) {
-    if (!unsafe) return '';
-    return String(unsafe)
-         .replace(/&/g, "&amp;")
-         .replace(/</g, "&lt;")
-         .replace(/>/g, "&gt;")
-         .replace(/"/g, "&quot;")
-         .replace(/'/g, "&#039;");
-}
-
-function formatEmailMarkdown(text) {
-    if (!text) return '';
-    let processed = text;
-    processed = processed.replace(/(^[ \t]*(?:[-*+]|\d+\.)[ \t]+.*)\n([ \t]*[^-*+\d\s])/gm, '$1\n\n$2');
-    processed = processed.replace(/\n(\s*\n)+/g, (match) => {
-        const count = (match.match(/\n/g) || []).length;
-        if (count <= 2) return '\n\n';
-        const extraBreaks = '<br>'.repeat(count - 2);
-        return `\n\n${extraBreaks}\n\n`;
-    });
-    return marked.parse(processed, { breaks: true, gfm: true });
-}
 
 async function handleSendEmail(request, env, body) {
     const authHeader = request.headers.get('authorization');
-    const token = authHeader?.split(' ')[1];
-    if (!token) return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers: { 'Content-Type': 'application/json' }});
+    if (!authHeader) return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers: { 'Content-Type': 'application/json' }});
 
-    const supabaseAdmin = createClient(
-        env.SUPABASE_URL,
-        env.SUPABASE_SERVICE_ROLE_KEY
-    );
+    // Forward request trực tiếp tới Middleware (nơi quản lý Resend API & Database auth users)
+    const middlewareBase = env.SUPABASE_URL || 'https://api.vnbusarchive.io.vn';
+    const fallbackBase = 'https://vnbusarchive-middle-api.nghoanganhtuann.workers.dev';
 
-    const { data: { user }, error: authErr } = await supabaseAdmin.auth.getUser(token);
-    if (authErr || !user) return new Response(JSON.stringify({ error: 'Invalid token' }), { status: 401, headers: { 'Content-Type': 'application/json' }});
-
-    const { data: profile } = await supabaseAdmin.from('profiles').select('username, role').eq('id', user.id).single();
-    if (!profile || !['admin', 'manager'].includes(profile.role)) {
-        return new Response(JSON.stringify({ error: 'Bạn không có quyền thực hiện hành động này.' }), { status: 403, headers: { 'Content-Type': 'application/json' }});
+    let targetEndpoints = [
+        `${middlewareBase.replace(/\/+$/, '')}/api/manager/send-email`
+    ];
+    if (!middlewareBase.includes('workers.dev')) {
+        targetEndpoints.push(`${fallbackBase}/api/manager/send-email`);
     }
 
-    const { targetUserId, customEmail, subject, markdownContent, isAnonymous } = body;
+    let lastError = null;
+    for (const url of targetEndpoints) {
+        try {
+            const resp = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': authHeader,
+                    'Origin': 'https://www.vnbusarchive.io.vn'
+                },
+                body: JSON.stringify(body)
+            });
 
-    let toEmail = customEmail;
-    let recipientName = customEmail;
-
-    if (targetUserId) {
-        const { data: targetUser, error: targetErr } = await supabaseAdmin.auth.admin.getUserById(targetUserId);
-        if (targetErr || !targetUser.user) {
-            return new Response(JSON.stringify({ error: 'Không tìm thấy thông tin liên hệ của User này.' }), { status: 404, headers: { 'Content-Type': 'application/json' }});
+            if (resp.ok) {
+                const resJson = await resp.json().catch(() => ({ success: true }));
+                return new Response(JSON.stringify(resJson), {
+                    status: 200,
+                    headers: { 'Content-Type': 'application/json' }
+                });
+            } else {
+                const errData = await resp.json().catch(() => ({ error: 'Lỗi gửi email từ Middleware' }));
+                lastError = errData.error || errData.message || 'Lỗi gửi email';
+                if (resp.status === 401 || resp.status === 403 || resp.status === 400 || resp.status === 404) {
+                    return new Response(JSON.stringify({ error: lastError }), {
+                        status: resp.status,
+                        headers: { 'Content-Type': 'application/json' }
+                    });
+                }
+            }
+        } catch (e) {
+            lastError = e.message;
         }
-        toEmail = targetUser.user.email;
-
-        const { data: targetProfile } = await supabaseAdmin.from('profiles').select('username').eq('id', targetUserId).single();
-        recipientName = targetProfile?.username || toEmail;
     }
 
-    if (!toEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(toEmail)) {
-        return new Response(JSON.stringify({ error: 'Địa chỉ Email không hợp lệ.' }), { status: 400, headers: { 'Content-Type': 'application/json' }});
-    }
-
-    const rawAdminName = isAnonymous ? 'Quản trị VNBUSARCHIVE' : profile.username;
-    const safeAdminName = String(rawAdminName).replace(/[<>,;"']/g, '').trim();
-    const adminName = escapeHtml(rawAdminName);
-    const senderLine = isAnonymous ? 'VNBUSARCHIVE <noreply@vnbusarchive.io.vn>' : `${safeAdminName} via VNBUSARCHIVE <noreply@vnbusarchive.io.vn>`;
-
-    const htmlContent = formatEmailMarkdown(markdownContent);
-
-    const emailTemplate = `
-    <!DOCTYPE html>
-    <html lang="vi">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Thông báo từ VNBUSARCHIVE</title>
-        <link rel="preconnect" href="https://fonts.googleapis.com">
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-        <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap" rel="stylesheet">
-        <style>
-            body, table, td, a { -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%; }
-            table, td { mso-table-lspace: 0pt; mso-table-rspace: 0pt; }
-            img { -ms-interpolation-mode: bicubic; border: 0; height: auto; line-height: 100%; outline: none; text-decoration: none; }
-            table { border-collapse: collapse !important; }
-            body { height: 100% !important; margin: 0 !important; padding: 0 !important; width: 100% !important; background-color: #ffffff !important; }
-            a[x-apple-data-detectors] { color: inherit !important; text-decoration: none !important; font-size: inherit !important; font-family: inherit !important; font-weight: inherit !important; line-height: inherit !important; }
-            .markdown-content p { margin-top: 0; margin-bottom: 1em; }
-            .markdown-content a { color: #000000; text-decoration: underline; font-weight: 500; }
-            .markdown-content blockquote { border-left: 4px solid #e4e4e7; margin: 0; padding-left: 1em; color: #666666; }
-        </style>
-    </head>
-    <body style="background-color: #ffffff; margin: 0 !important; padding: 0 !important; font-family: 'Be Vietnam Pro', Arial, sans-serif; color: #000000; text-align: center;">
-
-        <table border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #ffffff;">
-            <tr>
-                <td align="center" style="padding: 40px 20px;">
-                    <table border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width: 480px; margin: 0 auto; background-color: #ffffff; text-align: center;">
-                        
-                        <tr>
-                            <td align="center" style="padding-bottom: 32px;">
-                                <img src="https://files.catbox.moe/j2iq29.png" alt="VNBUSARCHIVE" style="display: block; max-width: 180px; width: 100%; height: auto; margin: 0 auto;">
-                            </td>
-                        </tr>
-
-                        <tr>
-                            <td align="center" style="padding-bottom: 24px; font-family: 'Be Vietnam Pro', Arial, sans-serif; font-size: 14px; line-height: 1.6; color: #4a4a4a; font-weight: 400;">
-                                <p style="margin: 0 0 12px 0;">
-                                    Xin chào <strong style="color: #000000; font-weight: 600;">${escapeHtml(recipientName)}</strong>,
-                                </p>
-
-                                <div class="markdown-content" style="margin: 0 0 24px; font-size: 14px; line-height: 1.6; color: #4a4a4a; text-align: left; display: inline-block; width: 100%;">
-                                    ${htmlContent}
-                                </div>
-
-                                <p style="margin: 0; font-size: 14px; line-height: 1.6; color: #000000; font-weight: 500;">
-                                    Thân gửi,<br>
-                                    <strong style="font-weight: 600;">${adminName}</strong>
-                                </p>
-                            </td>
-                        </tr>
-
-                        <tr>
-                            <td align="center" style="font-family: 'Be Vietnam Pro', Arial, sans-serif; font-size: 13px; line-height: 1.6; color: #666666;">
-                                Bạn không thể trả lời email này, vui lòng liên hệ qua email <a href="mailto:lienhe@vnbusarchive.io.vn" style="color: #000000; text-decoration: underline; font-weight: 500;">lienhe@vnbusarchive.io.vn</a> để tiếp tục.
-                            </td>
-                        </tr>
-
-                    </table>
-                </td>
-            </tr>
-        </table>
-
-    </body>
-    </html>
-    `;
-
-    let resend;
-    if (env.RESEND_API_KEY) {
-        resend = new Resend(env.RESEND_API_KEY);
-    } else {
-        throw new Error("Missing RESEND_API_KEY in Environment Variables");
-    }
-
-    const resendData = await resend.emails.send({
-        from: senderLine,
-        to: [toEmail],
-        subject: subject,
-        html: emailTemplate,
+    return new Response(JSON.stringify({ error: lastError || 'Không thể kết nối đến máy chủ email middleware' }), {
+        status: 500,
+        headers: { 'Content-Type': 'application/json' }
     });
-
-    if (resendData.error) throw new Error(resendData.error.message);
-
-    return new Response(JSON.stringify({ success: true, message: 'Gửi Email thành công.' }), { status: 200, headers: { 'Content-Type': 'application/json' }});
 }
 
 async function handleBugReport(request, env, body) {
