@@ -935,7 +935,7 @@ Object.assign(window.app, {
                         if (options.isDestructive) {
                             okBtn.className = "w-full inline-flex items-center justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-medium text-white hover:bg-red-700 focus:outline-none sm:ml-3 sm:w-auto sm:text-sm transition";
                         } else {
-                            okBtn.className = "w-full inline-flex items-center justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-black text-base font-medium text-white hover:bg-gray-800 focus:outline-none sm:ml-3 sm:w-auto sm:text-sm transition";
+                            okBtn.className = "w-full inline-flex items-center justify-center rounded-full border border-transparent shadow-sm px-5 py-2.5 bg-m3-primary text-base font-semibold text-white hover:opacity-90 focus:outline-none sm:ml-3 sm:w-auto sm:text-sm transition";
                         }
                         if (options.countdown) {
                             okBtn.disabled = true;
@@ -977,7 +977,7 @@ Object.assign(window.app, {
                         } else if (options.isCancelPrimary) {
                             cancelBtn.className = "mt-3 w-full inline-flex items-center justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-black text-base font-medium text-white hover:bg-gray-800 focus:outline-none sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm transition";
                         } else {
-                            cancelBtn.className = "mt-3 w-full inline-flex items-center justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm transition";
+                            cancelBtn.className = "mt-3 w-full inline-flex items-center justify-center rounded-full border border-[#dee3eb] dark:border-[#42474e] shadow-sm px-5 py-2.5 bg-transparent text-base font-semibold text-gray-700 dark:text-gray-200 hover:bg-black/5 dark:hover:bg-white/5 focus:outline-none sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm transition";
                         }
                         app.alertCancelCallback = cancelCallback || (() => { });
                     } else {

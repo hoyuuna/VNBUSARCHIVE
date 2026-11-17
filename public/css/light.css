@@ -1,104 +1,394 @@
-/* ==========================================
-   VNBUSARCHIVE - FLAT LIGHT THEME (OVERRIDE LAYER)
-========================================== */
+/* ==========================================================================
+   VNBUSARCHIVE - MATERIAL 3 EXPRESSIVE (OCEAN BLUE) - LIGHT THEME
+   Google Material Design 3 Expressive Language
+   Color Palette: Ocean Blue (Primary: #006399, Tonal Containers, Surface: #f8f9ff)
+   ========================================================================== */
 
-/* 1. Nền cố định như quyển vở */
+/* 1. NỀN SURFACE CHÍNH & VĂN BẢN */
 body, body.theme-light {
-    background-color: #fdfcf8 !important; 
-    background-image: 
-        linear-gradient(#e5e7eb 1px, transparent 1px),
-        linear-gradient(90deg, #e5e7eb 1px, transparent 1px) !important;
-    background-size: 20px 20px !important;
-        color: #18181b !important;
+    background-color: #f8f9ff !important;
+    background-image: radial-gradient(circle at 50% 0%, rgba(0, 99, 153, 0.05) 0%, transparent 60%) !important;
+    color: #191c20 !important;
+    font-family: 'Be Vietnam Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
 }
 
-/* KHỚP MÀN HÌNH LOADING */
+/* KHỚP MÀN HÌNH LOADING THEO M3 EXPRESSIVE */
 #loading-screen {
-    background-color: #fdfcf8 !important; 
+    background-color: #f8f9ff !important;
     background-image: none !important;
+    color: #001d32 !important;
+}
+#loading-screen .text-inner span {
+    color: #006399 !important;
+    font-weight: 800 !important;
+    letter-spacing: 0.05em !important;
+}
+#loading-screen .spinner {
+    border-color: #dee3eb !important;
+    border-top-color: #006399 !important;
+}
+#top-loading-bar {
+    background-color: #006399 !important;
+    box-shadow: 0 0 12px rgba(0, 99, 153, 0.6) !important;
 }
 
-/* Biến các thẻ có shadow thành thẻ phẳng CÓ VIỀN */
-.shadow-2xl, .shadow-xl, .shadow-lg, .shadow-md, .shadow-sm, .shadow-island, .shadow-\[0_1px_2px_0_rgba\(0\,0\,0\,0\.05\)\] {
-    box-shadow: none !important;
-    border: 1px solid #18181b !important;
+/* 2. BO GÓC CHUẨN MATERIAL 3 EXPRESSIVE */
+.rounded-3xl {
+    border-radius: 28px !important;
+}
+.rounded-2xl {
+    border-radius: 20px !important;
+}
+.rounded-xl {
+    border-radius: 16px !important;
+}
+.rounded-lg {
+    border-radius: 12px !important;
+}
+.rounded-md {
+    border-radius: 10px !important;
+}
+.rounded-full, .pill-btn, .chip-pill {
+    border-radius: 9999px !important;
 }
 
-/* KHÔI PHỤC NỀN TRẮNG ĐẶC CHO MỌI POPUP (TẮT XUYÊN THẤU) */
+/* 3. TẦNG ĐỔ BÓNG VÀ ELEVATION CHUẨN M3 */
+.shadow-2xl, .shadow-island {
+    box-shadow: 0 8px 24px -4px rgba(0, 99, 153, 0.12), 0 2px 6px 0 rgba(0, 0, 0, 0.06) !important;
+    border: 1px solid #dee3eb !important;
+}
+.shadow-xl {
+    box-shadow: 0 6px 18px -2px rgba(0, 99, 153, 0.1), 0 2px 4px 0 rgba(0, 0, 0, 0.05) !important;
+    border: 1px solid #dee3eb !important;
+}
+.shadow-lg {
+    box-shadow: 0 4px 14px -1px rgba(0, 99, 153, 0.08), 0 1px 3px 0 rgba(0, 0, 0, 0.04) !important;
+    border: 1px solid #dee3eb !important;
+}
+.shadow-md, .shadow-sm, .shadow-\[0_1px_2px_0_rgba\(0\,0\,0\,0\.05\)\] {
+    box-shadow: 0 1px 4px 0 rgba(0, 0, 0, 0.06) !important;
+    border: 1px solid #dee3eb !important;
+}
+
+/* 4. CHUYỂN TOÀN BỘ ĐƯỜNG VIỀN SANG M3 OUTLINE VARIANT (#dee3eb / #c2c7cf) */
+.border-black, .border-\[\#18181b\], .border-vbs-border, .border-gray-100, .border-gray-200, .border-gray-300,
+.border-white\/20, .border-white\/30, .border-\[\#e4e4e7\] {
+    border-color: #dee3eb !important;
+}
+
+/* 5. KHÔI PHỤC NỀN SURFACE CONTAINER CHO TOÀN BỘ POPUP & MODAL (M3 Dialogs) */
 #subrole-prompt-content, #onboarding-content, #crop-content, #custom-alert-content, #settings-content, #newsboard-content,
 #upload-info-content, #custom-prompt-content, #custom-role-content, #deny-prompt-content, #ban-prompt-content,
 #up-progress-content, #captcha-content, #webrtc-qr-content, #qr-login-host-content, #qr-login-confirm-content,
 #advanced-filter-content, #achievement-content, #operator-edit-content, #model-edit-content,
-#route-edit-content, #route-selector-content, #route-delete-content, #fav-photo-content, #manager-edit-content, #email-verify-content, #bio-edit-content {
+#route-edit-content, #route-selector-content, #route-delete-content, #fav-photo-content, #manager-edit-content,
+#email-verify-content, #bio-edit-content, #modal-donation-history > div {
     background-color: #ffffff !important;
-    border: 1px solid #18181b !important;
-    box-shadow: none !important;
+    border: 1px solid #dee3eb !important;
+    border-radius: 28px !important;
+    box-shadow: 0 12px 36px -4px rgba(0, 99, 153, 0.16), 0 4px 12px 0 rgba(0, 0, 0, 0.08) !important;
 }
 
-/* 3. Khôi phục màu nền tĩnh cho TOÀN BỘ các class kính mờ khác */
-.bg-white\/95, .bg-white\/90, .bg-white\/80, .bg-white\/70, .bg-white\/60, .bg-white\/50, .bg-white\/40, .bg-white\/30, .bg-white\/20,
-.bg-gray-50\/50, .bg-gray-100\/50, .bg-gray-200\/80, .bg-gray-200\/50 {
+/* 6. M3 EXPRESSIVE NÚT BẤM (BUTTONS) */
+/* Primary Filled Pill Button (Thay thế .bg-black cũ bằng Ocean Blue) */
+.bg-black, #btn-submit, #donation-modal-main-btn, #android-promo-download-btn,
+button.bg-black, a.bg-black, [role="button"].bg-black {
+    background-color: #006399 !important;
+    color: #ffffff !important;
+    border: none !important;
+    border-radius: 9999px !important;
+    font-weight: 600 !important;
+    box-shadow: 0 2px 6px rgba(0, 99, 153, 0.25) !important;
+    transition: all 0.25s cubic-bezier(0.2, 0, 0, 1) !important;
+}
+.bg-black:hover, #btn-submit:hover, #donation-modal-main-btn:hover, #android-promo-download-btn:hover,
+button.bg-black:hover, a.bg-black:hover, [role="button"].bg-black:hover {
+    background-color: #00507c !important;
+    color: #ffffff !important;
+    box-shadow: 0 4px 12px rgba(0, 99, 153, 0.35) !important;
+    transform: translateY(-1px);
+}
+.bg-black i, .bg-black svg {
+    color: #ffffff !important;
+    fill: #ffffff !important;
+}
+
+/* Tonal Buttons (Secondary / Tertiary Pill) */
+.bg-gray-100, .bg-gray-200, .bg-zinc-100, .bg-gray-50 {
+    background-color: #eceef5 !important;
+    color: #001d32 !important;
+    border-color: #dee3eb !important;
+}
+button.bg-gray-100, button.bg-gray-200, a.bg-gray-100, a.bg-gray-200 {
+    border-radius: 9999px !important;
+    border: none !important;
+    font-weight: 600 !important;
+}
+button.bg-gray-100:hover, button.bg-gray-200:hover, a.bg-gray-100:hover, a.bg-gray-200:hover {
+    background-color: #d4e4f6 !important;
+    color: #001d32 !important;
+}
+
+/* Outlined Buttons */
+button.border, a.border {
+    border-radius: 9999px !important;
+}
+
+/* 7. HEADER (TOP APP BAR CHUẨN M3 EXPRESSIVE) */
+header > div {
+    background-color: rgba(255, 255, 255, 0.88) !important;
+    backdrop-filter: blur(16px) !important;
+    -webkit-backdrop-filter: blur(16px) !important;
+    border: 1px solid #dee3eb !important;
+    border-radius: 28px !important;
+    box-shadow: 0 4px 20px -2px rgba(0, 99, 153, 0.08), 0 2px 6px 0 rgba(0, 0, 0, 0.04) !important;
+}
+.header-logo-text {
+    color: #006399 !important;
+    font-weight: 800 !important;
+}
+.nav-link {
+    color: #51606f !important;
+    border-radius: 9999px !important;
+    padding: 6px 14px !important;
+    transition: all 0.2s cubic-bezier(0.2, 0, 0, 1) !important;
+}
+.nav-link:hover, #nav-admin:hover {
+    color: #006399 !important;
+    background-color: #d4e4f6 !important;
+}
+
+/* Header Search Box */
+#header-search-box {
+    background-color: #eceef5 !important;
+    border: 1px solid transparent !important;
+    border-radius: 9999px !important;
+    transition: all 0.2s ease !important;
+}
+#header-search-box:focus-within {
     background-color: #ffffff !important;
+    border-color: #006399 !important;
+    box-shadow: 0 0 0 3px rgba(0, 99, 153, 0.18) !important;
+}
+#search-input {
+    color: #191c20 !important;
+}
+#search-input::placeholder {
+    color: #72777f !important;
 }
 
-/* 4. Bo góc duy nhất nhẹ nhàng */
-.rounded-3xl, .rounded-2xl, .rounded-xl, .rounded-lg {
-    border-radius: 8px !important;
-}
-.rounded-full {
-    border-radius: 9999px !important; 
-}
-
-/* 5. Đổi màu các viền có sẵn thành viền đen */
-.border-white\/20, .border-white\/30, .border-gray-100, .border-gray-200, .border-gray-300, .border-vbs-border, .border-\[\#e4e4e7\] {
-    border-color: #18181b !important;
-}
-
-/* FIX DROPDOWN VÀ POPUP (Bỏ overflow: hidden để tránh lỗi cuộn) */
-.suggestion-box, .filter-menu, #user-dropdown {
-    border: 1px solid #18181b !important;
+/* User Dropdown Menu */
+#user-dropdown, .suggestion-box, .filter-menu {
+    border: 1px solid #dee3eb !important;
     background-color: #ffffff !important;
-    border-radius: 8px !important;
-    box-shadow: none !important;
+    border-radius: 20px !important;
+    box-shadow: 0 8px 28px -4px rgba(0, 99, 153, 0.14), 0 2px 8px 0 rgba(0, 0, 0, 0.06) !important;
+    overflow: hidden !important;
+}
+.suggestion-box .filter-item:hover, .filter-menu .filter-item:hover, #user-dropdown a:hover, #user-dropdown button:hover {
+    background-color: #d4e4f6 !important;
+    color: #001d32 !important;
 }
 
-/* FIX BẢNG MẤT NÉT GÓC */
+/* 8. MOBILE BOTTOM NAVIGATION BAR (M3 NAVIGATION BAR) */
+#app-bottom-nav {
+    background-color: #ffffff !important;
+    border: 1px solid #dee3eb !important;
+    border-radius: 28px !important;
+    box-shadow: 0 8px 30px -2px rgba(0, 99, 153, 0.15), 0 2px 8px 0 rgba(0, 0, 0, 0.08) !important;
+}
+#app-bottom-nav .bottom-nav-item {
+    color: #51606f !important;
+    border-radius: 9999px !important;
+    transition: all 0.2s cubic-bezier(0.2, 0, 0, 1) !important;
+}
+#app-bottom-nav .bottom-nav-item.text-black, #app-bottom-nav .bottom-nav-item.active {
+    color: #006399 !important;
+    font-weight: 700 !important;
+}
+#app-bottom-nav .bottom-nav-item.text-black i, #app-bottom-nav .bottom-nav-item.active i {
+    color: #006399 !important;
+}
+#app-bottom-nav #bottom-tab-upload div {
+    background-color: #006399 !important;
+    color: #ffffff !important;
+    border-radius: 16px !important;
+    border: none !important;
+    box-shadow: 0 4px 12px rgba(0, 99, 153, 0.35) !important;
+}
+
+/* 9. THẺ ẢNH & CARD HIỂN THỊ (M3 FILLED / ELEVATED CARDS) */
+[data-id].cursor-pointer, .photo-card {
+    background-color: #ffffff !important;
+    border: 1px solid #dee3eb !important;
+    border-radius: 24px !important;
+    box-shadow: 0 1px 3px 1px rgba(0, 99, 153, 0.06), 0 1px 2px 0 rgba(0, 0, 0, 0.04) !important;
+    transition: all 0.25s cubic-bezier(0.2, 0, 0, 1) !important;
+    overflow: hidden !important;
+}
+[data-id].cursor-pointer:hover, .photo-card:hover {
+    box-shadow: 0 8px 24px -2px rgba(0, 99, 153, 0.14), 0 2px 6px 0 rgba(0, 0, 0, 0.06) !important;
+    border-color: #006399 !important;
+    transform: translateY(-3px) !important;
+}
+[data-id].cursor-pointer .img-wrapper, .photo-card .img-wrapper {
+    border-radius: 18px !important;
+    border: none !important;
+}
+[data-id].cursor-pointer .font-bold.text-black {
+    color: #006399 !important;
+    font-weight: 800 !important;
+}
+
+/* 10. BADGES, CHIPS & TAGS (M3 TONAL PILLS) */
+.route-status-badge, .status-badge, .chip, [class*="rounded-full"][class*="text-xs"],
+.selected-route-card .route-status-badge {
+    background-color: #cde5ff !important;
+    color: #001d32 !important;
+    border: 1px solid rgba(0, 99, 153, 0.15) !important;
+    border-radius: 9999px !important;
+    font-weight: 600 !important;
+}
+/* Badge Xe Mới - Điểm nhấn rực rỡ M3 */
+.new-car-badge, [class*="bg-amber-"], [class*="bg-yellow-"] {
+    background-color: #ffdda1 !important;
+    color: #4a2800 !important;
+    border-radius: 9999px !important;
+    font-weight: 700 !important;
+}
+
+/* 11. BẢNG DỮ LIỆU & LỊCH SỬ HOẠT ĐỘNG (M3 DATA TABLES) */
 .info-table, .data-table, .history-table {
     border-collapse: separate !important;
     border-spacing: 0 !important;
-    border: 1px solid #18181b !important;
-    border-radius: 8px !important;
+    border: 1px solid #dee3eb !important;
+    border-radius: 20px !important;
+    background-color: #ffffff !important;
+    overflow: hidden !important;
+}
+.info-table th, .data-table th, .history-table th {
+    background-color: #eceef5 !important;
+    color: #006399 !important;
+    font-weight: 700 !important;
+    border-bottom: 1px solid #dee3eb !important;
+    border-color: #dee3eb !important;
+}
+.info-table td, .data-table td, .history-table td {
+    border-color: #dee3eb !important;
+    color: #191c20 !important;
     background-color: #ffffff !important;
 }
-.info-table tr:first-child td:first-child, .info-table tr:first-child th:first-child, .history-table tr:first-child th:first-child { border-top-left-radius: 7px !important; }
-.info-table tr:first-child td:last-child, .info-table tr:first-child th:last-child, .history-table tr:first-child th:last-child { border-top-right-radius: 7px !important; }
-.info-table tr:last-child td:first-child, .info-table tr:last-child th:first-child, .history-table tr:last-child td:first-child { border-bottom-left-radius: 7px !important; }
-.info-table tr:last-child td:last-child, .info-table tr:last-child th:last-child, .history-table tr:last-child td:last-child { border-bottom-right-radius: 7px !important; }
-
-/* Ẩn viền của thẻ div bọc ngoài bảng NHƯNG BỎ QUA các thẻ div có padding (p-) để giữ viền cho khối Thông số kỹ thuật */
-.border.border-gray-200:has(> .info-table):not([class*=" p-"]):not([class^="p-"]),
-.border.border-gray-200:has(> .history-table-wrapper):not([class*=" p-"]):not([class^="p-"]),
-.border.border-gray-200:has(> .data-table):not([class*=" p-"]):not([class^="p-"]) {
-    border: none !important;
-    box-shadow: none !important;
-}
-
-.info-table td, .info-table th, .data-table td, .data-table th, .history-table td, .history-table th {
-    border-color: #18181b !important; 
+.info-table tr:hover td, .data-table tr:hover td, .history-table tr:hover td {
+    background-color: #f2f4fb !important;
 }
 .info-table tr:last-child td, .data-table tr:last-child td, .history-table tr:last-child td {
-    border-bottom: none !important; 
+    border-bottom: none !important;
 }
 .stat-item {
-    border-color: #18181b !important;
+    border: 1px solid #dee3eb !important;
+    border-radius: 20px !important;
+    background-color: #ffffff !important;
+    box-shadow: 0 1px 4px rgba(0, 99, 153, 0.06) !important;
 }
 
-.history-table tfoot td {
-    border-top: 1px solid #18181b !important;
-    border-bottom: 1px solid #18181b !important;
+/* 12. CÁC Ô NHẬP LIỆU (M3 TEXT FIELDS) */
+input[type="text"], input[type="search"], input[type="date"], input[type="email"],
+input[type="password"], input[type="number"], select, textarea {
+    background-color: #eceef5 !important;
+    border: 1px solid #dee3eb !important;
+    border-radius: 16px !important;
+    color: #191c20 !important;
+    transition: all 0.2s cubic-bezier(0.2, 0, 0, 1) !important;
+}
+input[type="text"]:focus, input[type="search"]:focus, input[type="date"]:focus,
+input[type="email"]:focus, input[type="password"]:focus, input[type="number"]:focus,
+select:focus, textarea:focus {
+    background-color: #ffffff !important;
+    border-color: #006399 !important;
+    box-shadow: 0 0 0 3px rgba(0, 99, 153, 0.2) !important;
+    outline: none !important;
+}
+input:disabled, select:disabled, textarea:disabled {
+    background-color: #e6e8ef !important;
+    color: #72777f !important;
+    border-color: #dee3eb !important;
+    cursor: not-allowed !important;
 }
 
-/* 6. Fix text hover không gạch chân */
+/* 13. TOAST NOTIFICATIONS (M3 EXPRESSIVE BANNERS) */
+#toast-container {
+    top: 96px;
+    transition: top 300ms cubic-bezier(0.2, 0, 0, 1);
+}
+.toast-card {
+    background-color: #ffffff !important;
+    border: 1px solid #dee3eb !important;
+    border-radius: 24px !important;
+    box-shadow: 0 10px 30px -4px rgba(0, 99, 153, 0.16), 0 2px 8px 0 rgba(0, 0, 0, 0.06) !important;
+    color: #191c20 !important;
+}
+.ct-icon {
+    background-color: #cde5ff !important;
+    border: none !important;
+    color: #006399 !important;
+    border-radius: 9999px !important;
+}
+
+/* 14. ROUTE SELECTOR VÀ CARDS CHỨC NĂNG */
+.selected-route-card {
+    background-color: #cde5ff !important;
+    color: #001d32 !important;
+    border: 2px solid #006399 !important;
+    border-radius: 20px !important;
+}
+.selected-route-card span, .selected-route-card i {
+    color: #001d32 !important;
+}
+.selected-route-card .route-path-label {
+    color: #51606f !important;
+}
+.selected-route-card .route-status-badge {
+    background-color: #006399 !important;
+    color: #ffffff !important;
+    border: none !important;
+}
+
+/* 15. CHECKBOX & RANGE SLIDERS */
+input[type="checkbox"] {
+    accent-color: #006399 !important;
+    border-radius: 6px !important;
+}
+input[type="range"] {
+    accent-color: #006399 !important;
+}
+
+/* 16. FOOTER & BANNER ANDROID PROMO */
+footer, #app-footer-wrapper footer {
+    background-color: #ffffff !important;
+    border: 1px solid #dee3eb !important;
+    border-radius: 28px !important;
+    box-shadow: 0 4px 18px rgba(0, 99, 153, 0.08) !important;
+}
+#uptime-section, #android-app-promo-card {
+    background-color: #ffffff !important;
+    border: 1px solid #dee3eb !important;
+    border-radius: 24px !important;
+    box-shadow: 0 4px 16px rgba(0, 99, 153, 0.08) !important;
+}
+#android-app-promo-card h4 {
+    color: #006399 !important;
+    font-weight: 700 !important;
+}
+#android-app-promo-card p {
+    color: #51606f !important;
+}
+#android-promo-download-btn {
+    background-color: #006399 !important;
+    color: #ffffff !important;
+    border-radius: 9999px !important;
+}
+
+/* 17. TÁI ĐỒNG BỘ CÁC NÚT & LIÊN KẾT TOÀN DIỆN */
 a, button, [role="button"] {
     text-decoration: none !important;
 }
@@ -106,633 +396,14 @@ a:hover, button:hover, [role="button"]:hover {
     text-decoration: none !important;
 }
 
-.header-logo-text {
-    color: #000000 !important;
+/* Watermark Protection (Không ghi đè màu canvas) */
+.watermark-safe, #watermark-preview-canvas {
+    color: initial !important;
+    background-color: initial !important;
+    border-color: initial !important;
 }
 
-/* Nút đen */
-.bg-black:hover {
-    background-color: #27272a !important; 
-}
-
-/* Input form: Fix outline */
-input, textarea, select {
-    outline: none !important;
-}
-input:focus, textarea:focus, select:focus {
-    border-color: #18181b !important;
-    box-shadow: none !important;
-    outline: none !important;
-}
-
-
-/* ===== AUTH PAGE FLAT OVERRIDE ===== */
-
-/* Khung modal chính */
-#auth .bg-white\/70,
-#auth .bg-white\/80 {
-    background-color: #ffffff !important;
-    backdrop-filter: none !important;
-    -webkit-backdrop-filter: none !important;
-}
-
-/* Viền trong suốt của các input và khung chính -> viền đen */
-#auth .border.border-white\/80,
-#auth .border.border-white\/60,
-#auth .border.border-white\/70 {
-    border-color: #18181b !important;
-}
-
-/* Input fields */
-#auth input {
-    background-color: #fafafa !important;
-    border: 1px solid #18181b !important;
-    backdrop-filter: none !important;
-}
-
-/* Auth message box */
-#auth #auth-msg {
-    background-color: #fef2f2 !important;
-}
-
-/* Khung card modal auth */
-#auth .rounded-3xl.bg-white\/70 {
-    background-color: #ffffff !important;
-    border: 1px solid #18181b !important;
-    box-shadow: none !important;
-}
-
-/* Shadow override */
-#auth .shadow-\[0_8px_32px_0_rgba\(0\,0\,0\,0\.2\)\] {
-    box-shadow: none !important;
-}
-
-/* Credit pill dưới card */
-#auth .bg-white\/60 {
-    background-color: #ffffff !important;
-}
-
-/* Tab switcher login/register */
-#auth .bg-white\/60.border.border-white\/70 {
-    background-color: #f4f4f5 !important;
-    border: 1px solid #18181b !important;
-}
-
-/* Nút social login Google */
-#auth .border.border-gray-300\/80 {
-    border-color: #18181b !important;
-}
-
-/* ===== FIX: VEHICLE TYPE ICON (selected state bg-white/20 bị trong suốt) ===== */
-#btn-type-bus.bg-black .icon-bg,
-#btn-type-coach.bg-black .icon-bg {
-    background-color: rgba(255, 255, 255, 0.15) !important;
-}
-
-/* ===== FIX: WATERMARK PREVIEW (preview-footer-bar bị transparent) ===== */
-#preview-container {
-    border: 1px solid #18181b !important;
-}
-
-/* ===== FIX: ZOOM TOOLBAR button text color ===== */
-#zoom-toolbar button:not(.bg-black) {
-    color: #18181b !important;
-}
-#zoom-toolbar button:hover,
-#zoom-toolbar button.bg-black,
-#zoom-toolbar button.bg-black i,
-#zoom-toolbar button.bg-black span {
-    color: #ffffff !important;
-}
-
-/* ===== FIX: INLINE ALERTS - Thêm viền đen cho mọi màu ===== */
-.bg-red-50, .bg-red-100 { border: 1px solid #18181b !important; }
-.bg-yellow-50, .bg-yellow-100 { border: 1px solid #18181b !important; }
-.bg-green-50, .bg-green-100 { border: 1px solid #18181b !important; }
-.bg-blue-50, .bg-blue-100 { border: 1px solid #18181b !important; }
-.bg-orange-50, .bg-orange-100 { border: 1px solid #18181b !important; }
-
-/* Inline alerts with explicit red/yellow/green/blue border already get overridden to black */
-.border-red-200, .border-red-300 { border-color: #18181b !important; }
-.border-yellow-200, .border-yellow-300 { border-color: #18181b !important; }
-.border-green-200, .border-green-300 { border-color: #18181b !important; }
-.border-blue-200, .border-blue-300 { border-color: #18181b !important; }
-.border-orange-200, .border-orange-300 { border-color: #18181b !important; }
-
-/* ===== FIX: FAV PHOTO CONTENT border ===== */
-#fav-photo-content {
-    border: 1px solid #18181b !important;
-}
-
-/* ===== WATERMARK PROTECTION (không override màu) ===== */
-.wm-draggable,
-.wm-draggable * {
-    color: inherit !important;
-}
-.wm-draggable.wm-black,
-.wm-draggable.wm-black * {
-    color: black !important;
-}
-.footer-text-left,
-.footer-text-right,
-#preview-footer-copy {
-    color: white !important;
-}
-
-/* ===== FIX: PREVIEW FOOTER BAR - Flat dark blur overlay matching real output ===== */
-#preview-footer-bar {
-    background: rgba(0, 0, 0, 0.25) !important;
-    backdrop-filter: blur(4px) !important;
-    -webkit-backdrop-filter: blur(4px) !important;
-    padding: 0 !important;
-    margin: 0 !important;
-    border: none !important;
-}
-
-/* Additional Tailwind colors for inline alerts */
-.bg-amber-50, .bg-amber-100 { border: 1px solid #18181b !important; }
-.border-amber-200, .border-amber-300 { border-color: #18181b !important; }
-
-.bg-indigo-50, .bg-indigo-100 { border: 1px solid #18181b !important; }
-.border-indigo-200, .border-indigo-300 { border-color: #18181b !important; }
-
-.bg-emerald-50, .bg-emerald-100 { border: 1px solid #18181b !important; }
-.border-emerald-200, .border-emerald-300 { border-color: #18181b !important; }
-
-
-
-/* ===== FIX: UI BORDERS & SEPARATORS (Bảng tin, Cài đặt, Chi tiết ảnh, Dropdown) ===== */
-
-/* 1. BẢNG TIN HỆ THỐNG & CÀI ĐẶT */
-#newsboard-content .border-gray-200\/50,
-#settings-content .border-gray-200\/50,
-#newsboard-content .border-gray-200,
-#settings-content .border-gray-200,
-#newsboard-content .border-gray-300,
-#settings-content .border-gray-300,
-#newsboard-toc, #set-menu-main {
-    border-color: #18181b !important;
-}
-
-#newsboard-content .border-b,
-#newsboard-content .border-r,
-#settings-content .border-b,
-#settings-content .border-r {
-    border-color: #18181b !important;
-}
-
-/* Các nút trong sidebar cài đặt (trạng thái bình thường - override border-gray-200) */
-#set-menu-main button.border-gray-200,
-#set-menu-account button.border-gray-200,
-#set-menu-docs button.border-gray-200 {
-    border-color: #18181b !important;
-}
-
-/* Tab cài đặt đang active (JS gán bg-black text-white border-black) */
-#set-menu-main button.bg-black,
-#set-menu-account button.bg-black,
-#set-menu-docs button.bg-black {
-    background-color: #18181b !important;
-    color: #ffffff !important;
-    border-color: #18181b !important;
-}
-#set-menu-main button.bg-black i,
-#set-menu-account button.bg-black i,
-#set-menu-docs button.bg-black i {
-    color: #ffffff !important;
-}
-
-/* Nền modal Bảng tin & Cài đặt */
-#newsboard-content .bg-white\/30,
-#newsboard-content .bg-gray-50\/30,
-#settings-content .bg-white\/30,
-#settings-content .bg-gray-50\/30 {
-    background-color: #ffffff !important;
-}
-
-/* 2. CHI TIẾT ẢNH & ẢNH TÂM ĐẮC */
-/* Khung bọc ngoài ảnh chi tiết (detail-image) */
-#detail .img-wrapper {
-    border: 1px solid #18181b !important;
-    box-sizing: border-box;
-}
-
-/* Ảnh tâm đắc trên Profile: 
-   Chỉ cần đổi viền của wrapper có sẵn, bỏ viền đúp ở img con */
-.border-gray-200\/60 {
-    border-color: #18181b !important;
-}
-
-/* Modal chọn ảnh tâm đắc (preview lúc nhập link) */
-#fav-photo-preview-img {
-    border: 1px solid #18181b !important;
-}
-
-/* Khung ảnh model preview trong upload */
-#up-model-preview .border-gray-300 {
-    border-color: #18181b !important;
-}
-
-/* 3. DROPDOWN (Search, Filter, v.v) */
-/* Khung ngoài dropdown */
-.suggestion-box,
-.filter-menu,
-#user-dropdown,
-.dropdown-menu {
-    border: 1px solid #18181b !important;
-    box-shadow: none !important;
-    background-color: #ffffff !important;
-}
-
-/* Phân cách giữa các item trong dropdown */
-.suggestion-box .suggestion-item,
-.filter-menu button,
-.filter-menu a,
-#user-dropdown a,
-#user-dropdown button,
-.dropdown-menu button,
-.dropdown-menu a {
-    border-bottom: 1px solid #18181b !important;
-    border-radius: 0 !important;
-    margin: 0 !important;
-    color: #374151 !important;
-}
-/* Xoá viền dưới cùng của item cuối */
-.suggestion-box .suggestion-item:last-child,
-.filter-menu button:last-child,
-.filter-menu a:last-child,
-#user-dropdown a:last-child,
-#user-dropdown button:last-child,
-.dropdown-menu button:last-child,
-.dropdown-menu a:last-child {
-    border-bottom: none !important;
-}
-
-/* Hover trạng thái các item trong dropdown (Light Mode) */
-.suggestion-box .suggestion-item:hover, 
-.filter-menu .filter-item:hover, 
-.filter-menu button:hover,
-.filter-menu a:hover,
-#user-dropdown a:hover, 
-#user-dropdown button:hover, 
-.dropdown-menu a:hover, 
-.dropdown-menu button:hover {
-    background-color: #f4f4f5 !important;
-    color: #18181b !important;
-}
-
-/* Selected state cho dropdown trong Light Mode */
-.filter-menu .filter-item.selected,
-.dropdown-menu .selected {
-    background-color: #18181b !important;
-    color: #ffffff !important;
-}
-.filter-menu .filter-item.selected *,
-.dropdown-menu .selected * {
-    color: #ffffff !important;
-}
-
-
-/* ===== FIX: ADMIN & MANAGER VIEWS ===== */
-/* Nút bấm trên thanh Tabs Admin */
-#admin .border-gray-300,
-#admin button.border-gray-300,
-#admin .border-gray-200,
-#admin button.border-gray-200 {
-    border-color: #18181b !important;
-}
-#admin button:hover,
-#admin button.bg-white:hover {
-    background-color: #f4f4f5 !important;
-}
-/* Các nút đang chọn (Tab active) mà JS set bg-black */
-#admin button.bg-black {
-    background-color: #18181b !important;
-    color: #ffffff !important;
-    border-color: #18181b !important;
-}
-
-/* Toolbars trong admin (Đường tham chiếu, Thước ngang, v.v) */
-#adm-photo-grid-toggle-bar button,
-#adm-tab-requests, #adm-tab-delete, #adm-tab-comments, #adm-tab-manager {
-    border: 1px solid #18181b !important;
-    background-color: #ffffff !important;
-    color: #18181b !important;
-}
-#adm-photo-grid-toggle-bar button:hover,
-#adm-tab-requests:hover, #adm-tab-delete:hover, #adm-tab-comments:hover, #adm-tab-manager:hover {
-    background-color: #18181b !important;
-    color: #ffffff !important;
-}
-#adm-photo-grid-toggle-bar button:hover i {
-    color: #ffffff !important;
-}
-#adm-photo-grid-toggle-bar button.bg-black {
-    background-color: #18181b !important;
-    color: #ffffff !important;
-}
-#adm-photo-grid-toggle-bar button.bg-black i,
-#adm-photo-grid-toggle-bar button.bg-black b {
-    color: #ffffff !important;
-}
-#btn-crop-toggle-ruler {
-    width: 136px !important;
-    min-width: 136px !important;
-    max-width: 136px !important;
-    height: 32px !important;
-    min-height: 32px !important;
-    max-height: 32px !important;
-    padding: 0 8px !important;
-    box-sizing: border-box !important;
-    display: inline-flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    overflow: hidden !important;
-    border: 1px solid #18181b !important;
-}
-@media (max-width: 639px) {
-    #btn-crop-toggle-ruler {
-        width: 48px !important;
-        min-width: 48px !important;
-        max-width: 48px !important;
-        height: 32px !important;
-        min-height: 32px !important;
-        max-height: 32px !important;
-        padding: 0 !important;
-    }
-}
-#btn-crop-toggle-ruler.bg-black {
-    background-color: #18181b !important;
-    color: #ffffff !important;
-}
-#btn-crop-toggle-ruler.bg-black:hover {
-    background-color: #27272a !important;
-}
-#btn-crop-toggle-ruler.bg-black * {
-    color: #ffffff !important;
-}
-#btn-crop-toggle-ruler:not(.bg-black) {
-    background-color: #ffffff !important;
-    color: #18181b !important;
-}
-#btn-crop-toggle-ruler:not(.bg-black):hover {
-    background-color: #f4f4f5 !important;
-}
-#btn-crop-toggle-ruler:not(.bg-black) * {
-    color: #18181b !important;
-}
-
-#btn-toggle-ruler {
-    width: 160px !important;
-    min-width: 160px !important;
-    max-width: 160px !important;
-    height: 38px !important;
-    min-height: 38px !important;
-    max-height: 38px !important;
-    box-sizing: border-box !important;
-    display: inline-flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    overflow: hidden !important;
-}
-#status-ruler {
-    display: inline-block !important;
-    width: 28px !important;
-    min-width: 28px !important;
-    max-width: 28px !important;
-    text-align: center !important;
-}
-
-/* Các form nhập liệu, select, card trong Admin nếu có viền xám */
-#admin input, #admin select, #admin textarea,
-.admin-card-header, #admin-content .border-gray-200,
-#admin .bg-gray-100.border-gray-200 /* Các action buttons disabled */ {
-    border-color: #18181b !important;
-}
-
-/* ===== MANAGER EDIT MODAL ===== */
-#manager-edit-content .border-gray-200\/50,
-#manager-edit-content .border-gray-200,
-#manager-edit-content .border-gray-300,
-#manager-edit-content .border-gray-300\/80 {
-    border-color: #18181b !important;
-}
-
-/* Các form, nút bên trong modal manager */
-#manager-edit-content button.border-gray-200,
-#manager-edit-content .bg-gray-50.border-gray-200 {
-    border-color: #18181b !important;
-}
-
-/* Bảng làm mờ bên phải */
-#manager-edit-content .bg-white\/60 {
-    background-color: #ffffff !important;
-}
-
-/* Khung ảnh Manager Blur */
-#manager-blur-container {
-    border: 1px solid #18181b !important;
-}
-
-/* Nút thêm vùng làm mờ */
-#btn-manager-add-blur {
-    border: 1px solid #18181b !important;
-    background-color: #ffffff !important;
-    color: #18181b !important;
-}
-#btn-manager-add-blur:hover {
-    background-color: #18181b !important;
-    color: #ffffff !important;
-}
-
-/* Override thêm cho Admin Card */
-.admin-card {
-    border: 1px solid #18181b !important;
-    box-shadow: none !important;
-}
-.admin-card-header {
-    border-bottom: 1px solid #18181b !important;
-}
-.admin-input {
-    border: 1px solid #18181b !important;
-}
-
-/* Fix viền admin-content .border-gray-200 */
-#admin-content .border-gray-200,
-#admin-content .border-y {
-    border-color: #18181b !important;
-}
-
-/* Nút Quay Lại trong Cài đặt (đang có border-transparent) */
-#set-menu-account button.border-transparent,
-#set-menu-docs button.border-transparent {
-    border: 1px solid #18181b !important;
-    background-color: #ffffff !important;
-}
-#set-menu-account button.border-transparent:hover,
-#set-menu-docs button.border-transparent:hover {
-    background-color: #f4f4f5 !important;
-}
-
-/* Fix đè nét đôi (double border) ở thẻ duyệt ảnh Admin */
-#admin-content .border-y {
-    border-top: none !important; /* Header đã có border-bottom nên bỏ viền trên của khung ảnh */
-}
-
-/* ===== FIX: PAGINATION (Phân trang) ===== */
-.page-btn {
-    border: 1px solid #18181b !important;
-    color: #18181b !important;
-}
-.page-btn:hover:not(:disabled):not(.active) {
-    background-color: #f4f4f5 !important;
-}
-.page-btn.active, .page-btn.active:hover {
-    background: #18181b !important;
-    color: #ffffff !important;
-    border-color: #18181b !important;
-}
-.page-btn.dots {
-    border: none !important;
-    background: transparent !important;
-}
-
-/* Help page — icon circles (light): giữ nền xám nhạt + viền đen */
-.help-icon-circle {
-    border: 1px solid #18181b !important;
-}
-
-.dmca-badge-wrapper {
-    background-color: #ffffff !important;
-    border: none !important;
-}
-.dmca-badge-wrapper img {
-    display: block;
-}
-
-/* Denial Discord Helper Box (Light Mode) */
-#denial-discord-box {
-    background-color: #ffffff !important;
-    border: 1px solid #18181b !important;
-    color: #000000 !important;
-}
-#denial-discord-box a {
-    background-color: #000000 !important;
-    color: #ffffff !important;
-}
-#denial-discord-box a:hover {
-    background-color: #27272a !important;
-}
-#denial-discord-box a i {
-    color: #ffffff !important;
-}
-
-/* ===== RANGE SLIDERS (Light Mode: ruột trắng, viền đen) ===== */
-input[type="range"],
-.vnbus-slider {
-    -webkit-appearance: none;
-    appearance: none;
-    background: #e4e4e7 !important;
-    accent-color: #000000 !important;
-}
-input[type="range"]::-webkit-slider-thumb,
-.vnbus-slider::-webkit-slider-thumb {
-    -webkit-appearance: none;
-    appearance: none;
-    width: 20px;
-    height: 20px;
-    border-radius: 50%;
-    background: #ffffff !important;
-    border: 2px solid #000000 !important;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
-    cursor: grab;
-}
-input[type="range"]::-webkit-slider-thumb:active,
-.vnbus-slider::-webkit-slider-thumb:active {
-    cursor: grabbing;
-    background: #ffffff !important;
-    border: 2px solid #000000 !important;
-    box-shadow: 0 0 0 5px rgba(0, 0, 0, 0.1) !important;
-}
-input[type="range"]::-moz-range-thumb,
-.vnbus-slider::-moz-range-thumb {
-    width: 20px;
-    height: 20px;
-    border-radius: 50%;
-    background: #ffffff !important;
-    border: 2px solid #000000 !important;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
-    cursor: grab;
-}
-input[type="range"]::-moz-range-thumb:active,
-.vnbus-slider::-moz-range-thumb:active {
-    cursor: grabbing;
-    background: #ffffff !important;
-    border: 2px solid #000000 !important;
-    box-shadow: 0 0 0 5px rgba(0, 0, 0, 0.1) !important;
-}
-
-/* ===== CUSTOM CHECKBOX (Light Mode) ===== */
-.custom-cb-box {
-    background-color: #ffffff !important;
-    border: 1.5px solid #18181b !important;
-}
-.custom-cb-input:hover ~ .custom-cb-box,
-label:hover .custom-cb-box {
-    border-color: #000000 !important;
-    background-color: #f4f4f5 !important;
-}
-.custom-cb-input:checked ~ .custom-cb-box {
-    background-color: #000000 !important;
-    border-color: #000000 !important;
-    color: #ffffff !important;
-}
-.custom-cb-box i {
-    color: #ffffff !important;
-}
-.custom-cb-input:checked ~ .custom-cb-box i {
-    opacity: 1 !important;
-    transform: scale(1) !important;
-    color: #ffffff !important;
-}
-
-/* ===== HISTOGRAM (Light Mode) ===== */
-.admin-hist-box,
-#histogram-panel {
-    border: 1px solid #18181b !important;
-    background-color: #ffffff !important;
-}
-.hist-canvas-box {
-    border: 1px solid #18181b !important;
-    background-color: #ffffff !important;
-}
-.hist-grid-line {
-    background-color: #18181b !important;
-    border-color: #18181b !important;
-}
-.hist-loading-overlay {
-    background-color: rgba(255, 255, 255, 0.85) !important;
-    color: #52525b !important;
-}
-.admin-hist-stat-item {
-    border: 1px solid #18181b !important;
-    background-color: #f9fafb !important;
-}
-
-/* No-scroll & disabled styles */
-html.no-scroll,
-body.no-scroll {
-    overflow: hidden !important;
-}
-
-input:disabled, select:disabled, textarea:disabled {
-    background-color: #f4f4f5 !important;
-    color: #71717a !important;
-    border-color: #d4d4d8 !important;
-    cursor: not-allowed !important;
-}
-
-/* Fix các modal có bố cục Flex Header / Body / Footer cố định */
+/* Fix flex modal scroll containers */
 #route-edit-modal > #route-edit-content,
 #route-selector-modal > #route-selector-content,
 #route-delete-modal > #route-delete-content {
@@ -740,101 +411,4 @@ input:disabled, select:disabled, textarea:disabled {
     display: flex !important;
     flex-direction: column !important;
     max-height: 85vh !important;
-}
-
-#route-edit-modal > #route-edit-content > .overflow-y-auto,
-#route-selector-modal > #route-selector-content > #route-selector-items {
-    flex: 1 1 0% !important;
-    flex-shrink: 1 !important;
-    min-height: 0 !important;
-    overflow-y: auto !important;
-}
-
-/* Tuyến được chọn trong selector - Giao diện sáng: Nền đen chữ trắng */
-.selected-route-card {
-    background-color: #000000 !important;
-    color: #ffffff !important;
-    border-color: #000000 !important;
-}
-.selected-route-card span:not(.route-status-badge),
-.selected-route-card i {
-    color: #ffffff !important;
-}
-.selected-route-card .route-path-label {
-    color: #a1a1aa !important;
-}
-.selected-route-card .route-status-badge {
-    background-color: #ffffff !important;
-    color: #000000 !important;
-    border-color: #ffffff !important;
-}
-.selected-route-card button,
-.selected-route-card a {
-    border-color: #ffffff !important;
-    color: #ffffff !important;
-    background-color: transparent !important;
-}
-.selected-route-card button:hover,
-.selected-route-card a:hover {
-    background-color: #ffffff !important;
-    color: #000000 !important;
-}
-
-/* Route Selector Inputs Caret & Cursor */
-.caret-transparent,
-#up-route,
-#info-route,
-#hist-new-route,
-#veh-hist-new-route,
-#vehicle-edit-route,
-#del-route-dest-display,
-[id^="adm-p-route-"],
-[id^="req-route-"],
-[id^="req-h-route-"] {
-    caret-color: transparent !important;
-    cursor: pointer !important;
-    user-select: none !important;
-    -webkit-user-select: none !important;
-}
-
-
-
-
-
-
-
-
-
-
-/* Android App Promo Banner */
-#uptime-section,
-#android-app-promo-card {
-    background-color: #ffffff;
-    border: 1px solid #18181b !important;
-}
-#android-app-promo-card h4 {
-    color: #000000;
-}
-#android-app-promo-card p {
-    color: #52525b;
-}
-#android-promo-download-btn {
-    background-color: #000000;
-    color: #ffffff;
-    border: 1px solid #18181b !important;
-}
-#android-promo-download-btn:hover {
-    background-color: #27272a;
-}
-
-/* HoyuShot EXIF thanks notice */
-#up-hoyushot-thanks {
-    color: #52525b;
-}
-#up-hoyushot-thanks a {
-    color: #000000;
-    text-decoration: underline !important;
-}
-#up-hoyushot-thanks a:hover {
-    opacity: 0.75;
 }
