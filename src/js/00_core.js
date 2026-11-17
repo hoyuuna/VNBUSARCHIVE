@@ -2139,6 +2139,15 @@ cleanupState: () => {
                             plateMsg.innerHTML = '';
                             plateMsg.className = 'text-xs mt-1';
                         }
+                        const upRouteEl = document.getElementById('up-route');
+                        if (upRouteEl) {
+                            upRouteEl.value = '';
+                            delete upRouteEl.dataset.routeName;
+                            delete upRouteEl.dataset.routeNo;
+                        }
+                        if (app.route && app.route.resetSelectorState) {
+                            app.route.resetSelectorState();
+                        }
                         ['up-plate', 'up-route', 'up-operator', 'up-model', 'up-location'].forEach(id => {
                             const el = document.getElementById(id);
                             if (el) {

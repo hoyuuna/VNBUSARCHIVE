@@ -2141,6 +2141,15 @@ cleanupState: () => {
                             plateMsg.innerHTML = '';
                             plateMsg.className = 'text-xs mt-1';
                         }
+                        const upRouteEl = document.getElementById('up-route');
+                        if (upRouteEl) {
+                            upRouteEl.value = '';
+                            delete upRouteEl.dataset.routeName;
+                            delete upRouteEl.dataset.routeNo;
+                        }
+                        if (app.route && app.route.resetSelectorState) {
+                            app.route.resetSelectorState();
+                        }
                         ['up-plate', 'up-route', 'up-operator', 'up-model', 'up-location'].forEach(id => {
                             const el = document.getElementById(id);
                             if (el) {
@@ -15263,6 +15272,25 @@ if (!decodedProvince || decodedProvince.trim() === '') {
 
                     await app.route.fetchRoutes();
                     app.route.filterSelector();
+                },
+
+                resetSelectorState: () => {
+                    app.route.selectorCurrentSelected = '';
+                    app.route.pendingSelectedRoute = null;
+                    app.route.selectorCallback = null;
+                    app.route.selectorTargetInputId = null;
+                    app.route.selectorExcludeRoute = null;
+                    app.route.selectorIsHistory = false;
+                    app.route.selectorContextProvince = '';
+                    app.route.selectorDisplayLimit = 40;
+                    const searchInput = document.getElementById('route-selector-search');
+                    if (searchInput) searchInput.value = '';
+                    const provFilter = document.getElementById('route-selector-prov-filter');
+                    if (provFilter) provFilter.value = '';
+                    const provLabel = document.getElementById('route-selector-prov-label');
+                    if (provLabel) provLabel.innerText = 'Tất cả tỉnh thành';
+                    const provSearch = document.getElementById('route-selector-prov-search');
+                    if (provSearch) provSearch.value = '';
                 },
 
                 closeSelector: () => {

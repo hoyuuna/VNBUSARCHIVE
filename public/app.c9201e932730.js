@@ -579,6 +579,41 @@ Object.assign(window.app, {
                 }
             },
 
+            // Tự động kích hoạt thanh tải trên cùng hoặc pill làm mới khi trang được reload/refresh trong phiên
+            _sessionAutoLoadStarted: (() => {
+                try {
+                    const isAppLoaded = sessionStorage.getItem('vnbus_app_loaded') === '1';
+                    const isRefreshing = sessionStorage.getItem('vnbus_is_refreshing') === '1';
+                    if (isAppLoaded || isRefreshing) {
+                        setTimeout(() => {
+                            if (window.app && app.loadingBar && app.loadingBar.start) {
+                                app.loadingBar.start();
+                            }
+                        }, 10);
+                        if (isRefreshing) {
+                            const setRefreshingPill = () => {
+                                const badge = document.getElementById('app-pull-refresh-badge');
+                                const icon = document.getElementById('app-pull-refresh-icon');
+                                const text = document.getElementById('app-pull-refresh-text');
+                                const inner = document.getElementById('app-pull-refresh-inner');
+                                if (badge) badge.classList.remove('opacity-0');
+                                if (text) text.innerText = 'Đang làm mới...';
+                                if (icon) icon.className = 'fa-solid fa-circle-notch fa-spin text-xs';
+                                if (inner) {
+                                    inner.classList.add('bg-black', 'text-white', 'dark:bg-white', 'dark:text-black');
+                                    inner.classList.remove('bg-white', 'text-black', 'dark:bg-black', 'dark:text-white');
+                                }
+                            };
+                            if (document.readyState === 'loading') {
+                                document.addEventListener('DOMContentLoaded', setRefreshingPill);
+                            } else {
+                                setRefreshingPill();
+                            }
+                        }
+                    }
+                } catch (e) {}
+                return true;
+            })(),
             _initialLoadingDismissed: false,
             _headerLogoTimer: null,
             _headerLogoTransitioned: false,
@@ -616,6 +651,33 @@ Object.assign(window.app, {
                 }, 520);
             },
             dismissInitialLoadingScreen: () => {
+                try {
+                    sessionStorage.setItem('vnbus_app_loaded', '1');
+                } catch (e) {}
+
+                const wasRefreshing = (function() {
+                    try {
+                        return sessionStorage.getItem('vnbus_is_refreshing') === '1';
+                    } catch (e) { return false; }
+                })();
+                try {
+                    sessionStorage.removeItem('vnbus_is_refreshing');
+                } catch (e) {}
+
+                if (app.loadingBar && app.loadingBar.finish) {
+                    app.loadingBar.finish();
+                }
+
+                if (wasRefreshing) {
+                    const badge = document.getElementById('app-pull-refresh-badge');
+                    if (badge) {
+                        setTimeout(() => {
+                            badge.classList.add('opacity-0');
+                            document.documentElement.classList.remove('app-is-refreshing');
+                        }, 300);
+                    }
+                }
+
                 if (app._initialLoadingDismissed) return;
                 app._initialLoadingDismissed = true;
                 const loadingScreen = document.getElementById('loading-screen');
@@ -2078,6 +2140,15 @@ cleanupState: () => {
                         if (plateMsg) {
                             plateMsg.innerHTML = '';
                             plateMsg.className = 'text-xs mt-1';
+                        }
+                        const upRouteEl = document.getElementById('up-route');
+                        if (upRouteEl) {
+                            upRouteEl.value = '';
+                            delete upRouteEl.dataset.routeName;
+                            delete upRouteEl.dataset.routeNo;
+                        }
+                        if (app.route && app.route.resetSelectorState) {
+                            app.route.resetSelectorState();
                         }
                         ['up-plate', 'up-route', 'up-operator', 'up-model', 'up-location'].forEach(id => {
                             const el = document.getElementById(id);
@@ -3743,7 +3814,7 @@ cleanupState: () => {
 
     detailMarker: null,
 
-    currentExif: { camera: 'N/A', params: 'N/A' },
+    currentExif: { camera: 'N/A', params: 'N/A', software: '' },
 
     searchTimeout: null,
 
@@ -4638,19 +4709,50 @@ Object.assign(window.app, {
         init: () => {
             const isApp = (window.AndroidBridge && typeof window.AndroidBridge.isNativeApp === 'function' && window.AndroidBridge.isNativeApp()) || window.location.search.includes('app_preview=1');
             const nav = document.getElementById('app-bottom-nav');
-            if (!nav) return;
-            if (isApp) {
-                document.documentElement.classList.add('is-native-app');
-                document.body.classList.add('is-native-app');
-                nav.classList.remove('hidden');
-                app.bottomNav.updateActiveTab(window.location.pathname);
-                app.bottomNav.updateUserUI();
+            if (nav) {
+                if (isApp) {
+                    document.documentElement.classList.add('is-native-app');
+                    document.body.classList.add('is-native-app');
+                    nav.classList.remove('hidden');
+                    app.bottomNav.updateActiveTab(window.location.pathname);
+                    app.bottomNav.updateUserUI();
 
-                if ('virtualKeyboard' in navigator) {
-                    try { navigator.virtualKeyboard.overlaysContent = true; } catch (e) {}
+                    if ('virtualKeyboard' in navigator) {
+                        try { navigator.virtualKeyboard.overlaysContent = true; } catch (e) {}
+                    }
+                } else {
+                    nav.classList.add('hidden');
                 }
-            } else {
-                nav.classList.add('hidden');
+            }
+
+            // Quản lý banner quảng cáo app Android trên trình duyệt web di động
+            const promoCard = document.getElementById('android-app-promo-card');
+            if (promoCard) {
+                const isAndroid = /Android/i.test(navigator.userAgent);
+                if (isAndroid && !isApp) {
+                    promoCard.classList.remove('hidden');
+                    // Chỉ lấy bản Release chính thức mới nhất (loại bỏ pre-release và draft)
+                    fetch('https://api.github.com/repos/hoyuuna/VNBUSARCHIVE/releases/latest')
+                        .then(res => {
+                            if (res.ok) return res.json();
+                            return fetch('https://api.github.com/repos/hoyuuna/VNBUSARCHIVE/releases')
+                                .then(r => r.json())
+                                .then(list => Array.isArray(list) ? (list.find(r => !r.prerelease && !r.draft) || list[0]) : null);
+                        })
+                        .then(latest => {
+                            if (latest && latest.assets) {
+                                const apkAsset = latest.assets.find(a => a.name && a.name.endsWith('.apk'));
+                                const downloadBtn = document.getElementById('android-promo-download-btn');
+                                if (downloadBtn && apkAsset && apkAsset.browser_download_url) {
+                                    downloadBtn.href = apkAsset.browser_download_url;
+                                    downloadBtn.setAttribute('download', apkAsset.name);
+                                }
+                            }
+                        })
+                        .catch(() => {});
+                } else {
+                    promoCard.classList.add('hidden');
+                }
             }
         },
         updateActiveTab: (path) => {
@@ -4732,13 +4834,34 @@ Object.assign(window.app, {
                 if (avatarIcon) avatarIcon.style.display = 'block';
             }
         },
-        navigate: (target) => {
+        isTargetActive: (target) => {
+            const activeSection = document.querySelector('.view-section.active')?.id;
+            const path = window.location.pathname;
+
             if (target === 'home') {
-                if (window.location.pathname === '/' || window.location.pathname === '') {
-                    window.scrollTo({ top: 0, behavior: 'smooth' });
-                } else {
-                    app.utils.navigate('/');
-                }
+                return activeSection === 'home' && (path === '/' || path === '');
+            }
+            if (target === 'search') {
+                return activeSection === 'search';
+            }
+            if (target === 'upload') {
+                return activeSection === 'upload' || activeSection === 'mobile-upload';
+            }
+            if (target === 'map') {
+                return activeSection === 'map';
+            }
+            if (target === 'profile') {
+                return (activeSection === 'account' && (path === '/profile' || path === '')) || (activeSection === 'auth' && (path === '/auth' || path === '/login'));
+            }
+            return false;
+        },
+        navigate: (target) => {
+            if (app.bottomNav.isTargetActive(target)) {
+                return;
+            }
+
+            if (target === 'home') {
+                app.utils.navigate('/');
             } else if (target === 'search') {
                 app.utils.navigate('/search');
             } else if (target === 'upload') {
@@ -4868,9 +4991,19 @@ Object.assign(window.app, {
                     triggered = true;
                     text.innerText = "Đang làm mới...";
                     if (icon) icon.className = "fa-solid fa-circle-notch fa-spin text-xs";
+                    if (inner) {
+                        inner.classList.add('bg-black', 'text-white', 'dark:bg-white', 'dark:text-black');
+                        inner.classList.remove('bg-white', 'text-black', 'dark:bg-black', 'dark:text-white');
+                    }
+                    if (app.loadingBar && app.loadingBar.start) {
+                        app.loadingBar.start();
+                    }
+                    try {
+                        sessionStorage.setItem('vnbus_is_refreshing', '1');
+                    } catch (e) {}
                     setTimeout(() => {
                         window.location.reload();
-                    }, 300);
+                    }, 200);
                 } else {
                     badge.classList.add('opacity-0');
                 }
@@ -7636,9 +7769,15 @@ Object.assign(window.app, {
                             if (id === 'map') {
                                 footer.parentElement.style.display = 'none';
                                 document.body.style.overflow = 'hidden';
+                                if (app.map && typeof app.map.startLocation === 'function') {
+                                    app.map.startLocation();
+                                }
                             } else {
                                 footer.parentElement.style.display = '';
                                 document.body.style.overflow = '';
+                                if (app.map && typeof app.map.stopLocation === 'function') {
+                                    app.map.stopLocation();
+                                }
                             }
                         }
                         if (app.pullRefresh && typeof app.pullRefresh.setEnabled === 'function') {
@@ -15135,6 +15274,25 @@ if (!decodedProvince || decodedProvince.trim() === '') {
                     app.route.filterSelector();
                 },
 
+                resetSelectorState: () => {
+                    app.route.selectorCurrentSelected = '';
+                    app.route.pendingSelectedRoute = null;
+                    app.route.selectorCallback = null;
+                    app.route.selectorTargetInputId = null;
+                    app.route.selectorExcludeRoute = null;
+                    app.route.selectorIsHistory = false;
+                    app.route.selectorContextProvince = '';
+                    app.route.selectorDisplayLimit = 40;
+                    const searchInput = document.getElementById('route-selector-search');
+                    if (searchInput) searchInput.value = '';
+                    const provFilter = document.getElementById('route-selector-prov-filter');
+                    if (provFilter) provFilter.value = '';
+                    const provLabel = document.getElementById('route-selector-prov-label');
+                    if (provLabel) provLabel.innerText = 'Tất cả tỉnh thành';
+                    const provSearch = document.getElementById('route-selector-prov-search');
+                    if (provSearch) provSearch.value = '';
+                },
+
                 closeSelector: () => {
                     const modal = document.getElementById('route-selector-modal');
                     const content = document.getElementById('route-selector-content');
@@ -17790,6 +17948,16 @@ Object.assign(window.app, {
                     input.value = next;
                     app.upload.updateFilters();
                 },
+                updateHoyuShotNotice: (software) => {
+                    const noticeEl = document.getElementById('up-hoyushot-thanks');
+                    if (!noticeEl) return;
+                    const clean = typeof software === 'string' ? software.replace(/\0/g, '').trim() : '';
+                    if (clean === 'Hoyuuna HoyuShot') {
+                        noticeEl.classList.remove('hidden');
+                    } else {
+                        noticeEl.classList.add('hidden');
+                    }
+                },
                 removeImage: () => {
                     const upFile = document.getElementById('up-file');
                     if (upFile) upFile.value = '';
@@ -17838,7 +18006,8 @@ Object.assign(window.app, {
                     app.crop.savedCropData = null;
                     app.crop.savedRatio = 4/3;
                     app.crop.savedState = null;
-                    app.currentExif = { camera: 'N/A', params: 'N/A' };
+                    app.currentExif = { camera: 'N/A', params: 'N/A', software: '' };
+                    if (app.upload.updateHoyuShotNotice) app.upload.updateHoyuShotNotice('');
                     const upCamera = document.getElementById('up-camera');
                     if (upCamera) upCamera.value = 'N/A';
                     const upExif = document.getElementById('up-exif-params');
@@ -17857,6 +18026,8 @@ Object.assign(window.app, {
                     if (fileInput && fileInput.disabled) return;
                     const file = e.target.files[0];
                     if (!file) return;
+                    app.currentExif = { camera: 'N/A', params: 'N/A', software: '' };
+                    if (app.upload.updateHoyuShotNotice) app.upload.updateHoyuShotNotice('');
                     app.upload._faceAutoRun = false;
                     app.crop.sourceImage = null;
                     app.crop.originalFile = null;
@@ -17985,7 +18156,8 @@ Object.assign(window.app, {
                             let model = tags.Model;
                             const make = tags.Make;
                             const lens = tags.LensModel || tags.LensInfo;
-                            const software = tags.Software;
+                            const softwareRaw = tags.Software || tags.software || (tags.ifd0 && tags.ifd0.Software) || '';
+                            const software = typeof softwareRaw === 'string' ? softwareRaw.replace(/\0/g, '').trim() : '';
                             const fNumber = tags.FNumber || tags.fNumber;
                             const exposureTime = tags.ExposureTime || tags.exposureTime;
                             const iso = tags.ISO || tags.ISOSpeedRatings || tags.iso || tags.PhotographicSensitivity;
@@ -18019,6 +18191,7 @@ Object.assign(window.app, {
                                     camera: model,
                                     params: fNumber ? `f/${fNumber} | ${shutter}s | ISO ${iso}` : `${shutter}s | ISO ${iso}`,
                                     date: dateStr,
+                                    software: software,
                                     gps: {
                                         latDec: tags.latitude,
                                         lonDec: tags.longitude,
@@ -18037,10 +18210,11 @@ Object.assign(window.app, {
                     });
                     try {
                         const exifData = await checkExif;
-                        app.currentExif = { camera: exifData.camera, params: exifData.params };
+                        app.currentExif = { camera: exifData.camera, params: exifData.params, software: exifData.software || '' };
                         document.getElementById('up-camera').value = app.currentExif.camera;
                         document.getElementById('up-exif-params').value = app.currentExif.params;
                         document.getElementById('up-date').value = exifData.date;
+                        if (app.upload.updateHoyuShotNotice) app.upload.updateHoyuShotNotice(app.currentExif.software);
                         app.upload.checkDuplicateRealtime();
                         app.currentGps = null;
                         if ((exifData.gps.latDec !== undefined && exifData.gps.lonDec !== undefined) || (exifData.gps.lat && exifData.gps.lon && exifData.gps.latRef && exifData.gps.lonRef)) {
@@ -18203,6 +18377,8 @@ Object.assign(window.app, {
                                 newImg.onload = () => {
                                     const w = newImg.width; const h = newImg.height;
                                     if (!isRawFile && !isRawExtracted && h < 1080 && w < 1080) {
+                                        app.currentExif = { camera: 'N/A', params: 'N/A', software: '' };
+                                        if (app.upload.updateHoyuShotNotice) app.upload.updateHoyuShotNotice('');
                                         app.ui.showAlert(`Độ phân giải ảnh quá thấp (${w}x${h}). Yêu cầu chiều cao tối thiểu 1080px.`);
                                         const fileInput = document.getElementById('up-file');
                                         if (fileInput) fileInput.value = ''; URL.revokeObjectURL(newUrl); URL.revokeObjectURL(url);
@@ -18244,6 +18420,8 @@ Object.assign(window.app, {
                         };
                         img.src = url;
                     } catch (errorMsg) {
+                        app.currentExif = { camera: 'N/A', params: 'N/A', software: '' };
+                        if (app.upload.updateHoyuShotNotice) app.upload.updateHoyuShotNotice('');
                         app.ui.showAlert(errorMsg);
                         const fileInput = document.getElementById('up-file');
                         if (fileInput) fileInput.value = ''; 
@@ -27043,6 +27221,7 @@ app.map = {
         } else {
             setTimeout(() => this.instance.invalidateSize(), 150);
         }
+        this.startLocation();
         await this.checkPermission();
         await this.loadZones();
         this.updateTheme();
@@ -27380,8 +27559,7 @@ app.map = {
             iconAnchor: [7, 7]
         });
 
-        // Bật theo dõi vị trí liên tục
-        this.instance.locate({ watch: true, setView: false, enableHighAccuracy: true, timeout: 60000, maximumAge: 10000 });
+        // Vị trí người dùng sẽ được kích hoạt khi mở trang Bản đồ (startLocation)
 
         this.instance.on('locationfound', (e) => {
             this.userLocation = e.latlng;
@@ -27469,7 +27647,34 @@ app.map = {
             this.isLocatingUser = true;
             locateBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin text-lg"></i>';
             locateBtn.disabled = true;
+            this.startLocation(true);
         });
+    },
+
+    startLocation(centerOnUser = false) {
+        if (!this.instance) return;
+        this.isWatchingLocation = true;
+        try {
+            this.instance.locate({
+                watch: true,
+                setView: centerOnUser,
+                enableHighAccuracy: true,
+                timeout: 30000,
+                maximumAge: 10000
+            });
+        } catch (e) {
+            console.warn("Lỗi khởi chạy định vị:", e);
+        }
+    },
+
+    stopLocation() {
+        if (!this.instance) return;
+        this.isWatchingLocation = false;
+        try {
+            this.instance.stopLocate();
+        } catch (e) {
+            console.warn("Lỗi dừng định vị:", e);
+        }
     },
 
     clearDrafts() {

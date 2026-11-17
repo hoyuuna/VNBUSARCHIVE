@@ -1470,6 +1470,25 @@ if (!decodedProvince || decodedProvince.trim() === '') {
                     app.route.filterSelector();
                 },
 
+                resetSelectorState: () => {
+                    app.route.selectorCurrentSelected = '';
+                    app.route.pendingSelectedRoute = null;
+                    app.route.selectorCallback = null;
+                    app.route.selectorTargetInputId = null;
+                    app.route.selectorExcludeRoute = null;
+                    app.route.selectorIsHistory = false;
+                    app.route.selectorContextProvince = '';
+                    app.route.selectorDisplayLimit = 40;
+                    const searchInput = document.getElementById('route-selector-search');
+                    if (searchInput) searchInput.value = '';
+                    const provFilter = document.getElementById('route-selector-prov-filter');
+                    if (provFilter) provFilter.value = '';
+                    const provLabel = document.getElementById('route-selector-prov-label');
+                    if (provLabel) provLabel.innerText = 'Tất cả tỉnh thành';
+                    const provSearch = document.getElementById('route-selector-prov-search');
+                    if (provSearch) provSearch.value = '';
+                },
+
                 closeSelector: () => {
                     const modal = document.getElementById('route-selector-modal');
                     const content = document.getElementById('route-selector-content');

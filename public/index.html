@@ -2245,7 +2245,7 @@ html.theme-dark .ct-icon {
             if (stored === 'system') {
                 theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
             }
-            document.write('<link rel="stylesheet" href="/css/' + theme + '.css?v=1794921069599" id="theme-css">');
+            document.write('<link rel="stylesheet" href="/css/' + theme + '.css?v=1794921631335" id="theme-css">');
             document.documentElement.classList.add('theme-' + theme);
             document.documentElement.style.backgroundColor = theme === 'dark' ? '#18181b' : '#fdfcf8';
 
@@ -5536,7 +5536,7 @@ html.theme-dark .ct-icon {
                                         <input type="text" id="up-route" readonly tabindex="3"
                                             placeholder="Nhấp để chọn tuyến xe..."
                                             onfocus="this.blur()"
-                                            onclick="this.blur(); app.route.openSelector({ targetInputId: 'up-route', vehicleType: (document.getElementById('up-type')?.value || (app.upload && app.upload.selectedType) || 'bus'), selectedRoute: this.dataset.routeName || this.value, onSelect: (r) => { const rDisplay = (r.route_name && r.route_name !== r.route_no) ? r.route_name : r.route_no; document.getElementById('up-route').value = r.route_no; document.getElementById('up-route').dataset.routeName = rDisplay; document.getElementById('up-route').dataset.routeNo = r.route_no; app.utils.checkRouteStatus(r.route_no, 'up-operator', 'up-operator-wrapper'); if(app.upload && app.upload.autoFillOperatorByRoute) app.upload.autoFillOperatorByRoute(); } })"
+                                            onclick="this.blur(); app.route.openSelector({ targetInputId: 'up-route', vehicleType: (document.getElementById('up-type')?.value || (app.upload && app.upload.selectedType) || 'bus'), selectedRoute: this.value ? (this.dataset.routeName || this.value) : '', onSelect: (r) => { const rDisplay = (r.route_name && r.route_name !== r.route_no) ? r.route_name : r.route_no; document.getElementById('up-route').value = r.route_no; document.getElementById('up-route').dataset.routeName = rDisplay; document.getElementById('up-route').dataset.routeNo = r.route_no; app.utils.checkRouteStatus(r.route_no, 'up-operator', 'up-operator-wrapper'); if(app.upload && app.upload.autoFillOperatorByRoute) app.upload.autoFillOperatorByRoute(); } })"
                                             class="w-full border border-gray-300 p-2.5 text-sm rounded-md focus:ring-0 focus:outline-none outline-none transition cursor-pointer bg-white select-none caret-transparent">
 
                                     </div>
@@ -8090,7 +8090,7 @@ html.theme-dark .ct-icon {
 
     <!-- KHAY CHỨA TOAST Z-INDEX CAO NHẤT -->
     <div id="toast-container" class="fixed left-0 w-full flex flex-col items-center gap-2 pointer-events-none z-[99999]" style="z-index: 99999 !important;"></div>
-<script src="/app.3ef4d6967657.js" onerror="if(!window.__app_fallback_loaded){window.__app_fallback_loaded=true;var s=document.createElement('script');s.src='/app.js?v=' + Date.now();document.head.appendChild(s);}"></script>
+<script src="/app.c9201e932730.js" onerror="if(!window.__app_fallback_loaded){window.__app_fallback_loaded=true;var s=document.createElement('script');s.src='/app.js?v=' + Date.now();document.head.appendChild(s);}"></script>
 </body>
 </html>
 
