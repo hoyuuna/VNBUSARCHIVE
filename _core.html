@@ -6740,7 +6740,7 @@ html.theme-dark .ct-icon {
                 if (token) headers['Authorization'] = `Bearer ${token}`;
 
                 let config = null;
-                const WORKERS_DEV_FALLBACK = 'https://vnbusarchive-middle-api.nghoanganhtuann.workers.dev';
+                const WORKERS_DEV_FALLBACK = 'https://api.vnbusarchive.io.vn';
                 try {
                     const cached = sessionStorage.getItem('VNBA_SYS_CONF');
                     if (cached) config = JSON.parse(cached);
