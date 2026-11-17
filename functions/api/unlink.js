@@ -12,7 +12,7 @@ export async function onRequest(context) {
         const token = authHeader?.split(' ')[1];
         if (!token) return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 });
 
-        const supabaseUrl = env.SUPABASE_URL || 'https://api.vnbusarchive.io.vn';
+        const supabaseUrl = env.SUPABASE_URL || 'https://vnbusarchive-middle-api.nghoanganhtuann.workers.dev';
         const supabaseServiceKey = env.SUPABASE_SERVICE_ROLE_KEY;
         
         if (!supabaseUrl || !supabaseServiceKey) {
