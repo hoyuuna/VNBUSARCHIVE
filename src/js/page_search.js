@@ -197,7 +197,7 @@ Object.assign(window.app, {
                         }
                         box.classList.remove('hidden');
                         let html = (app.search.advancedFilters || []).map(f => `
-                            <div class="inline-flex items-center gap-1.5 py-1 px-3 text-xs font-semibold text-[#001d32] dark:text-[#cde5ff] bg-[#cde5ff] dark:bg-[#004b74] border border-transparent rounded-full shadow-sm shrink-0 cursor-pointer transition-colors" onclick="event.stopPropagation(); app.search.editAdvancedFilter('${f.id}')">
+                            <div class="inline-flex items-center gap-1.5 py-1 px-2.5 text-xs font-semibold text-gray-700 bg-white border border-gray-300 hover:border-gray-500 rounded-md shadow-sm shrink-0 cursor-pointer transition-colors" onclick="event.stopPropagation(); app.search.editAdvancedFilter('${f.id}')">
                                 <span class="text-gray-500 font-normal">${f.fieldLabel}:</span>
                                 <span class="font-bold text-black">${f.opLabel} "${f.displayVal}"</span>
                                 <button type="button" onclick="event.stopPropagation(); app.search.removeAdvancedFilter('${f.id}')" class="ml-1 text-gray-400 hover:text-red-600 transition">
@@ -206,7 +206,7 @@ Object.assign(window.app, {
                             </div>
                         `).join('');
                         html += `
-                            <button type="button" onclick="event.stopPropagation(); app.search.openAdvancedFilterModal()" class="shrink-0 text-xs font-bold text-m3-primary dark:text-m3-dark-primary bg-white dark:bg-[#272b2f] border border-[#dee3eb] dark:border-[#42474e] hover:border-m3-primary rounded-full py-1 px-3 shadow-sm transition">
+                            <button type="button" onclick="event.stopPropagation(); app.search.openAdvancedFilterModal()" class="shrink-0 text-xs font-bold text-gray-600 bg-white border border-gray-300 hover:border-gray-400 hover:text-black rounded-md py-1 px-2.5 shadow-sm transition">
                                 + Thêm
                             </button>
                         `;
@@ -348,9 +348,9 @@ Object.assign(window.app, {
                         pgLabel.innerText = provName;
                         const btn = pgLabel.parentElement;
                         if (prefix) {
-                            btn.className = "py-1.5 px-4 md:py-2 md:px-4 text-[11px] md:text-xs font-bold text-white bg-m3-primary dark:bg-m3-dark-primary dark:text-[#003352] border-0 rounded-full transition-all duration-200 flex items-center justify-center max-w-[140px] shadow-m3-1 cursor-pointer";
+                            btn.className = "py-1.5 px-3 md:py-2 md:px-3.5 text-[11px] md:text-xs font-bold text-white bg-black border border-black rounded-md transition-all duration-200 flex items-center justify-center max-w-[140px] shadow-md cursor-pointer hover:bg-gray-800";
                         } else {
-                            btn.className = "py-1.5 px-4 md:py-2 md:px-4 text-[11px] md:text-xs font-semibold text-gray-600 dark:text-gray-300 bg-white dark:bg-[#272b2f] border border-[#dee3eb] dark:border-[#42474e] hover:border-m3-primary rounded-full transition-all duration-200 flex items-center justify-center max-w-[140px] shadow-sm cursor-pointer";
+                            btn.className = "py-1.5 px-3 md:py-2 md:px-3.5 text-[11px] md:text-xs font-semibold text-gray-600 bg-white border border-gray-300 hover:border-gray-400 hover:text-black hover:bg-gray-50 rounded-md transition-all duration-200 flex items-center justify-center max-w-[140px] shadow-sm cursor-pointer";
                         }
                     }
                     app.search.initExactRouteMenu();

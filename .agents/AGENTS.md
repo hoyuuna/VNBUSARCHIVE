@@ -2,20 +2,12 @@
 
 **MANDATORY FIRST STEP:** Before responding to the user, answering any questions, or writing any code, read ALL markdown documents located in the `.agents/` directory (`AGENTS.md`, `js_map.md`, `security.md`).
 
-## UI and Color Palette Rules (Material 3 Expressive - Ocean Blue)
-- Design Language: **Material 3 Expressive** with an Ocean Blue tonal palette.
-- Color Tokens:
-  * Light Mode: Primary `#006399`, Primary Container `#cde5ff`, On-Primary Container `#001d32`, Secondary `#51606f`, Secondary Container `#d4e4f6`, Surface `#f8f9ff`, Surface Containers `#eceef5` / `#e6e8ef` / `#e0e2e9`, Outline Variant `#c2c7cf`.
-  * Dark Mode: Primary `#94ccff`, Primary Container `#004b74`, On-Primary Container `#cde5ff`, Secondary `#b8c8da`, Secondary Container `#394957`, Surface `#101418`, Surface Containers `#1d2024` / `#272b2f` / `#32353a`, Outline Variant `#42474e`.
-- **Button & Component Shapes:**
-  * Action buttons, search bars, chips, and badges must use Expressive pill shapes (`rounded-full` / `border-radius: 9999px`).
-  * Cards use expressive rounded corners (`rounded-2xl` or `rounded-3xl` / 20px–24px).
-  * Modals, sheets, and dialogs use extra-large expressive corners (`rounded-3xl` / 28px).
-- **Elevation & Surfaces:**
-  * Elevation is achieved through M3 tonal surface containers combined with soft ambient drop shadows (`--md-elevation-1` to `--md-elevation-3`), NOT harsh 1px black borders or notebook grid backgrounds.
-  * Card and modal outlines use subtle outline-variant borders (`#c2c7cf` in light mode, `#42474e` in dark mode).
+## UI and Color Palette Rules
+- Use only black, white, and gray for standard UI components. Red, yellow, and blue are reserved strictly for notification modals.
+- Always reuse existing designs (popups, modals) unless explicitly asked to create a new design.
+- **Button Border Radius & Consistency:** All general action buttons must use square-rounded corners (`rounded-md` or `rounded-lg`) rather than pill-shaped (`rounded-full`) to maintain visual consistency across the HoyuUI interface, unless explicitly instructed otherwise for circular icon buttons or avatars.
 - **Deep-linking in Modals/Settings:** When UI elements or buttons trigger multi-tab modals (such as Settings or Admin panels), always navigate directly to the target tab and submenu (e.g., `app.settings.open('profile', 'account')`) rather than opening the default or blank landing screen.
-- **No Component Separator Lines (`border-t`, `<hr>`):** Avoid hard horizontal separator lines (`border-t`, `<hr>`) to divide sections, card bodies, or action buttons. Components flow smoothly with spacing and tonal container separation.
+- **No Component Separator Lines (`border-t`, `<hr>`):** NEVER use horizontal separator or divider lines (`border-t`, `border-top`, `<hr>`) to divide sections, card bodies, modal content, or action footers/buttons. All components and buttons inside cards or modals must flow cleanly using margin/spacing (`mt-3`, `mt-4`, `mb-4`, etc.) without visual dividing lines.
 - **CRITICAL INVARIANT - DARK/LIGHT MODE SYNCHRONIZATION:** You are STRICTLY FORBIDDEN from making one-sided UI updates. ANY new feature, bug fix, or modification that involves the UI (HTML layout, CSS, Tailwind classes, or JS DOM manipulation) **MUST** be implemented and styled for BOTH Light Mode (Tailwind classes in `_core.html` / `src/js/`, or `public/css/light.css`) AND Dark Mode (`public/css/dark.css`).
   * If you add a hover state, active state, or selected state in Light Mode, YOU MUST explicitly define its counterpart in `dark.css`.
   * If you change border colors, background colors, or text colors, YOU MUST verify and update how it looks in `dark.css`.
@@ -29,7 +21,7 @@
 - **Rule:** All web assets must be standard web-compliant, and any backend logic must leverage Cloudflare's serverless environment.
 
 ## Design System & UI Reference
-- The design system is **Material 3 Expressive (Ocean Blue)**. Reuse its existing components and tokens; do not invent conflicting component styles.
+- The design system is HoyuUI. Reuse its existing components and tokens; do not invent new component styles.
 - **Rule:** BEFORE creating any new UI component, REUSE an existing one. If a new component is genuinely necessary, ask the user for permission first.
 
 ## Git Workflow
@@ -68,11 +60,9 @@
 - **Rule:** UNDER NO CIRCUMSTANCES are you allowed to design a custom style/component without notifying or asking the user first.
 - **Rule:** NEVER use native browser modals like `alert()` or `confirm()`. ALWAYS use the custom UI modal `app.ui.showAlert(msg, okCallback, cancelCallback, options)` for showing alerts and confirmations.
 
-## Material 3 Expressive UI & Elevation Rules (NEW INVARIANT)
-- **Material 3 Expressive Language:** The system strictly uses Material 3 Expressive design with an Ocean Blue palette. Surfaces use M3 tonal elevation containers (Surface, Surface Container, Surface Container High), rounded pill buttons (`rounded-full`), and smooth ambient elevation shadows.
-- **No Harsh Black Borders or Grid Patterns:** Eliminate harsh 1px black borders (`#18181b`) and notebook grid backgrounds. Use subtle M3 outline variants (`#c2c7cf` in light mode, `#42474e` in dark mode) and smooth rounded corners (`rounded-2xl` for cards, `rounded-3xl` / 28px for dialogs/modals).
-- **Double Border Prevention (Đè Nét):** When applying borders to components, avoid redundant overlapping borders between parent and child elements. Maintain clean spacing and surface contrast.
-
+## Flat UI & Border Rules (NEW INVARIANT)
+- **100% Flat UI:** The system now strictly uses a Flat UI design. There should be NO transparent glassmorphism, NO gray borders (`border-gray-200/300`), NO soft backgrounds for modals, and NO shadow depth. Everything must use solid `1px solid #18181b` (black) borders and pure white (`#ffffff`) backgrounds for popup/modal bodies.
+- **Double Border Prevention (Đè Nét):** When applying borders to components, BE EXTREMELY CAREFUL to avoid "double borders" (2px thick borders caused by two adjacent elements both having 1px borders, e.g., a header with `border-b` sitting on top of an image wrapper with `border-t`, or a wrapper with a border enclosing a child image that also has a border). You MUST carefully inspect the DOM structure and apply `border-top: none` or similar CSS overrides to eliminate overlapping borders (chống đè nét).
 ## No More Supabase
 - The project no longer uses Supabase. It uses a custom middleware in /temp/api-middleware which proxies to a self-hosted PostgREST and Postgres database.
 - DO NOT ask the user to open the Supabase Dashboard.

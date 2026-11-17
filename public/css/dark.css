@@ -1,422 +1,772 @@
-/* ==========================================================================
-   VNBUSARCHIVE - MATERIAL 3 EXPRESSIVE (OCEAN BLUE) - DARK THEME
-   Google Material Design 3 Expressive Language
-   Color Palette: Deep Midnight Navy Surface (#101418), Luminous Ocean Blue (#94ccff)
-   ========================================================================== */
+/* ==========================================
+   VNBUSARCHIVE - FLAT DARK THEME (OVERRIDE LAYER)
+   HIGH CONTRAST: DARK GRAY BG, PURE BLACK COMPONENTS, PURE BLACK BORDERS
+========================================== */
 
-/* 1. NỀN SURFACE CHÍNH & VĂN BẢN (DARK) */
-body, body.theme-dark {
-    background-color: #101418 !important;
-    background-image: radial-gradient(circle at 50% 0%, rgba(148, 204, 255, 0.05) 0%, transparent 60%) !important;
-    color: #e0e2e8 !important;
-    font-family: 'Be Vietnam Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
-}
-
-/* KHỚP MÀN HÌNH LOADING DARK THEO M3 EXPRESSIVE */
-#loading-screen {
-    background-color: #101418 !important;
-    background-image: none !important;
-    color: #e0e2e8 !important;
-}
-#loading-screen .text-inner span {
-    color: #94ccff !important;
-    font-weight: 800 !important;
-    letter-spacing: 0.05em !important;
-}
-#loading-screen .spinner {
-    border-color: #42474e !important;
-    border-top-color: #94ccff !important;
-}
-#top-loading-bar {
-    background-color: #94ccff !important;
-    box-shadow: 0 0 14px rgba(148, 204, 255, 0.7) !important;
+/* 1. XỬ LÝ NỀN VÀ MÀU CHỮ CƠ BẢN (KHÔNG DÙNG LỆNH CÀN QUÉT GÂY LỖI) */
+body, body.theme-dark, body.theme-light {
+    background-color: #121212 !important; 
+    background-image: 
+        linear-gradient(#333333 1px, transparent 1px),
+        linear-gradient(90deg, #333333 1px, transparent 1px) !important;
+    background-size: 20px 20px !important;
+    color: #ffffff !important;
 }
 
-/* 2. ÉP CÁC KHỐI SÁNG SANG DARK TONAL SURFACE CONTAINERS */
+#loading-screen { background-color: #121212 !important; background-image: none !important; }
+
+/* Ép dứt điểm các khối layout đang bị trắng thành Đen Thuần */
 .bg-white, .bg-gray-50, .bg-gray-100 {
-    background-color: #1d2024 !important;
-    color: #e0e2e8 !important;
+    background-color: #000000 !important;
+    color: #ffffff !important;
 }
-.text-black, .text-gray-900, .text-gray-800, .text-gray-700 {
-    color: #e0e2e8 !important;
+/* Ép các chữ màu tối thành Trắng Tinh */
+.text-black, .text-gray-900, .text-gray-800, .text-gray-700, .text-gray-600 {
+    color: #ffffff !important;
 }
-.text-gray-600, .text-gray-500, .text-gray-400 {
-    color: #b8c8da !important;
+.text-gray-500, .text-gray-400 { color: #d4d4d8 !important; } /* Chữ phụ sáng lên để dễ đọc */
+
+
+/* 2. ÉP BORDER TOÀN HỆ THỐNG THÀNH TRẮNG TINH */
+.shadow-2xl, .shadow-xl, .shadow-lg, .shadow-md, .shadow-sm, .shadow-island, .shadow-\[0_1px_2px_0_rgba\(0\,0\,0\,0\.05\)\] {
+    box-shadow: none !important;
+    border-color: #ffffff !important;
+}
+.rounded-3xl, .rounded-2xl, .rounded-xl, .rounded-lg { border-radius: 8px !important; }
+.rounded-full { border-radius: 9999px !important; }
+
+.border-white, .border-white\/20, .border-white\/30, .border-gray-100, .border-gray-200, .border-gray-300, .border-gray-400, .border-gray-500, .border-gray-600, .border-gray-700, .border-gray-800, .border-vbs-border, .border-\[\#e4e4e7\], .border-black {
+    border-color: #ffffff !important;
 }
 
-/* 3. BO GÓC CHUẨN MATERIAL 3 EXPRESSIVE */
-.rounded-3xl {
-    border-radius: 28px !important;
-}
-.rounded-2xl {
-    border-radius: 20px !important;
-}
-.rounded-xl {
-    border-radius: 16px !important;
-}
-.rounded-lg {
-    border-radius: 12px !important;
-}
-.rounded-md {
-    border-radius: 10px !important;
-}
-.rounded-full, .pill-btn, .chip-pill {
-    border-radius: 9999px !important;
+polygon[stroke="black"] {
+    stroke: #ffffff !important;
 }
 
-/* 4. TẦNG ĐỔ BÓNG VÀ ELEVATION CHUẨN M3 DARK */
-.shadow-2xl, .shadow-island {
-    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.55), 0 2px 6px rgba(0, 0, 0, 0.4) !important;
-    border: 1px solid #42474e !important;
-}
-.shadow-xl {
-    box-shadow: 0 6px 22px rgba(0, 0, 0, 0.5), 0 2px 5px rgba(0, 0, 0, 0.35) !important;
-    border: 1px solid #42474e !important;
-}
-.shadow-lg {
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.45), 0 1px 4px rgba(0, 0, 0, 0.3) !important;
-    border: 1px solid #42474e !important;
-}
-.shadow-md, .shadow-sm, .shadow-\[0_1px_2px_0_rgba\(0\,0\,0\,0\.05\)\] {
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4) !important;
-    border: 1px solid #42474e !important;
+circle[fill="white"] {
+    fill: #000000 !important;
 }
 
-/* 5. ĐỔI CÁC VIỀN THÀNH M3 DARK OUTLINE VARIANT (#42474e) */
-.border-white, .border-black, .border-\[\#18181b\], .border-white\/20, .border-white\/30,
-.border-gray-100, .border-gray-200, .border-gray-300, .border-gray-400, .border-gray-500,
-.border-gray-600, .border-gray-700, .border-gray-800, .border-vbs-border, .border-\[\#e4e4e7\] {
-    border-color: #42474e !important;
+circle[stroke="black"] {
+    stroke: #ffffff !important;
 }
 
-/* 6. M3 DIALOGS & POPUPS TRONG DARK MODE */
+
+/* 3. NÚT BẤM (BUTTONS) VÀ HOVER */
+a, button, [role="button"] { text-decoration: none !important; }
+a:hover, button:hover, [role="button"]:hover { text-decoration: none !important; }
+
+/* NÚT CHÍNH (Đăng ảnh, Thích ảnh này...): ĐẢO THÀNH NỀN TRẮNG CHỮ ĐEN */
+.bg-black {
+    background-color: #ffffff !important;
+    color: #000000 !important;
+    border-color: #ffffff !important;
+    font-weight: 600 !important;
+}
+/* Ép icon bên trong nút chính thành đen */
+.bg-black i, .bg-black svg {
+    color: #000000 !important;
+    fill: #000000 !important;
+}
+
+
+/* Các nút Header (nav-link) */
+.nav-link, #nav-admin, #nav-admin * {
+    color: #ffffff !important;
+}
+.nav-link:hover, #nav-admin:hover, #nav-admin:hover * {
+    background-color: transparent !important;
+    color: #a1a1aa !important; /* light gray hover */
+}
+
+.header-logo-text {
+    color: #ffffff !important;
+}
+
+
+/* 4. FIX BẢNG & LỊCH SỬ HOẠT ĐỘNG (TABLES) */
+.info-table, .data-table, .history-table { border-collapse: separate !important; border-spacing: 0 !important; background-color: transparent !important; color: #ffffff !important; }
+/* Ép màu nền đen và chữ trắng tới từng ô dữ liệu */
+.info-table td, .info-table th, .history-table td, .history-table th, .data-table td, .data-table th {
+    background-color: #000000 !important;
+    border-color: #ffffff !important;
+    color: #ffffff !important;
+}
+/* Bo góc các ô đầu/cuối để không đè lên viền bo tròn của wrapper */
+.info-table tr:first-child td:first-child, .info-table tr:first-child th:first-child, .history-table tr:first-child th:first-child, .data-table tr:first-child td:first-child, .data-table tr:first-child th:first-child { border-top-left-radius: 8px !important; }
+.info-table tr:first-child td:last-child, .info-table tr:first-child th:last-child, .history-table tr:first-child th:last-child, .data-table tr:first-child td:last-child, .data-table tr:first-child th:last-child { border-top-right-radius: 8px !important; }
+.info-table tr:last-child td:first-child, .info-table tr:last-child th:first-child, .history-table tr:last-child td:first-child, .data-table tr:last-child td:first-child, .data-table tr:last-child th:first-child { border-bottom-left-radius: 8px !important; }
+.info-table tr:last-child td:last-child, .info-table tr:last-child th:last-child, .history-table tr:last-child td:last-child, .data-table tr:last-child td:last-child, .data-table tr:last-child th:last-child { border-bottom-right-radius: 8px !important; }
+/* Bỏ viền dưới của hàng cuối */
+.info-table tr:last-child td, .data-table tr:last-child td, .history-table tr:last-child td { border-bottom: none !important; }
+/* Thêm border-top cho tfoot trong history-table để có đường kẻ phân cách */
+.history-table tfoot td {
+    border-top: 1px solid #ffffff !important;
+    border-bottom: 1px solid #ffffff !important;
+}
+/* Wrapper bọc bảng: đổi màu viền trắng, giữ border-radius */
+
+/* Hover dòng trong bảng -> Xám đậm */
+.history-table tr:hover, .data-table tr:hover, .info-table tr:hover {
+    background-color: #27272a !important; 
+}
+.stat-item { border-color: #ffffff !important; color: #ffffff !important; background-color: #000000 !important; }
+
+
+/* BẮT BUỘC NỀN KHUNG MÃ QR KỂ CẢ DARK MODE VẪN PHẢI LÀ NỀN TRẮNG TINH */
+.qr-code-wrapper,
+#qr-login-box,
+#webrtc-qrcode-box,
+#qr-login-qrcode-container,
+#webrtc-qrcode-container,
+#qr-login-qrcode-container canvas,
+#qr-login-qrcode-container img,
+#webrtc-qrcode-container canvas,
+#webrtc-qrcode-container img {
+    background-color: #ffffff !important;
+    background: #ffffff !important;
+    border-color: #e4e4e7 !important;
+}
+
+#qr-login-loading,
+#webrtc-loading-qr {
+    background-color: rgba(255, 255, 255, 0.95) !important;
+}
+
+#qr-login-loading p,
+#qr-login-loading i,
+#webrtc-loading-qr i {
+    color: #18181b !important;
+}
+
+/* 5. POPUP, DROPDOWN & KÍNH MỜ */
 #subrole-prompt-content, #onboarding-content, #crop-content, #custom-alert-content, #settings-content, #newsboard-content,
 #upload-info-content, #custom-prompt-content, #custom-role-content, #deny-prompt-content, #ban-prompt-content,
 #up-progress-content, #captcha-content, #webrtc-qr-content, #qr-login-host-content, #qr-login-confirm-content,
 #advanced-filter-content, #achievement-content, #operator-edit-content, #model-edit-content,
-#route-edit-content, #route-selector-content, #route-delete-content, #fav-photo-content, #manager-edit-content,
-#email-verify-content, #bio-edit-content, #modal-donation-history > div {
-    background-color: #272b2f !important;
-    border: 1px solid #42474e !important;
-    border-radius: 28px !important;
-    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.7) !important;
-    color: #e0e2e8 !important;
+#route-edit-content, #route-selector-content, #route-delete-content, #fav-photo-content, #manager-edit-content, #email-verify-content, #bio-edit-content {
+    background-color: #000000 !important; border-color: #ffffff !important; box-shadow: none !important; color: #ffffff !important;
 }
 
-/* 7. NÚT BẤM (BUTTONS) TRONG DARK THEME */
-/* Nút chính: Luminous Sky/Ocean Blue (#94ccff) với chữ xanh đậm tương phản cao (#003352) */
-.bg-black, #btn-submit, #donation-modal-main-btn, #android-promo-download-btn,
-button.bg-black, a.bg-black, [role="button"].bg-black {
-    background-color: #94ccff !important;
-    color: #003352 !important;
-    font-weight: 700 !important;
-    border: none !important;
-    border-radius: 9999px !important;
-    box-shadow: 0 2px 10px rgba(148, 204, 255, 0.25) !important;
-    transition: all 0.25s cubic-bezier(0.2, 0, 0, 1) !important;
-}
-.bg-black:hover, #btn-submit:hover, #donation-modal-main-btn:hover, #android-promo-download-btn:hover,
-button.bg-black:hover, a.bg-black:hover, [role="button"].bg-black:hover {
-    background-color: #bde0ff !important;
-    color: #003352 !important;
-    box-shadow: 0 4px 16px rgba(148, 204, 255, 0.4) !important;
-    transform: translateY(-1px);
-}
-.bg-black i, .bg-black svg {
-    color: #003352 !important;
-    fill: #003352 !important;
+.bg-white\/95, .bg-white\/90, .bg-white\/80, .bg-white\/70, .bg-white\/60, .bg-white\/50, .bg-white\/40, .bg-white\/30, .bg-white\/20,
+.bg-gray-50\/50, .bg-gray-50\/30, .bg-gray-50\/20, .bg-gray-100\/50, .bg-gray-100\/30, .bg-gray-200\/80, .bg-gray-200\/50 {
+    background-color: #000000 !important; backdrop-filter: none !important;
 }
 
-/* Tonal Buttons trong Dark Theme */
-.bg-gray-100, .bg-gray-200, .bg-zinc-100, .bg-zinc-800, .bg-gray-800 {
-    background-color: #394957 !important;
-    color: #d4e4f6 !important;
-    border-color: #42474e !important;
+.suggestion-box, .filter-menu, #user-dropdown, .dropdown-menu {
+    border-color: #ffffff !important; background-color: #000000 !important; border-radius: 8px !important; box-shadow: none !important; color: #ffffff !important;
 }
-button.bg-gray-100, button.bg-gray-200, button.bg-zinc-800, a.bg-gray-100, a.bg-gray-200 {
-    border-radius: 9999px !important;
+.suggestion-box .suggestion-item, .filter-menu button, .filter-menu a, #user-dropdown a, #user-dropdown button, .dropdown-menu button, .dropdown-menu a {
+    border-bottom-color: #ffffff !important; border-radius: 0 !important; margin: 0 !important; color: #ffffff !important;
+}
+.suggestion-box .suggestion-item:last-child, .filter-menu button:last-child, .filter-menu a:last-child, #user-dropdown a:last-child, #user-dropdown button:last-child, .dropdown-menu button:last-child, .dropdown-menu a:last-child {
+    border-bottom: none !important;
+}
+
+
+/* 6. Ô NHẬP (INPUTS) */
+input, textarea, select {
+    outline: none !important; background-color: #000000 !important; color: #ffffff !important; border-color: #ffffff !important;
+}
+input:focus, textarea:focus, select:focus {
+    border-color: #ffffff !important; box-shadow: none !important; outline: none !important;
+}
+
+
+/* 7. AUTH PAGE ĐĂNG NHẬP */
+#auth .bg-white\/70, #auth .bg-white\/80 { background-color: #000000 !important; backdrop-filter: none !important; }
+#auth .border.border-white\/80, #auth .border.border-white\/60, #auth .border.border-white\/70 { border-color: #ffffff !important; }
+#auth input { background-color: #000000 !important; border-color: #ffffff !important; color: #ffffff !important; }
+#auth #auth-msg { background-color: #000000 !important; border-color: #ffffff !important; color: #ffffff !important; }
+#auth .rounded-3xl.bg-white\/70 { background-color: #000000 !important; border-color: #ffffff !important; box-shadow: none !important; }
+#auth .shadow-\[0_8px_32px_0_rgba\(0\,0\,0\,0\.2\)\] { box-shadow: none !important; }
+#auth .bg-white\/60 { background-color: #000000 !important; }
+#auth .bg-white\/60.border.border-white\/70 { background-color: #1a1a1a !important; border-color: #ffffff !important; }
+#auth .border.border-gray-300\/80 { border-color: #ffffff !important; }
+
+
+/* 8. CÁC THÀNH PHẦN CHI TIẾT KHÁC */
+#btn-type-bus.bg-black .icon-bg, #btn-type-coach.bg-black .icon-bg { background-color: rgba(0, 0, 0, 0.15) !important; } 
+#preview-container { border-color: #ffffff !important; }
+#zoom-toolbar button:not(.bg-black) { color: #ffffff !important; }
+#zoom-toolbar button:not(.bg-black):hover { color: #a1a1aa !important; }
+#zoom-toolbar button.bg-black i, #zoom-toolbar button.bg-black span { color: #000000 !important; }
+
+
+/* Fix docs markdown text */
+.markdown-body, .markdown-body * { color: #ffffff !important; }
+.markdown-body pre, .markdown-body pre *, .markdown-body code, .markdown-body code * { color: #000000 !important; background-color: #ffffff !important; }
+
+/* Fix hover texts */
+.group-hover\:text-black:hover, .group:hover .group-hover\:text-black, .hover\:text-black:hover { color: #ffffff !important; }
+
+
+#fav-photo-content { border-color: #ffffff !important; }
+.wm-draggable, .wm-draggable * { color: inherit !important; }
+.wm-draggable.wm-black, .wm-draggable.wm-black * { color: #ffffff !important; }
+.footer-text-left, .footer-text-right, #preview-footer-copy { color: white !important; }
+#preview-footer-bar {
+    background: rgba(0, 0, 0, 0.25) !important;
+    backdrop-filter: blur(4px) !important; -webkit-backdrop-filter: blur(4px) !important;
+    padding: 0 !important;
+    margin: 0 !important;
     border: none !important;
-    font-weight: 600 !important;
 }
-button.bg-gray-100:hover, button.bg-gray-200:hover, a.bg-gray-100:hover, a.bg-gray-200:hover {
-    background-color: #485b6c !important;
+
+
+/* 9. BẢNG TIN HỆ THỐNG & CÀI ĐẶT */
+#newsboard-content .border-gray-200\/50, #settings-content .border-gray-200\/50, #achievement-content .border-gray-200\/50, #newsboard-content .border-gray-200, #settings-content .border-gray-200, #achievement-content .border-gray-200, #newsboard-content .border-gray-300, #settings-content .border-gray-300, #achievement-content .border-gray-300, #newsboard-toc, #set-menu-main { border-color: #ffffff !important; }
+#newsboard-content .border-b, #newsboard-content .border-r, #settings-content .border-b, #settings-content .border-r { border-color: #ffffff !important; }
+#set-menu-main button, #set-menu-account button, #set-menu-docs button { color: #ffffff !important; }
+
+#newsboard-content .bg-white\/30, #newsboard-content .bg-gray-50\/30, #settings-content .bg-white\/30, #settings-content .bg-gray-50\/30 { background-color: #000000 !important; }
+
+/* Trạng thái Active trong bảng tin / Cài đặt -> Trắng chữ đen */
+#newsboard-toc .bg-black, #set-menu-main button.bg-black, #set-menu-docs button.bg-black, #set-menu-account button.bg-black {
+    background-color: #ffffff !important; color: #000000 !important; border-color: #ffffff !important;
+}
+
+
+/* 10. CHI TIẾT ẢNH & ADMIN / MANAGER VIEWS */
+
+.border-gray-200\/60 { border-color: #ffffff !important; }
+#fav-photo-preview-img { border-color: #ffffff !important; }
+#up-model-preview .border-gray-300 { border-color: #ffffff !important; }
+
+#admin .border-gray-300, #admin button.border-gray-300, #admin .border-gray-200, #admin button.border-gray-200 { border-color: #ffffff !important; }
+#admin button.bg-black { background-color: #ffffff !important; color: #000000 !important; }
+
+#adm-photo-grid-toggle-bar button, #adm-tab-requests, #adm-tab-delete, #adm-tab-comments, #adm-tab-manager {
+    border-color: #ffffff !important; background-color: #000000 !important; color: #ffffff !important;
+}
+#adm-photo-grid-toggle-bar button:hover i { color: #ffffff !important; }
+#adm-photo-grid-toggle-bar button.bg-black {
+    background-color: #ffffff !important;
+    color: #000000 !important;
+}
+#adm-photo-grid-toggle-bar button.bg-black i,
+#adm-photo-grid-toggle-bar button.bg-black b {
+    color: #000000 !important;
+}
+#btn-crop-toggle-ruler {
+    width: 136px !important;
+    min-width: 136px !important;
+    max-width: 136px !important;
+    height: 32px !important;
+    min-height: 32px !important;
+    max-height: 32px !important;
+    padding: 0 8px !important;
+    box-sizing: border-box !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    overflow: hidden !important;
+    border-color: #ffffff !important;
+}
+@media (max-width: 639px) {
+    #btn-crop-toggle-ruler {
+        width: 48px !important;
+        min-width: 48px !important;
+        max-width: 48px !important;
+        height: 32px !important;
+        min-height: 32px !important;
+        max-height: 32px !important;
+        padding: 0 !important;
+    }
+}
+#btn-crop-toggle-ruler.bg-black {
+    background-color: #ffffff !important;
+    color: #000000 !important;
+}
+#btn-crop-toggle-ruler.bg-black:hover {
+    background-color: #e4e4e7 !important;
+}
+#btn-crop-toggle-ruler.bg-black * {
+    color: #000000 !important;
+}
+#btn-crop-toggle-ruler:not(.bg-black) {
+    background-color: #000000 !important;
+    color: #ffffff !important;
+}
+#btn-crop-toggle-ruler:not(.bg-black):hover {
+    background-color: #18181b !important;
+}
+#btn-crop-toggle-ruler:not(.bg-black) * {
     color: #ffffff !important;
 }
 
-/* Outlined Buttons Dark Mode */
-button.border, a.border {
-    border-color: #8c9199 !important;
-    border-radius: 9999px !important;
-    color: #94ccff !important;
-}
-
-/* 8. HEADER (TOP APP BAR - DARK) */
-header > div {
-    background-color: rgba(29, 32, 36, 0.9) !important;
-    backdrop-filter: blur(16px) !important;
-    -webkit-backdrop-filter: blur(16px) !important;
-    border: 1px solid #42474e !important;
-    border-radius: 28px !important;
-    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.5) !important;
-}
-.header-logo-text {
-    color: #94ccff !important;
-    font-weight: 800 !important;
-}
-.nav-link {
-    color: #b8c8da !important;
-    border-radius: 9999px !important;
-    padding: 6px 14px !important;
-    transition: all 0.2s cubic-bezier(0.2, 0, 0, 1) !important;
-}
-.nav-link:hover, #nav-admin:hover {
-    color: #94ccff !important;
-    background-color: #394957 !important;
-}
-
-/* Header Search Box Dark */
-#header-search-box {
-    background-color: #272b2f !important;
-    border: 1px solid transparent !important;
-    border-radius: 9999px !important;
-    transition: all 0.2s ease !important;
-}
-#header-search-box:focus-within {
-    background-color: #1d2024 !important;
-    border-color: #94ccff !important;
-    box-shadow: 0 0 0 3px rgba(148, 204, 255, 0.25) !important;
-}
-#search-input {
-    color: #e0e2e8 !important;
-}
-#search-input::placeholder {
-    color: #8c9199 !important;
-}
-
-/* Dropdowns & Menus Dark */
-#user-dropdown, .suggestion-box, .filter-menu {
-    border: 1px solid #42474e !important;
-    background-color: #272b2f !important;
-    border-radius: 20px !important;
-    box-shadow: 0 10px 32px rgba(0, 0, 0, 0.6) !important;
+#btn-toggle-ruler {
+    width: 160px !important;
+    min-width: 160px !important;
+    max-width: 160px !important;
+    height: 38px !important;
+    min-height: 38px !important;
+    max-height: 38px !important;
+    box-sizing: border-box !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
     overflow: hidden !important;
 }
-.suggestion-box .filter-item:hover, .filter-menu .filter-item:hover, #user-dropdown a:hover, #user-dropdown button:hover {
-    background-color: #394957 !important;
-    color: #d4e4f6 !important;
+#status-ruler {
+    display: inline-block !important;
+    width: 28px !important;
+    min-width: 28px !important;
+    max-width: 28px !important;
+    text-align: center !important;
 }
 
-/* 9. MOBILE BOTTOM NAVIGATION BAR (M3 NAVIGATION BAR - DARK) */
-#app-bottom-nav {
-    background-color: #1d2024 !important;
-    border: 1px solid #42474e !important;
-    border-radius: 28px !important;
-    box-shadow: 0 10px 36px rgba(0, 0, 0, 0.7) !important;
+#admin input, #admin select, #admin textarea, .admin-card-header, #admin-content .border-gray-200, #admin .bg-gray-100.border-gray-200 {
+    border-color: #ffffff !important; background-color: #000000 !important; color: #ffffff !important;
 }
-#app-bottom-nav .bottom-nav-item {
-    color: #b8c8da !important;
-    border-radius: 9999px !important;
-    transition: all 0.2s cubic-bezier(0.2, 0, 0, 1) !important;
+
+#manager-edit-content .border-gray-200\/50, #manager-edit-content .border-gray-200, #manager-edit-content .border-gray-300, #manager-edit-content .border-gray-300\/80 { border-color: #ffffff !important; }
+#manager-edit-content button.border-gray-200, #manager-edit-content .bg-gray-50.border-gray-200 { border-color: #ffffff !important; background-color: #000000 !important; }
+#manager-edit-content .bg-white\/60 { background-color: #000000 !important; }
+#manager-blur-container { border-color: #ffffff !important; }
+#btn-manager-add-blur { border-color: #ffffff !important; background-color: #000000 !important; color: #ffffff !important; }
+
+.admin-card { border-color: #ffffff !important; box-shadow: none !important; background-color: #000000 !important; } .admin-card-body { background-color: #000000 !important; }
+.admin-card-header { border-bottom-color: #ffffff !important; }
+.admin-input { border-color: #ffffff !important; }
+#admin-content .border-gray-200, #admin-content .border-y { border-color: #ffffff !important; }
+#admin-content .border-y { border-top: none !important; }
+
+#set-menu-account button.border-transparent, #set-menu-docs button.border-transparent {
+    border-color: #ffffff !important; background-color: #000000 !important; color: #ffffff !important;
 }
-#app-bottom-nav .bottom-nav-item.text-black, #app-bottom-nav .bottom-nav-item.text-white, #app-bottom-nav .bottom-nav-item.active {
-    color: #94ccff !important;
-    font-weight: 700 !important;
+
+/* 11. PHÂN TRANG (PAGINATION) */
+.page-btn { border-color: #ffffff !important; background-color: #000000 !important; color: #ffffff !important; }
+.page-btn.active { background-color: #ffffff !important; color: #000000 !important; }
+.page-btn.dots { border: none !important; background: transparent !important; color: #ffffff !important; }/* ====== NEW FIXES APPENDED ====== */
+/* Fix double borders */
+#header-search-box input { border: none !important; }
+
+/* Stat items and DB Stats values */
+.stat-item { background-color: #000000 !important; border-color: #ffffff !important; color: #ffffff !important; }
+.stat-value, .stat-value i { color: #ffffff !important; }
+
+/* Route Trapezoid Icon Fill */
+polygon[fill="white"] { fill: #000000 !important; }
+
+/* Cá nhân hóa Icon */
+.pref-option.bg-black .pref-icon { background-color: rgba(0, 0, 0, 0.15) !important; color: #000000 !important; }
+.pref-option.bg-black .pref-icon i { color: #000000 !important; }
+
+/* Route details info-input */
+.info-input { color: #ffffff !important; background-color: transparent !important; }
+.info-input span.cursor-pointer, .info-input a.cursor-pointer, .info-input.cursor-pointer {
+    color: #ffffff !important;
 }
-#app-bottom-nav .bottom-nav-item.text-black i, #app-bottom-nav .bottom-nav-item.text-white i, #app-bottom-nav .bottom-nav-item.active i {
-    color: #94ccff !important;
+.info-input span.cursor-pointer:hover, .info-input a.cursor-pointer:hover, .info-input.cursor-pointer:hover {
+    text-decoration: underline !important;
 }
-#app-bottom-nav #bottom-tab-upload div {
-    background-color: #94ccff !important;
-    color: #003352 !important;
-    border-radius: 16px !important;
+.info-input .text-gray-500 {
+    color: #9ca3af !important;
+}
+.info-input.hidden {
+    display: none !important;
+}
+
+body.theme-dark input[type="date"]::-webkit-calendar-picker-indicator {
+    filter: invert(1);
+}
+
+/* Admin photo cards gray background fix */
+.bg-gray-50, .bg-gray-200 { background-color: #000000 !important; }
+
+/* Admin Card Fix */
+.admin-card-header { background-color: #000000 !important; }
+/* Force border on shadows like light.css */
+.shadow-2xl, .shadow-xl, .shadow-lg, .shadow-md, .shadow-sm, .shadow-island, .shadow-\[0_1px_2px_0_rgba\(0\,0\,0\,0\.05\)\] {
+    border: 1px solid #ffffff !important;
+}
+/* Fix Dropdown borders and text colors */
+.suggestion-box, .filter-menu, #user-dropdown, .dropdown-menu {
+    border: 1px solid #ffffff !important;
+}
+.suggestion-box *, .filter-menu *, #user-dropdown *, .dropdown-menu * {
+    color: #ffffff !important;
+}
+
+/* Fix active preferences option notes text color */
+.pref-option.bg-black *, #newsboard-toc .bg-black *, #set-menu-main button.bg-black *, #set-menu-docs button.bg-black *, #set-menu-account button.bg-black * {
+    color: #000000 !important;
+}
+/* Dark Mode Inline Alerts (Soft Backgrounds, Tinted Borders, Pastel Text/Icons) */
+.bg-red-50, .bg-red-100 { background-color: #450a0a !important; border: 1px solid #ffffff !important; color: #fca5a5 !important; }
+
+.bg-red-50 *, .bg-red-100 * { color: #fca5a5 !important; }
+.text-red-600:not(#nav-admin):not(#nav-admin *), .text-red-500:not(#nav-admin):not(#nav-admin *) { color: #f87171 !important; }
+
+.bg-yellow-50, .bg-yellow-100, .bg-orange-50, .bg-orange-100, .bg-amber-50, .bg-amber-100 { background-color: #422006 !important; border: 1px solid #ffffff !important; color: #fde047 !important; }
+.bg-yellow-50 *, .bg-yellow-100 *, .bg-orange-50 *, .bg-orange-100 *, .bg-amber-50 *, .bg-amber-100 * { color: #fde047 !important; }
+
+.bg-green-50, .bg-green-100, .bg-emerald-50, .bg-emerald-100 { background-color: #052e16 !important; border: 1px solid #ffffff !important; color: #86efac !important; }
+.bg-green-50 *, .bg-green-100 *, .bg-emerald-50 *, .bg-emerald-100 * { color: #86efac !important; }
+
+.bg-blue-50, .bg-blue-100, .bg-indigo-50, .bg-indigo-100 { background-color: #172554 !important; border: 1px solid #ffffff !important; color: #93c5fd !important; }
+.bg-blue-50 *, .bg-blue-100 *, .bg-indigo-50 *, .bg-indigo-100 * { color: #93c5fd !important; }
+
+/* Fix Góp ý cải thiện ảnh - Dark Mode */
+#denial-improvement-box { background-color: #000000 !important; border-color: #ffffff !important; }
+#denial-improvement-box summary .absolute.inset-0 { background: linear-gradient(to right, #3d0020, #0d1b4b) !important; opacity: 1 !important; }
+#denial-improvement-box.group[open] summary .absolute.inset-0,
+#denial-improvement-box details[open] summary .absolute.inset-0 { opacity: 0 !important; }
+details#denial-improvement-box:not([open]) summary span { background-image: linear-gradient(to right, #fda4af, #a5b4fc) !important; -webkit-background-clip: text !important; background-clip: text !important; color: transparent !important; }
+
+#denial-improvement-box.group[open] summary span,
+details#denial-improvement-box[open] summary span { background-image: linear-gradient(to right, #ffffff, #ffffff) !important; color: transparent !important; }
+details#denial-improvement-box[open] summary i.fa-lightbulb { color: #ffffff !important; }
+details#denial-improvement-box[open] summary i.fa-chevron-right { color: #ffffff !important; }
+/* Revert Rejection / Status Report Colors */
+
+
+
+/* Fix unreadable deny checkboxes in Admin */
+#deny-prompt-content span.text-gray-700 { color: #ffffff !important; }
+#deny-prompt-content label.group:hover span.group-hover\:text-black { color: #ffffff !important; }
+
+
+
+/* Revert Rejection / Status Report Colors Fix */
+#denial-reason-box { background-color: #450a0a !important; border-color: #ffffff !important; }
+#denial-reason-box, #denial-reason-box * { color: #ef4444 !important; }
+
+/* Fix Dropdown hover items background turning white */
+.suggestion-box .suggestion-item:hover, 
+.filter-menu .filter-item:hover, 
+.filter-menu button:hover,
+.filter-menu a:hover,
+#user-dropdown a:hover, 
+#user-dropdown button:hover, 
+.dropdown-menu a:hover, 
+.dropdown-menu button:hover {
+    background-color: #27272a !important;
+    color: #ffffff !important;
+}
+/* Re-enable button hovers in Dark Mode */
+.hover\:bg-gray-50:hover, 
+.hover\:bg-gray-100:hover, 
+.hover\:bg-gray-200:hover, 
+.hover\:bg-white:hover,
+.hover\:bg-black:hover {
+    background-color: #27272a !important;
+    color: #ffffff !important;
+}
+
+.hover\:bg-gray-800:hover, 
+.hover\:bg-gray-900:hover {
+    background-color: #e4e4e7 !important;
+    color: #000000 !important;
+}
+
+button.bg-white:hover, a.bg-white:hover, .admin-card-header button:hover {
+    background-color: #27272a !important;
+    color: #ffffff !important;
+}
+
+button.bg-black:hover, a.bg-black:hover {
+    background-color: #e4e4e7 !important;
+    color: #000000 !important;
+}
+/* Fix auth page text colors */
+#auth .text-vbs-dark { color: #ffffff !important; }
+#auth .text-vbs-dark\/70 { color: rgba(255, 255, 255, 0.7) !important; }
+#auth .text-vbs-dark\/60 { color: rgba(255, 255, 255, 0.6) !important; }
+#auth .hover\:text-vbs-dark:hover { color: #ffffff !important; }
+
+/* The button at the bottom (Quay l?i trang ch?) might be outside #auth if it's the footer, wait no it's inside #auth */
+.text-vbs-dark { color: #ffffff !important; }
+.text-vbs-dark\/70 { color: rgba(255, 255, 255, 0.7) !important; }
+.text-vbs-dark\/60 { color: rgba(255, 255, 255, 0.6) !important; }
+.hover\:text-vbs-dark:hover { color: #ffffff !important; }
+
+
+
+
+
+
+
+/* Trở lại cấu trúc gốc cho chi tiết ảnh: Container có viền trắng, ảnh có viền trắng, footer có viền trắng */
+#detail .img-wrapper {
+    border: 1px solid #ffffff !important;
+}
+
+/* Selected state for dropdowns in Dark Mode */
+.filter-menu .filter-item.selected, .dropdown-menu .selected {
+    background-color: #ffffff !important;
+    color: #000000 !important;
+}
+.filter-menu .filter-item.selected *, .dropdown-menu .selected * {
+    color: #000000 !important;
+}
+
+/* Badges in Dark Mode */
+.badge-vvcc, .badge-dev {
+    background-color: #ffffff !important;
+    color: #000000 !important;
+}
+
+/* Achievement Modal overrides */
+#achievement-content .group:hover .group-hover\:bg-black {
+    background-color: #ffffff !important;
+}
+#achievement-content .group:hover .group-hover\:text-white {
+    color: #000000 !important;
+}
+#achievement-content .group:hover .group-hover\:border-black {
+    border-color: #ffffff !important;
+}
+
+/* Footer redesign — Dark Mode */
+footer .text-gray-700 { color: #d4d4d8 !important; }
+footer a.text-gray-600,
+footer button.text-gray-600 { color: #a1a1aa !important; }
+footer a.text-gray-600:hover,
+footer button.text-gray-600:hover { color: #ffffff !important; }
+footer .text-gray-400.cursor-not-allowed { color: #52525b !important; }
+.dmca-badge-wrapper {
+    background-color: #ffffff !important;
     border: none !important;
-    box-shadow: 0 4px 14px rgba(148, 204, 255, 0.35) !important;
+}
+.dmca-badge-wrapper img {
+    display: block;
 }
 
-/* 10. THẺ ẢNH & CARD HIỂN THỊ DARK */
-[data-id].cursor-pointer, .photo-card {
-    background-color: #1d2024 !important;
-    border: 1px solid #42474e !important;
-    border-radius: 24px !important;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4) !important;
-    transition: all 0.25s cubic-bezier(0.2, 0, 0, 1) !important;
-    overflow: hidden !important;
-}
-[data-id].cursor-pointer:hover, .photo-card:hover {
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6) !important;
-    border-color: #94ccff !important;
-    transform: translateY(-3px) !important;
-}
-[data-id].cursor-pointer .img-wrapper, .photo-card .img-wrapper {
-    border-radius: 18px !important;
-    border: none !important;
-}
-[data-id].cursor-pointer .font-bold.text-black, [data-id].cursor-pointer .font-bold {
-    color: #94ccff !important;
-    font-weight: 800 !important;
+/* Help page — icon circles (dark): nền xám đậm + viền trắng */
+.help-icon-circle {
+    background-color: #3f3f46 !important;
+    border: 1px solid #ffffff !important;
 }
 
-/* 11. BADGES & CHIPS DARK (M3 TONAL CONTAINERS) */
-.route-status-badge, .status-badge, .chip, [class*="rounded-full"][class*="text-xs"],
-.selected-route-card .route-status-badge {
-    background-color: #004b74 !important;
-    color: #cde5ff !important;
-    border: 1px solid rgba(148, 204, 255, 0.2) !important;
-    border-radius: 9999px !important;
-    font-weight: 600 !important;
+/* Denial Discord Helper Box (Dark Mode) */
+#denial-discord-box {
+    background-color: #000000 !important;
+    border: 1px solid #ffffff !important;
 }
-/* Badge Xe Mới Dark */
-.new-car-badge, [class*="bg-amber-"], [class*="bg-yellow-"] {
-    background-color: #5c3b00 !important;
-    color: #ffdda1 !important;
-    border-radius: 9999px !important;
-    font-weight: 700 !important;
+#denial-discord-box p {
+    color: #f4f4f5 !important;
 }
-
-/* 12. BẢNG DỮ LIỆU & LỊCH SỬ HOẠT ĐỘNG (DARK) */
-.info-table, .data-table, .history-table {
-    border-collapse: separate !important;
-    border-spacing: 0 !important;
-    border: 1px solid #42474e !important;
-    border-radius: 20px !important;
-    background-color: #1d2024 !important;
-    overflow: hidden !important;
+#denial-discord-box i {
+    color: #ffffff !important;
 }
-.info-table th, .data-table th, .history-table th {
-    background-color: #272b2f !important;
-    color: #94ccff !important;
-    font-weight: 700 !important;
-    border-bottom: 1px solid #42474e !important;
-    border-color: #42474e !important;
+#denial-discord-box a {
+    background-color: #ffffff !important;
+    color: #000000 !important;
 }
-.info-table td, .data-table td, .history-table td {
-    border-color: #42474e !important;
-    color: #e0e2e8 !important;
-    background-color: #1d2024 !important;
+#denial-discord-box a:hover {
+    background-color: #e4e4e7 !important;
 }
-.info-table tr:hover td, .data-table tr:hover td, .history-table tr:hover td {
-    background-color: #272b2f !important;
-}
-.info-table tr:last-child td, .data-table tr:last-child td, .history-table tr:last-child td {
-    border-bottom: none !important;
-}
-.stat-item {
-    border: 1px solid #42474e !important;
-    border-radius: 20px !important;
-    background-color: #1d2024 !important;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4) !important;
+#denial-discord-box a i {
+    color: #000000 !important;
 }
 
-/* 13. CÁC Ô NHẬP LIỆU DARK */
-input[type="text"], input[type="search"], input[type="date"], input[type="email"],
-input[type="password"], input[type="number"], select, textarea {
-    background-color: #272b2f !important;
-    border: 1px solid #42474e !important;
-    border-radius: 16px !important;
-    color: #e0e2e8 !important;
-    transition: all 0.2s cubic-bezier(0.2, 0, 0, 1) !important;
+/* Crop / Photo Adjust Modal (Dark Mode) */
+#crop-mode-track {
+    background-color: #18181b !important;
+    border: 1px solid #3f3f46 !important;
 }
-input[type="text"]:focus, input[type="search"]:focus, input[type="date"]:focus,
-input[type="email"]:focus, input[type="password"]:focus, input[type="number"]:focus,
-select:focus, textarea:focus {
-    background-color: #1d2024 !important;
-    border-color: #94ccff !important;
-    box-shadow: 0 0 0 3px rgba(148, 204, 255, 0.25) !important;
-    outline: none !important;
+#crop-mode-slider {
+    background-color: #27272a !important;
+    border: 1px solid #ffffff !important;
 }
-input:disabled, select:disabled, textarea:disabled {
-    background-color: #181c20 !important;
-    color: #8c9199 !important;
-    border-color: #42474e !important;
+/* ===== RANGE SLIDERS (Dark Mode: ruột đen, viền trắng) ===== */
+input[type="range"],
+.vnbus-slider,
+body.theme-dark input[type="range"],
+html.theme-dark input[type="range"],
+body.theme-dark .vnbus-slider,
+html.theme-dark .vnbus-slider {
+    -webkit-appearance: none;
+    appearance: none;
+    background: #27272a !important;
+    accent-color: #ffffff !important;
+}
+input[type="range"]::-webkit-slider-thumb,
+.vnbus-slider::-webkit-slider-thumb,
+body.theme-dark input[type="range"]::-webkit-slider-thumb,
+html.theme-dark input[type="range"]::-webkit-slider-thumb,
+body.theme-dark .vnbus-slider::-webkit-slider-thumb,
+html.theme-dark .vnbus-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: #000000 !important;
+    border: 2px solid #ffffff !important;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.6);
+    cursor: grab;
+}
+input[type="range"]::-webkit-slider-thumb:active,
+.vnbus-slider::-webkit-slider-thumb:active,
+body.theme-dark input[type="range"]::-webkit-slider-thumb:active,
+html.theme-dark input[type="range"]::-webkit-slider-thumb:active,
+body.theme-dark .vnbus-slider::-webkit-slider-thumb:active,
+html.theme-dark .vnbus-slider::-webkit-slider-thumb:active {
+    cursor: grabbing;
+    background: #000000 !important;
+    border: 2px solid #ffffff !important;
+    box-shadow: 0 0 0 5px rgba(255, 255, 255, 0.15) !important;
+}
+input[type="range"]::-moz-range-thumb,
+.vnbus-slider::-moz-range-thumb,
+body.theme-dark input[type="range"]::-moz-range-thumb,
+html.theme-dark input[type="range"]::-moz-range-thumb,
+body.theme-dark .vnbus-slider::-moz-range-thumb,
+html.theme-dark .vnbus-slider::-moz-range-thumb {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: #000000 !important;
+    border: 2px solid #ffffff !important;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.6);
+    cursor: grab;
+}
+input[type="range"]::-moz-range-thumb:active,
+.vnbus-slider::-moz-range-thumb:active,
+body.theme-dark input[type="range"]::-moz-range-thumb:active,
+html.theme-dark input[type="range"]::-moz-range-thumb:active,
+body.theme-dark .vnbus-slider::-moz-range-thumb:active,
+html.theme-dark .vnbus-slider::-moz-range-thumb:active {
+    cursor: grabbing;
+    background: #000000 !important;
+    border: 2px solid #ffffff !important;
+    box-shadow: 0 0 0 5px rgba(255, 255, 255, 0.15) !important;
+}
+
+/* ===== CUSTOM CHECKBOX (Dark Mode) ===== */
+.custom-cb-box,
+body.theme-dark .custom-cb-box,
+html.theme-dark .custom-cb-box {
+    background-color: #18181b !important;
+    border: 1.5px solid #ffffff !important;
+}
+.custom-cb-input:hover ~ .custom-cb-box,
+label:hover .custom-cb-box,
+body.theme-dark .custom-cb-input:hover ~ .custom-cb-box,
+html.theme-dark .custom-cb-input:hover ~ .custom-cb-box,
+body.theme-dark label:hover .custom-cb-box,
+html.theme-dark label:hover .custom-cb-box {
+    border-color: #ffffff !important;
+    background-color: #27272a !important;
+}
+.custom-cb-input:checked ~ .custom-cb-box,
+body.theme-dark .custom-cb-input:checked ~ .custom-cb-box,
+html.theme-dark .custom-cb-input:checked ~ .custom-cb-box {
+    background-color: #ffffff !important;
+    border-color: #ffffff !important;
+    color: #000000 !important;
+}
+.custom-cb-box i,
+body.theme-dark .custom-cb-box i,
+html.theme-dark .custom-cb-box i {
+    color: #000000 !important;
+}
+.custom-cb-input:checked ~ .custom-cb-box i,
+body.theme-dark .custom-cb-input:checked ~ .custom-cb-box i,
+html.theme-dark .custom-cb-input:checked ~ .custom-cb-box i {
+    opacity: 1 !important;
+    transform: scale(1) !important;
+    color: #000000 !important;
+}
+.custom-cb-input:disabled ~ .custom-cb-box,
+body.theme-dark .custom-cb-input:disabled ~ .custom-cb-box,
+html.theme-dark .custom-cb-input:disabled ~ .custom-cb-box {
+    opacity: 0.5 !important;
     cursor: not-allowed !important;
 }
 
-/* 14. TOAST NOTIFICATIONS DARK */
-#toast-container {
-    top: 96px;
-    transition: top 300ms cubic-bezier(0.2, 0, 0, 1);
-}
-.toast-card {
-    background-color: #272b2f !important;
-    border: 1px solid #42474e !important;
-    border-radius: 24px !important;
-    box-shadow: 0 12px 36px rgba(0, 0, 0, 0.7) !important;
-    color: #e0e2e8 !important;
-}
-.ct-icon {
-    background-color: #004b74 !important;
-    border: none !important;
-    color: #94ccff !important;
-    border-radius: 9999px !important;
+#top-loading-bar,
+body.theme-dark #top-loading-bar,
+html.theme-dark #top-loading-bar {
+    background-color: #ffffff !important;
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.5) !important;
 }
 
-/* 15. ROUTE SELECTOR DARK */
-.selected-route-card {
-    background-color: #004b74 !important;
-    color: #cde5ff !important;
-    border: 2px solid #94ccff !important;
-    border-radius: 20px !important;
+/* ===== HISTOGRAM (Dark Mode) ===== */
+.admin-hist-box,
+#histogram-panel,
+body.theme-dark .admin-hist-box,
+html.theme-dark .admin-hist-box,
+body.theme-dark #histogram-panel,
+html.theme-dark #histogram-panel {
+    border: 1px solid #ffffff !important;
+    background-color: #000000 !important;
 }
-.selected-route-card span, .selected-route-card i {
-    color: #cde5ff !important;
+.hist-canvas-box,
+body.theme-dark .hist-canvas-box,
+html.theme-dark .hist-canvas-box {
+    border: 1px solid #3f3f46 !important;
+    background-color: #111113 !important;
 }
-.selected-route-card .route-path-label {
-    color: #b8c8da !important;
+.hist-grid-line,
+body.theme-dark .hist-grid-line,
+html.theme-dark .hist-grid-line {
+    background-color: #ffffff !important;
+    border-color: #ffffff !important;
 }
-.selected-route-card .route-status-badge {
-    background-color: #94ccff !important;
-    color: #003352 !important;
-    border: none !important;
+.hist-loading-overlay,
+body.theme-dark .hist-loading-overlay,
+html.theme-dark .hist-loading-overlay {
+    background-color: rgba(17, 17, 19, 0.8) !important;
+    color: #9ca3af !important;
 }
-
-/* 16. CHECKBOX & RANGE SLIDERS DARK */
-input[type="checkbox"] {
-    accent-color: #94ccff !important;
-    border-radius: 6px !important;
-}
-input[type="range"] {
-    accent-color: #94ccff !important;
-}
-
-/* 17. FOOTER & BANNER ANDROID PROMO DARK */
-footer, #app-footer-wrapper footer {
-    background-color: #1d2024 !important;
-    border: 1px solid #42474e !important;
-    border-radius: 28px !important;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5) !important;
-}
-#uptime-section, #android-app-promo-card {
-    background-color: #1d2024 !important;
-    border: 1px solid #42474e !important;
-    border-radius: 24px !important;
-    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.5) !important;
-}
-#android-app-promo-card h4 {
-    color: #94ccff !important;
-    font-weight: 700 !important;
-}
-#android-app-promo-card p {
-    color: #b8c8da !important;
-}
-#android-promo-download-btn {
-    background-color: #94ccff !important;
-    color: #003352 !important;
-    border-radius: 9999px !important;
+.admin-hist-stat-item,
+body.theme-dark .admin-hist-stat-item,
+html.theme-dark .admin-hist-stat-item {
+    border: 1px solid #27272a !important;
+    background-color: #09090b !important;
 }
 
-/* Fix SVG & Icons */
-polygon[stroke="black"] { stroke: #94ccff !important; }
-circle[fill="white"] { fill: #1d2024 !important; }
-circle[stroke="black"] { stroke: #94ccff !important; }
-
-/* Watermark Protection (Không ghi đè màu canvas) */
-.watermark-safe, #watermark-preview-canvas {
-    color: initial !important;
-    background-color: initial !important;
-    border-color: initial !important;
+/* ===== ROUTE SELECTOR & DELETE MODAL (Dark Mode) ===== */
+.route-selector-item,
+body.theme-dark .route-selector-item,
+html.theme-dark .route-selector-item {
+    background-color: #000000 !important;
+    border-color: #3f3f46 !important;
+    color: #ffffff !important;
+}
+.route-selector-item:hover,
+body.theme-dark .route-selector-item:hover,
+html.theme-dark .route-selector-item:hover {
+    background-color: #18181b !important;
+    border-color: #ffffff !important;
+}
+.route-selector-item .text-gray-800,
+body.theme-dark .route-selector-item .text-gray-800,
+html.theme-dark .route-selector-item .text-gray-800 {
+    color: #ffffff !important;
+}
+.route-selector-item .text-gray-500,
+body.theme-dark .route-selector-item .text-gray-500,
+html.theme-dark .route-selector-item .text-gray-500 {
+    color: #a1a1aa !important;
+}
+#route-selector-list-special,
+#route-selector-list-regular {
+    scrollbar-color: #3f3f46 #000000;
 }
 
-/* Fix flex modal scroll containers */
+/* No-scroll & disabled styles */
+html.no-scroll,
+body.no-scroll,
+html.theme-dark.no-scroll,
+body.theme-dark.no-scroll {
+    overflow: hidden !important;
+}
+
+input:disabled, select:disabled, textarea:disabled,
+body.theme-dark input:disabled, body.theme-dark select:disabled, body.theme-dark textarea:disabled {
+    background-color: #18181b !important;
+    color: #71717a !important;
+    border-color: #3f3f46 !important;
+    cursor: not-allowed !important;
+}
+
+/* Fix các modal có bố cục Flex Header / Body / Footer cố định */
 #route-edit-modal > #route-edit-content,
 #route-selector-modal > #route-selector-content,
 #route-delete-modal > #route-delete-content {
@@ -424,4 +774,261 @@ circle[stroke="black"] { stroke: #94ccff !important; }
     display: flex !important;
     flex-direction: column !important;
     max-height: 85vh !important;
+}
+
+#route-edit-modal > #route-edit-content > .overflow-y-auto,
+#route-selector-modal > #route-selector-content > #route-selector-items {
+    flex: 1 1 0% !important;
+    flex-shrink: 1 !important;
+    min-height: 0 !important;
+    overflow-y: auto !important;
+}
+
+/* Tuyến được chọn trong selector - Giao diện tối: Nền trắng chữ đen */
+.selected-route-card,
+body.theme-dark .selected-route-card,
+html.theme-dark .selected-route-card {
+    background-color: #ffffff !important;
+    color: #000000 !important;
+    border-color: #ffffff !important;
+}
+.selected-route-card span:not(.route-status-badge),
+.selected-route-card i,
+body.theme-dark .selected-route-card span:not(.route-status-badge),
+body.theme-dark .selected-route-card i,
+html.theme-dark .selected-route-card span:not(.route-status-badge),
+html.theme-dark .selected-route-card i {
+    color: #000000 !important;
+}
+.selected-route-card .route-path-label,
+body.theme-dark .selected-route-card .route-path-label,
+html.theme-dark .selected-route-card .route-path-label {
+    color: #52525b !important;
+}
+.selected-route-card .route-status-badge,
+body.theme-dark .selected-route-card .route-status-badge,
+html.theme-dark .selected-route-card .route-status-badge {
+    background-color: #000000 !important;
+    color: #ffffff !important;
+    border-color: #000000 !important;
+}
+.selected-route-card button,
+.selected-route-card a,
+body.theme-dark .selected-route-card button,
+body.theme-dark .selected-route-card a,
+html.theme-dark .selected-route-card button,
+html.theme-dark .selected-route-card a {
+    border-color: #000000 !important;
+    color: #000000 !important;
+    background-color: transparent !important;
+}
+.selected-route-card button:hover,
+.selected-route-card a:hover,
+body.theme-dark .selected-route-card button:hover,
+body.theme-dark .selected-route-card a:hover,
+html.theme-dark .selected-route-card button:hover,
+html.theme-dark .selected-route-card a:hover {
+    background-color: #000000 !important;
+    color: #ffffff !important;
+}
+
+body.theme-dark .filter-menu .sticky,
+html.theme-dark .filter-menu .sticky {
+    background-color: #000000 !important;
+    border-color: #ffffff !important;
+}
+
+/* Route Selector Inputs Caret & Cursor */
+.caret-transparent,
+#up-route,
+#info-route,
+#hist-new-route,
+#veh-hist-new-route,
+#vehicle-edit-route,
+#del-route-dest-display,
+[id^="adm-p-route-"],
+[id^="req-route-"],
+[id^="req-h-route-"],
+body.theme-dark .caret-transparent,
+body.theme-dark #up-route,
+body.theme-dark #info-route,
+body.theme-dark #hist-new-route,
+#veh-hist-new-route,
+body.theme-dark #vehicle-edit-route,
+body.theme-dark #del-route-dest-display,
+body.theme-dark [id^="adm-p-route-"],
+body.theme-dark [id^="req-route-"],
+body.theme-dark [id^="req-h-route-"] {
+    caret-color: transparent !important;
+    cursor: pointer !important;
+    user-select: none !important;
+    -webkit-user-select: none !important;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+/* ==========================================
+   SUPPORT US / DONATE (DARK THEME)
+========================================== */
+#donate-step-qr .inline-block,
+#donate-qr-box,
+#donate-qr-box canvas,
+#donate-qr-box img {
+    background-color: #ffffff !important;
+    color: #000000 !important;
+}
+
+#donate-anonymous-toggle + div,
+#donation-item-anon-toggle + div {
+    background-color: #27272a !important;
+    border: 1px solid #52525b !important;
+}
+
+#donate-anonymous-toggle + div::after,
+#donation-item-anon-toggle + div::after {
+    background-color: #ffffff !important;
+}
+
+#donate-anonymous-toggle:checked + div,
+#donation-item-anon-toggle:checked + div {
+    background-color: #ffffff !important;
+    border-color: #ffffff !important;
+}
+
+#donate-anonymous-toggle:checked + div::after,
+#donation-item-anon-toggle:checked + div::after {
+    background-color: #000000 !important;
+}
+
+body.theme-dark .donate-preset-btn.border-black {
+    background-color: #ffffff !important;
+    color: #000000 !important;
+    border-color: #ffffff !important;
+}
+
+body.theme-dark #modal-donation-history > div {
+    background-color: #000000 !important;
+    border: 1px solid #ffffff !important;
+}
+
+/* Inverted Supporters Action Card (Dark Mode: White background with black text) */
+html.theme-dark #home-supporters-action-card,
+body.theme-dark #home-supporters-action-card {
+    background-color: #ffffff !important;
+    border-color: #ffffff !important;
+    color: #000000 !important;
+}
+
+html.theme-dark #home-supporters-action-card *,
+body.theme-dark #home-supporters-action-card * {
+    color: #000000 !important;
+}
+
+html.theme-dark #home-supporters-action-card:hover,
+body.theme-dark #home-supporters-action-card:hover {
+    background-color: #e4e4e7 !important;
+}
+
+html.theme-dark #home-supporters-action-card .supporter-action-icon,
+body.theme-dark #home-supporters-action-card .supporter-action-icon {
+    background-color: #f4f4f5 !important;
+    border-color: #d4d4d8 !important;
+}
+
+html.theme-dark #home-supporters-action-card .supporter-action-icon i,
+body.theme-dark #home-supporters-action-card .supporter-action-icon i {
+    color: #000000 !important;
+}
+
+/* Supporter Modal User Box Hover in Dark Mode */
+html.theme-dark .supporter-modal-user-box:hover,
+body.theme-dark .supporter-modal-user-box:hover {
+    background-color: #27272a !important;
+    border-color: #ffffff !important;
+}
+
+/* Donation Detail Modal Morphing Buttons in Dark Mode */
+html.theme-dark #donation-modal-cancel-wrapper button,
+body.theme-dark #donation-modal-cancel-wrapper button {
+    background-color: #000000 !important;
+    border-color: #ffffff !important;
+    color: #ffffff !important;
+}
+html.theme-dark #donation-modal-cancel-wrapper button:hover,
+body.theme-dark #donation-modal-cancel-wrapper button:hover {
+    background-color: #27272a !important;
+}
+
+html.theme-dark #donation-modal-main-btn,
+body.theme-dark #donation-modal-main-btn {
+    background-color: #ffffff !important;
+    border-color: #ffffff !important;
+    color: #000000 !important;
+}
+html.theme-dark #donation-modal-main-btn:hover,
+body.theme-dark #donation-modal-main-btn:hover {
+    background-color: #e4e4e7 !important;
+}
+
+/* Auth Android App View Dark Mode */
+#auth #auth-app-view .border-black { border-color: #ffffff !important; }
+#auth #auth-app-view .bg-gray-50 { background-color: #121212 !important; }
+
+/* Native App Bottom Navigation Bar Dark Mode */
+html.theme-dark #app-bottom-nav {
+    background-color: #000000 !important;
+    border-color: #ffffff !important;
+}
+html.theme-dark #app-bottom-nav .bottom-nav-item.text-black {
+    color: #ffffff !important;
+}
+html.theme-dark #app-bottom-nav .bottom-nav-item.text-gray-400 {
+    color: #71717a !important;
+}
+html.theme-dark #app-bottom-nav #bottom-tab-upload div {
+    background-color: #ffffff !important;
+    color: #000000 !important;
+    border-color: #ffffff !important;
+}
+
+/* Android App Promo Banner Dark Mode */
+html.theme-dark #uptime-section,
+html.theme-dark #android-app-promo-card {
+    background-color: #000000 !important;
+    border: 1px solid #ffffff !important;
+}
+html.theme-dark #android-app-promo-card h4 {
+    color: #ffffff !important;
+}
+html.theme-dark #android-app-promo-card p {
+    color: #a1a1aa !important;
+}
+html.theme-dark #android-promo-download-btn {
+    background-color: #ffffff !important;
+    color: #000000 !important;
+    border: 1px solid #ffffff !important;
+}
+html.theme-dark #android-promo-download-btn:hover {
+    background-color: #e4e4e7 !important;
+}
+
+/* HoyuShot EXIF thanks notice Dark Mode */
+html.theme-dark #up-hoyushot-thanks {
+    color: #d4d4d8 !important;
+}
+html.theme-dark #up-hoyushot-thanks a {
+    color: #ffffff !important;
+    text-decoration: underline !important;
+}
+html.theme-dark #up-hoyushot-thanks a:hover {
+    opacity: 0.75;
 }

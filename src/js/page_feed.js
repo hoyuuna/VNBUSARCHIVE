@@ -598,8 +598,8 @@ Object.assign(window.app, {
                     const proxyUrl = app.utils.getProxiedUrl(p.url, `${safePlate}.jpg`, 'thumb');
                     const dateHtml = p.taken_at ? `<span class="shrink-0"><i class="fa-regular fa-calendar mr-1"></i>${p.taken_at.split('T')[0].split('-').reverse().join('/')}</span>` : '';
                     return `
-                        <div data-id="${p.id}" class="bg-white dark:bg-[#1d2024] border border-[#dee3eb] dark:border-[#42474e] hover:border-m3-primary dark:hover:border-m3-dark-primary hover:shadow-m3-2 hover:-translate-y-1 cursor-pointer rounded-2xl p-2.5 transition-all duration-300 flex flex-col fade-zoom-in-page" onclick="app.views.loadDetail(${p.id})">
-                            <div class="img-wrapper relative w-full aspect-[4/3] bg-[#eceef5] dark:bg-[#272b2f] rounded-xl overflow-hidden shrink-0 border-0">
+                        <div data-id="${p.id}" class="bg-white border border-gray-200 hover:border-gray-300 hover:shadow-lg hover:-translate-y-1 cursor-pointer rounded-xl p-2 transition-all duration-300 flex flex-col fade-zoom-in-page" onclick="app.views.loadDetail(${p.id})">
+                            <div class="img-wrapper relative w-full aspect-[4/3] bg-gray-100 rounded-lg overflow-hidden shrink-0 border border-gray-100">
                                 <div class="img-spinner absolute inset-0 flex items-center justify-center text-gray-400">
                                     <i class="fa-solid fa-circle-notch fa-spin text-2xl"></i>
                                 </div>
@@ -615,7 +615,7 @@ Object.assign(window.app, {
                             </div>
                             <div class="pt-3 px-1.5 pb-1 flex-1 flex flex-col justify-between">
                                 <div>
-                                    <div class="font-bold text-sm text-m3-primary dark:text-m3-dark-primary tracking-wide">${safePlate}</div>
+                                    <div class="font-bold text-sm text-black">${safePlate}</div>
                                     <div class="text-xs text-gray-600 font-semibold truncate">${safeOp}</div>
                                 </div>
                                 <div class="text-[10px] text-gray-400 mt-2 flex justify-between">

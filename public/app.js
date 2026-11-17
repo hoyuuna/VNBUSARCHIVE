@@ -937,7 +937,7 @@ Object.assign(window.app, {
                         if (options.isDestructive) {
                             okBtn.className = "w-full inline-flex items-center justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-medium text-white hover:bg-red-700 focus:outline-none sm:ml-3 sm:w-auto sm:text-sm transition";
                         } else {
-                            okBtn.className = "w-full inline-flex items-center justify-center rounded-full border border-transparent shadow-sm px-5 py-2.5 bg-m3-primary text-base font-semibold text-white hover:opacity-90 focus:outline-none sm:ml-3 sm:w-auto sm:text-sm transition";
+                            okBtn.className = "w-full inline-flex items-center justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-black text-base font-medium text-white hover:bg-gray-800 focus:outline-none sm:ml-3 sm:w-auto sm:text-sm transition";
                         }
                         if (options.countdown) {
                             okBtn.disabled = true;
@@ -979,7 +979,7 @@ Object.assign(window.app, {
                         } else if (options.isCancelPrimary) {
                             cancelBtn.className = "mt-3 w-full inline-flex items-center justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-black text-base font-medium text-white hover:bg-gray-800 focus:outline-none sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm transition";
                         } else {
-                            cancelBtn.className = "mt-3 w-full inline-flex items-center justify-center rounded-full border border-[#dee3eb] dark:border-[#42474e] shadow-sm px-5 py-2.5 bg-transparent text-base font-semibold text-gray-700 dark:text-gray-200 hover:bg-black/5 dark:hover:bg-white/5 focus:outline-none sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm transition";
+                            cancelBtn.className = "mt-3 w-full inline-flex items-center justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm transition";
                         }
                         app.alertCancelCallback = cancelCallback || (() => { });
                     } else {
@@ -8250,8 +8250,8 @@ Object.assign(window.app, {
                     const proxyUrl = app.utils.getProxiedUrl(p.url, `${safePlate}.jpg`, 'thumb');
                     const dateHtml = p.taken_at ? `<span class="shrink-0"><i class="fa-regular fa-calendar mr-1"></i>${p.taken_at.split('T')[0].split('-').reverse().join('/')}</span>` : '';
                     return `
-                        <div data-id="${p.id}" class="bg-white dark:bg-[#1d2024] border border-[#dee3eb] dark:border-[#42474e] hover:border-m3-primary dark:hover:border-m3-dark-primary hover:shadow-m3-2 hover:-translate-y-1 cursor-pointer rounded-2xl p-2.5 transition-all duration-300 flex flex-col fade-zoom-in-page" onclick="app.views.loadDetail(${p.id})">
-                            <div class="img-wrapper relative w-full aspect-[4/3] bg-[#eceef5] dark:bg-[#272b2f] rounded-xl overflow-hidden shrink-0 border-0">
+                        <div data-id="${p.id}" class="bg-white border border-gray-200 hover:border-gray-300 hover:shadow-lg hover:-translate-y-1 cursor-pointer rounded-xl p-2 transition-all duration-300 flex flex-col fade-zoom-in-page" onclick="app.views.loadDetail(${p.id})">
+                            <div class="img-wrapper relative w-full aspect-[4/3] bg-gray-100 rounded-lg overflow-hidden shrink-0 border border-gray-100">
                                 <div class="img-spinner absolute inset-0 flex items-center justify-center text-gray-400">
                                     <i class="fa-solid fa-circle-notch fa-spin text-2xl"></i>
                                 </div>
@@ -8267,7 +8267,7 @@ Object.assign(window.app, {
                             </div>
                             <div class="pt-3 px-1.5 pb-1 flex-1 flex flex-col justify-between">
                                 <div>
-                                    <div class="font-bold text-sm text-m3-primary dark:text-m3-dark-primary tracking-wide">${safePlate}</div>
+                                    <div class="font-bold text-sm text-black">${safePlate}</div>
                                     <div class="text-xs text-gray-600 font-semibold truncate">${safeOp}</div>
                                 </div>
                                 <div class="text-[10px] text-gray-400 mt-2 flex justify-between">
@@ -11158,7 +11158,7 @@ Object.assign(window.app, {
                         }
                         box.classList.remove('hidden');
                         let html = (app.search.advancedFilters || []).map(f => `
-                            <div class="inline-flex items-center gap-1.5 py-1 px-3 text-xs font-semibold text-[#001d32] dark:text-[#cde5ff] bg-[#cde5ff] dark:bg-[#004b74] border border-transparent rounded-full shadow-sm shrink-0 cursor-pointer transition-colors" onclick="event.stopPropagation(); app.search.editAdvancedFilter('${f.id}')">
+                            <div class="inline-flex items-center gap-1.5 py-1 px-2.5 text-xs font-semibold text-gray-700 bg-white border border-gray-300 hover:border-gray-500 rounded-md shadow-sm shrink-0 cursor-pointer transition-colors" onclick="event.stopPropagation(); app.search.editAdvancedFilter('${f.id}')">
                                 <span class="text-gray-500 font-normal">${f.fieldLabel}:</span>
                                 <span class="font-bold text-black">${f.opLabel} "${f.displayVal}"</span>
                                 <button type="button" onclick="event.stopPropagation(); app.search.removeAdvancedFilter('${f.id}')" class="ml-1 text-gray-400 hover:text-red-600 transition">
@@ -11167,7 +11167,7 @@ Object.assign(window.app, {
                             </div>
                         `).join('');
                         html += `
-                            <button type="button" onclick="event.stopPropagation(); app.search.openAdvancedFilterModal()" class="shrink-0 text-xs font-bold text-m3-primary dark:text-m3-dark-primary bg-white dark:bg-[#272b2f] border border-[#dee3eb] dark:border-[#42474e] hover:border-m3-primary rounded-full py-1 px-3 shadow-sm transition">
+                            <button type="button" onclick="event.stopPropagation(); app.search.openAdvancedFilterModal()" class="shrink-0 text-xs font-bold text-gray-600 bg-white border border-gray-300 hover:border-gray-400 hover:text-black rounded-md py-1 px-2.5 shadow-sm transition">
                                 + Thêm
                             </button>
                         `;
@@ -11309,9 +11309,9 @@ Object.assign(window.app, {
                         pgLabel.innerText = provName;
                         const btn = pgLabel.parentElement;
                         if (prefix) {
-                            btn.className = "py-1.5 px-4 md:py-2 md:px-4 text-[11px] md:text-xs font-bold text-white bg-m3-primary dark:bg-m3-dark-primary dark:text-[#003352] border-0 rounded-full transition-all duration-200 flex items-center justify-center max-w-[140px] shadow-m3-1 cursor-pointer";
+                            btn.className = "py-1.5 px-3 md:py-2 md:px-3.5 text-[11px] md:text-xs font-bold text-white bg-black border border-black rounded-md transition-all duration-200 flex items-center justify-center max-w-[140px] shadow-md cursor-pointer hover:bg-gray-800";
                         } else {
-                            btn.className = "py-1.5 px-4 md:py-2 md:px-4 text-[11px] md:text-xs font-semibold text-gray-600 dark:text-gray-300 bg-white dark:bg-[#272b2f] border border-[#dee3eb] dark:border-[#42474e] hover:border-m3-primary rounded-full transition-all duration-200 flex items-center justify-center max-w-[140px] shadow-sm cursor-pointer";
+                            btn.className = "py-1.5 px-3 md:py-2 md:px-3.5 text-[11px] md:text-xs font-semibold text-gray-600 bg-white border border-gray-300 hover:border-gray-400 hover:text-black hover:bg-gray-50 rounded-md transition-all duration-200 flex items-center justify-center max-w-[140px] shadow-sm cursor-pointer";
                         }
                     }
                     app.search.initExactRouteMenu();
