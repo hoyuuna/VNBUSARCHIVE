@@ -6,86 +6,12 @@
 @source "../*.html";
 @source "../*.js";
 
-:root {
-  /* Material 3 Expressive - Neutral Monochromatic Palette (Light) */
-  --md-sys-color-background: #f8f9fa;
-  --md-sys-color-surface: #f8f9fa;
-  --md-sys-color-surface-dim: #d8dadc;
-  --md-sys-color-surface-bright: #f8f9fa;
-  --md-sys-color-surface-container-lowest: #ffffff;
-  --md-sys-color-surface-container-low: #f1f3f5;
-  --md-sys-color-surface-container: #ebedf0;
-  --md-sys-color-surface-container-high: #e3e6e9;
-  --md-sys-color-surface-container-highest: #dbdee2;
-
-  --md-sys-color-on-surface: #191c1e;
-  --md-sys-color-on-surface-variant: #44474e;
-  --md-sys-color-outline: #74777f;
-  --md-sys-color-outline-variant: #c4c7cf;
-  --md-sys-color-outline-subtle: rgba(0, 0, 0, 0.08);
-
-  --md-sys-color-primary: #191c1e;
-  --md-sys-color-on-primary: #ffffff;
-  --md-sys-color-primary-container: #2e3134;
-  --md-sys-color-on-primary-container: #f0f2f5;
-
-  --md-sys-color-secondary-container: #e3e6e9;
-  --md-sys-color-on-secondary-container: #191c1e;
-
-  /* M3 Expressive Soft Elevations */
-  --md-sys-elevation-1: 0 1px 3px 1px rgba(0, 0, 0, 0.05), 0 1px 2px 0 rgba(0, 0, 0, 0.03);
-  --md-sys-elevation-2: 0 3px 8px 2px rgba(0, 0, 0, 0.06), 0 1px 3px 0 rgba(0, 0, 0, 0.04);
-  --md-sys-elevation-3: 0 6px 16px 4px rgba(0, 0, 0, 0.07), 0 2px 4px 0 rgba(0, 0, 0, 0.04);
-  --md-sys-elevation-4: 0 10px 24px 6px rgba(0, 0, 0, 0.08), 0 4px 8px 0 rgba(0, 0, 0, 0.04);
-  --md-sys-elevation-5: 0 16px 36px 8px rgba(0, 0, 0, 0.10), 0 6px 12px 0 rgba(0, 0, 0, 0.05);
-
-  /* M3 Motion Easing */
-  --md-sys-motion-standard: cubic-bezier(0.2, 0, 0, 1);
-  --md-sys-motion-emphasized: cubic-bezier(0.05, 0.7, 0.1, 1);
-}
-
-html.theme-dark,
-body.theme-dark {
-  /* Material 3 Expressive - Neutral Monochromatic Palette (Dark) */
-  --md-sys-color-background: #111315;
-  --md-sys-color-surface: #111315;
-  --md-sys-color-surface-dim: #111315;
-  --md-sys-color-surface-bright: #37393c;
-  --md-sys-color-surface-container-lowest: #0c0e10;
-  --md-sys-color-surface-container-low: #191c1e;
-  --md-sys-color-surface-container: #1e2023;
-  --md-sys-color-surface-container-high: #282a2e;
-  --md-sys-color-surface-container-highest: #333539;
-
-  --md-sys-color-on-surface: #e1e3e6;
-  --md-sys-color-on-surface-variant: #c4c7cc;
-  --md-sys-color-outline: #8e9199;
-  --md-sys-color-outline-variant: #43474e;
-  --md-sys-color-outline-subtle: rgba(255, 255, 255, 0.08);
-
-  --md-sys-color-primary: #f0f2f5;
-  --md-sys-color-on-primary: #111315;
-  --md-sys-color-primary-container: #e1e3e6;
-  --md-sys-color-on-primary-container: #191c1e;
-
-  --md-sys-color-secondary-container: #282a2e;
-  --md-sys-color-on-secondary-container: #e1e3e6;
-
-  /* M3 Expressive Dark Elevations */
-  --md-sys-elevation-1: 0 1px 3px 1px rgba(0, 0, 0, 0.35), 0 1px 2px 0 rgba(0, 0, 0, 0.25);
-  --md-sys-elevation-2: 0 3px 8px 2px rgba(0, 0, 0, 0.40), 0 1px 3px 0 rgba(0, 0, 0, 0.30);
-  --md-sys-elevation-3: 0 6px 16px 4px rgba(0, 0, 0, 0.50), 0 2px 4px 0 rgba(0, 0, 0, 0.35);
-  --md-sys-elevation-4: 0 10px 24px 6px rgba(0, 0, 0, 0.60), 0 4px 8px 0 rgba(0, 0, 0, 0.40);
-  --md-sys-elevation-5: 0 16px 36px 8px rgba(0, 0, 0, 0.70), 0 6px 12px 0 rgba(0, 0, 0, 0.45);
-}
-
 @layer base {
   button,
   [role="button"],
   [onclick],
   a {
     cursor: pointer;
-    -webkit-tap-highlight-color: transparent;
   }
 
   button:disabled,
@@ -95,115 +21,6 @@ body.theme-dark {
     cursor: not-allowed !important;
   }
 }
-
-/* Material 3 Expressive Core Component Utility Classes */
-.m3-btn-filled {
-  border-radius: 9999px;
-  background-color: var(--md-sys-color-primary);
-  color: var(--md-sys-color-on-primary);
-  font-weight: 600;
-  padding: 0.625rem 1.25rem;
-  transition: all 0.2s var(--md-sys-motion-standard);
-  box-shadow: var(--md-sys-elevation-1);
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-}
-.m3-btn-filled:hover {
-  filter: brightness(1.1);
-  box-shadow: var(--md-sys-elevation-2);
-  transform: translateY(-1px);
-}
-.m3-btn-filled:active {
-  transform: scale(0.98);
-}
-
-.m3-btn-tonal {
-  border-radius: 9999px;
-  background-color: var(--md-sys-color-surface-container-high);
-  color: var(--md-sys-color-on-surface);
-  font-weight: 600;
-  padding: 0.625rem 1.25rem;
-  transition: all 0.2s var(--md-sys-motion-standard);
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-}
-.m3-btn-tonal:hover {
-  background-color: var(--md-sys-color-surface-container-highest);
-  transform: translateY(-1px);
-}
-.m3-btn-tonal:active {
-  transform: scale(0.98);
-}
-
-.m3-btn-outlined {
-  border-radius: 9999px;
-  border: 1px solid var(--md-sys-color-outline-variant);
-  background-color: transparent;
-  color: var(--md-sys-color-on-surface);
-  font-weight: 600;
-  padding: 0.625rem 1.25rem;
-  transition: all 0.2s var(--md-sys-motion-standard);
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-}
-.m3-btn-outlined:hover {
-  background-color: var(--md-sys-color-surface-container-low);
-  border-color: var(--md-sys-color-outline);
-}
-
-/* Material 3 Expressive Chips */
-.m3-chip {
-  border-radius: 9999px;
-  padding: 0.375rem 0.875rem;
-  font-size: 0.8125rem;
-  font-weight: 600;
-  background-color: var(--md-sys-color-surface-container-low);
-  color: var(--md-sys-color-on-surface-variant);
-  border: 1px solid var(--md-sys-color-outline-subtle);
-  transition: all 0.2s var(--md-sys-motion-standard);
-  display: inline-flex;
-  align-items: center;
-  gap: 0.375rem;
-}
-.m3-chip:hover {
-  background-color: var(--md-sys-color-surface-container);
-  color: var(--md-sys-color-on-surface);
-}
-.m3-chip.active,
-.m3-chip-selected {
-  background-color: var(--md-sys-color-primary);
-  color: var(--md-sys-color-on-primary);
-  border-color: transparent;
-  box-shadow: var(--md-sys-elevation-1);
-}
-
-/* Material 3 Expressive Cards */
-.m3-card {
-  border-radius: 20px;
-  background-color: var(--md-sys-color-surface-container-lowest);
-  border: 1px solid var(--md-sys-color-outline-subtle);
-  box-shadow: var(--md-sys-elevation-1);
-  transition: all 0.25s var(--md-sys-motion-standard);
-}
-.m3-card:hover {
-  box-shadow: var(--md-sys-elevation-2);
-  transform: translateY(-2px);
-}
-
-/* Material 3 Expressive Dialogs */
-.m3-dialog {
-  border-radius: 28px;
-  background-color: var(--md-sys-color-surface-container-lowest);
-  box-shadow: var(--md-sys-elevation-3);
-  border: 1px solid var(--md-sys-color-outline-subtle);
-}
-
 /* Chỉ hiển thị card nút chức năng hồ sơ trên Native App Android (trên web dùng header/menu) */
 #profile-actions-card {
     display: none !important;
@@ -255,5 +72,5 @@ body.is-native-app .leaflet-bottom {
     z-index: 2500 !important;
     transform: none !important;
     -webkit-transform: none !important;
-    transition: all 0.3s cubic-bezier(0.2, 0, 0, 1) !important;
+    transition: none !important;
 }

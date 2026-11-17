@@ -193,7 +193,7 @@ Object.assign(window.app, {
                         const isStopped = (h.route || '').trim() === 'Dừng hoạt động';
                         if (isStopped) h.operator = 'N/A';
                         const div = document.createElement('div');
-                        div.className = "flex flex-col gap-2 bg-white dark:bg-[#1e2023] p-4 border border-black/5 dark:border-white/10 rounded-2xl text-xs mb-3 shadow-sm";
+                        div.className = "flex flex-col gap-2 bg-white p-3 border border-gray-200 rounded-md text-xs mb-2";
                         div.innerHTML = `
                             <div class="flex flex-col sm:flex-row gap-2 items-stretch sm:items-center">
                                 <div class="flex flex-col sm:flex-1 min-w-0">
@@ -223,9 +223,9 @@ Object.assign(window.app, {
                                 </div>
                                 <div class="flex justify-end gap-2 mt-2 sm:mt-0 w-full sm:w-auto h-full">
                                     ${ (h.plate && h.plate !== app.currentPlate) ? 
-                                    `<button type="button" onclick="app.vehicle.requestSplit('${app.currentPlate}', '${app.utils.cleanText(h.plate)}')" class="text-gray-700 hover:text-white hover:bg-black border border-gray-300 dark:border-zinc-700 rounded-full px-3 py-2 font-bold transition min-h-[42px] whitespace-nowrap" title="Tách xe này ra khỏi lịch sử"><i class="fa-solid fa-scissors"></i></button>` : '' }
-                                    <button type="button" onclick="app.vehicle.duplicateHistoryItem(${index}, '${prefix}')" class="text-gray-700 hover:text-white hover:bg-black border border-gray-300 dark:border-zinc-700 rounded-full px-3 py-2 font-bold transition min-h-[42px]" title="Nhân bản"><i class="fa-solid fa-copy"></i></button>
-                                    <button type="button" onclick="app.vehicle.removeHistoryItem(${index}, '${prefix}')" class="text-gray-700 hover:text-white hover:bg-black border border-gray-300 dark:border-zinc-700 rounded-full px-3 py-2 font-bold transition min-h-[42px]" title="Xóa"><i class="fa-solid fa-trash"></i></button>
+                                    `<button type="button" onclick="app.vehicle.requestSplit('${app.currentPlate}', '${app.utils.cleanText(h.plate)}')" class="text-gray-700 hover:text-white hover:bg-black border border-gray-300 rounded-md px-3 py-2 font-bold transition min-h-[42px] whitespace-nowrap" title="Tách xe này ra khỏi lịch sử"><i class="fa-solid fa-scissors"></i></button>` : '' }
+                                    <button type="button" onclick="app.vehicle.duplicateHistoryItem(${index}, '${prefix}')" class="text-gray-700 hover:text-white hover:bg-black border border-gray-300 rounded-md px-3 py-2 font-bold transition min-h-[42px]" title="Nhân bản"><i class="fa-solid fa-copy"></i></button>
+                                    <button type="button" onclick="app.vehicle.removeHistoryItem(${index}, '${prefix}')" class="text-gray-700 hover:text-white hover:bg-black border border-gray-300 rounded-md px-3 py-2 font-bold transition min-h-[42px]" title="Xóa"><i class="fa-solid fa-trash"></i></button>
                                 </div>
                             </div>
                         `;

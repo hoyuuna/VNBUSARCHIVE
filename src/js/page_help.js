@@ -25,7 +25,7 @@ Object.assign(window.app, {
                         const isActive = index === app.newsboard.activeIndex;
                         const bgClass = isActive ? 'bg-black border-black shadow-sm' : 'bg-white hover:bg-gray-50 border-gray-200';
                         return `
-                        <div class="p-3.5 rounded-2xl cursor-pointer mb-2 border transition-all ${bgClass}" onclick="app.newsboard.renderContent(${index})">
+                        <div class="p-3 rounded-lg cursor-pointer mb-2 border transition-colors ${bgClass}" onclick="app.newsboard.renderContent(${index})">
                             <div class="text-[10px] ${isActive ? 'text-gray-300' : 'text-gray-400'} font-bold uppercase mb-1">${item.date || 'Hôm nay'}</div>
                             <div class="text-sm font-bold ${isActive ? 'text-white' : 'text-gray-800'} line-clamp-2 leading-snug">${item.title || 'Thông báo hệ thống'}</div>
                             <div class="text-xs ${isActive ? 'text-gray-400' : 'text-gray-500'} mt-1 line-clamp-1">${app.utils.stripMarkdown(item.summary) || 'Nhấn để xem chi tiết...'}</div>

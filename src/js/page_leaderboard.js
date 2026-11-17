@@ -132,7 +132,7 @@ Object.assign(window.app, {
                     <div class="${style.order} flex-1 w-full min-w-0">
                         <div onclick="app.utils.navigate('/user/${encodeURIComponent(user.username)}')" 
                              class="cursor-pointer bg-white ${style.border} rounded-2xl p-6 flex flex-col items-center text-center group hover:-translate-y-1 hover:shadow-lg transition-all duration-300 h-full relative">
-                            <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-black uppercase tracking-wider mb-5 ${style.badgeStyle}">
+                            <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-md text-[11px] font-black uppercase tracking-wider mb-5 ${style.badgeStyle}">
                                 ${style.icon} ${style.title}
                             </div>
                             <div class="w-24 h-24 md:w-28 md:h-28 rounded-full overflow-hidden shrink-0 mx-auto border border-gray-200 bg-gray-50 shadow-inner mb-4 transition-transform">
@@ -174,7 +174,7 @@ Object.assign(window.app, {
                                 <div onclick="app.utils.navigate('/user/${encodeURIComponent(user.username)}')" 
                                      class="cursor-pointer px-5 md:px-6 py-4 flex items-center justify-between gap-3 hover:bg-gray-50 transition-colors group">
                                     <div class="flex items-center gap-3 md:gap-4 min-w-0 flex-1">
-                                        <div class="w-8 h-8 rounded-full bg-gray-100 dark:bg-zinc-800 text-gray-700 dark:text-zinc-300 font-black text-xs flex items-center justify-center shrink-0 group-hover:bg-black group-hover:text-white dark:group-hover:bg-white dark:group-hover:text-black transition-colors">
+                                        <div class="w-8 h-8 rounded-lg bg-gray-100 border border-gray-200 text-gray-600 font-black text-sm flex items-center justify-center shrink-0 group-hover:bg-black group-hover:text-white transition-colors">
                                             #${rank}
                                         </div>
                                         <div class="w-10 h-10 md:w-12 md:h-12 rounded-full overflow-hidden shrink-0 border border-gray-200 bg-gray-50">

@@ -933,9 +933,9 @@ Object.assign(window.app, {
                         let defaultText = options.btnOkText || "Đồng ý";
                         okBtn.style.display = options.hideButtons ? 'none' : 'inline-flex';
                         if (options.isDestructive) {
-                            okBtn.className = "w-full inline-flex items-center justify-center rounded-full shadow-sm px-5 py-2.5 bg-red-600 text-xs font-bold text-white hover:bg-red-700 focus:outline-none sm:ml-3 sm:w-auto transition";
+                            okBtn.className = "w-full inline-flex items-center justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-medium text-white hover:bg-red-700 focus:outline-none sm:ml-3 sm:w-auto sm:text-sm transition";
                         } else {
-                            okBtn.className = "w-full inline-flex items-center justify-center rounded-full shadow-sm px-5 py-2.5 bg-black dark:bg-white text-xs font-bold text-white dark:text-black hover:bg-gray-800 dark:hover:bg-zinc-200 focus:outline-none sm:ml-3 sm:w-auto transition";
+                            okBtn.className = "w-full inline-flex items-center justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-black text-base font-medium text-white hover:bg-gray-800 focus:outline-none sm:ml-3 sm:w-auto sm:text-sm transition";
                         }
                         if (options.countdown) {
                             okBtn.disabled = true;
@@ -973,11 +973,11 @@ Object.assign(window.app, {
                         cancelBtn.innerHTML = options.btnCancelText || "Hủy bỏ";
                         cancelBtn.style.display = options.hideButtons ? 'none' : 'inline-flex';
                         if (options.isCancelDestructive) {
-                            cancelBtn.className = "mt-3 w-full inline-flex items-center justify-center rounded-full shadow-sm px-5 py-2.5 bg-red-600 text-xs font-bold text-white hover:bg-red-700 focus:outline-none sm:mt-0 sm:ml-3 sm:w-auto transition";
+                            cancelBtn.className = "mt-3 w-full inline-flex items-center justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-medium text-white hover:bg-red-700 focus:outline-none sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm transition";
                         } else if (options.isCancelPrimary) {
-                            cancelBtn.className = "mt-3 w-full inline-flex items-center justify-center rounded-full shadow-sm px-5 py-2.5 bg-black dark:bg-white text-xs font-bold text-white dark:text-black hover:bg-gray-800 dark:hover:bg-zinc-200 focus:outline-none sm:mt-0 sm:ml-3 sm:w-auto transition";
+                            cancelBtn.className = "mt-3 w-full inline-flex items-center justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-black text-base font-medium text-white hover:bg-gray-800 focus:outline-none sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm transition";
                         } else {
-                            cancelBtn.className = "mt-3 w-full inline-flex items-center justify-center rounded-full border border-gray-300 dark:border-zinc-700 shadow-sm px-5 py-2.5 bg-transparent text-xs font-bold text-gray-700 dark:text-zinc-300 hover:bg-gray-100 dark:hover:bg-zinc-800 focus:outline-none sm:mt-0 sm:ml-3 sm:w-auto transition";
+                            cancelBtn.className = "mt-3 w-full inline-flex items-center justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm transition";
                         }
                         app.alertCancelCallback = cancelCallback || (() => { });
                     } else {
@@ -4604,14 +4604,11 @@ cleanupState: () => {
                         if (hIcon) hIcon.classList.remove('hidden');
                     }
 dropdown.innerHTML = `
-                         <div class="p-1.5 flex flex-col gap-0.5">
-                             <a href="/profile" class="flex items-center gap-2.5 px-3.5 py-2.5 text-xs font-semibold text-gray-800 dark:text-zinc-200 hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-xl transition"><i class="fa-solid fa-address-card w-4 text-center"></i> Hồ sơ của tôi</a>
-                             <button onclick="app.settings.open()" class="w-full text-left flex items-center gap-2.5 px-3.5 py-2.5 text-xs font-semibold text-gray-800 dark:text-zinc-200 hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-xl transition"><i class="fa-solid fa-gear w-4 text-center"></i> Cài đặt</button>
-                             <a href="/help" class="flex items-center gap-2.5 px-3.5 py-2.5 text-xs font-semibold text-gray-800 dark:text-zinc-200 hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-xl transition"><i class="fa-solid fa-book-open w-4 text-center"></i> Trung tâm hỗ trợ</a>
-                             <a href="/contact" class="flex items-center gap-2.5 px-3.5 py-2.5 text-xs font-semibold text-gray-800 dark:text-zinc-200 hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-xl transition"><i class="fa-solid fa-headset w-4 text-center"></i> Liên hệ hỗ trợ</a>
-                             <div class="my-1 border-t border-gray-100 dark:border-zinc-800"></div>
-                             <button onclick="app.auth.logout()" class="w-full text-left flex items-center gap-2.5 px-3.5 py-2.5 text-xs font-semibold text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/40 rounded-xl transition"><i class="fa-solid fa-right-from-bracket w-4 text-center"></i> Đăng xuất</button>
-                         </div>
+                         <a href="/profile" class="block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 border-b border-gray-100 font-bold"><i class="fa-solid fa-address-card w-5 text-center mr-1"></i> Hồ sơ của tôi</a>
+                         <button onclick="app.settings.open()" class="w-full text-left block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 border-b border-gray-100 font-bold"><i class="fa-solid fa-gear w-5 text-center mr-1"></i> Cài đặt</button>
+                         <a href="/help" class="block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 border-b border-gray-100 font-bold"><i class="fa-solid fa-book-open w-5 text-center mr-1"></i> Trung tâm hỗ trợ</a>
+                         <a href="/contact" class="w-full text-left block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 border-b border-gray-100 font-bold"><i class="fa-solid fa-headset w-5 text-center mr-1"></i> Liên hệ hỗ trợ</a>
+                         <button onclick="app.auth.logout()" class="w-full text-left block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 font-bold"><i class="fa-solid fa-right-from-bracket w-5 text-center mr-1"></i> Đăng xuất</button>
                      `;
                     app.auth.close();
                     if (app.role === 'admin' || app.role === 'manager') {
@@ -4638,13 +4635,11 @@ dropdown.innerHTML = `
                     app.avatarUrl = null;
                     app.role = 'user';
 dropdown.innerHTML = `
-                         <div class="p-1.5 flex flex-col gap-0.5">
-                             <a href="/auth" class="flex items-center gap-2.5 px-3.5 py-2.5 text-xs font-semibold text-gray-800 dark:text-zinc-200 hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-xl transition"><i class="fa-solid fa-arrow-right-to-bracket w-4 text-center"></i> Đăng nhập</a>
-                             <a href="/auth" class="flex items-center gap-2.5 px-3.5 py-2.5 text-xs font-semibold text-gray-800 dark:text-zinc-200 hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-xl transition"><i class="fa-solid fa-user-plus w-4 text-center"></i> Tạo tài khoản</a>
-                             <button onclick="app.settings.open()" class="w-full text-left flex items-center gap-2.5 px-3.5 py-2.5 text-xs font-semibold text-gray-800 dark:text-zinc-200 hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-xl transition"><i class="fa-solid fa-gear w-4 text-center"></i> Cài đặt</button>
-                             <a href="/help" class="flex items-center gap-2.5 px-3.5 py-2.5 text-xs font-semibold text-gray-800 dark:text-zinc-200 hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-xl transition"><i class="fa-solid fa-book-open w-4 text-center"></i> Trung tâm hỗ trợ</a>
-                             <a href="/contact" class="w-full text-left flex items-center gap-2.5 px-3.5 py-2.5 text-xs font-semibold text-gray-800 dark:text-zinc-200 hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-xl transition"><i class="fa-solid fa-headset w-4 text-center"></i> Liên hệ hỗ trợ</a>
-                         </div>
+                         <a href="/auth" class="w-full text-left block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 border-b border-gray-100 font-bold"><i class="fa-solid fa-arrow-right-to-bracket w-5 text-center mr-1"></i> Đăng nhập</a>
+                         <a href="/auth" class="w-full text-left block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 border-b border-gray-100 font-bold"><i class="fa-solid fa-user-plus w-5 text-center mr-1"></i> Tạo tài khoản</a>
+                         <button onclick="app.settings.open()" class="w-full text-left block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 border-b border-gray-100 font-bold"><i class="fa-solid fa-gear w-5 text-center mr-1"></i> Cài đặt</button>
+                         <a href="/help" class="block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 border-b border-gray-100 font-bold"><i class="fa-solid fa-book-open w-5 text-center mr-1"></i> Trung tâm hỗ trợ</a>
+                         <a href="/contact" class="w-full text-left block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 font-bold"><i class="fa-solid fa-headset w-5 text-center mr-1"></i> Liên hệ hỗ trợ</a>
                      `;
                 }
                 if (app.auth && app.auth.updateUUIDBox) app.auth.updateUUIDBox();

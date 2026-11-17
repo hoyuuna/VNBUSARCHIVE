@@ -112,19 +112,142 @@ window.addEventListener('error', function(event) {
 const initCoreHeader = () => {
     const header = document.querySelector('header');
     if (!header) return;
-    if (!header.classList.contains('transition-transform')) {
-        header.classList.add('transition-transform', 'duration-300');
-    }
-    const headerInner = header.querySelector(':scope > div');
+    const headerNavCard = header.querySelector('.header-nav-card') || header.querySelector(':scope > div');
+    const headerCardContent = header.querySelector('.header-card-content');
+    const headerDroplet = header.querySelector('#header-droplet');
 
     let lastScrollY = window.scrollY;
-    let lastScrollDirection = 'up';
+    let targetProgress = 0;   // 0 = fully expanded, 1 = fully collapsed & hidden
+    let currentProgress = 0;
     let isMouseNearTop = false;
-    const threshold = 50; 
-    const scrollDelta = 8;
+    let rafId = null;
+    let lastDropletHiddenState = false;
 
-    const checkHeaderState = () => {
+    const SCROLL_RANGE = 150; // Khoảng cách cuộn mượt mà để hoàn tất 1 chu kỳ thu gọn / mở ra
+
+    const renderHeaderProgress = (p) => {
+        if (!headerNavCard) return;
+
+        // Trạng thái 0: Mở hoàn toàn (full-size tự nhiên, không inline transform hay opacity)
+        if (p <= 0.001) {
+            headerNavCard.style.transform = '';
+            headerNavCard.style.opacity = '';
+            headerNavCard.style.pointerEvents = 'auto';
+            if (headerCardContent) {
+                headerCardContent.style.opacity = '';
+                headerCardContent.style.visibility = '';
+                headerCardContent.style.pointerEvents = 'auto';
+            }
+            if (headerDroplet) {
+                headerDroplet.style.opacity = '0';
+                headerDroplet.style.transform = 'translateX(-50%) scale(0)';
+            }
+            if (lastDropletHiddenState) {
+                lastDropletHiddenState = false;
+                header.classList.remove('header-droplet-hidden');
+                if (app.toast && app.toast.updatePosition) app.toast.updatePosition();
+            }
+            return;
+        }
+
+        // Trạng thái 1: Đã ẩn hoàn toàn lên mép trên
+        if (p >= 0.999) {
+            headerNavCard.style.opacity = '0';
+            headerNavCard.style.pointerEvents = 'none';
+            if (headerCardContent) {
+                headerCardContent.style.opacity = '0';
+                headerCardContent.style.visibility = 'hidden';
+            }
+            if (headerDroplet) {
+                headerDroplet.style.opacity = '0';
+                headerDroplet.style.transform = 'translateX(-50%) translate3d(0, -90px, 0) scale(0.6)';
+            }
+            if (!lastDropletHiddenState) {
+                lastDropletHiddenState = true;
+                header.classList.add('header-droplet-hidden');
+                if (app.toast && app.toast.updatePosition) app.toast.updatePosition();
+            }
+            return;
+        }
+
+        if (lastDropletHiddenState) {
+            lastDropletHiddenState = false;
+            header.classList.remove('header-droplet-hidden');
+            if (app.toast && app.toast.updatePosition) app.toast.updatePosition();
+        }
+
+        // Nội dung bên trong (thanh tìm kiếm, icon, menu):
+        // CHỈ hiển thị khi navbar đã bung ra hơn 75% (p < 0.25).
+        // Khi đang co lại hoặc chỉ mới mở một chút, nội dung ẩn hoàn toàn để không lộ thanh tìm kiếm bên trong.
+        if (headerCardContent) {
+            const contentOpacity = Math.max(0, 1 - p / 0.25);
+            headerCardContent.style.opacity = contentOpacity.toFixed(3);
+            headerCardContent.style.visibility = contentOpacity <= 0.01 ? 'hidden' : 'visible';
+            headerCardContent.style.pointerEvents = p > 0.05 ? 'none' : 'auto';
+        }
+
+        if (p <= 0.5) {
+            // Giai đoạn 1: Navbar thu gọn nhẹ về tâm trên, giọt nước hình tròn hoàn hảo dần hiện ra
+            const t = p / 0.5; // 0 -> 1
+            const easeT = t * t * (3 - 2 * t);
+            const cardScale = 1 - easeT * 0.45;
+            const cardTy = easeT * 8;
+            const cardOpacity = Math.max(0, 1 - easeT * 1.5);
+
+            headerNavCard.style.transform = `translate3d(0, ${cardTy.toFixed(1)}px, 0) scale(${cardScale.toFixed(3)})`;
+            headerNavCard.style.opacity = cardOpacity.toFixed(3);
+            headerNavCard.style.pointerEvents = p > 0.25 ? 'none' : 'auto';
+
+            if (headerDroplet) {
+                const dropT = Math.max(0, Math.min(1, (t - 0.2) / 0.8));
+                const dropEase = dropT * dropT * (3 - 2 * dropT);
+                const dropScale = 0.35 + dropEase * 0.65;
+                const dropTy = dropEase * 8;
+                headerDroplet.style.transform = `translateX(-50%) translate3d(0, ${dropTy.toFixed(1)}px, 0) scale(${dropScale.toFixed(3)})`;
+                headerDroplet.style.opacity = dropEase.toFixed(3);
+            }
+        } else {
+            // Giai đoạn 2: Navbar đã biến mất hoàn toàn, giọt nước hình tròn 100% (48x48) trượt vút lên trên
+            headerNavCard.style.opacity = '0';
+            headerNavCard.style.pointerEvents = 'none';
+
+            if (headerDroplet) {
+                const u = (p - 0.5) / 0.5; // 0 -> 1
+                const easeU = u * u;
+                const dropTy = 8 - easeU * 90;
+                const dropScale = 1 - easeU * 0.35;
+                const dropOpacity = Math.max(0, 1 - u * 1.6);
+                headerDroplet.style.transform = `translateX(-50%) translate3d(0, ${dropTy.toFixed(1)}px, 0) scale(${dropScale.toFixed(3)})`;
+                headerDroplet.style.opacity = dropOpacity.toFixed(3);
+            }
+        }
+    };
+
+    const updateLoop = () => {
+        const diff = targetProgress - currentProgress;
+        if (Math.abs(diff) > 0.001) {
+            currentProgress += diff * 0.25;
+            renderHeaderProgress(currentProgress);
+            rafId = window.requestAnimationFrame(updateLoop);
+        } else {
+            currentProgress = targetProgress;
+            renderHeaderProgress(currentProgress);
+            rafId = null;
+        }
+    };
+
+    const requestUpdate = () => {
+        if (!rafId) {
+            rafId = window.requestAnimationFrame(updateLoop);
+        }
+    };
+
+    window.addEventListener('scroll', () => {
         const currentScrollY = window.scrollY;
+        const diff = currentScrollY - lastScrollY;
+        lastScrollY = currentScrollY;
+
+        // Kiểm tra xem có đang mở menu hoặc ở sát đỉnh trang (scrollY <= 10)
         const isSearchFocused = document.activeElement && document.activeElement.id === 'search-input';
         const userMenu = document.getElementById('user-dropdown');
         const isUserMenuOpen = userMenu && userMenu.classList.contains('opacity-100');
@@ -132,82 +255,38 @@ const initCoreHeader = () => {
         const isFilterMenuOpen = filterMenu && filterMenu.classList.contains('active');
         const searchSuggestions = document.getElementById('main-search-suggestions');
         const isSuggestionsOpen = searchSuggestions && searchSuggestions.classList.contains('active');
-        const isHoveringCard = headerInner && headerInner.matches(':hover');
 
-        if (isSearchFocused || isUserMenuOpen || isFilterMenuOpen || isSuggestionsOpen || isHoveringCard || isMouseNearTop) {
-            header.style.transform = 'translateY(0)';
+        const anyMenuOpen = (isSearchFocused || isUserMenuOpen || isFilterMenuOpen || isSuggestionsOpen);
+        header.classList.toggle('menu-open', !!anyMenuOpen);
+
+        if (anyMenuOpen || currentScrollY <= 10) {
+            targetProgress = 0;
+            requestUpdate();
             return;
         }
 
-        if (currentScrollY <= threshold) {
-            header.style.transform = 'translateY(0)';
-            return;
-        }
-
-        if (lastScrollDirection === 'down') {
-            header.style.transform = 'translateY(-100%)';
-        } else {
-            header.style.transform = 'translateY(0)';
-        }
-    };
-
-    const syncHeader = () => {
-        checkHeaderState();
-        if (app.toast && app.toast.updatePosition) app.toast.updatePosition();
-    };
-
-    let scrollTicking = false;
-    window.addEventListener('scroll', () => {
-        const currentScrollY = window.scrollY;
-        const diff = currentScrollY - lastScrollY;
-        if (Math.abs(diff) >= scrollDelta) {
-            lastScrollDirection = diff > 0 ? 'down' : 'up';
-            lastScrollY = currentScrollY;
-        }
-        if (!scrollTicking) {
-            window.requestAnimationFrame(() => {
-                syncHeader();
-                scrollTicking = false;
-            });
-            scrollTicking = true;
-        }
+        // Tương tác trực tiếp 1:1 theo độ dài cuộn (kéo chậm animation chậm, dừng thì dừng ngay tại đó)
+        targetProgress = Math.max(0, Math.min(1, targetProgress + diff / SCROLL_RANGE));
+        requestUpdate();
     }, { passive: true });
 
-    document.addEventListener('click', () => {
-        setTimeout(syncHeader, 50);
-    });
-
-    document.addEventListener('focusout', () => {
-        setTimeout(syncHeader, 50);
-    });
-
-    document.addEventListener('mousemove', (e) => {
-        const wasNearTop = isMouseNearTop;
-        if (e.clientY <= 12) {
-            isMouseNearTop = true;
-        } else {
-            isMouseNearTop = false;
+    window.addEventListener('mousemove', (e) => {
+        // Chỉ khi chuột rê lên sát mép trên cùng (<= 15px) mới gọi header xuống
+        const nearTop = e.clientY <= 15;
+        if (nearTop !== isMouseNearTop) {
+            isMouseNearTop = nearTop;
+            if (isMouseNearTop) {
+                targetProgress = 0;
+                requestUpdate();
+            }
         }
-        if (wasNearTop !== isMouseNearTop) {
-            syncHeader();
-        }
-    });
+    }, { passive: true });
 
     document.addEventListener('mouseleave', () => {
         if (isMouseNearTop) {
             isMouseNearTop = false;
-            syncHeader();
         }
     });
-
-    if (headerInner) {
-        headerInner.addEventListener('mouseenter', () => {
-            syncHeader();
-        });
-        headerInner.addEventListener('mouseleave', () => {
-            syncHeader();
-        });
-    }
 
     let resizeTicking = false;
     window.addEventListener('resize', () => {
@@ -219,6 +298,7 @@ const initCoreHeader = () => {
             resizeTicking = true;
         }
     }, { passive: true });
+
 
     if (app.toast && app.toast.updatePosition) app.toast.updatePosition();
 
@@ -303,7 +383,7 @@ Object.assign(window.app, {
                     if (!container) return;
                     const GAP = 16;
                     const header = document.querySelector('header');
-                    if (!header || header.style.display === 'none' || (header.style.transform || '').includes('-100%')) {
+                    if (!header || header.style.display === 'none' || header.classList.contains('header-droplet-hidden') || (header.style.transform || '').includes('-100%')) {
                         container.style.top = `calc(env(safe-area-inset-top, 0px) + ${GAP}px)`;
                         return;
                     }
@@ -579,41 +659,6 @@ Object.assign(window.app, {
                 }
             },
 
-            // Tự động kích hoạt thanh tải trên cùng hoặc pill làm mới khi trang được reload/refresh trong phiên
-            _sessionAutoLoadStarted: (() => {
-                try {
-                    const isAppLoaded = sessionStorage.getItem('vnbus_app_loaded') === '1';
-                    const isRefreshing = sessionStorage.getItem('vnbus_is_refreshing') === '1';
-                    if (isAppLoaded || isRefreshing) {
-                        setTimeout(() => {
-                            if (window.app && app.loadingBar && app.loadingBar.start) {
-                                app.loadingBar.start();
-                            }
-                        }, 10);
-                        if (isRefreshing) {
-                            const setRefreshingPill = () => {
-                                const badge = document.getElementById('app-pull-refresh-badge');
-                                const icon = document.getElementById('app-pull-refresh-icon');
-                                const text = document.getElementById('app-pull-refresh-text');
-                                const inner = document.getElementById('app-pull-refresh-inner');
-                                if (badge) badge.classList.remove('opacity-0');
-                                if (text) text.innerText = 'Đang làm mới...';
-                                if (icon) icon.className = 'fa-solid fa-circle-notch fa-spin text-xs';
-                                if (inner) {
-                                    inner.classList.add('bg-black', 'text-white', 'dark:bg-white', 'dark:text-black');
-                                    inner.classList.remove('bg-white', 'text-black', 'dark:bg-black', 'dark:text-white');
-                                }
-                            };
-                            if (document.readyState === 'loading') {
-                                document.addEventListener('DOMContentLoaded', setRefreshingPill);
-                            } else {
-                                setRefreshingPill();
-                            }
-                        }
-                    }
-                } catch (e) {}
-                return true;
-            })(),
             _initialLoadingDismissed: false,
             _headerLogoTimer: null,
             _headerLogoTransitioned: false,
@@ -651,33 +696,6 @@ Object.assign(window.app, {
                 }, 520);
             },
             dismissInitialLoadingScreen: () => {
-                try {
-                    sessionStorage.setItem('vnbus_app_loaded', '1');
-                } catch (e) {}
-
-                const wasRefreshing = (function() {
-                    try {
-                        return sessionStorage.getItem('vnbus_is_refreshing') === '1';
-                    } catch (e) { return false; }
-                })();
-                try {
-                    sessionStorage.removeItem('vnbus_is_refreshing');
-                } catch (e) {}
-
-                if (app.loadingBar && app.loadingBar.finish) {
-                    app.loadingBar.finish();
-                }
-
-                if (wasRefreshing) {
-                    const badge = document.getElementById('app-pull-refresh-badge');
-                    if (badge) {
-                        setTimeout(() => {
-                            badge.classList.add('opacity-0');
-                            document.documentElement.classList.remove('app-is-refreshing');
-                        }, 300);
-                    }
-                }
-
                 if (app._initialLoadingDismissed) return;
                 app._initialLoadingDismissed = true;
                 const loadingScreen = document.getElementById('loading-screen');
@@ -935,9 +953,9 @@ Object.assign(window.app, {
                         let defaultText = options.btnOkText || "Đồng ý";
                         okBtn.style.display = options.hideButtons ? 'none' : 'inline-flex';
                         if (options.isDestructive) {
-                            okBtn.className = "w-full inline-flex items-center justify-center rounded-full shadow-sm px-5 py-2.5 bg-red-600 text-xs font-bold text-white hover:bg-red-700 focus:outline-none sm:ml-3 sm:w-auto transition";
+                            okBtn.className = "w-full inline-flex items-center justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-medium text-white hover:bg-red-700 focus:outline-none sm:ml-3 sm:w-auto sm:text-sm transition";
                         } else {
-                            okBtn.className = "w-full inline-flex items-center justify-center rounded-full shadow-sm px-5 py-2.5 bg-black dark:bg-white text-xs font-bold text-white dark:text-black hover:bg-gray-800 dark:hover:bg-zinc-200 focus:outline-none sm:ml-3 sm:w-auto transition";
+                            okBtn.className = "w-full inline-flex items-center justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-black text-base font-medium text-white hover:bg-gray-800 focus:outline-none sm:ml-3 sm:w-auto sm:text-sm transition";
                         }
                         if (options.countdown) {
                             okBtn.disabled = true;
@@ -975,11 +993,11 @@ Object.assign(window.app, {
                         cancelBtn.innerHTML = options.btnCancelText || "Hủy bỏ";
                         cancelBtn.style.display = options.hideButtons ? 'none' : 'inline-flex';
                         if (options.isCancelDestructive) {
-                            cancelBtn.className = "mt-3 w-full inline-flex items-center justify-center rounded-full shadow-sm px-5 py-2.5 bg-red-600 text-xs font-bold text-white hover:bg-red-700 focus:outline-none sm:mt-0 sm:ml-3 sm:w-auto transition";
+                            cancelBtn.className = "mt-3 w-full inline-flex items-center justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-medium text-white hover:bg-red-700 focus:outline-none sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm transition";
                         } else if (options.isCancelPrimary) {
-                            cancelBtn.className = "mt-3 w-full inline-flex items-center justify-center rounded-full shadow-sm px-5 py-2.5 bg-black dark:bg-white text-xs font-bold text-white dark:text-black hover:bg-gray-800 dark:hover:bg-zinc-200 focus:outline-none sm:mt-0 sm:ml-3 sm:w-auto transition";
+                            cancelBtn.className = "mt-3 w-full inline-flex items-center justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-black text-base font-medium text-white hover:bg-gray-800 focus:outline-none sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm transition";
                         } else {
-                            cancelBtn.className = "mt-3 w-full inline-flex items-center justify-center rounded-full border border-gray-300 dark:border-zinc-700 shadow-sm px-5 py-2.5 bg-transparent text-xs font-bold text-gray-700 dark:text-zinc-300 hover:bg-gray-100 dark:hover:bg-zinc-800 focus:outline-none sm:mt-0 sm:ml-3 sm:w-auto transition";
+                            cancelBtn.className = "mt-3 w-full inline-flex items-center justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm transition";
                         }
                         app.alertCancelCallback = cancelCallback || (() => { });
                     } else {
@@ -1444,18 +1462,10 @@ closeCustomRolePrompt: () => {
                 lockScroll: () => {
                     document.documentElement.classList.add('no-scroll');
                     document.body.classList.add('no-scroll');
-                    if (window.AndroidBridge && typeof window.AndroidBridge.setSwipeRefreshEnabled === 'function') {
-                        window.AndroidBridge.setSwipeRefreshEnabled(false);
-                    }
-                    const bNav = document.getElementById('app-bottom-nav');
-                    if (bNav) bNav.classList.add('opacity-0', 'pointer-events-none');
                 },
                 unlockScroll: () => {
                     document.documentElement.classList.remove('no-scroll');
                     document.body.classList.remove('no-scroll');
-                    
-                    const bNav = document.getElementById('app-bottom-nav');
-                    if (bNav) bNav.classList.remove('opacity-0', 'pointer-events-none');
                 },
                 toggleUserMenu: (forceOpen = null) => {
                     const menu = document.getElementById('user-dropdown');
@@ -1633,28 +1643,6 @@ closeCustomRolePrompt: () => {
                     if (!file) return null;
                     const isHeic = /\.(heic|heif)$/i.test(file.name) || file.type === 'image/heic' || file.type === 'image/heif';
                     if (!isHeic) return file;
-
-                    // Tận dụng Hardware ImageDecoder của Android Native nếu chạy trong App
-                    if (window.AndroidBridge && typeof window.AndroidBridge.decodeHeicNative === 'function' && file.nativeUri) {
-                        try {
-                            const dataUrl = await new Promise((resolve) => {
-                                const cbName = '_onNativeHeic_' + Date.now();
-                                window[cbName] = (res) => {
-                                    delete window[cbName];
-                                    resolve(res);
-                                };
-                                window.AndroidBridge.decodeHeicNative(file.nativeUri, cbName);
-                            });
-                            if (dataUrl && dataUrl.startsWith('data:')) {
-                                const res = await fetch(dataUrl);
-                                const blob = await res.blob();
-                                return new File([blob], file.name.replace(/\.[^/.]+$/, "") + ".jpg", { type: "image/jpeg" });
-                            }
-                        } catch(nativeErr) {
-                            console.warn("Lỗi Native HEIC decoder, fallback sang JS:", nativeErr);
-                        }
-                    }
-
                     let heicBlob = null;
                     if (window.heic2any) {
                         const result = await window.heic2any({ blob: file, toType: 'image/png' });
@@ -3602,11 +3590,9 @@ cleanupState: () => {
                 const path = window.location.pathname;
                 const searchParams = new URLSearchParams(window.location.search);
                 app.currentPathForScroll = path + window.location.search;
-                if (app.bottomNav && app.bottomNav.updateActiveTab) app.bottomNav.updateActiveTab(path);
                 if (path === '/login' && searchParams.get('qr')) {
-                    const qrClient = searchParams.get('client') || '';
                     app.views.switch('home', false);
-                    setTimeout(() => app.qrLogin.initClient(searchParams.get('qr'), qrClient), 500);
+                    setTimeout(() => app.qrLogin.initClient(searchParams.get('qr')), 500);
                 } else if (path === '/auth') {
                     document.title = 'Xác thực | VNBUSARCHIVE';
                     const isRecovery = window.location.hash.includes('type=recovery') || app.auth.mode === 'recovery';
@@ -3745,21 +3731,7 @@ cleanupState: () => {
                         }
                         app.handleSearch(false);
                     } else {
-                        app.views.switch('search', false);
-                        const headerInp = document.getElementById('search-input');
-                        const pageInp = document.getElementById('page-search-input');
-                        if (headerInp) headerInp.value = '';
-                        if (pageInp) pageInp.value = '';
-                        app.currentViewMode = 'search';
-                        document.title = 'Tìm kiếm | VNBUSARCHIVE';
-                        const grid = document.getElementById('search-grid');
-                        if (grid) grid.innerHTML = '';
-                        document.getElementById('search-count-container')?.classList.add('hidden');
-                        document.getElementById('search-load-more-container')?.classList.add('hidden');
-                        setTimeout(() => {
-                            const pInp = document.getElementById('page-search-input');
-                            if (pInp) pInp.focus();
-                        }, 200);
+                        app.views.loadHome();
                     }
                 } else {
                     app.views.switch('home', false);
@@ -3805,7 +3777,7 @@ cleanupState: () => {
 
     detailMarker: null,
 
-    currentExif: { camera: 'N/A', params: 'N/A', software: '' },
+    currentExif: { camera: 'N/A', params: 'N/A' },
 
     searchTimeout: null,
 
@@ -4606,19 +4578,15 @@ cleanupState: () => {
                         if (hIcon) hIcon.classList.remove('hidden');
                     }
 dropdown.innerHTML = `
-                         <div class="p-1.5 flex flex-col gap-0.5">
-                             <a href="/profile" class="flex items-center gap-2.5 px-3.5 py-2.5 text-xs font-semibold text-gray-800 dark:text-zinc-200 hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-xl transition"><i class="fa-solid fa-address-card w-4 text-center"></i> Hồ sơ của tôi</a>
-                             <button onclick="app.settings.open()" class="w-full text-left flex items-center gap-2.5 px-3.5 py-2.5 text-xs font-semibold text-gray-800 dark:text-zinc-200 hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-xl transition"><i class="fa-solid fa-gear w-4 text-center"></i> Cài đặt</button>
-                             <a href="/help" class="flex items-center gap-2.5 px-3.5 py-2.5 text-xs font-semibold text-gray-800 dark:text-zinc-200 hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-xl transition"><i class="fa-solid fa-book-open w-4 text-center"></i> Trung tâm hỗ trợ</a>
-                             <a href="/contact" class="flex items-center gap-2.5 px-3.5 py-2.5 text-xs font-semibold text-gray-800 dark:text-zinc-200 hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-xl transition"><i class="fa-solid fa-headset w-4 text-center"></i> Liên hệ hỗ trợ</a>
-                             <div class="my-1 border-t border-gray-100 dark:border-zinc-800"></div>
-                             <button onclick="app.auth.logout()" class="w-full text-left flex items-center gap-2.5 px-3.5 py-2.5 text-xs font-semibold text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/40 rounded-xl transition"><i class="fa-solid fa-right-from-bracket w-4 text-center"></i> Đăng xuất</button>
-                         </div>
+                         <a href="/profile" class="block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 border-b border-gray-100 font-bold"><i class="fa-solid fa-address-card w-5 text-center mr-1"></i> Hồ sơ của tôi</a>
+                         <button onclick="app.settings.open()" class="w-full text-left block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 border-b border-gray-100 font-bold"><i class="fa-solid fa-gear w-5 text-center mr-1"></i> Cài đặt</button>
+                         <a href="/help" class="block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 border-b border-gray-100 font-bold"><i class="fa-solid fa-book-open w-5 text-center mr-1"></i> Trung tâm hỗ trợ</a>
+                         <a href="/contact" class="w-full text-left block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 border-b border-gray-100 font-bold"><i class="fa-solid fa-headset w-5 text-center mr-1"></i> Liên hệ hỗ trợ</a>
+                         <button onclick="app.auth.logout()" class="w-full text-left block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 font-bold"><i class="fa-solid fa-right-from-bracket w-5 text-center mr-1"></i> Đăng xuất</button>
                      `;
                     app.auth.close();
                     if (app.role === 'admin' || app.role === 'manager') {
                         document.getElementById('nav-admin').classList.remove('hidden');
-                        document.getElementById('btn-profile-admin')?.classList.remove('hidden');
                         app.admin.checkNotification();
                         if (app.role === 'manager') {
                             document.getElementById('adm-tab-manager').classList.remove('hidden');
@@ -4626,7 +4594,6 @@ dropdown.innerHTML = `
                         if (typeof app.initRealtimeChannel === 'function') app.initRealtimeChannel();
                     } else {
                         document.getElementById('nav-admin').classList.add('hidden');
-                        document.getElementById('btn-profile-admin')?.classList.add('hidden');
                         if (typeof app.initRealtimeChannel === 'function') app.initRealtimeChannel();
                     }
                 } else {
@@ -4640,17 +4607,14 @@ dropdown.innerHTML = `
                     app.avatarUrl = null;
                     app.role = 'user';
 dropdown.innerHTML = `
-                         <div class="p-1.5 flex flex-col gap-0.5">
-                             <a href="/auth" class="flex items-center gap-2.5 px-3.5 py-2.5 text-xs font-semibold text-gray-800 dark:text-zinc-200 hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-xl transition"><i class="fa-solid fa-arrow-right-to-bracket w-4 text-center"></i> Đăng nhập</a>
-                             <a href="/auth" class="flex items-center gap-2.5 px-3.5 py-2.5 text-xs font-semibold text-gray-800 dark:text-zinc-200 hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-xl transition"><i class="fa-solid fa-user-plus w-4 text-center"></i> Tạo tài khoản</a>
-                             <button onclick="app.settings.open()" class="w-full text-left flex items-center gap-2.5 px-3.5 py-2.5 text-xs font-semibold text-gray-800 dark:text-zinc-200 hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-xl transition"><i class="fa-solid fa-gear w-4 text-center"></i> Cài đặt</button>
-                             <a href="/help" class="flex items-center gap-2.5 px-3.5 py-2.5 text-xs font-semibold text-gray-800 dark:text-zinc-200 hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-xl transition"><i class="fa-solid fa-book-open w-4 text-center"></i> Trung tâm hỗ trợ</a>
-                             <a href="/contact" class="w-full text-left flex items-center gap-2.5 px-3.5 py-2.5 text-xs font-semibold text-gray-800 dark:text-zinc-200 hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-xl transition"><i class="fa-solid fa-headset w-4 text-center"></i> Liên hệ hỗ trợ</a>
-                         </div>
+                         <a href="/auth" class="w-full text-left block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 border-b border-gray-100 font-bold"><i class="fa-solid fa-arrow-right-to-bracket w-5 text-center mr-1"></i> Đăng nhập</a>
+                         <a href="/auth" class="w-full text-left block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 border-b border-gray-100 font-bold"><i class="fa-solid fa-user-plus w-5 text-center mr-1"></i> Tạo tài khoản</a>
+                         <button onclick="app.settings.open()" class="w-full text-left block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 border-b border-gray-100 font-bold"><i class="fa-solid fa-gear w-5 text-center mr-1"></i> Cài đặt</button>
+                         <a href="/help" class="block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 border-b border-gray-100 font-bold"><i class="fa-solid fa-book-open w-5 text-center mr-1"></i> Trung tâm hỗ trợ</a>
+                         <a href="/contact" class="w-full text-left block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 font-bold"><i class="fa-solid fa-headset w-5 text-center mr-1"></i> Liên hệ hỗ trợ</a>
                      `;
                 }
                 if (app.auth && app.auth.updateUUIDBox) app.auth.updateUUIDBox();
-                if (app.bottomNav && app.bottomNav.updateUserUI) app.bottomNav.updateUserUI();
             }
 });
 // UPTIME TIMER
@@ -4698,321 +4662,6 @@ if (window.app && window.app.ui && window.app.ui.initSliderEditableBadges) {
     window.app.ui.initSliderEditableBadges();
 }
 
-
-// Quản lý thanh điều hướng dưới đáy (Bottom Navigation Bar) cho ứng dụng di động Android
-Object.assign(window.app, {
-    bottomNav: {
-        init: () => {
-            const isApp = (window.AndroidBridge && typeof window.AndroidBridge.isNativeApp === 'function' && window.AndroidBridge.isNativeApp()) || window.location.search.includes('app_preview=1');
-            const nav = document.getElementById('app-bottom-nav');
-            if (nav) {
-                if (isApp) {
-                    document.documentElement.classList.add('is-native-app');
-                    document.body.classList.add('is-native-app');
-                    nav.classList.remove('hidden');
-                    app.bottomNav.updateActiveTab(window.location.pathname);
-                    app.bottomNav.updateUserUI();
-
-                    if ('virtualKeyboard' in navigator) {
-                        try { navigator.virtualKeyboard.overlaysContent = true; } catch (e) {}
-                    }
-                } else {
-                    nav.classList.add('hidden');
-                }
-            }
-
-            // Quản lý banner quảng cáo app Android trên trình duyệt web di động
-            const promoCard = document.getElementById('android-app-promo-card');
-            if (promoCard) {
-                const isAndroid = /Android/i.test(navigator.userAgent);
-                if (isAndroid && !isApp) {
-                    promoCard.classList.remove('hidden');
-                    // Chỉ lấy bản Release chính thức mới nhất (loại bỏ pre-release và draft)
-                    fetch('https://api.github.com/repos/hoyuuna/VNBUSARCHIVE/releases/latest')
-                        .then(res => {
-                            if (res.ok) return res.json();
-                            return fetch('https://api.github.com/repos/hoyuuna/VNBUSARCHIVE/releases')
-                                .then(r => r.json())
-                                .then(list => Array.isArray(list) ? (list.find(r => !r.prerelease && !r.draft) || list[0]) : null);
-                        })
-                        .then(latest => {
-                            if (latest && latest.assets) {
-                                const apkAsset = latest.assets.find(a => a.name && a.name.endsWith('.apk'));
-                                const downloadBtn = document.getElementById('android-promo-download-btn');
-                                if (downloadBtn && apkAsset && apkAsset.browser_download_url) {
-                                    downloadBtn.href = apkAsset.browser_download_url;
-                                    downloadBtn.setAttribute('download', apkAsset.name);
-                                }
-                            }
-                        })
-                        .catch(() => {});
-                } else {
-                    promoCard.classList.add('hidden');
-                }
-            }
-        },
-        updateActiveTab: (path) => {
-            const nav = document.getElementById('app-bottom-nav');
-            if (!nav || nav.classList.contains('hidden')) return;
-
-            if (path === '/auth' || path === '/login') {
-                nav.style.display = 'none';
-                return;
-            } else {
-                nav.style.display = '';
-            }
-
-            let activeTab = 'home';
-            if (path === '/' || path === '') {
-                activeTab = 'home';
-            } else if (path.startsWith('/search')) {
-                activeTab = 'search';
-            } else if (path === '/upload' || path === '/mobile-upload') {
-                activeTab = 'upload';
-            } else if (path === '/map') {
-                activeTab = 'map';
-            } else if (path === '/profile' || path === '/settings' || path === '/setting' || path === '/auth' || path.startsWith('/user/')) {
-                activeTab = 'profile';
-            } else {
-                activeTab = '';
-            }
-
-            const tabs = ['home', 'search', 'map', 'profile'];
-            tabs.forEach(t => {
-                const btn = document.getElementById('bottom-tab-' + t);
-                if (!btn) return;
-                if (t === activeTab) {
-                    btn.classList.add('text-black', 'dark:text-white');
-                    btn.classList.remove('text-gray-400', 'dark:text-zinc-500');
-                } else {
-                    btn.classList.remove('text-black', 'dark:text-white');
-                    btn.classList.add('text-gray-400', 'dark:text-zinc-500');
-                }
-            });
-            const bAvatarImg = document.getElementById('bottom-tab-avatar');
-            if (bAvatarImg) {
-                if (activeTab === 'profile') {
-                    bAvatarImg.classList.add('border-black', 'dark:border-white');
-                    bAvatarImg.classList.remove('border-gray-400', 'dark:border-zinc-600');
-                } else {
-                    bAvatarImg.classList.remove('border-black', 'dark:border-white');
-                    bAvatarImg.classList.add('border-gray-400', 'dark:border-zinc-600');
-                }
-            }
-        },
-        updateUserUI: () => {
-            const avatarImg = document.getElementById('bottom-tab-avatar');
-            const avatarIcon = document.getElementById('bottom-tab-avatar-icon');
-            const profileLabel = document.getElementById('bottom-tab-profile-label');
-            if (!profileLabel) return;
-
-            if (app.user) {
-                profileLabel.innerText = 'Cá nhân';
-                if (app.avatarUrl && avatarImg && avatarIcon) {
-                    avatarImg.src = app.utils.getProxiedUrl(app.avatarUrl.replace(/"/g, ''), 'avatar.jpg', 'avatar');
-                    avatarImg.onload = () => {
-                        avatarImg.style.display = 'block';
-                        avatarIcon.style.display = 'none';
-                    };
-                    avatarImg.onerror = () => {
-                        avatarImg.style.display = 'none';
-                        avatarIcon.style.display = 'block';
-                    };
-                    avatarImg.style.display = 'block';
-                    avatarIcon.style.display = 'none';
-                } else {
-                    if (avatarImg) avatarImg.style.display = 'none';
-                    if (avatarIcon) avatarIcon.style.display = 'block';
-                }
-            } else {
-                profileLabel.innerText = 'Đăng nhập';
-                if (avatarImg) avatarImg.style.display = 'none';
-                if (avatarIcon) avatarIcon.style.display = 'block';
-            }
-        },
-        isTargetActive: (target) => {
-            const activeSection = document.querySelector('.view-section.active')?.id;
-            const path = window.location.pathname;
-
-            if (target === 'home') {
-                return activeSection === 'home' && (path === '/' || path === '');
-            }
-            if (target === 'search') {
-                return activeSection === 'search';
-            }
-            if (target === 'upload') {
-                return activeSection === 'upload' || activeSection === 'mobile-upload';
-            }
-            if (target === 'map') {
-                return activeSection === 'map';
-            }
-            if (target === 'profile') {
-                return (activeSection === 'account' && (path === '/profile' || path === '')) || (activeSection === 'auth' && (path === '/auth' || path === '/login'));
-            }
-            return false;
-        },
-        navigate: (target) => {
-            if (app.bottomNav.isTargetActive(target)) {
-                return;
-            }
-
-            if (target === 'home') {
-                app.utils.navigate('/');
-            } else if (target === 'search') {
-                app.utils.navigate('/search');
-            } else if (target === 'upload') {
-                app.utils.navigate('/upload');
-            } else if (target === 'map') {
-                app.utils.navigate('/map');
-            } else if (target === 'profile') {
-                app.views.loadAccount();
-            }
-        }
-    }
-});
-
-document.addEventListener('DOMContentLoaded', () => {
-    if (window.app && app.bottomNav && app.bottomNav.init) {
-        app.bottomNav.init();
-    }
-    if (window.app && app.pullRefresh && app.pullRefresh.init) {
-        app.pullRefresh.init();
-    }
-});
-
-// Quản lý kéo làm mới (Pull-to-refresh) chuẩn Native App
-Object.assign(window.app, {
-    pullRefresh: {
-        startY: 0,
-        threshold: 380,
-        hapticFired: false,
-        enabled: true,
-        setEnabled: (val) => {
-            app.pullRefresh.enabled = !!val;
-            if (!app.pullRefresh.enabled) {
-                const badge = document.getElementById('app-pull-refresh-badge');
-                if (badge) badge.classList.add('opacity-0');
-            }
-        },
-        init: () => {
-            const isApp = (window.AndroidBridge && typeof window.AndroidBridge.isNativeApp === 'function' && window.AndroidBridge.isNativeApp()) || window.location.search.includes('app_preview=1');
-            if (!isApp) return;
-
-            if (window.AndroidBridge && typeof window.AndroidBridge.setSwipeRefreshEnabled === 'function') {
-                window.AndroidBridge.setSwipeRefreshEnabled(false);
-            }
-
-            const badge = document.getElementById('app-pull-refresh-badge');
-            const icon = document.getElementById('app-pull-refresh-icon');
-            const text = document.getElementById('app-pull-refresh-text');
-            const inner = document.getElementById('app-pull-refresh-inner');
-            if (!badge) return;
-
-            let canPull = false;
-            let triggered = false;
-
-            window.addEventListener('touchstart', (e) => {
-                if (!app.pullRefresh.enabled) {
-                    canPull = false;
-                    return;
-                }
-                if (document.body.classList.contains('no-scroll')) {
-                    canPull = false;
-                    return;
-                }
-                // Không kích hoạt khi chạm vào map, ô nhập hoặc phần tử tương tác
-                if (e.target && e.target.closest('#leaflet-map, .leaflet-container, input, textarea, select, .no-pull-refresh')) {
-                    canPull = false;
-                    return;
-                }
-                const sY = window.scrollY || document.documentElement.scrollTop || 0;
-                // CHỈ kích hoạt khi đang ở chính xác đầu trang (sY <= 0) và bắt đầu kéo ở 35% phía trên của màn hình
-                if (sY <= 0 && e.touches[0].clientY <= window.innerHeight * 0.35) {
-                    canPull = true;
-                    triggered = false;
-                    app.pullRefresh.startY = e.touches[0].clientY;
-                } else {
-                    canPull = false;
-                }
-            }, { passive: true });
-
-            window.addEventListener('touchmove', (e) => {
-                if (!canPull || triggered || !app.pullRefresh.enabled) return;
-                const sY = window.scrollY || document.documentElement.scrollTop || 0;
-                // Nếu trang bị cuộn xuống (sY > 0), lập tức hủy trạng thái kéo làm mới
-                if (sY > 0) {
-                    canPull = false;
-                    badge.classList.add('opacity-0');
-                    return;
-                }
-
-                const touchY = e.touches[0].clientY;
-                const diff = touchY - app.pullRefresh.startY;
-
-                if (diff > 35) {
-                    badge.classList.remove('opacity-0');
-                    if (diff >= app.pullRefresh.threshold) {
-                        text.innerText = "Thả tay để làm mới";
-                        if (icon) icon.className = "fa-solid fa-arrow-up text-xs";
-                        if (inner) {
-                            inner.classList.add('bg-black', 'text-white', 'dark:bg-white', 'dark:text-black');
-                            inner.classList.remove('bg-white', 'text-black', 'dark:bg-black', 'dark:text-white');
-                        }
-                        if (!app.pullRefresh.hapticFired && navigator.vibrate) {
-                            navigator.vibrate(15);
-                            app.pullRefresh.hapticFired = true;
-                        }
-                    } else {
-                        text.innerText = "Kéo xuống để làm mới";
-                        if (icon) icon.className = "fa-solid fa-arrow-down text-xs";
-                        if (inner) {
-                            inner.classList.remove('bg-black', 'text-white', 'dark:bg-white', 'dark:text-black');
-                            inner.classList.add('bg-white', 'text-black', 'dark:bg-black', 'dark:text-white');
-                        }
-                        app.pullRefresh.hapticFired = false;
-                    }
-                } else if (diff <= 20) {
-                    badge.classList.add('opacity-0');
-                }
-            }, { passive: true });
-
-            window.addEventListener('touchend', (e) => {
-                if (!canPull || !app.pullRefresh.enabled) return;
-                const touchY = e.changedTouches[0].clientY;
-                const diff = touchY - app.pullRefresh.startY;
-                canPull = false;
-                app.pullRefresh.hapticFired = false;
-
-                if (diff >= app.pullRefresh.threshold && !triggered) {
-                    triggered = true;
-                    text.innerText = "Đang làm mới...";
-                    if (icon) icon.className = "fa-solid fa-circle-notch fa-spin text-xs";
-                    if (inner) {
-                        inner.classList.add('bg-black', 'text-white', 'dark:bg-white', 'dark:text-black');
-                        inner.classList.remove('bg-white', 'text-black', 'dark:bg-black', 'dark:text-white');
-                    }
-                    if (app.loadingBar && app.loadingBar.start) {
-                        app.loadingBar.start();
-                    }
-                    try {
-                        sessionStorage.setItem('vnbus_is_refreshing', '1');
-                    } catch (e) {}
-                    setTimeout(() => {
-                        window.location.reload();
-                    }, 200);
-                } else {
-                    badge.classList.add('opacity-0');
-                }
-            }, { passive: true });
-        }
-    }
-});
-
-// Khởi chạy ngay nếu DOM đã sẵn sàng
-if (document.readyState === 'complete' || document.readyState === 'interactive') {
-    if (window.app && app.bottomNav && app.bottomNav.init) app.bottomNav.init();
-    if (window.app && app.pullRefresh && app.pullRefresh.init) app.pullRefresh.init();
-}
 
 /* --- MODULE: 01_router.js --- */
 // Capture URL params BEFORE Supabase SDK clears them (PKCE flow removes token_hash after exchange)
@@ -5112,15 +4761,6 @@ Object.assign(window.app, {
                         else if (event === 'SIGNED_IN') {
                             if (session && session.user) {
                                 await app.setUser(session.user);
-                            }
-                            const pendingQr = sessionStorage.getItem('pending_qr_login');
-                            const pendingClient = sessionStorage.getItem('pending_qr_client') || '';
-                            if (pendingQr) {
-                                sessionStorage.removeItem('pending_qr_login');
-                                sessionStorage.removeItem('pending_qr_client');
-                                app.views.switch('home', false);
-                                setTimeout(() => app.qrLogin.initClient(pendingQr, pendingClient), 500);
-                                return;
                             }
                             const hash = window.INITIAL_HASH || window.location.hash;
                             const searchType = new URLSearchParams(window.INITIAL_SEARCH || window.location.search).get('type');
@@ -5470,6 +5110,7 @@ Object.assign(window.app, {
 
 
 /* --- MODULE: 02_settings.js --- */
+
 Object.assign(window.app, {
     notifications: { init: ()=>{}, add: async ()=>{} },
 
@@ -5557,18 +5198,6 @@ Object.assign(window.app, {
                     app.ui.toggleUserMenu(false);
                     app.settings.closeAccountMenu(true);
                     if (targetParent === 'account') app.settings.openAccountMenu();
-
-                    // Kích hoạt các nút chỉ dành riêng cho app Android
-                    if (window.AndroidBridge && typeof window.AndroidBridge.isNativeApp === 'function' && window.AndroidBridge.isNativeApp()) {
-                        document.querySelectorAll('.app-only-btn').forEach(el => el.classList.remove('hidden'));
-                        const pendingTab = window.AndroidBridge.getPendingOpenTab ? window.AndroidBridge.getPendingOpenTab() : '';
-                        if (pendingTab === 'app' && !targetTab) {
-                            targetTab = 'app';
-                        }
-                        if (app.androidUpdate) {
-                            app.androidUpdate.loadUI();
-                        }
-                    }
                     if (app.user) {
                         document.querySelectorAll('.account-only-btn').forEach(el => el.style.display = '');
                         if (app.user.email) {
@@ -5617,7 +5246,7 @@ Object.assign(window.app, {
                     }, 200);
                 },
                 switchTab: (tab) => {
-                    const tabs = ['blank', 'profile', 'security', 'links', 'badges', 'preference', 'app'];
+                    const tabs = ['blank', 'profile', 'security', 'links', 'badges', 'preference'];
                     const activeClasses = ['bg-black', 'text-white', 'border-black', 'shadow-sm'];
                     const inactiveClasses = ['bg-white', 'text-gray-600', 'hover:bg-gray-50', 'border-gray-200'];
                     tabs.forEach(t => {
@@ -5647,9 +5276,6 @@ Object.assign(window.app, {
                     if (tab === 'badges') {
                         app.settings.loadBadges();
                         app.settings.loadWebBadges();
-                    }
-                    if (tab === 'app' && app.androidUpdate) {
-                        app.androidUpdate.loadUI();
                     }
                 },
                 loadDiscordVerifyStatus: async () => {
@@ -6028,261 +5654,10 @@ grid.innerHTML = tiers.map(tier => {
 
 });
 
-// Quản lý cập nhật và thiết lập ứng dụng Android
-Object.assign(window.app, {
-    androidUpdate: {
-        loadUI: () => {
-            if (!window.AndroidBridge || typeof window.AndroidBridge.isNativeApp !== 'function' || !window.AndroidBridge.isNativeApp()) return;
-            const verEl = document.getElementById('app-current-version');
-            if (verEl && window.AndroidBridge.getAppVersion) {
-                const v = window.AndroidBridge.getAppVersion();
-                if (v && v !== '--') {
-                    verEl.innerText = v.startsWith('v') ? v : ('v' + v);
-                }
-            }
-            try {
-                if (window.AndroidBridge.getUpdatePreferences) {
-                    const prefs = JSON.parse(window.AndroidBridge.getUpdatePreferences());
-                    const autoCheck = document.getElementById('app-toggle-auto-check');
-                    const prerelease = document.getElementById('app-toggle-prerelease');
-                    if (autoCheck) autoCheck.checked = prefs.autoCheck !== false;
-                    if (prerelease) prerelease.checked = prefs.includePrerelease === true;
-                }
-            } catch (e) {
-                console.warn('Lỗi đọc cấu hình cập nhật Android:', e);
-            }
-        },
-        savePrefs: () => {
-            if (!window.AndroidBridge || !window.AndroidBridge.setUpdatePreferences) return;
-            const autoCheck = document.getElementById('app-toggle-auto-check')?.checked !== false;
-            const prerelease = document.getElementById('app-toggle-prerelease')?.checked === true;
-            window.AndroidBridge.setUpdatePreferences(prerelease, autoCheck);
-        },
-        check: (manual = false) => {
-            if (!window.AndroidBridge || !window.AndroidBridge.checkUpdate) {
-                return app.ui.showAlert('Chức năng này chỉ khả dụng trên ứng dụng VNBUSARCHIVE Android.');
-            }
-            app.androidUpdate.loadUI();
-            const btn = document.getElementById('app-check-update-btn');
-            const box = document.getElementById('app-update-result-box');
-            if (btn) {
-                btn.disabled = true;
-                btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1"></i> Đang kiểm tra...';
-            }
-            if (box) {
-                box.classList.remove('hidden');
-                box.innerHTML = '<div class="flex items-center gap-2 text-gray-500"><i class="fa-solid fa-circle-notch fa-spin"></i> Đang kết nối tới máy chủ GitHub...</div>';
-            }
-
-            window._onAndroidUpdateResult = (rawPayload, isBase64) => {
-                if (btn) {
-                    btn.disabled = false;
-                    btn.innerHTML = '<i class="fa-solid fa-rotate mr-1"></i> Kiểm tra cập nhật';
-                }
-                let data;
-                try {
-                    if (isBase64 || (typeof rawPayload === 'string' && !rawPayload.trim().startsWith('{'))) {
-                        const binaryString = atob(rawPayload);
-                        const bytes = new Uint8Array(binaryString.length);
-                        for (let i = 0; i < binaryString.length; i++) {
-                            bytes[i] = binaryString.charCodeAt(i);
-                        }
-                        const jsonText = new TextDecoder('utf-8').decode(bytes);
-                        data = JSON.parse(jsonText);
-                    } else {
-                        data = typeof rawPayload === 'string' ? JSON.parse(rawPayload) : rawPayload;
-                    }
-                } catch (err) {
-                    if (box) box.innerHTML = `<div class="text-red-500 font-bold">Lỗi xử lý dữ liệu: ${app.utils.escapeHtml(err.message)}</div>`;
-                    return;
-                }
-
-                // Cập nhật số phiên bản hiện tại lên badge thông tin ứng dụng
-                const verEl = document.getElementById('app-current-version');
-                if (verEl && data.currentVersion) {
-                    verEl.innerText = data.currentVersion.startsWith('v') ? data.currentVersion : ('v' + data.currentVersion);
-                }
-
-                if (data.hasUpdate) {
-                    const tag = app.utils.escapeHtml(data.latestVersion);
-                    const isPre = data.isPrerelease ? '<span class="ml-2 text-[10px] font-bold px-1.5 py-0.5 rounded bg-yellow-100 text-yellow-800 border border-yellow-300">THỬ NGHIỆM</span>' : '';
-                    box.innerHTML = `
-                        <div class="space-y-3">
-                            <div class="flex flex-wrap items-center justify-between gap-2">
-                                <span class="font-bold text-black dark:text-white flex items-center text-xs sm:text-sm">
-                                    <i class="fa-solid fa-sparkles text-yellow-500 mr-2"></i> Có bản cập nhật mới: v${tag}${isPre}
-                                </span>
-                                <span class="text-[10px] text-gray-500 font-mono">Phiên bản hiện tại: v${app.utils.escapeHtml(data.currentVersion || '')}</span>
-                            </div>
-                            <div class="text-[11px] text-gray-700 dark:text-zinc-300 leading-relaxed max-h-36 overflow-y-auto whitespace-pre-wrap font-mono p-3 bg-white dark:bg-black rounded-md border border-black dark:border-white">
-${app.utils.escapeHtml(data.notes || 'Không có mô tả cập nhật.')}
-                            </div>
-                            <div class="pt-1">
-                                <button onclick="app.androidUpdate.startDownload('${data.downloadUrl}')" class="w-full sm:w-auto bg-black text-white dark:bg-white dark:text-black px-5 py-2.5 text-xs font-bold rounded-md hover:bg-gray-800 dark:hover:bg-zinc-200 transition shadow-sm flex items-center justify-center gap-2">
-                                    <i class="fa-solid fa-download"></i> Tải về & Cập nhật ngay
-                                </button>
-                            </div>
-                        </div>
-                    `;
-                } else {
-                    box.innerHTML = `
-                        <div class="flex items-center gap-2 text-green-700 font-bold">
-                            <i class="fa-solid fa-circle-check text-green-600"></i> Bạn đang sử dụng phiên bản mới nhất (v${app.utils.escapeHtml(data.latestVersion)}).
-                        </div>
-                    `;
-                }
-            };
-
-            window.AndroidBridge.checkUpdate('window._onAndroidUpdateResult');
-        },
-        startDownload: (url) => {
-            if (!url) return app.ui.showAlert('Không tìm thấy link tải file APK cho phiên bản này.');
-            const box = document.getElementById('app-update-result-box');
-            if (box) {
-                box.innerHTML = `
-                    <div class="space-y-2">
-                        <div class="flex items-center justify-between font-bold text-xs text-black dark:text-white">
-                            <span><i class="fa-solid fa-spinner fa-spin mr-1"></i> Đang tải bản cập nhật...</span>
-                            <span id="app-update-percent">0%</span>
-                        </div>
-                        <div class="w-full bg-gray-200 dark:bg-zinc-700 rounded-full h-2 overflow-hidden">
-                            <div id="app-update-bar" class="bg-black dark:bg-white h-2 transition-all duration-200" style="width: 0%"></div>
-                        </div>
-                        <p class="text-[10px] text-gray-500">File APK sau khi tải xong sẽ tự động mở màn hình xác nhận cài đặt đè.</p>
-                    </div>
-                `;
-            }
-
-            window._onAndroidDownloadProgress = (percent) => {
-                const pEl = document.getElementById('app-update-percent');
-                const bEl = document.getElementById('app-update-bar');
-                if (pEl) pEl.innerText = percent + '%';
-                if (bEl) bEl.style.width = percent + '%';
-            };
-
-            window.AndroidBridge.startUpdateDownload(url, 'window._onAndroidDownloadProgress');
-        }
-    }
-});
-
 /* --- MODULE: 03_auth.js --- */
 
 Object.assign(window.app, {
     auth: {
-        appWebPeer: null,
-        appWebConn: null,
-        currentAppWebLoginUrl: null,
-        updateNativeAppAuthUI: () => {
-            const isApp = window.AndroidBridge && typeof window.AndroidBridge.isNativeApp === 'function' && window.AndroidBridge.isNativeApp();
-            const appView = document.getElementById('auth-app-view');
-            const webView = document.getElementById('auth-web-view');
-            if (appView && webView) {
-                if (isApp) {
-                    appView.classList.remove('hidden');
-                    webView.classList.add('hidden');
-                } else {
-                    appView.classList.add('hidden');
-                    webView.classList.remove('hidden');
-                }
-            }
-        },
-        startAppWebLogin: () => {
-            const idleEl = document.getElementById('app-web-login-idle');
-            const waitEl = document.getElementById('app-web-login-waiting');
-            const statusText = document.getElementById('app-web-login-status-text');
-            if (idleEl) idleEl.classList.add('hidden');
-            if (waitEl) waitEl.classList.remove('hidden');
-            if (statusText) statusText.innerText = "Đang tạo phiên kết nối...";
-
-            if (app.auth.appWebPeer) {
-                try { app.auth.appWebPeer.destroy(); } catch(e){}
-                app.auth.appWebPeer = null;
-            }
-            app.auth.appWebPeer = new Peer();
-            app.auth.appWebPeer.on('open', (id) => {
-                const loginUrl = window.location.origin + '/login?qr=' + id + '&client=android_app';
-                app.auth.currentAppWebLoginUrl = loginUrl;
-                if (window.AndroidBridge && typeof window.AndroidBridge.openExternalBrowser === 'function') {
-                    window.AndroidBridge.openExternalBrowser(loginUrl);
-                } else {
-                    window.open(loginUrl, '_blank');
-                }
-                if (statusText) statusText.innerText = 'Đã mở trình duyệt web. Đang chờ bạn xác nhận...';
-            });
-            app.auth.appWebPeer.on('connection', (conn) => {
-                app.auth.appWebConn = conn;
-                conn.on('open', () => {
-                    conn.send({ type: 'host_info', userAgent: 'VNBUSARCHIVE Android App' });
-                });
-                conn.on('data', async (data) => {
-                    if (data.type === 'login_token') {
-                        if (statusText) statusText.innerText = 'Xác thực thành công! Đang đăng nhập...';
-                        try {
-                            const { data: sessData, error: sessErr } = await window.sb.auth.setSession({
-                                access_token: data.access_token,
-                                refresh_token: data.refresh_token
-                            });
-                            if (sessErr) throw sessErr;
-                            conn.send({ type: 'success' });
-                            setTimeout(() => {
-                                window.location.href = '/';
-                            }, 600);
-                        } catch(err) {
-                            try {
-                                const projectUrl = window.sb?.supabaseUrl || '';
-                                const ref = projectUrl.split('//')[1]?.split('.')[0] || 'auth';
-                                const storageKey = 'sb-' + ref + '-auth-token';
-                                localStorage.setItem(storageKey, JSON.stringify({
-                                    access_token: data.access_token,
-                                    refresh_token: data.refresh_token,
-                                    token_type: 'bearer',
-                                    user: data.user || null
-                                }));
-                                conn.send({ type: 'success' });
-                                setTimeout(() => {
-                                    window.location.href = '/';
-                                }, 600);
-                                return;
-                            } catch (fbErr) {}
-                            app.ui.showAlert('Lỗi khi thiết lập phiên đăng nhập: ' + (err.message || err));
-                            app.auth.cancelAppWebLogin();
-                        }
-                    } else if (data.type === 'cancel') {
-                        app.ui.showAlert('Yêu cầu đăng nhập đã bị hủy từ trình duyệt.');
-                        app.auth.cancelAppWebLogin();
-                    }
-                });
-            });
-            app.auth.appWebPeer.on('error', (err) => {
-                console.error('App Web Login Peer error:', err);
-                if (statusText) statusText.innerText = 'Lỗi kết nối phiên đăng nhập: ' + (err.message || err);
-            });
-        },
-        reopenAppWebBrowser: () => {
-            if (app.auth.currentAppWebLoginUrl) {
-                if (window.AndroidBridge && typeof window.AndroidBridge.openExternalBrowser === 'function') {
-                    window.AndroidBridge.openExternalBrowser(app.auth.currentAppWebLoginUrl);
-                } else {
-                    window.open(app.auth.currentAppWebLoginUrl, '_blank');
-                }
-            } else {
-                app.auth.startAppWebLogin();
-            }
-        },
-        cancelAppWebLogin: () => {
-            if (app.auth.appWebConn) {
-                try { app.auth.appWebConn.close(); } catch(e){}
-                app.auth.appWebConn = null;
-            }
-            if (app.auth.appWebPeer) {
-                try { app.auth.appWebPeer.destroy(); } catch(e){}
-                app.auth.appWebPeer = null;
-            }
-            const idleEl = document.getElementById('app-web-login-idle');
-            const waitEl = document.getElementById('app-web-login-waiting');
-            if (idleEl) idleEl.classList.remove('hidden');
-            if (waitEl) waitEl.classList.add('hidden');
-        },
                 mode: 'login',
                 uuidTimeout: null,
                 unverifiedEmail: null,
@@ -7172,18 +6547,14 @@ changePassword: async () => {
                 document.getElementById('qr-login-host-modal').classList.add('hidden');
                 app.ui.unlockScroll();
             },
-            initClient: async (hostId, clientType = '') => {
+            initClient: async (hostId) => {
                 app.qrLogin.isSuccess = false;
-                const searchClient = new URLSearchParams(window.location.search).get('client') || clientType || '';
                 if (!app.user) {
-                    sessionStorage.setItem('pending_qr_login', hostId);
-                    if (searchClient) sessionStorage.setItem('pending_qr_client', searchClient);
-                    app.ui.showAlert("Bạn cần đăng nhập vào tài khoản trên trình duyệt trước khi cấp quyền cho ứng dụng.", () => {
+                    app.ui.showAlert("Bạn chưa đăng nhập! Vui lòng đăng nhập trên điện thoại này trước khi quét mã QR.", () => {
                         app.utils.navigate('/auth');
                     });
                     return;
                 }
-                app.qrLogin.currentClientType = searchClient;
                 try {
                     window.history.replaceState(null, null, '/');
                 } catch(e){}
@@ -7192,14 +6563,6 @@ changePassword: async () => {
                 const btnConfirm = document.getElementById('qr-confirm-btn');
                 const avatarImg = document.getElementById('qr-confirm-avatar');
                 const deviceText = document.getElementById('qr-confirm-device');
-                const appHint = document.getElementById('qr-confirm-app-hint');
-                if (appHint) {
-                    if (searchClient === 'android_app') {
-                        appHint.classList.remove('hidden');
-                    } else {
-                        appHint.classList.add('hidden');
-                    }
-                }
                 btnConfirm.disabled = true;
                 btnConfirm.classList.add('opacity-50', 'cursor-not-allowed');
                 let timeLeft = 3;
@@ -7259,22 +6622,12 @@ changePassword: async () => {
                         if (data.type === 'host_info') {
                             deviceText.innerText = data.userAgent || 'Trình duyệt không xác định';
                             deviceText.className = "text-[10px] font-mono text-gray-800 break-words leading-tight mt-0.5";
-                            if (data.userAgent && data.userAgent.includes('Android App')) {
-                                app.qrLogin.currentClientType = 'android_app';
-                                const appHintEl = document.getElementById('qr-confirm-app-hint');
-                                if (appHintEl) appHintEl.classList.remove('hidden');
-                            }
                         }
                         else if (data.type === 'success') {
                             app.qrLogin.isSuccess = true;
-                            const isTargetApp = app.qrLogin.currentClientType === 'android_app' || (deviceText.innerText && deviceText.innerText.includes('Android App'));
-                            const appNotice = isTargetApp 
-                                ? '<div class="bg-amber-50 border border-amber-200 p-2.5 rounded-md mb-2 text-left"><p class="text-[11px] text-amber-900 font-semibold m-0"><i class="fa-solid fa-mobile-screen-button mr-1 text-amber-600"></i> Sau khi xác nhận xong, vui lòng <b>mở hoặc quay lại app VNBUSARCHIVE</b> để ứng dụng hoàn tất nhận phiên đăng nhập.</p></div>'
-                                : '';
                             app.ui.showAlert(
                                 '<div class="text-left">' +
                                     '<p class="text-sm font-bold text-green-600 mb-2"><i class="fa-solid fa-check-circle mr-1"></i> Đăng nhập thành công!</p>' +
-                                    appNotice +
                                     '<p class="text-xs text-gray-700 mb-2">Thiết bị yêu cầu đã được cấp quyền truy cập hệ thống.</p>' +
                                     '<div class="bg-gray-50 border border-gray-200 p-3 rounded-md mt-3 shadow-sm">' +
                                         '<p class="text-[10.5px] text-gray-600 font-medium leading-relaxed m-0">' +
@@ -7640,20 +6993,6 @@ changePassword: async () => {
             }
 });
 
-window.addEventListener('auth-opened', () => {
-    if (window.app && app.auth && app.auth.updateNativeAppAuthUI) {
-        app.auth.updateNativeAppAuthUI();
-    }
-});
-document.addEventListener('DOMContentLoaded', () => {
-    if (window.app && app.auth && app.auth.updateNativeAppAuthUI) {
-        app.auth.updateNativeAppAuthUI();
-    }
-    if (window.app && app.androidUpdate) {
-        app.androidUpdate.loadUI();
-    }
-});
-
 /* --- MODULE: page_feed.js --- */
 Object.assign(window.app, {
     views: {
@@ -7740,9 +7079,6 @@ Object.assign(window.app, {
                     if (id === 'auth') {
                         window.dispatchEvent(new CustomEvent('auth-opened'));
                         app.utils.resetTurnstile('#auth .cf-turnstile');
-                        if (app.auth && app.auth.updateNativeAppAuthUI) {
-                            app.auth.updateNativeAppAuthUI();
-                        }
                     }
                     const searchBox = document.getElementById('header-search-box');
                     const headerSpacer = document.getElementById('header-spacer');
@@ -7751,33 +7087,19 @@ Object.assign(window.app, {
                     if (id === 'auth') {
                         if (mainHeader) mainHeader.style.display = 'none';
                         if (headerSpacer) headerSpacer.style.display = 'none';
-                        const bNav = document.getElementById('app-bottom-nav');
-                        if (bNav) bNav.style.display = 'none';
                     } else {
-                        if (mainHeader) { mainHeader.style.display = ''; mainHeader.style.transform = 'translateY(0)'; }
+                        if (mainHeader) { mainHeader.style.display = ''; mainHeader.style.transform = 'translateY(0)'; mainHeader.classList.remove('header-droplet-hidden', 'header-droplet-visible'); }
                         if (headerSpacer) headerSpacer.style.display = '';
-                        const bNav = document.getElementById('app-bottom-nav');
-                        const isApp = (window.AndroidBridge && typeof window.AndroidBridge.isNativeApp === 'function' && window.AndroidBridge.isNativeApp()) || window.location.search.includes('app_preview=1');
-                        if (bNav && isApp && !app._bottomNavHiddenByPage) bNav.style.display = '';
                         
                         const footer = document.querySelector('footer');
                         if (footer) {
                             if (id === 'map') {
                                 footer.parentElement.style.display = 'none';
                                 document.body.style.overflow = 'hidden';
-                                if (app.map && typeof app.map.startLocation === 'function') {
-                                    app.map.startLocation();
-                                }
                             } else {
                                 footer.parentElement.style.display = '';
                                 document.body.style.overflow = '';
-                                if (app.map && typeof app.map.stopLocation === 'function') {
-                                    app.map.stopLocation();
-                                }
                             }
-                        }
-                        if (app.pullRefresh && typeof app.pullRefresh.setEnabled === 'function') {
-                            app.pullRefresh.setEnabled(id !== 'map');
                         }
                         
                         if (['upload', 'search', 'mobile-upload', 'map', 'support-us'].includes(id)) {
@@ -7815,35 +7137,33 @@ Object.assign(window.app, {
                     const currentId = document.querySelector('.view-section.active')?.id || 'home';
                     const currentDepth = depths[currentId] || 0;
                     const targetDepth = depths[id] || 0;
-                    const isNative = document.body.classList.contains('is-native-app') || (window.AndroidBridge && typeof window.AndroidBridge.isNativeApp === 'function' && window.AndroidBridge.isNativeApp());
-                    let animationClass = isNative ? '' : 'slide-in-right'; 
+                    let animationClass = 'slide-in-right'; 
                     if (targetDepth < currentDepth) {
-                        animationClass = isNative ? '' : 'slide-in-left';  
+                        animationClass = 'slide-in-left';  
                     } else if (targetDepth === currentDepth) {
-                        animationClass = isNative ? '' : 'fade-zoom-in-page'; 
-                    }
-                    const targetEl = document.getElementById(id);
-                    if (targetEl) {
-                        targetEl.classList.add('active');
-                        if (animationClass && app._initialLoadingDismissed) {
-                            targetEl.classList.add(animationClass);
-                            targetEl.onanimationend = () => {
-                                targetEl.classList.remove(animationClass);
-                                targetEl.onanimationend = null;
-                            };
-                        }
-                        if (app.transitionHeaderLogo) app.transitionHeaderLogo();
+                        animationClass = 'fade-zoom-in-page'; 
                     }
                     document.querySelectorAll('.view-section').forEach(el => {
-                        if (el !== targetEl) {
-                            el.classList.remove('active', 'slide-in-right', 'slide-in-left', 'fade-zoom-in-page');
-                        }
+                        el.classList.remove('active', 'slide-in-right', 'slide-in-left', 'fade-zoom-in-page');
                     });
                     const targetPath = window.location.pathname + window.location.search;
                     if (app.scrollPositions && app.scrollPositions[targetPath] !== undefined) {
                         window.scrollTo(0, app.scrollPositions[targetPath]);
                     } else {
                         window.scrollTo(0, 0);
+                    }
+                    const targetEl = document.getElementById(id);
+                    if (targetEl) {
+                        if (!app._initialLoadingDismissed) {
+                            targetEl.classList.add('active');
+                        } else {
+                            targetEl.classList.add('active', animationClass);
+                            targetEl.onanimationend = () => {
+                                targetEl.classList.remove(animationClass);
+                                targetEl.onanimationend = null;
+                            };
+                            if (app.transitionHeaderLogo) app.transitionHeaderLogo();
+                        }
                     }
                     if (app.utils && app.utils.updateCanonical) app.utils.updateCanonical();
                     if (app.dismissInitialLoadingScreen) app.dismissInitialLoadingScreen();
@@ -7929,7 +7249,7 @@ Object.assign(window.app, {
                         // If route is "Dừng hoạt động", always show "Dừng hoạt động" for operator name
                         let safeMainOperator = app.utils.cleanText(main.operator || 'Đang cập nhật');
                         if (main.route_no && main.route_no.trim() === 'Dừng hoạt động') safeMainOperator = 'Dừng hoạt động';
-                        heroMain.className = "img-wrapper w-full md:w-3/5 relative group cursor-pointer bg-gray-100 dark:bg-zinc-800 rounded-xl overflow-hidden shadow-md hover:shadow-xl hover:-translate-y-1 transition-all duration-300";
+                        heroMain.className = "img-wrapper w-full md:w-3/5 relative group cursor-pointer bg-gray-100 rounded-md overflow-hidden border border-gray-200 hover:-translate-y-1 hover:shadow-lg transition-all duration-300";
                         heroMain.innerHTML = `
                             <div class="img-spinner absolute inset-0 flex items-center justify-center text-gray-400 z-0">
                                 <i class="fa-solid fa-circle-notch fa-spin text-3xl"></i>
@@ -7937,11 +7257,9 @@ Object.assign(window.app, {
                             <img loading="lazy" decoding="async" src="${app.utils.getProxiedUrl(main.url, 'main.jpg', 'full')}"
                                  onload="app.utils.handleImgLoad(this)"
                                  onerror="app.utils.fallbackHeroImage(this, 'topPhotosCache', 0)"
-                                 class="absolute inset-0 w-full h-full object-cover object-center block transition-transform duration-700 hover:scale-105 opacity-0 z-10">
-                            <div class="absolute bottom-0 left-0 w-full bg-gradient-to-t from-black/85 via-black/40 to-transparent p-5 pt-16 pointer-events-none z-20 flex flex-col gap-1.5" style="z-index: 20;">
-                                <div class="pointer-events-auto">
-                                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-mono font-bold bg-white text-black shadow-md tracking-wider">${safeMainPlate}</span>
-                                </div>
+                                 class="absolute inset-0 w-full h-full object-cover object-center block transition-all duration-700 opacity-0 z-10">
+                            <div class="absolute bottom-0 left-0 w-full bg-gradient-to-t from-black/85 via-black/50 to-transparent p-4 pt-14 pointer-events-none z-20 flex flex-col gap-1" style="z-index: 20;">
+                                <p class="text-white font-bold text-xl tracking-tight hero-main-text pointer-events-auto leading-tight truncate" style="text-shadow: 0 2px 4px rgba(0,0,0,0.95);">${safeMainPlate}</p>
                                 <p class="text-white text-xs hero-main-views pointer-events-auto truncate leading-tight font-medium" style="text-shadow: 0 1px 3px rgba(0,0,0,0.95);">${safeMainOperator}</p>
                             </div>
                         `;
@@ -7954,24 +7272,22 @@ Object.assign(window.app, {
                             let safeSubOperator = app.utils.cleanText(p.operator || 'Đang cập nhật');
                             if (p.route_no && p.route_no.trim() === 'Dừng hoạt động') safeSubOperator = 'Dừng hoạt động';
                             heroSub.innerHTML += `
-                                <div class="img-wrapper relative group cursor-pointer h-[196px] bg-gray-100 dark:bg-zinc-800 rounded-xl overflow-hidden shadow-md hover:shadow-xl hover:-translate-y-1 transition-all duration-300" onclick="app.views.loadDetail(${p.id})">
+                                <div class="img-wrapper relative group cursor-pointer h-[196px] bg-gray-100 rounded-md overflow-hidden border border-gray-200 hover:-translate-y-1 hover:shadow-lg transition-all duration-300" onclick="app.views.loadDetail(${p.id})">
                                     <div class="img-spinner absolute inset-0 flex items-center justify-center text-gray-400 z-0">
                                         <i class="fa-solid fa-circle-notch fa-spin text-2xl"></i>
                                     </div>
                                     <img loading="lazy" decoding="async" src="${app.utils.getProxiedUrl(p.url, 'sub.jpg', 'thumb')}"
                                          onload="app.utils.handleImgLoad(this)"
                                          onerror="app.utils.fallbackHeroImage(this, 'topPhotosCache', ${i})"
-                                         class="absolute inset-0 w-full h-full object-cover transition-transform duration-500 hover:scale-105 opacity-0 z-10">
-                                    <div class="absolute bottom-0 left-0 w-full bg-gradient-to-t from-black/85 via-black/40 to-transparent p-3 pt-10 pointer-events-none z-20 flex flex-col gap-1" style="z-index: 20;">
-                                        <div class="pointer-events-auto">
-                                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-mono font-bold bg-white text-black shadow-sm tracking-wider leading-none">${safeSubPlate}</span>
-                                        </div>
+                                         class="absolute inset-0 w-full h-full object-cover transition-all duration-500 opacity-0 z-10">
+                                    <div class="absolute bottom-0 left-0 w-full bg-gradient-to-t from-black/85 via-black/40 to-transparent p-2.5 pt-8 pointer-events-none z-20 flex flex-col gap-0.5" style="z-index: 20;">
+                                        <p class="text-white font-bold text-xs tracking-tight truncate leading-none hero-sub-text" style="text-shadow: 0 1px 3px rgba(0,0,0,0.95);">${safeSubPlate}</p>
                                         <p class="text-white text-[11px] truncate leading-none font-medium hero-sub-operator" style="text-shadow: 0 1px 3px rgba(0,0,0,0.95);">${safeSubOperator}</p>
                                     </div>
                                 </div>`;
                         }
                     } else {
-                        heroMain.className = "w-full md:w-3/5 relative group cursor-pointer bg-gray-100 dark:bg-zinc-800 rounded-2xl overflow-hidden shadow-sm";
+                        heroMain.className = "w-full md:w-3/5 relative group cursor-pointer bg-gray-100 rounded-md overflow-hidden border border-gray-200";
                         heroMain.innerHTML = '<div class="w-full flex items-center justify-center text-gray-400" style="min-height: 404px;">Chưa có dữ liệu nổi bật</div>';
                         heroSub.innerHTML = '';
                     }
@@ -7998,7 +7314,7 @@ Object.assign(window.app, {
                     if (app.homeTotalPages > 1) {
                         const btnContainer = document.getElementById('load-more-container');
                         btnContainer.classList.remove('hidden');
-                        btnContainer.innerHTML = `<button id="btn-home-load-more" onclick="app.views.loadMorePhotos()" class="bg-white dark:bg-[#1e2023] border border-gray-300 dark:border-zinc-700 text-gray-800 dark:text-zinc-200 px-8 py-3 text-sm font-bold rounded-full hover:bg-gray-50 dark:hover:bg-zinc-800 transition-all shadow-sm hover:shadow-md flex items-center gap-2">Xem thêm <i class="fa-solid fa-chevron-down text-xs"></i></button>`;
+                        btnContainer.innerHTML = `<button id="btn-home-load-more" onclick="app.views.loadMorePhotos()" class="bg-white border border-gray-300 text-gray-700 px-6 py-2.5 text-sm font-bold rounded-md hover:bg-gray-50 hover:border-gray-400 transition shadow-sm">Xem thêm <i class="fa-solid fa-chevron-down ml-1"></i></button>`;
                     } else {
                         document.getElementById('load-more-container').classList.add('hidden');
                     }
@@ -8257,10 +7573,10 @@ Object.assign(window.app, {
                     const uDisplay = app.utils.formatProfileDisplay(p.profiles);
                     const safeUser = app.utils.cleanText(uDisplay.username);
                     const proxyUrl = app.utils.getProxiedUrl(p.url, `${safePlate}.jpg`, 'thumb');
-                    const dateHtml = p.taken_at ? `<span class="shrink-0 flex items-center gap-1"><i class="fa-regular fa-calendar"></i>${p.taken_at.split('T')[0].split('-').reverse().join('/')}</span>` : '';
+                    const dateHtml = p.taken_at ? `<span class="shrink-0"><i class="fa-regular fa-calendar mr-1"></i>${p.taken_at.split('T')[0].split('-').reverse().join('/')}</span>` : '';
                     return `
-                        <div data-id="${p.id}" class="photo-card bg-white dark:bg-[#1e2023] border border-black/5 dark:border-white/5 hover:border-black/10 dark:hover:border-white/10 hover:shadow-xl hover:-translate-y-1 cursor-pointer rounded-xl p-2 transition-all duration-300 flex flex-col fade-zoom-in-page" onclick="app.views.loadDetail(${p.id})">
-                            <div class="img-wrapper relative w-full aspect-[4/3] bg-gray-100 dark:bg-zinc-800 rounded-lg overflow-hidden shrink-0">
+                        <div data-id="${p.id}" class="bg-white border border-gray-200 hover:border-gray-300 hover:shadow-lg hover:-translate-y-1 cursor-pointer rounded-xl p-2 transition-all duration-300 flex flex-col fade-zoom-in-page" onclick="app.views.loadDetail(${p.id})">
+                            <div class="img-wrapper relative w-full aspect-[4/3] bg-gray-100 rounded-lg overflow-hidden shrink-0 border border-gray-100">
                                 <div class="img-spinner absolute inset-0 flex items-center justify-center text-gray-400">
                                     <i class="fa-solid fa-circle-notch fa-spin text-2xl"></i>
                                 </div>
@@ -8268,20 +7584,18 @@ Object.assign(window.app, {
                                      onload="app.utils.handleImgLoad(this)"
                                      onerror="app.utils.handleImgError(this)"
                                      alt="Xe buýt ${safePlate}"
-                                     class="absolute inset-0 w-full h-full object-cover opacity-0 transition-transform duration-500 hover:scale-105">
-                                <div class="img-error absolute inset-0 hidden flex-col items-center justify-center p-4 text-center bg-red-50/50 dark:bg-red-950/40">
+                                     class="absolute inset-0 w-full h-full object-cover opacity-0 transition-all duration-500">
+                                <div class="img-error absolute inset-0 hidden flex-col items-center justify-center p-4 text-center bg-red-50/50">
                                     <i class="fa-solid fa-image-slash text-red-400 text-2xl mb-1"></i>
                                     <span class="text-[10px] font-bold text-red-500 leading-tight">Ảnh hiện không thể<br>được tải</span>
                                 </div>
                             </div>
-                            <div class="pt-3 px-1 pb-0.5 flex-1 flex flex-col justify-between">
+                            <div class="pt-3 px-1.5 pb-1 flex-1 flex flex-col justify-between">
                                 <div>
-                                    <div class="flex items-center justify-between gap-1 mb-1">
-                                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-mono font-bold bg-black text-white dark:bg-white dark:text-black tracking-wider shadow-sm">${safePlate}</span>
-                                    </div>
-                                    <div class="text-xs text-gray-700 dark:text-zinc-300 font-semibold truncate mt-1">${safeOp}</div>
+                                    <div class="font-bold text-sm text-black">${safePlate}</div>
+                                    <div class="text-xs text-gray-600 font-semibold truncate">${safeOp}</div>
                                 </div>
-                                <div class="text-[10px] text-gray-400 dark:text-zinc-500 mt-2.5 flex items-center justify-between font-medium">
+                                <div class="text-[10px] text-gray-400 mt-2 flex justify-between">
                                     <span class="truncate pr-2">${safeUser}</span>
                                     ${dateHtml}
                                 </div>
@@ -8289,36 +7603,11 @@ Object.assign(window.app, {
                         </div>
                     `;
                 },
-                
-                renderGuestProfile: () => {
-                    app.views.switch('account', false);
-                    document.title = 'Tài khoản | VNBUSARCHIVE';
-                    const nameEl = document.getElementById('acc-name');
-                    if (nameEl) nameEl.innerText = 'Chưa đăng nhập';
-                    const avatarImg = document.getElementById('acc-avatar-img');
-                    const avatarIcon = document.getElementById('acc-avatar-icon');
-                    if (avatarImg) avatarImg.classList.add('hidden');
-                    if (avatarIcon) avatarIcon.classList.remove('hidden');
-
-                    document.getElementById('btn-edit-profile')?.classList.add('hidden');
-                    document.getElementById('btn-contact-profile')?.classList.add('hidden');
-                    document.getElementById('btn-share-profile')?.classList.add('hidden');
-                    document.getElementById('btn-report-profile')?.classList.add('hidden');
-                    document.getElementById('btn-guest-login-wrapper')?.classList.remove('hidden');
-
-                    document.getElementById('profile-auth-only-content')?.classList.add('hidden');
-                    document.getElementById('btn-profile-logout')?.classList.add('hidden');
-                    document.getElementById('btn-profile-admin')?.classList.add('hidden');
-                                        if (app.loadingBar && app.loadingBar.finish) app.loadingBar.finish();
-                },
                 loadAccount: async (usernameStr = null, forceRefresh = false) => {
                     let targetUsername = usernameStr;
                     let isOwnProfile = false;
                     if (!targetUsername) {
-                        if (!app.user) {
-                            app.views.renderGuestProfile();
-                            return;
-                        }
+                        if (!app.user) return app.utils.navigate('/auth');
                         targetUsername = app.username;
                         isOwnProfile = true;
                         if (window.location.pathname !== '/profile') return app.utils.navigate('/profile');
@@ -8341,16 +7630,6 @@ Object.assign(window.app, {
                     document.getElementById('acc-avatar-icon').classList.remove('hidden');
                     document.getElementById('profile-bio-content').innerHTML = '<i class="fa-solid fa-spinner fa-spin text-gray-400"></i>';
                     document.getElementById('profile-fav-photo-container').innerHTML = '';
-                    if (app.role === 'admin' || app.role === 'manager') {
-                        document.getElementById('btn-profile-admin')?.classList.remove('hidden');
-                    } else {
-                        document.getElementById('btn-profile-admin')?.classList.add('hidden');
-                    }
-                    if (isOwnProfile) {
-                                                document.getElementById('btn-profile-logout')?.classList.remove('hidden');
-                    } else {
-                                                document.getElementById('btn-profile-logout')?.classList.add('hidden');
-                    }
                     document.getElementById('my-stat-photos').innerHTML = '<i class="fa-solid fa-spinner fa-spin text-gray-400"></i>';
                     document.getElementById('my-stat-views').innerHTML = '<i class="fa-solid fa-spinner fa-spin text-gray-400"></i>';
                     document.getElementById('my-stat-likes').innerHTML = '<i class="fa-solid fa-spinner fa-spin text-gray-400"></i>';
@@ -8381,13 +7660,6 @@ Object.assign(window.app, {
                     document.getElementById('acc-name').innerHTML = isBannedUser 
                         ? '<span class="text-black font-bold">Người dùng bị cấm</span>' 
                         : `${profile.username} ${badges}`;
-                    document.getElementById('btn-guest-login-wrapper')?.classList.add('hidden');
-                    document.getElementById('profile-auth-only-content')?.classList.remove('hidden');
-                    if (isOwnProfile) {
-                        document.getElementById('btn-profile-logout')?.classList.remove('hidden');
-                    } else {
-                        document.getElementById('btn-profile-logout')?.classList.add('hidden');
-                    }
                     const avatarIcon = document.getElementById('acc-avatar-icon');
                     const avatarImg = document.getElementById('acc-avatar-img');
                     const safeAvatar = isBannedUser 
@@ -10091,8 +9363,8 @@ let currentRouteProvName = null;
                                 </div>
                                 <div class="mb-8">
                                     <h3 class="font-bold text-xs uppercase text-black tracking-wider mb-2.5 px-1">Thông tin chi tiết</h3>
-                                    <div class="rounded-lg overflow-hidden mb-3">
-                                        <table class="info-table w-full" style="margin-bottom: 0 !important;">
+                                    <div class="border border-gray-200 rounded-lg overflow-hidden bg-white mb-3 shadow-sm">
+                                        <table class="info-table border-gray-200 w-full" style="margin-bottom: 0 !important;">
                                             <tr id="vehicle-edit-operator-row" ${currentRouteClientSide === 'Dừng hoạt động' ? 'class="hidden"' : ''}>
                                                 <td class="label bg-gray-50 border-r border-b border-gray-200" style="width: 35%">Đơn vị vận hành</td>
                                                 <td class="value-cell border-b border-gray-200">
@@ -11169,16 +10441,16 @@ Object.assign(window.app, {
                         }
                         box.classList.remove('hidden');
                         let html = (app.search.advancedFilters || []).map(f => `
-                            <div class="inline-flex items-center gap-1.5 py-1 px-3 text-xs font-semibold text-gray-800 dark:text-zinc-200 bg-white dark:bg-[#1e2023] border border-black/10 dark:border-white/10 hover:border-black/20 dark:hover:border-white/20 rounded-full shadow-sm shrink-0 cursor-pointer transition-all" onclick="event.stopPropagation(); app.search.editAdvancedFilter('${f.id}')">
-                                <span class="text-gray-500 dark:text-zinc-400 font-normal">${f.fieldLabel}:</span>
-                                <span class="font-bold text-black dark:text-white">${f.opLabel} "${f.displayVal}"</span>
-                                <button type="button" onclick="event.stopPropagation(); app.search.removeAdvancedFilter('${f.id}')" class="ml-1 text-gray-400 hover:text-red-500 transition">
+                            <div class="inline-flex items-center gap-1.5 py-1 px-2.5 text-xs font-semibold text-gray-700 bg-white border border-gray-300 hover:border-gray-500 rounded-md shadow-sm shrink-0 cursor-pointer transition-colors" onclick="event.stopPropagation(); app.search.editAdvancedFilter('${f.id}')">
+                                <span class="text-gray-500 font-normal">${f.fieldLabel}:</span>
+                                <span class="font-bold text-black">${f.opLabel} "${f.displayVal}"</span>
+                                <button type="button" onclick="event.stopPropagation(); app.search.removeAdvancedFilter('${f.id}')" class="ml-1 text-gray-400 hover:text-red-600 transition">
                                     <i class="fa-solid fa-xmark"></i>
                                 </button>
                             </div>
                         `).join('');
                         html += `
-                            <button type="button" onclick="event.stopPropagation(); app.search.openAdvancedFilterModal()" class="shrink-0 text-xs font-bold text-gray-700 dark:text-zinc-300 bg-gray-100 dark:bg-zinc-800 hover:bg-gray-200 dark:hover:bg-zinc-700 rounded-full py-1 px-3 transition">
+                            <button type="button" onclick="event.stopPropagation(); app.search.openAdvancedFilterModal()" class="shrink-0 text-xs font-bold text-gray-600 bg-white border border-gray-300 hover:border-gray-400 hover:text-black rounded-md py-1 px-2.5 shadow-sm transition">
                                 + Thêm
                             </button>
                         `;
@@ -11801,7 +11073,7 @@ Object.assign(window.app, {
                     <div class="${style.order} flex-1 w-full min-w-0">
                         <div onclick="app.utils.navigate('/user/${encodeURIComponent(user.username)}')" 
                              class="cursor-pointer bg-white ${style.border} rounded-2xl p-6 flex flex-col items-center text-center group hover:-translate-y-1 hover:shadow-lg transition-all duration-300 h-full relative">
-                            <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-black uppercase tracking-wider mb-5 ${style.badgeStyle}">
+                            <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-md text-[11px] font-black uppercase tracking-wider mb-5 ${style.badgeStyle}">
                                 ${style.icon} ${style.title}
                             </div>
                             <div class="w-24 h-24 md:w-28 md:h-28 rounded-full overflow-hidden shrink-0 mx-auto border border-gray-200 bg-gray-50 shadow-inner mb-4 transition-transform">
@@ -11843,7 +11115,7 @@ Object.assign(window.app, {
                                 <div onclick="app.utils.navigate('/user/${encodeURIComponent(user.username)}')" 
                                      class="cursor-pointer px-5 md:px-6 py-4 flex items-center justify-between gap-3 hover:bg-gray-50 transition-colors group">
                                     <div class="flex items-center gap-3 md:gap-4 min-w-0 flex-1">
-                                        <div class="w-8 h-8 rounded-full bg-gray-100 dark:bg-zinc-800 text-gray-700 dark:text-zinc-300 font-black text-xs flex items-center justify-center shrink-0 group-hover:bg-black group-hover:text-white dark:group-hover:bg-white dark:group-hover:text-black transition-colors">
+                                        <div class="w-8 h-8 rounded-lg bg-gray-100 border border-gray-200 text-gray-600 font-black text-sm flex items-center justify-center shrink-0 group-hover:bg-black group-hover:text-white transition-colors">
                                             #${rank}
                                         </div>
                                         <div class="w-10 h-10 md:w-12 md:h-12 rounded-full overflow-hidden shrink-0 border border-gray-200 bg-gray-50">
@@ -11938,7 +11210,7 @@ Object.assign(window.app, {
                         const isActive = index === app.newsboard.activeIndex;
                         const bgClass = isActive ? 'bg-black border-black shadow-sm' : 'bg-white hover:bg-gray-50 border-gray-200';
                         return `
-                        <div class="p-3.5 rounded-2xl cursor-pointer mb-2 border transition-all ${bgClass}" onclick="app.newsboard.renderContent(${index})">
+                        <div class="p-3 rounded-lg cursor-pointer mb-2 border transition-colors ${bgClass}" onclick="app.newsboard.renderContent(${index})">
                             <div class="text-[10px] ${isActive ? 'text-gray-300' : 'text-gray-400'} font-bold uppercase mb-1">${item.date || 'Hôm nay'}</div>
                             <div class="text-sm font-bold ${isActive ? 'text-white' : 'text-gray-800'} line-clamp-2 leading-snug">${item.title || 'Thông báo hệ thống'}</div>
                             <div class="text-xs ${isActive ? 'text-gray-400' : 'text-gray-500'} mt-1 line-clamp-1">${app.utils.stripMarkdown(item.summary) || 'Nhấn để xem chi tiết...'}</div>
@@ -17931,16 +17203,6 @@ Object.assign(window.app, {
                     input.value = next;
                     app.upload.updateFilters();
                 },
-                updateHoyuShotNotice: (software) => {
-                    const noticeEl = document.getElementById('up-hoyushot-thanks');
-                    if (!noticeEl) return;
-                    const clean = typeof software === 'string' ? software.replace(/\0/g, '').trim() : '';
-                    if (clean === 'Hoyuuna HoyuShot') {
-                        noticeEl.classList.remove('hidden');
-                    } else {
-                        noticeEl.classList.add('hidden');
-                    }
-                },
                 removeImage: () => {
                     const upFile = document.getElementById('up-file');
                     if (upFile) upFile.value = '';
@@ -17989,8 +17251,7 @@ Object.assign(window.app, {
                     app.crop.savedCropData = null;
                     app.crop.savedRatio = 4/3;
                     app.crop.savedState = null;
-                    app.currentExif = { camera: 'N/A', params: 'N/A', software: '' };
-                    if (app.upload.updateHoyuShotNotice) app.upload.updateHoyuShotNotice('');
+                    app.currentExif = { camera: 'N/A', params: 'N/A' };
                     const upCamera = document.getElementById('up-camera');
                     if (upCamera) upCamera.value = 'N/A';
                     const upExif = document.getElementById('up-exif-params');
@@ -18009,8 +17270,6 @@ Object.assign(window.app, {
                     if (fileInput && fileInput.disabled) return;
                     const file = e.target.files[0];
                     if (!file) return;
-                    app.currentExif = { camera: 'N/A', params: 'N/A', software: '' };
-                    if (app.upload.updateHoyuShotNotice) app.upload.updateHoyuShotNotice('');
                     app.upload._faceAutoRun = false;
                     app.crop.sourceImage = null;
                     app.crop.originalFile = null;
@@ -18139,8 +17398,7 @@ Object.assign(window.app, {
                             let model = tags.Model;
                             const make = tags.Make;
                             const lens = tags.LensModel || tags.LensInfo;
-                            const softwareRaw = tags.Software || tags.software || (tags.ifd0 && tags.ifd0.Software) || '';
-                            const software = typeof softwareRaw === 'string' ? softwareRaw.replace(/\0/g, '').trim() : '';
+                            const software = tags.Software;
                             const fNumber = tags.FNumber || tags.fNumber;
                             const exposureTime = tags.ExposureTime || tags.exposureTime;
                             const iso = tags.ISO || tags.ISOSpeedRatings || tags.iso || tags.PhotographicSensitivity;
@@ -18174,7 +17432,6 @@ Object.assign(window.app, {
                                     camera: model,
                                     params: fNumber ? `f/${fNumber} | ${shutter}s | ISO ${iso}` : `${shutter}s | ISO ${iso}`,
                                     date: dateStr,
-                                    software: software,
                                     gps: {
                                         latDec: tags.latitude,
                                         lonDec: tags.longitude,
@@ -18193,11 +17450,10 @@ Object.assign(window.app, {
                     });
                     try {
                         const exifData = await checkExif;
-                        app.currentExif = { camera: exifData.camera, params: exifData.params, software: exifData.software || '' };
+                        app.currentExif = { camera: exifData.camera, params: exifData.params };
                         document.getElementById('up-camera').value = app.currentExif.camera;
                         document.getElementById('up-exif-params').value = app.currentExif.params;
                         document.getElementById('up-date').value = exifData.date;
-                        if (app.upload.updateHoyuShotNotice) app.upload.updateHoyuShotNotice(app.currentExif.software);
                         app.upload.checkDuplicateRealtime();
                         app.currentGps = null;
                         if ((exifData.gps.latDec !== undefined && exifData.gps.lonDec !== undefined) || (exifData.gps.lat && exifData.gps.lon && exifData.gps.latRef && exifData.gps.lonRef)) {
@@ -18360,8 +17616,6 @@ Object.assign(window.app, {
                                 newImg.onload = () => {
                                     const w = newImg.width; const h = newImg.height;
                                     if (!isRawFile && !isRawExtracted && h < 1080 && w < 1080) {
-                                        app.currentExif = { camera: 'N/A', params: 'N/A', software: '' };
-                                        if (app.upload.updateHoyuShotNotice) app.upload.updateHoyuShotNotice('');
                                         app.ui.showAlert(`Độ phân giải ảnh quá thấp (${w}x${h}). Yêu cầu chiều cao tối thiểu 1080px.`);
                                         const fileInput = document.getElementById('up-file');
                                         if (fileInput) fileInput.value = ''; URL.revokeObjectURL(newUrl); URL.revokeObjectURL(url);
@@ -18403,8 +17657,6 @@ Object.assign(window.app, {
                         };
                         img.src = url;
                     } catch (errorMsg) {
-                        app.currentExif = { camera: 'N/A', params: 'N/A', software: '' };
-                        if (app.upload.updateHoyuShotNotice) app.upload.updateHoyuShotNotice('');
                         app.ui.showAlert(errorMsg);
                         const fileInput = document.getElementById('up-file');
                         if (fileInput) fileInput.value = ''; 
@@ -20440,8 +19692,8 @@ Object.assign(window.app, {
                     const btnSystem = document.getElementById('set-theme-btn-system');
                     if (!btnLight || !btnDark) return;
 
-                    const active = 'theme-option cursor-pointer border border-black/10 dark:border-white/20 bg-black text-white dark:bg-white dark:text-black rounded-2xl p-5 shadow-lg transition-all duration-200 flex flex-col items-center justify-center gap-2 scale-[1.02]';
-                    const inactive = 'theme-option cursor-pointer border border-black/5 dark:border-white/5 bg-gray-50/80 dark:bg-zinc-800/80 text-gray-800 dark:text-zinc-200 rounded-2xl p-5 shadow-sm hover:shadow-md transition-all duration-200 flex flex-col items-center justify-center gap-2 scale-100';
+                    const active = 'theme-option cursor-pointer border border-black bg-black text-white rounded-xl p-5 shadow-md transition-all duration-200 flex flex-col items-center justify-center gap-2 scale-[1.02]';
+                    const inactive = 'theme-option cursor-pointer border border-gray-300 bg-white text-gray-800 rounded-xl p-5 shadow-sm transition-all duration-200 flex flex-col items-center justify-center gap-2 scale-100';
 
                     const cur = app.preference.theme;
                     btnLight.className = cur === 'light' ? active : inactive;
@@ -20609,10 +19861,6 @@ Object.assign(window.app, {
                         btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1"></i> Đang tải...';
                         try {
                             const plateName = app.utils.displayPlate(app.currentPhoto.license_plate) || 'VNBUSARCHIVE';
-                            if (window.AndroidBridge && typeof window.AndroidBridge.downloadImage === 'function') {
-                                window.AndroidBridge.downloadImage(app.currentPhoto.url, plateName + '.jpg');
-                                return;
-                            }
                             let proxyUrl = app.utils.getProxiedUrl(app.currentPhoto.url, `${plateName}.jpg`);
                             const response = await fetch(proxyUrl);
                             const blob = await response.blob();
@@ -20882,12 +20130,12 @@ Object.assign(window.app, {
                     }
                     const toolbar = app.user ? `
                         <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px;">
-                            <button class="flex items-center gap-1.5 bg-white border border-gray-300 text-gray-700 px-3.5 py-1.5 rounded-full font-bold text-xs shadow-sm transition-colors hover:bg-gray-50 dark:bg-zinc-800 dark:border-zinc-700 dark:text-gray-300 dark:hover:bg-zinc-700" onclick="app.comments.startReply('${c.id}', '${authorDisplay.username}')" ><i class="fa-solid fa-reply"></i> Phản hồi</button>
-                            <button class="flex items-center gap-1.5 bg-white border border-gray-300 text-gray-700 px-3.5 py-1.5 rounded-full font-bold text-xs shadow-sm transition-colors hover:bg-gray-50 dark:bg-zinc-800 dark:border-zinc-700 dark:text-gray-300 dark:hover:bg-zinc-700" onclick="app.utils.navigate('/contact')" ><i class="fa-solid fa-flag"></i> Báo cáo</button>
-                            ${canDelete ? `<button class="flex items-center gap-1.5 bg-white border border-red-300 text-red-600 px-3.5 py-1.5 rounded-full font-bold text-xs shadow-sm transition-colors hover:bg-red-50 dark:bg-zinc-800 dark:border-red-900/60 dark:text-red-400 dark:hover:bg-red-950/40" onclick="app.comments.delete('${c.id}')" ><i class="fa-solid fa-trash-can"></i> Xóa</button>` : ''}
+                            <button class="flex items-center gap-1.5 bg-white border border-gray-300 text-gray-700 px-3 py-1.5 rounded-lg font-bold text-xs shadow-sm transition-colors hover:bg-gray-50 dark:bg-black dark:border-gray-800 dark:text-gray-300 dark:hover:bg-gray-900" onclick="app.comments.startReply('${c.id}', '${authorDisplay.username}')" ><i class="fa-solid fa-reply"></i> Phản hồi</button>
+                            <button class="flex items-center gap-1.5 bg-white border border-gray-300 text-gray-700 px-3 py-1.5 rounded-lg font-bold text-xs shadow-sm transition-colors hover:bg-gray-50 dark:bg-black dark:border-gray-800 dark:text-gray-300 dark:hover:bg-gray-900" onclick="app.utils.navigate('/contact')" ><i class="fa-solid fa-flag"></i> Báo cáo</button>
+                            ${canDelete ? `<button class="flex items-center gap-1.5 bg-white border border-red-300 text-red-600 px-3 py-1.5 rounded-lg font-bold text-xs shadow-sm transition-colors hover:bg-red-50 dark:bg-black dark:border-red-900 dark:text-red-500 dark:hover:bg-red-950" onclick="app.comments.delete('${c.id}')" ><i class="fa-solid fa-trash-can"></i> Xóa</button>` : ''}
                         </div>` : `
                         <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px;">
-                            ${canDelete ? `<button class="flex items-center gap-1.5 bg-white border border-red-300 text-red-600 px-3.5 py-1.5 rounded-full font-bold text-xs shadow-sm transition-colors hover:bg-red-50 dark:bg-zinc-800 dark:border-red-900/60 dark:text-red-400 dark:hover:bg-red-950/40" onclick="app.comments.delete('${c.id}')" ><i class="fa-solid fa-trash-can"></i> Xóa</button>` : ''}
+                            ${canDelete ? `<button class="flex items-center gap-1.5 bg-white border border-red-300 text-red-600 px-3 py-1.5 rounded-lg font-bold text-xs shadow-sm transition-colors hover:bg-red-50 dark:bg-black dark:border-red-900 dark:text-red-500 dark:hover:bg-red-950" onclick="app.comments.delete('${c.id}')" ><i class="fa-solid fa-trash-can"></i> Xóa</button>` : ''}
                         </div>`;
                     let repliesHTML = '';
                     if (replies.length > 0) {
@@ -20901,7 +20149,7 @@ Object.assign(window.app, {
                             repliesHTML += app.comments.renderReplyItem(r);
                         });
                         if (hidden > 0) {
-                            repliesHTML += `<div style="display: flex; justify-content: center; margin-top: 4px; margin-bottom: 8px;"><button class="font-inherit text-[11px] font-bold text-gray-700 bg-white border border-gray-300 dark:border-zinc-700 px-4 py-1.5 rounded-full shadow-sm transition-colors hover:bg-gray-50 dark:bg-zinc-800 dark:text-gray-300 dark:hover:bg-zinc-700" onclick="app.comments.toggleReplies('${c.id}', ${replies.length})" id="btn-toggle-replies-${c.id}" ><i class="fa-solid fa-chevron-down" style="margin-right: 4px;"></i>Xem thêm ${hidden} phản hồi</button></div>`;
+                            repliesHTML += `<div style="display: flex; justify-content: center; margin-top: 4px; margin-bottom: 8px;"><button class="font-inherit text-[11px] font-bold text-gray-600 bg-white border border-gray-200 px-4 py-1.5 rounded-lg shadow-sm transition-colors hover:bg-gray-50 dark:bg-black dark:border-gray-800 dark:text-gray-400 dark:hover:bg-gray-900" onclick="app.comments.toggleReplies('${c.id}', ${replies.length})" id="btn-toggle-replies-${c.id}" ><i class="fa-solid fa-chevron-down" style="margin-right: 4px;"></i>Xem thêm ${hidden} phản hồi</button></div>`;
                             repliesHTML += `<div id="reply-hidden-${c.id}" class="hidden">`;
                             replies.slice(2).forEach(r => {
                                 repliesHTML += app.comments.renderReplyItem(r);
@@ -21632,7 +20880,7 @@ Object.assign(window.app, {
                         const isStopped = (h.route || '').trim() === 'Dừng hoạt động';
                         if (isStopped) h.operator = 'N/A';
                         const div = document.createElement('div');
-                        div.className = "flex flex-col gap-2 bg-white dark:bg-[#1e2023] p-4 border border-black/5 dark:border-white/10 rounded-2xl text-xs mb-3 shadow-sm";
+                        div.className = "flex flex-col gap-2 bg-white p-3 border border-gray-200 rounded-md text-xs mb-2";
                         div.innerHTML = `
                             <div class="flex flex-col sm:flex-row gap-2 items-stretch sm:items-center">
                                 <div class="flex flex-col sm:flex-1 min-w-0">
@@ -21662,9 +20910,9 @@ Object.assign(window.app, {
                                 </div>
                                 <div class="flex justify-end gap-2 mt-2 sm:mt-0 w-full sm:w-auto h-full">
                                     ${ (h.plate && h.plate !== app.currentPlate) ? 
-                                    `<button type="button" onclick="app.vehicle.requestSplit('${app.currentPlate}', '${app.utils.cleanText(h.plate)}')" class="text-gray-700 hover:text-white hover:bg-black border border-gray-300 dark:border-zinc-700 rounded-full px-3 py-2 font-bold transition min-h-[42px] whitespace-nowrap" title="Tách xe này ra khỏi lịch sử"><i class="fa-solid fa-scissors"></i></button>` : '' }
-                                    <button type="button" onclick="app.vehicle.duplicateHistoryItem(${index}, '${prefix}')" class="text-gray-700 hover:text-white hover:bg-black border border-gray-300 dark:border-zinc-700 rounded-full px-3 py-2 font-bold transition min-h-[42px]" title="Nhân bản"><i class="fa-solid fa-copy"></i></button>
-                                    <button type="button" onclick="app.vehicle.removeHistoryItem(${index}, '${prefix}')" class="text-gray-700 hover:text-white hover:bg-black border border-gray-300 dark:border-zinc-700 rounded-full px-3 py-2 font-bold transition min-h-[42px]" title="Xóa"><i class="fa-solid fa-trash"></i></button>
+                                    `<button type="button" onclick="app.vehicle.requestSplit('${app.currentPlate}', '${app.utils.cleanText(h.plate)}')" class="text-gray-700 hover:text-white hover:bg-black border border-gray-300 rounded-md px-3 py-2 font-bold transition min-h-[42px] whitespace-nowrap" title="Tách xe này ra khỏi lịch sử"><i class="fa-solid fa-scissors"></i></button>` : '' }
+                                    <button type="button" onclick="app.vehicle.duplicateHistoryItem(${index}, '${prefix}')" class="text-gray-700 hover:text-white hover:bg-black border border-gray-300 rounded-md px-3 py-2 font-bold transition min-h-[42px]" title="Nhân bản"><i class="fa-solid fa-copy"></i></button>
+                                    <button type="button" onclick="app.vehicle.removeHistoryItem(${index}, '${prefix}')" class="text-gray-700 hover:text-white hover:bg-black border border-gray-300 rounded-md px-3 py-2 font-bold transition min-h-[42px]" title="Xóa"><i class="fa-solid fa-trash"></i></button>
                                 </div>
                             </div>
                         `;
@@ -27204,7 +26452,6 @@ app.map = {
         } else {
             setTimeout(() => this.instance.invalidateSize(), 150);
         }
-        this.startLocation();
         await this.checkPermission();
         await this.loadZones();
         this.updateTheme();
@@ -27542,7 +26789,8 @@ app.map = {
             iconAnchor: [7, 7]
         });
 
-        // Vị trí người dùng sẽ được kích hoạt khi mở trang Bản đồ (startLocation)
+        // Bật theo dõi vị trí liên tục
+        this.instance.locate({ watch: true, setView: false, enableHighAccuracy: true, timeout: 60000, maximumAge: 10000 });
 
         this.instance.on('locationfound', (e) => {
             this.userLocation = e.latlng;
@@ -27630,34 +26878,7 @@ app.map = {
             this.isLocatingUser = true;
             locateBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin text-lg"></i>';
             locateBtn.disabled = true;
-            this.startLocation(true);
         });
-    },
-
-    startLocation(centerOnUser = false) {
-        if (!this.instance) return;
-        this.isWatchingLocation = true;
-        try {
-            this.instance.locate({
-                watch: true,
-                setView: centerOnUser,
-                enableHighAccuracy: true,
-                timeout: 30000,
-                maximumAge: 10000
-            });
-        } catch (e) {
-            console.warn("Lỗi khởi chạy định vị:", e);
-        }
-    },
-
-    stopLocation() {
-        if (!this.instance) return;
-        this.isWatchingLocation = false;
-        try {
-            this.instance.stopLocate();
-        } catch (e) {
-            console.warn("Lỗi dừng định vị:", e);
-        }
     },
 
     clearDrafts() {
