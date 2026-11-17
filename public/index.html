@@ -2245,7 +2245,7 @@ html.theme-dark .ct-icon {
             if (stored === 'system') {
                 theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
             }
-            document.write('<link rel="stylesheet" href="/css/' + theme + '.css?v=1794958813285" id="theme-css">');
+            document.write('<link rel="stylesheet" href="/css/' + theme + '.css?v=1794959068554" id="theme-css">');
             document.documentElement.classList.add('theme-' + theme);
             document.documentElement.style.backgroundColor = theme === 'dark' ? '#18181b' : '#fdfcf8';
 
@@ -6849,6 +6849,18 @@ html.theme-dark .ct-icon {
                                                 options.signal.addEventListener('abort', () => controller.abort());
                                             }
                                             fetchOpts.signal = controller.signal;
+
+                                            // Khi chưa đăng nhập (hoặc dùng apikey giả), xóa header Authorization giả để PostgREST không bị lỗi 'Expected 3 parts in JWT'
+                                            if (fetchOpts.headers) {
+                                                const cleanedHeaders = new Headers(fetchOpts.headers);
+                                                const authVal = cleanedHeaders.get('Authorization') || cleanedHeaders.get('authorization');
+                                                const apiKeyVal = cleanedHeaders.get('apikey');
+                                                if (authVal && (authVal === 'Bearer ' + apiKeyVal || authVal === apiKeyVal || (apiKeyVal && apiKeyVal.startsWith('sb_publishable_')))) {
+                                                    cleanedHeaders.delete('Authorization');
+                                                    cleanedHeaders.delete('authorization');
+                                                    fetchOpts.headers = cleanedHeaders;
+                                                }
+                                            }
 
                                             const resp = await window.fetch(targetUrl, fetchOpts);
                                             clearTimeout(timeoutId);

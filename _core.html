@@ -6850,6 +6850,18 @@ html.theme-dark .ct-icon {
                                             }
                                             fetchOpts.signal = controller.signal;
 
+                                            // Khi chưa đăng nhập (hoặc dùng apikey giả), xóa header Authorization giả để PostgREST không bị lỗi 'Expected 3 parts in JWT'
+                                            if (fetchOpts.headers) {
+                                                const cleanedHeaders = new Headers(fetchOpts.headers);
+                                                const authVal = cleanedHeaders.get('Authorization') || cleanedHeaders.get('authorization');
+                                                const apiKeyVal = cleanedHeaders.get('apikey');
+                                                if (authVal && (authVal === 'Bearer ' + apiKeyVal || authVal === apiKeyVal || (apiKeyVal && apiKeyVal.startsWith('sb_publishable_')))) {
+                                                    cleanedHeaders.delete('Authorization');
+                                                    cleanedHeaders.delete('authorization');
+                                                    fetchOpts.headers = cleanedHeaders;
+                                                }
+                                            }
+
                                             const resp = await window.fetch(targetUrl, fetchOpts);
                                             clearTimeout(timeoutId);
 
