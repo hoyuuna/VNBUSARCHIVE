@@ -292,14 +292,14 @@ html.theme-dark .ct-icon {
             border-collapse: separate;
             border-spacing: 0;
             font-size: 0.875rem;
-            border-radius: 18px;
+            border-radius: 12px;
             border: 1px solid rgba(0, 0, 0, 0.08);
             overflow: hidden;
         }
 
         .data-table td,
         .data-table th {
-            padding: 12px 16px;
+            padding: 10px 14px;
             border-bottom: 1px solid rgba(0, 0, 0, 0.06);
         }
 
@@ -325,8 +325,21 @@ html.theme-dark .ct-icon {
             font-size: 0.875rem;
             margin-bottom: 20px;
             border: 1px solid rgba(0, 0, 0, 0.08);
-            border-radius: 18px;
+            border-radius: 12px;
             overflow: visible;
+        }
+
+        /* Ẩn viền của thẻ div bọc ngoài bảng để chống đúp viền (2 cái viền) */
+        .border:has(> .info-table):not([class*=" p-"]):not([class^="p-"]),
+        .border:has(> .history-table-wrapper):not([class*=" p-"]):not([class^="p-"]),
+        .border:has(> .data-table):not([class*=" p-"]):not([class^="p-"]),
+        .border-gray-200:has(> .info-table):not([class*=" p-"]):not([class^="p-"]),
+        .border-gray-200:has(> .history-table-wrapper):not([class*=" p-"]):not([class^="p-"]),
+        .border-gray-200:has(> .data-table):not([class*=" p-"]):not([class^="p-"]),
+        #veh-history-table-container.border {
+            border: none !important;
+            box-shadow: none !important;
+            background: transparent !important;
         }
 
         .info-table td {
@@ -3418,10 +3431,10 @@ html.theme-dark .ct-icon {
 
         </div>
 
-        <header class="fixed top-0 left-0 right-0 z-[2000] flex justify-center px-4 pointer-events-none transition-transform duration-300" style="z-index: 2000 !important; padding-top: calc(1rem + env(safe-area-inset-top, 0px));">
+        <header class="fixed top-0 left-0 right-0 z-[2000] flex justify-center px-2 sm:px-4 pointer-events-none transition-transform duration-300" style="z-index: 2000 !important; padding-top: calc(0.75rem + env(safe-area-inset-top, 0px));">
             <div
                 class="w-full max-w-7xl bg-white/90 dark:bg-[#1e2023]/90 border border-black/5 dark:border-white/10 shadow-island rounded-3xl pointer-events-auto transition-all duration-300 relative">
-                <div class="flex flex-wrap lg:flex-nowrap justify-between items-center px-4 py-2 lg:h-16">
+                <div class="flex flex-wrap lg:flex-nowrap justify-between items-center px-2.5 sm:px-4 py-1.5 lg:py-2 lg:h-16">
                     <a href="/" id="header-logo" class="header-logo-container flex items-center cursor-pointer lg:mb-0 mr-auto no-underline shrink-0">
                         <span id="header-logo-text" class="header-logo-text font-watermark">Xin cảm ơn!</span>
                         <!-- TODO: Change back to previous logo later: https://ik.imagekit.io/hoyuuna/Logo/logo304.png -->
@@ -3430,7 +3443,7 @@ html.theme-dark .ct-icon {
                     </a>
 
                     <nav
-                        class="flex gap-3 text-sm font-semibold text-gray-600 dark:text-zinc-300 items-center order-2 lg:order-3 ml-2 lg:ml-6 shrink-0">
+                        class="flex gap-1 sm:gap-2 lg:gap-3 text-sm font-semibold text-gray-600 dark:text-zinc-300 items-center order-2 lg:order-3 ml-1 sm:ml-2 lg:ml-6 shrink-0 flex-nowrap">
                         <button onclick="app.utils.navigate('/map')" class="nav-link flex items-center gap-1.5">
                             <i class="fa-solid fa-map-location-dot"></i> <span class="hidden lg:inline">Bản đồ</span>
                         </button>
@@ -3457,7 +3470,7 @@ html.theme-dark .ct-icon {
                                 class="hidden lg:inline">Admin</span>
                         </a>
                         <a href="/upload"
-                            class="text-white bg-black dark:bg-white dark:text-black px-5 py-2.5 rounded-full hover:bg-gray-800 dark:hover:bg-zinc-200 transition shadow-sm text-xs lg:text-sm font-semibold flex items-center gap-1.5">
+                            class="text-white bg-black dark:bg-white dark:text-black px-2.5 py-1.5 sm:px-4 sm:py-2 lg:px-5 lg:py-2.5 rounded-full hover:bg-gray-800 dark:hover:bg-zinc-200 transition shadow-sm text-xs lg:text-sm font-semibold flex items-center gap-1.5 shrink-0">
                             <i class="fa-solid fa-upload"></i> <span class="hidden lg:inline">Đăng ảnh</span>
                         </a>
                     </nav>
@@ -3941,7 +3954,7 @@ html.theme-dark .ct-icon {
             <div id="search" class="view-section">
                 <!-- KHUNG SEARCH GIỮA TRANG (Y HỆT HEADER NHƯNG TO HƠN) -->
                 <div class="max-w-2xl mx-auto mb-8 relative z-40">
-                    <div class="w-full flex items-center border border-gray-200 rounded-md bg-gray-50/50 relative focus-within:ring-2 focus-within:ring-black/10 focus-within:bg-white transition-all h-12 md:h-14">
+                    <div id="page-search-box" class="w-full flex items-center border border-black/10 dark:border-white/10 rounded-full bg-white dark:bg-[#1e2023] relative focus-within:border-black/30 dark:focus-within:border-white/30 focus-within:ring-2 focus-within:ring-black/5 dark:focus-within:ring-white/5 shadow-sm transition-all h-12 md:h-14 px-2">
 
                         <div class="relative w-full flex items-center h-full pl-1">
                             <input type="text" id="page-search-input" placeholder="Tìm kiếm..." autocomplete="one-time-code" class="peer px-3 py-2 text-base md:text-lg outline-none w-full bg-transparent placeholder-gray-400 font-medium h-full">
@@ -4149,8 +4162,8 @@ html.theme-dark .ct-icon {
                             </div>
 
                             <form id="inline-edit-form">
-                                <div class="border border-gray-200 rounded-lg overflow-visible bg-white">
-                                    <table class="info-table border-gray-200 w-full" style="margin-bottom: 0 !important;">
+                                <div class="rounded-lg overflow-visible">
+                                    <table class="info-table w-full" style="margin-bottom: 0 !important;">
                                         <tr>
                                             <td class="label bg-gray-50 border-r border-b border-gray-200">Biển kiểm soát</td>
                                             <td class="value-cell border-b border-gray-200"><div class="relative w-full h-full flex flex-col justify-center"><textarea rows="1" id="info-plate" class="info-input clickable-search" readonly oninput="app.utils.formatPlateInput(this)"></textarea></div></td>
@@ -4233,7 +4246,7 @@ html.theme-dark .ct-icon {
 
                         <div id="history-locked-message" class="hidden text-sm text-gray-500 px-1 py-4"></div>
 
-                        <div id="history-table-container" class="border border-gray-200 rounded-lg overflow-hidden bg-white mb-3">
+                        <div id="history-table-container" class="rounded-lg overflow-hidden mb-3">
                             <div class="history-table-wrapper">
                                 <!-- Ép bảng bỏ cằm -->
                                 <table class="history-table" style="margin-bottom: 0 !important;">
@@ -6278,8 +6291,8 @@ html.theme-dark .ct-icon {
                     </div>
                     <div class="mb-8">
                         <h3 class="font-bold text-xs uppercase text-black tracking-wider mb-2.5 px-1">Thông tin chi tiết</h3>
-                        <div class="border border-gray-200 rounded-lg overflow-hidden bg-white mb-3 shadow-sm">
-                            <table class="info-table border-gray-200 w-full" style="margin-bottom: 0 !important;">
+                        <div class="rounded-lg overflow-hidden mb-3">
+                            <table class="info-table w-full" style="margin-bottom: 0 !important;">
                                 <tr>
                                     <td class="label bg-gray-50 border-r border-b border-gray-200" style="width: 35%">Đơn vị vận hành</td>
                                     <td class="value-cell border-b border-gray-200">

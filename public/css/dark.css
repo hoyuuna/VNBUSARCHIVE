@@ -71,21 +71,21 @@ body, body.theme-dark, body.theme-light {
     color: #e1e3e6 !important;
 }
 
-/* Cards & Surface Containers: 20px - 24px */
+/* Cards & Surface Containers */
 .rounded-3xl {
-    border-radius: 24px !important;
-}
-.rounded-2xl {
     border-radius: 20px !important;
 }
-.rounded-xl {
-    border-radius: 14px !important;
+.rounded-2xl {
+    border-radius: 16px !important;
 }
-.rounded-lg {
+.rounded-xl {
     border-radius: 12px !important;
 }
+.rounded-lg {
+    border-radius: 8px !important;
+}
 .rounded-md {
-    border-radius: 10px !important;
+    border-radius: 6px !important;
 }
 .rounded-full {
     border-radius: 9999px !important;
@@ -149,8 +149,16 @@ header > div {
     color: #c4c7cc !important;
     font-weight: 600 !important;
     border-radius: 9999px !important;
-    padding: 6px 14px !important;
+    padding: 6px 8px !important;
     transition: all 0.2s cubic-bezier(0.2, 0, 0, 1) !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+@media (min-width: 1024px) {
+    .nav-link, #nav-admin {
+        padding: 6px 14px !important;
+    }
 }
 .nav-link:hover, #nav-admin:hover {
     color: #ffffff !important;
@@ -266,7 +274,7 @@ button:not(.filter-item):not(.dropdown-menu button):not(#user-dropdown button):n
 
 /* 8. Modern M3 Photo Cards & Feed Grid */
 .photo-card, div[data-id].fade-zoom-in-page {
-    border-radius: 20px !important;
+    border-radius: 12px !important;
     background-color: #1e2023 !important;
     border: 1px solid rgba(255, 255, 255, 0.07) !important;
     box-shadow: 0 2px 6px 0 rgba(0, 0, 0, 0.35) !important;
@@ -280,7 +288,7 @@ button:not(.filter-item):not(.dropdown-menu button):not(#user-dropdown button):n
     border-color: rgba(255, 255, 255, 0.14) !important;
 }
 .photo-card .img-wrapper, div[data-id].fade-zoom-in-page .img-wrapper {
-    border-radius: 14px !important;
+    border-radius: 8px !important;
     border: none !important;
     overflow: hidden !important;
     background-color: #16181b !important;
@@ -294,7 +302,7 @@ button:not(.filter-item):not(.dropdown-menu button):not(#user-dropdown button):n
 
 /* Hero Section (Most Viewed in 24h) */
 #hero-main, #hero-sub > div {
-    border-radius: 24px !important;
+    border-radius: 12px !important;
     border: 1px solid rgba(255, 255, 255, 0.08) !important;
     box-shadow: 0 6px 24px -2px rgba(0, 0, 0, 0.50) !important;
     overflow: hidden !important;
@@ -305,8 +313,13 @@ button:not(.filter-item):not(.dropdown-menu button):not(#user-dropdown button):n
     box-shadow: 0 16px 36px -4px rgba(0, 0, 0, 0.65) !important;
 }
 #hero-main .img-wrapper, #hero-sub .img-wrapper {
-    border-radius: 24px !important;
+    border-radius: 12px !important;
     border: none !important;
+}
+#detail .img-wrapper,
+#detail-img-box,
+#detail-img {
+    border-radius: 8px !important;
 }
 
 /* 9. M3 Expressive Floating Bottom Navigation Bar */
@@ -346,10 +359,10 @@ button:not(.filter-item):not(.dropdown-menu button):not(#user-dropdown button):n
 .info-table, .data-table, .history-table {
     border-collapse: separate !important;
     border-spacing: 0 !important;
-    border-radius: 18px !important;
+    border-radius: 12px !important;
     background-color: #1e2023 !important;
     border: 1px solid rgba(255, 255, 255, 0.08) !important;
-    box-shadow: 0 2px 6px 0 rgba(0, 0, 0, 0.35) !important;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.2) !important;
     overflow: hidden !important;
 }
 .info-table th, .data-table th, .history-table th {
@@ -359,11 +372,11 @@ button:not(.filter-item):not(.dropdown-menu button):not(#user-dropdown button):n
     font-size: 0.75rem !important;
     text-transform: uppercase !important;
     letter-spacing: 0.05em !important;
-    padding: 12px 16px !important;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.07) !important;
+    padding: 10px 14px !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06) !important;
 }
 .info-table td, .data-table td, .history-table td {
-    padding: 12px 16px !important;
+    padding: 10px 14px !important;
     border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
     color: #e1e3e6 !important;
     background-color: #1e2023 !important;
@@ -378,9 +391,34 @@ button:not(.filter-item):not(.dropdown-menu button):not(#user-dropdown button):n
     border-right: 1px solid rgba(255, 255, 255, 0.05) !important;
 }
 
+/* Anti-Double-Border for all table wrappers */
+div:has(> .info-table),
+div:has(> .data-table),
+div:has(> .history-table),
+div:has(> .history-table-wrapper),
+.border:has(> .info-table),
+.border:has(> .data-table),
+.border:has(> .history-table),
+.border:has(> .history-table-wrapper),
+.border-zinc-800:has(> .info-table),
+.border-zinc-800:has(> .data-table),
+.border-zinc-800:has(> .history-table),
+.border-zinc-800:has(> .history-table-wrapper),
+#veh-history-table-container.border {
+    border: none !important;
+    box-shadow: none !important;
+}
+
 /* 11. Form Inputs & Text Fields */
-input[type="text"], input[type="search"], input[type="password"], input[type="email"], select, textarea, .admin-input, .hist-input {
-    border-radius: 14px !important;
+input[type="text"]:not(#search-input):not(#page-search-input),
+input[type="search"]:not(#search-input):not(#page-search-input),
+input[type="password"],
+input[type="email"],
+select,
+textarea,
+.admin-input,
+.hist-input {
+    border-radius: 12px !important;
     background-color: #282a2e !important;
     border: 1px solid transparent !important;
     color: #f0f2f5 !important;
@@ -388,7 +426,14 @@ input[type="text"], input[type="search"], input[type="password"], input[type="em
     font-weight: 500 !important;
     transition: all 0.2s cubic-bezier(0.2, 0, 0, 1) !important;
 }
-input[type="text"]:focus, input[type="search"]:focus, input[type="password"]:focus, input[type="email"]:focus, select:focus, textarea:focus, .admin-input:focus, .hist-input:focus {
+input[type="text"]:not(#search-input):not(#page-search-input):focus,
+input[type="search"]:not(#search-input):not(#page-search-input):focus,
+input[type="password"]:focus,
+input[type="email"]:focus,
+select:focus,
+textarea:focus,
+.admin-input:focus,
+.hist-input:focus {
     background-color: #1e2023 !important;
     border-color: #f0f2f5 !important;
     box-shadow: 0 0 0 3px rgba(240, 242, 245, 0.15) !important;
@@ -396,6 +441,45 @@ input[type="text"]:focus, input[type="search"]:focus, input[type="password"]:foc
 }
 input::placeholder, textarea::placeholder {
     color: #8e9199 !important;
+}
+
+/* Inner Search Inputs: STRICTLY transparent, NO borders, NO rings, NO shadows */
+#search-input,
+#page-search-input,
+#header-search-box input,
+#page-search-box input {
+    background: transparent !important;
+    background-color: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    outline: none !important;
+    border-radius: 0 !important;
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+}
+#search-input:focus,
+#page-search-input:focus,
+#header-search-box input:focus,
+#page-search-box input:focus {
+    background: transparent !important;
+    background-color: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    outline: none !important;
+}
+
+/* Page Search Box Container */
+#page-search-box {
+    border-radius: 9999px !important;
+    background-color: #1e2023 !important;
+    border: 1px solid rgba(255, 255, 255, 0.12) !important;
+    box-shadow: 0 2px 8px -2px rgba(0, 0, 0, 0.3) !important;
+    transition: all 0.2s cubic-bezier(0.2, 0, 0, 1) !important;
+}
+#page-search-box:focus-within {
+    background-color: #1e2023 !important;
+    border-color: #f0f2f5 !important;
+    box-shadow: 0 0 0 3px rgba(240, 242, 245, 0.15) !important;
 }
 
 /* 12. Range Sliders (M3 Pill Track & Floating Thumb) */

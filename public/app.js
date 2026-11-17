@@ -7929,7 +7929,7 @@ Object.assign(window.app, {
                         // If route is "Dừng hoạt động", always show "Dừng hoạt động" for operator name
                         let safeMainOperator = app.utils.cleanText(main.operator || 'Đang cập nhật');
                         if (main.route_no && main.route_no.trim() === 'Dừng hoạt động') safeMainOperator = 'Dừng hoạt động';
-                        heroMain.className = "img-wrapper w-full md:w-3/5 relative group cursor-pointer bg-gray-100 dark:bg-zinc-800 rounded-2xl overflow-hidden shadow-md hover:shadow-xl hover:-translate-y-1 transition-all duration-300";
+                        heroMain.className = "img-wrapper w-full md:w-3/5 relative group cursor-pointer bg-gray-100 dark:bg-zinc-800 rounded-xl overflow-hidden shadow-md hover:shadow-xl hover:-translate-y-1 transition-all duration-300";
                         heroMain.innerHTML = `
                             <div class="img-spinner absolute inset-0 flex items-center justify-center text-gray-400 z-0">
                                 <i class="fa-solid fa-circle-notch fa-spin text-3xl"></i>
@@ -7954,7 +7954,7 @@ Object.assign(window.app, {
                             let safeSubOperator = app.utils.cleanText(p.operator || 'Đang cập nhật');
                             if (p.route_no && p.route_no.trim() === 'Dừng hoạt động') safeSubOperator = 'Dừng hoạt động';
                             heroSub.innerHTML += `
-                                <div class="img-wrapper relative group cursor-pointer h-[196px] bg-gray-100 dark:bg-zinc-800 rounded-2xl overflow-hidden shadow-md hover:shadow-xl hover:-translate-y-1 transition-all duration-300" onclick="app.views.loadDetail(${p.id})">
+                                <div class="img-wrapper relative group cursor-pointer h-[196px] bg-gray-100 dark:bg-zinc-800 rounded-xl overflow-hidden shadow-md hover:shadow-xl hover:-translate-y-1 transition-all duration-300" onclick="app.views.loadDetail(${p.id})">
                                     <div class="img-spinner absolute inset-0 flex items-center justify-center text-gray-400 z-0">
                                         <i class="fa-solid fa-circle-notch fa-spin text-2xl"></i>
                                     </div>
@@ -8259,8 +8259,8 @@ Object.assign(window.app, {
                     const proxyUrl = app.utils.getProxiedUrl(p.url, `${safePlate}.jpg`, 'thumb');
                     const dateHtml = p.taken_at ? `<span class="shrink-0 flex items-center gap-1"><i class="fa-regular fa-calendar"></i>${p.taken_at.split('T')[0].split('-').reverse().join('/')}</span>` : '';
                     return `
-                        <div data-id="${p.id}" class="photo-card bg-white dark:bg-[#1e2023] border border-black/5 dark:border-white/5 hover:border-black/10 dark:hover:border-white/10 hover:shadow-xl hover:-translate-y-1 cursor-pointer rounded-2xl p-2.5 transition-all duration-300 flex flex-col fade-zoom-in-page" onclick="app.views.loadDetail(${p.id})">
-                            <div class="img-wrapper relative w-full aspect-[4/3] bg-gray-100 dark:bg-zinc-800 rounded-xl overflow-hidden shrink-0">
+                        <div data-id="${p.id}" class="photo-card bg-white dark:bg-[#1e2023] border border-black/5 dark:border-white/5 hover:border-black/10 dark:hover:border-white/10 hover:shadow-xl hover:-translate-y-1 cursor-pointer rounded-xl p-2 transition-all duration-300 flex flex-col fade-zoom-in-page" onclick="app.views.loadDetail(${p.id})">
+                            <div class="img-wrapper relative w-full aspect-[4/3] bg-gray-100 dark:bg-zinc-800 rounded-lg overflow-hidden shrink-0">
                                 <div class="img-spinner absolute inset-0 flex items-center justify-center text-gray-400">
                                     <i class="fa-solid fa-circle-notch fa-spin text-2xl"></i>
                                 </div>
@@ -10091,8 +10091,8 @@ let currentRouteProvName = null;
                                 </div>
                                 <div class="mb-8">
                                     <h3 class="font-bold text-xs uppercase text-black tracking-wider mb-2.5 px-1">Thông tin chi tiết</h3>
-                                    <div class="border border-gray-200 rounded-lg overflow-hidden bg-white mb-3 shadow-sm">
-                                        <table class="info-table border-gray-200 w-full" style="margin-bottom: 0 !important;">
+                                    <div class="rounded-lg overflow-hidden mb-3">
+                                        <table class="info-table w-full" style="margin-bottom: 0 !important;">
                                             <tr id="vehicle-edit-operator-row" ${currentRouteClientSide === 'Dừng hoạt động' ? 'class="hidden"' : ''}>
                                                 <td class="label bg-gray-50 border-r border-b border-gray-200" style="width: 35%">Đơn vị vận hành</td>
                                                 <td class="value-cell border-b border-gray-200">
