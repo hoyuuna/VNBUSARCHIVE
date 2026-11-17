@@ -935,9 +935,9 @@ Object.assign(window.app, {
                         let defaultText = options.btnOkText || "Đồng ý";
                         okBtn.style.display = options.hideButtons ? 'none' : 'inline-flex';
                         if (options.isDestructive) {
-                            okBtn.className = "w-full inline-flex items-center justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-medium text-white hover:bg-red-700 focus:outline-none sm:ml-3 sm:w-auto sm:text-sm transition";
+                            okBtn.className = "w-full inline-flex items-center justify-center rounded-full shadow-sm px-5 py-2.5 bg-red-600 text-xs font-bold text-white hover:bg-red-700 focus:outline-none sm:ml-3 sm:w-auto transition";
                         } else {
-                            okBtn.className = "w-full inline-flex items-center justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-black text-base font-medium text-white hover:bg-gray-800 focus:outline-none sm:ml-3 sm:w-auto sm:text-sm transition";
+                            okBtn.className = "w-full inline-flex items-center justify-center rounded-full shadow-sm px-5 py-2.5 bg-black dark:bg-white text-xs font-bold text-white dark:text-black hover:bg-gray-800 dark:hover:bg-zinc-200 focus:outline-none sm:ml-3 sm:w-auto transition";
                         }
                         if (options.countdown) {
                             okBtn.disabled = true;
@@ -975,11 +975,11 @@ Object.assign(window.app, {
                         cancelBtn.innerHTML = options.btnCancelText || "Hủy bỏ";
                         cancelBtn.style.display = options.hideButtons ? 'none' : 'inline-flex';
                         if (options.isCancelDestructive) {
-                            cancelBtn.className = "mt-3 w-full inline-flex items-center justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-medium text-white hover:bg-red-700 focus:outline-none sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm transition";
+                            cancelBtn.className = "mt-3 w-full inline-flex items-center justify-center rounded-full shadow-sm px-5 py-2.5 bg-red-600 text-xs font-bold text-white hover:bg-red-700 focus:outline-none sm:mt-0 sm:ml-3 sm:w-auto transition";
                         } else if (options.isCancelPrimary) {
-                            cancelBtn.className = "mt-3 w-full inline-flex items-center justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-black text-base font-medium text-white hover:bg-gray-800 focus:outline-none sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm transition";
+                            cancelBtn.className = "mt-3 w-full inline-flex items-center justify-center rounded-full shadow-sm px-5 py-2.5 bg-black dark:bg-white text-xs font-bold text-white dark:text-black hover:bg-gray-800 dark:hover:bg-zinc-200 focus:outline-none sm:mt-0 sm:ml-3 sm:w-auto transition";
                         } else {
-                            cancelBtn.className = "mt-3 w-full inline-flex items-center justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm transition";
+                            cancelBtn.className = "mt-3 w-full inline-flex items-center justify-center rounded-full border border-gray-300 dark:border-zinc-700 shadow-sm px-5 py-2.5 bg-transparent text-xs font-bold text-gray-700 dark:text-zinc-300 hover:bg-gray-100 dark:hover:bg-zinc-800 focus:outline-none sm:mt-0 sm:ml-3 sm:w-auto transition";
                         }
                         app.alertCancelCallback = cancelCallback || (() => { });
                     } else {
@@ -4606,11 +4606,14 @@ cleanupState: () => {
                         if (hIcon) hIcon.classList.remove('hidden');
                     }
 dropdown.innerHTML = `
-                         <a href="/profile" class="block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 border-b border-gray-100 font-bold"><i class="fa-solid fa-address-card w-5 text-center mr-1"></i> Hồ sơ của tôi</a>
-                         <button onclick="app.settings.open()" class="w-full text-left block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 border-b border-gray-100 font-bold"><i class="fa-solid fa-gear w-5 text-center mr-1"></i> Cài đặt</button>
-                         <a href="/help" class="block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 border-b border-gray-100 font-bold"><i class="fa-solid fa-book-open w-5 text-center mr-1"></i> Trung tâm hỗ trợ</a>
-                         <a href="/contact" class="w-full text-left block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 border-b border-gray-100 font-bold"><i class="fa-solid fa-headset w-5 text-center mr-1"></i> Liên hệ hỗ trợ</a>
-                         <button onclick="app.auth.logout()" class="w-full text-left block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 font-bold"><i class="fa-solid fa-right-from-bracket w-5 text-center mr-1"></i> Đăng xuất</button>
+                         <div class="p-1.5 flex flex-col gap-0.5">
+                             <a href="/profile" class="flex items-center gap-2.5 px-3.5 py-2.5 text-xs font-semibold text-gray-800 dark:text-zinc-200 hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-xl transition"><i class="fa-solid fa-address-card w-4 text-center"></i> Hồ sơ của tôi</a>
+                             <button onclick="app.settings.open()" class="w-full text-left flex items-center gap-2.5 px-3.5 py-2.5 text-xs font-semibold text-gray-800 dark:text-zinc-200 hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-xl transition"><i class="fa-solid fa-gear w-4 text-center"></i> Cài đặt</button>
+                             <a href="/help" class="flex items-center gap-2.5 px-3.5 py-2.5 text-xs font-semibold text-gray-800 dark:text-zinc-200 hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-xl transition"><i class="fa-solid fa-book-open w-4 text-center"></i> Trung tâm hỗ trợ</a>
+                             <a href="/contact" class="flex items-center gap-2.5 px-3.5 py-2.5 text-xs font-semibold text-gray-800 dark:text-zinc-200 hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-xl transition"><i class="fa-solid fa-headset w-4 text-center"></i> Liên hệ hỗ trợ</a>
+                             <div class="my-1 border-t border-gray-100 dark:border-zinc-800"></div>
+                             <button onclick="app.auth.logout()" class="w-full text-left flex items-center gap-2.5 px-3.5 py-2.5 text-xs font-semibold text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/40 rounded-xl transition"><i class="fa-solid fa-right-from-bracket w-4 text-center"></i> Đăng xuất</button>
+                         </div>
                      `;
                     app.auth.close();
                     if (app.role === 'admin' || app.role === 'manager') {
@@ -4637,11 +4640,13 @@ dropdown.innerHTML = `
                     app.avatarUrl = null;
                     app.role = 'user';
 dropdown.innerHTML = `
-                         <a href="/auth" class="w-full text-left block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 border-b border-gray-100 font-bold"><i class="fa-solid fa-arrow-right-to-bracket w-5 text-center mr-1"></i> Đăng nhập</a>
-                         <a href="/auth" class="w-full text-left block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 border-b border-gray-100 font-bold"><i class="fa-solid fa-user-plus w-5 text-center mr-1"></i> Tạo tài khoản</a>
-                         <button onclick="app.settings.open()" class="w-full text-left block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 border-b border-gray-100 font-bold"><i class="fa-solid fa-gear w-5 text-center mr-1"></i> Cài đặt</button>
-                         <a href="/help" class="block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 border-b border-gray-100 font-bold"><i class="fa-solid fa-book-open w-5 text-center mr-1"></i> Trung tâm hỗ trợ</a>
-                         <a href="/contact" class="w-full text-left block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 font-bold"><i class="fa-solid fa-headset w-5 text-center mr-1"></i> Liên hệ hỗ trợ</a>
+                         <div class="p-1.5 flex flex-col gap-0.5">
+                             <a href="/auth" class="flex items-center gap-2.5 px-3.5 py-2.5 text-xs font-semibold text-gray-800 dark:text-zinc-200 hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-xl transition"><i class="fa-solid fa-arrow-right-to-bracket w-4 text-center"></i> Đăng nhập</a>
+                             <a href="/auth" class="flex items-center gap-2.5 px-3.5 py-2.5 text-xs font-semibold text-gray-800 dark:text-zinc-200 hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-xl transition"><i class="fa-solid fa-user-plus w-4 text-center"></i> Tạo tài khoản</a>
+                             <button onclick="app.settings.open()" class="w-full text-left flex items-center gap-2.5 px-3.5 py-2.5 text-xs font-semibold text-gray-800 dark:text-zinc-200 hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-xl transition"><i class="fa-solid fa-gear w-4 text-center"></i> Cài đặt</button>
+                             <a href="/help" class="flex items-center gap-2.5 px-3.5 py-2.5 text-xs font-semibold text-gray-800 dark:text-zinc-200 hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-xl transition"><i class="fa-solid fa-book-open w-4 text-center"></i> Trung tâm hỗ trợ</a>
+                             <a href="/contact" class="w-full text-left flex items-center gap-2.5 px-3.5 py-2.5 text-xs font-semibold text-gray-800 dark:text-zinc-200 hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-xl transition"><i class="fa-solid fa-headset w-4 text-center"></i> Liên hệ hỗ trợ</a>
+                         </div>
                      `;
                 }
                 if (app.auth && app.auth.updateUUIDBox) app.auth.updateUUIDBox();
@@ -7924,7 +7929,7 @@ Object.assign(window.app, {
                         // If route is "Dừng hoạt động", always show "Dừng hoạt động" for operator name
                         let safeMainOperator = app.utils.cleanText(main.operator || 'Đang cập nhật');
                         if (main.route_no && main.route_no.trim() === 'Dừng hoạt động') safeMainOperator = 'Dừng hoạt động';
-                        heroMain.className = "img-wrapper w-full md:w-3/5 relative group cursor-pointer bg-gray-100 rounded-md overflow-hidden border border-gray-200 hover:-translate-y-1 hover:shadow-lg transition-all duration-300";
+                        heroMain.className = "img-wrapper w-full md:w-3/5 relative group cursor-pointer bg-gray-100 dark:bg-zinc-800 rounded-2xl overflow-hidden shadow-md hover:shadow-xl hover:-translate-y-1 transition-all duration-300";
                         heroMain.innerHTML = `
                             <div class="img-spinner absolute inset-0 flex items-center justify-center text-gray-400 z-0">
                                 <i class="fa-solid fa-circle-notch fa-spin text-3xl"></i>
@@ -7932,9 +7937,11 @@ Object.assign(window.app, {
                             <img loading="lazy" decoding="async" src="${app.utils.getProxiedUrl(main.url, 'main.jpg', 'full')}"
                                  onload="app.utils.handleImgLoad(this)"
                                  onerror="app.utils.fallbackHeroImage(this, 'topPhotosCache', 0)"
-                                 class="absolute inset-0 w-full h-full object-cover object-center block transition-all duration-700 opacity-0 z-10">
-                            <div class="absolute bottom-0 left-0 w-full bg-gradient-to-t from-black/85 via-black/50 to-transparent p-4 pt-14 pointer-events-none z-20 flex flex-col gap-1" style="z-index: 20;">
-                                <p class="text-white font-bold text-xl tracking-tight hero-main-text pointer-events-auto leading-tight truncate" style="text-shadow: 0 2px 4px rgba(0,0,0,0.95);">${safeMainPlate}</p>
+                                 class="absolute inset-0 w-full h-full object-cover object-center block transition-transform duration-700 hover:scale-105 opacity-0 z-10">
+                            <div class="absolute bottom-0 left-0 w-full bg-gradient-to-t from-black/85 via-black/40 to-transparent p-5 pt-16 pointer-events-none z-20 flex flex-col gap-1.5" style="z-index: 20;">
+                                <div class="pointer-events-auto">
+                                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-mono font-bold bg-white text-black shadow-md tracking-wider">${safeMainPlate}</span>
+                                </div>
                                 <p class="text-white text-xs hero-main-views pointer-events-auto truncate leading-tight font-medium" style="text-shadow: 0 1px 3px rgba(0,0,0,0.95);">${safeMainOperator}</p>
                             </div>
                         `;
@@ -7947,22 +7954,24 @@ Object.assign(window.app, {
                             let safeSubOperator = app.utils.cleanText(p.operator || 'Đang cập nhật');
                             if (p.route_no && p.route_no.trim() === 'Dừng hoạt động') safeSubOperator = 'Dừng hoạt động';
                             heroSub.innerHTML += `
-                                <div class="img-wrapper relative group cursor-pointer h-[196px] bg-gray-100 rounded-md overflow-hidden border border-gray-200 hover:-translate-y-1 hover:shadow-lg transition-all duration-300" onclick="app.views.loadDetail(${p.id})">
+                                <div class="img-wrapper relative group cursor-pointer h-[196px] bg-gray-100 dark:bg-zinc-800 rounded-2xl overflow-hidden shadow-md hover:shadow-xl hover:-translate-y-1 transition-all duration-300" onclick="app.views.loadDetail(${p.id})">
                                     <div class="img-spinner absolute inset-0 flex items-center justify-center text-gray-400 z-0">
                                         <i class="fa-solid fa-circle-notch fa-spin text-2xl"></i>
                                     </div>
                                     <img loading="lazy" decoding="async" src="${app.utils.getProxiedUrl(p.url, 'sub.jpg', 'thumb')}"
                                          onload="app.utils.handleImgLoad(this)"
                                          onerror="app.utils.fallbackHeroImage(this, 'topPhotosCache', ${i})"
-                                         class="absolute inset-0 w-full h-full object-cover transition-all duration-500 opacity-0 z-10">
-                                    <div class="absolute bottom-0 left-0 w-full bg-gradient-to-t from-black/85 via-black/40 to-transparent p-2.5 pt-8 pointer-events-none z-20 flex flex-col gap-0.5" style="z-index: 20;">
-                                        <p class="text-white font-bold text-xs tracking-tight truncate leading-none hero-sub-text" style="text-shadow: 0 1px 3px rgba(0,0,0,0.95);">${safeSubPlate}</p>
+                                         class="absolute inset-0 w-full h-full object-cover transition-transform duration-500 hover:scale-105 opacity-0 z-10">
+                                    <div class="absolute bottom-0 left-0 w-full bg-gradient-to-t from-black/85 via-black/40 to-transparent p-3 pt-10 pointer-events-none z-20 flex flex-col gap-1" style="z-index: 20;">
+                                        <div class="pointer-events-auto">
+                                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-mono font-bold bg-white text-black shadow-sm tracking-wider leading-none">${safeSubPlate}</span>
+                                        </div>
                                         <p class="text-white text-[11px] truncate leading-none font-medium hero-sub-operator" style="text-shadow: 0 1px 3px rgba(0,0,0,0.95);">${safeSubOperator}</p>
                                     </div>
                                 </div>`;
                         }
                     } else {
-                        heroMain.className = "w-full md:w-3/5 relative group cursor-pointer bg-gray-100 rounded-md overflow-hidden border border-gray-200";
+                        heroMain.className = "w-full md:w-3/5 relative group cursor-pointer bg-gray-100 dark:bg-zinc-800 rounded-2xl overflow-hidden shadow-sm";
                         heroMain.innerHTML = '<div class="w-full flex items-center justify-center text-gray-400" style="min-height: 404px;">Chưa có dữ liệu nổi bật</div>';
                         heroSub.innerHTML = '';
                     }
@@ -7989,7 +7998,7 @@ Object.assign(window.app, {
                     if (app.homeTotalPages > 1) {
                         const btnContainer = document.getElementById('load-more-container');
                         btnContainer.classList.remove('hidden');
-                        btnContainer.innerHTML = `<button id="btn-home-load-more" onclick="app.views.loadMorePhotos()" class="bg-white border border-gray-300 text-gray-700 px-6 py-2.5 text-sm font-bold rounded-md hover:bg-gray-50 hover:border-gray-400 transition shadow-sm">Xem thêm <i class="fa-solid fa-chevron-down ml-1"></i></button>`;
+                        btnContainer.innerHTML = `<button id="btn-home-load-more" onclick="app.views.loadMorePhotos()" class="bg-white dark:bg-[#1e2023] border border-gray-300 dark:border-zinc-700 text-gray-800 dark:text-zinc-200 px-8 py-3 text-sm font-bold rounded-full hover:bg-gray-50 dark:hover:bg-zinc-800 transition-all shadow-sm hover:shadow-md flex items-center gap-2">Xem thêm <i class="fa-solid fa-chevron-down text-xs"></i></button>`;
                     } else {
                         document.getElementById('load-more-container').classList.add('hidden');
                     }
@@ -8248,10 +8257,10 @@ Object.assign(window.app, {
                     const uDisplay = app.utils.formatProfileDisplay(p.profiles);
                     const safeUser = app.utils.cleanText(uDisplay.username);
                     const proxyUrl = app.utils.getProxiedUrl(p.url, `${safePlate}.jpg`, 'thumb');
-                    const dateHtml = p.taken_at ? `<span class="shrink-0"><i class="fa-regular fa-calendar mr-1"></i>${p.taken_at.split('T')[0].split('-').reverse().join('/')}</span>` : '';
+                    const dateHtml = p.taken_at ? `<span class="shrink-0 flex items-center gap-1"><i class="fa-regular fa-calendar"></i>${p.taken_at.split('T')[0].split('-').reverse().join('/')}</span>` : '';
                     return `
-                        <div data-id="${p.id}" class="bg-white border border-gray-200 hover:border-gray-300 hover:shadow-lg hover:-translate-y-1 cursor-pointer rounded-xl p-2 transition-all duration-300 flex flex-col fade-zoom-in-page" onclick="app.views.loadDetail(${p.id})">
-                            <div class="img-wrapper relative w-full aspect-[4/3] bg-gray-100 rounded-lg overflow-hidden shrink-0 border border-gray-100">
+                        <div data-id="${p.id}" class="photo-card bg-white dark:bg-[#1e2023] border border-black/5 dark:border-white/5 hover:border-black/10 dark:hover:border-white/10 hover:shadow-xl hover:-translate-y-1 cursor-pointer rounded-2xl p-2.5 transition-all duration-300 flex flex-col fade-zoom-in-page" onclick="app.views.loadDetail(${p.id})">
+                            <div class="img-wrapper relative w-full aspect-[4/3] bg-gray-100 dark:bg-zinc-800 rounded-xl overflow-hidden shrink-0">
                                 <div class="img-spinner absolute inset-0 flex items-center justify-center text-gray-400">
                                     <i class="fa-solid fa-circle-notch fa-spin text-2xl"></i>
                                 </div>
@@ -8259,18 +8268,20 @@ Object.assign(window.app, {
                                      onload="app.utils.handleImgLoad(this)"
                                      onerror="app.utils.handleImgError(this)"
                                      alt="Xe buýt ${safePlate}"
-                                     class="absolute inset-0 w-full h-full object-cover opacity-0 transition-all duration-500">
-                                <div class="img-error absolute inset-0 hidden flex-col items-center justify-center p-4 text-center bg-red-50/50">
+                                     class="absolute inset-0 w-full h-full object-cover opacity-0 transition-transform duration-500 hover:scale-105">
+                                <div class="img-error absolute inset-0 hidden flex-col items-center justify-center p-4 text-center bg-red-50/50 dark:bg-red-950/40">
                                     <i class="fa-solid fa-image-slash text-red-400 text-2xl mb-1"></i>
                                     <span class="text-[10px] font-bold text-red-500 leading-tight">Ảnh hiện không thể<br>được tải</span>
                                 </div>
                             </div>
-                            <div class="pt-3 px-1.5 pb-1 flex-1 flex flex-col justify-between">
+                            <div class="pt-3 px-1 pb-0.5 flex-1 flex flex-col justify-between">
                                 <div>
-                                    <div class="font-bold text-sm text-black">${safePlate}</div>
-                                    <div class="text-xs text-gray-600 font-semibold truncate">${safeOp}</div>
+                                    <div class="flex items-center justify-between gap-1 mb-1">
+                                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-mono font-bold bg-black text-white dark:bg-white dark:text-black tracking-wider shadow-sm">${safePlate}</span>
+                                    </div>
+                                    <div class="text-xs text-gray-700 dark:text-zinc-300 font-semibold truncate mt-1">${safeOp}</div>
                                 </div>
-                                <div class="text-[10px] text-gray-400 mt-2 flex justify-between">
+                                <div class="text-[10px] text-gray-400 dark:text-zinc-500 mt-2.5 flex items-center justify-between font-medium">
                                     <span class="truncate pr-2">${safeUser}</span>
                                     ${dateHtml}
                                 </div>
@@ -11158,16 +11169,16 @@ Object.assign(window.app, {
                         }
                         box.classList.remove('hidden');
                         let html = (app.search.advancedFilters || []).map(f => `
-                            <div class="inline-flex items-center gap-1.5 py-1 px-2.5 text-xs font-semibold text-gray-700 bg-white border border-gray-300 hover:border-gray-500 rounded-md shadow-sm shrink-0 cursor-pointer transition-colors" onclick="event.stopPropagation(); app.search.editAdvancedFilter('${f.id}')">
-                                <span class="text-gray-500 font-normal">${f.fieldLabel}:</span>
-                                <span class="font-bold text-black">${f.opLabel} "${f.displayVal}"</span>
-                                <button type="button" onclick="event.stopPropagation(); app.search.removeAdvancedFilter('${f.id}')" class="ml-1 text-gray-400 hover:text-red-600 transition">
+                            <div class="inline-flex items-center gap-1.5 py-1 px-3 text-xs font-semibold text-gray-800 dark:text-zinc-200 bg-white dark:bg-[#1e2023] border border-black/10 dark:border-white/10 hover:border-black/20 dark:hover:border-white/20 rounded-full shadow-sm shrink-0 cursor-pointer transition-all" onclick="event.stopPropagation(); app.search.editAdvancedFilter('${f.id}')">
+                                <span class="text-gray-500 dark:text-zinc-400 font-normal">${f.fieldLabel}:</span>
+                                <span class="font-bold text-black dark:text-white">${f.opLabel} "${f.displayVal}"</span>
+                                <button type="button" onclick="event.stopPropagation(); app.search.removeAdvancedFilter('${f.id}')" class="ml-1 text-gray-400 hover:text-red-500 transition">
                                     <i class="fa-solid fa-xmark"></i>
                                 </button>
                             </div>
                         `).join('');
                         html += `
-                            <button type="button" onclick="event.stopPropagation(); app.search.openAdvancedFilterModal()" class="shrink-0 text-xs font-bold text-gray-600 bg-white border border-gray-300 hover:border-gray-400 hover:text-black rounded-md py-1 px-2.5 shadow-sm transition">
+                            <button type="button" onclick="event.stopPropagation(); app.search.openAdvancedFilterModal()" class="shrink-0 text-xs font-bold text-gray-700 dark:text-zinc-300 bg-gray-100 dark:bg-zinc-800 hover:bg-gray-200 dark:hover:bg-zinc-700 rounded-full py-1 px-3 transition">
                                 + Thêm
                             </button>
                         `;
@@ -11790,7 +11801,7 @@ Object.assign(window.app, {
                     <div class="${style.order} flex-1 w-full min-w-0">
                         <div onclick="app.utils.navigate('/user/${encodeURIComponent(user.username)}')" 
                              class="cursor-pointer bg-white ${style.border} rounded-2xl p-6 flex flex-col items-center text-center group hover:-translate-y-1 hover:shadow-lg transition-all duration-300 h-full relative">
-                            <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-md text-[11px] font-black uppercase tracking-wider mb-5 ${style.badgeStyle}">
+                            <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-black uppercase tracking-wider mb-5 ${style.badgeStyle}">
                                 ${style.icon} ${style.title}
                             </div>
                             <div class="w-24 h-24 md:w-28 md:h-28 rounded-full overflow-hidden shrink-0 mx-auto border border-gray-200 bg-gray-50 shadow-inner mb-4 transition-transform">
@@ -11832,7 +11843,7 @@ Object.assign(window.app, {
                                 <div onclick="app.utils.navigate('/user/${encodeURIComponent(user.username)}')" 
                                      class="cursor-pointer px-5 md:px-6 py-4 flex items-center justify-between gap-3 hover:bg-gray-50 transition-colors group">
                                     <div class="flex items-center gap-3 md:gap-4 min-w-0 flex-1">
-                                        <div class="w-8 h-8 rounded-lg bg-gray-100 border border-gray-200 text-gray-600 font-black text-sm flex items-center justify-center shrink-0 group-hover:bg-black group-hover:text-white transition-colors">
+                                        <div class="w-8 h-8 rounded-full bg-gray-100 dark:bg-zinc-800 text-gray-700 dark:text-zinc-300 font-black text-xs flex items-center justify-center shrink-0 group-hover:bg-black group-hover:text-white dark:group-hover:bg-white dark:group-hover:text-black transition-colors">
                                             #${rank}
                                         </div>
                                         <div class="w-10 h-10 md:w-12 md:h-12 rounded-full overflow-hidden shrink-0 border border-gray-200 bg-gray-50">
@@ -11927,7 +11938,7 @@ Object.assign(window.app, {
                         const isActive = index === app.newsboard.activeIndex;
                         const bgClass = isActive ? 'bg-black border-black shadow-sm' : 'bg-white hover:bg-gray-50 border-gray-200';
                         return `
-                        <div class="p-3 rounded-lg cursor-pointer mb-2 border transition-colors ${bgClass}" onclick="app.newsboard.renderContent(${index})">
+                        <div class="p-3.5 rounded-2xl cursor-pointer mb-2 border transition-all ${bgClass}" onclick="app.newsboard.renderContent(${index})">
                             <div class="text-[10px] ${isActive ? 'text-gray-300' : 'text-gray-400'} font-bold uppercase mb-1">${item.date || 'Hôm nay'}</div>
                             <div class="text-sm font-bold ${isActive ? 'text-white' : 'text-gray-800'} line-clamp-2 leading-snug">${item.title || 'Thông báo hệ thống'}</div>
                             <div class="text-xs ${isActive ? 'text-gray-400' : 'text-gray-500'} mt-1 line-clamp-1">${app.utils.stripMarkdown(item.summary) || 'Nhấn để xem chi tiết...'}</div>
@@ -20429,8 +20440,8 @@ Object.assign(window.app, {
                     const btnSystem = document.getElementById('set-theme-btn-system');
                     if (!btnLight || !btnDark) return;
 
-                    const active = 'theme-option cursor-pointer border border-black bg-black text-white rounded-xl p-5 shadow-md transition-all duration-200 flex flex-col items-center justify-center gap-2 scale-[1.02]';
-                    const inactive = 'theme-option cursor-pointer border border-gray-300 bg-white text-gray-800 rounded-xl p-5 shadow-sm transition-all duration-200 flex flex-col items-center justify-center gap-2 scale-100';
+                    const active = 'theme-option cursor-pointer border border-black/10 dark:border-white/20 bg-black text-white dark:bg-white dark:text-black rounded-2xl p-5 shadow-lg transition-all duration-200 flex flex-col items-center justify-center gap-2 scale-[1.02]';
+                    const inactive = 'theme-option cursor-pointer border border-black/5 dark:border-white/5 bg-gray-50/80 dark:bg-zinc-800/80 text-gray-800 dark:text-zinc-200 rounded-2xl p-5 shadow-sm hover:shadow-md transition-all duration-200 flex flex-col items-center justify-center gap-2 scale-100';
 
                     const cur = app.preference.theme;
                     btnLight.className = cur === 'light' ? active : inactive;
@@ -20871,12 +20882,12 @@ Object.assign(window.app, {
                     }
                     const toolbar = app.user ? `
                         <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px;">
-                            <button class="flex items-center gap-1.5 bg-white border border-gray-300 text-gray-700 px-3 py-1.5 rounded-lg font-bold text-xs shadow-sm transition-colors hover:bg-gray-50 dark:bg-black dark:border-gray-800 dark:text-gray-300 dark:hover:bg-gray-900" onclick="app.comments.startReply('${c.id}', '${authorDisplay.username}')" ><i class="fa-solid fa-reply"></i> Phản hồi</button>
-                            <button class="flex items-center gap-1.5 bg-white border border-gray-300 text-gray-700 px-3 py-1.5 rounded-lg font-bold text-xs shadow-sm transition-colors hover:bg-gray-50 dark:bg-black dark:border-gray-800 dark:text-gray-300 dark:hover:bg-gray-900" onclick="app.utils.navigate('/contact')" ><i class="fa-solid fa-flag"></i> Báo cáo</button>
-                            ${canDelete ? `<button class="flex items-center gap-1.5 bg-white border border-red-300 text-red-600 px-3 py-1.5 rounded-lg font-bold text-xs shadow-sm transition-colors hover:bg-red-50 dark:bg-black dark:border-red-900 dark:text-red-500 dark:hover:bg-red-950" onclick="app.comments.delete('${c.id}')" ><i class="fa-solid fa-trash-can"></i> Xóa</button>` : ''}
+                            <button class="flex items-center gap-1.5 bg-white border border-gray-300 text-gray-700 px-3.5 py-1.5 rounded-full font-bold text-xs shadow-sm transition-colors hover:bg-gray-50 dark:bg-zinc-800 dark:border-zinc-700 dark:text-gray-300 dark:hover:bg-zinc-700" onclick="app.comments.startReply('${c.id}', '${authorDisplay.username}')" ><i class="fa-solid fa-reply"></i> Phản hồi</button>
+                            <button class="flex items-center gap-1.5 bg-white border border-gray-300 text-gray-700 px-3.5 py-1.5 rounded-full font-bold text-xs shadow-sm transition-colors hover:bg-gray-50 dark:bg-zinc-800 dark:border-zinc-700 dark:text-gray-300 dark:hover:bg-zinc-700" onclick="app.utils.navigate('/contact')" ><i class="fa-solid fa-flag"></i> Báo cáo</button>
+                            ${canDelete ? `<button class="flex items-center gap-1.5 bg-white border border-red-300 text-red-600 px-3.5 py-1.5 rounded-full font-bold text-xs shadow-sm transition-colors hover:bg-red-50 dark:bg-zinc-800 dark:border-red-900/60 dark:text-red-400 dark:hover:bg-red-950/40" onclick="app.comments.delete('${c.id}')" ><i class="fa-solid fa-trash-can"></i> Xóa</button>` : ''}
                         </div>` : `
                         <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px;">
-                            ${canDelete ? `<button class="flex items-center gap-1.5 bg-white border border-red-300 text-red-600 px-3 py-1.5 rounded-lg font-bold text-xs shadow-sm transition-colors hover:bg-red-50 dark:bg-black dark:border-red-900 dark:text-red-500 dark:hover:bg-red-950" onclick="app.comments.delete('${c.id}')" ><i class="fa-solid fa-trash-can"></i> Xóa</button>` : ''}
+                            ${canDelete ? `<button class="flex items-center gap-1.5 bg-white border border-red-300 text-red-600 px-3.5 py-1.5 rounded-full font-bold text-xs shadow-sm transition-colors hover:bg-red-50 dark:bg-zinc-800 dark:border-red-900/60 dark:text-red-400 dark:hover:bg-red-950/40" onclick="app.comments.delete('${c.id}')" ><i class="fa-solid fa-trash-can"></i> Xóa</button>` : ''}
                         </div>`;
                     let repliesHTML = '';
                     if (replies.length > 0) {
@@ -20890,7 +20901,7 @@ Object.assign(window.app, {
                             repliesHTML += app.comments.renderReplyItem(r);
                         });
                         if (hidden > 0) {
-                            repliesHTML += `<div style="display: flex; justify-content: center; margin-top: 4px; margin-bottom: 8px;"><button class="font-inherit text-[11px] font-bold text-gray-600 bg-white border border-gray-200 px-4 py-1.5 rounded-lg shadow-sm transition-colors hover:bg-gray-50 dark:bg-black dark:border-gray-800 dark:text-gray-400 dark:hover:bg-gray-900" onclick="app.comments.toggleReplies('${c.id}', ${replies.length})" id="btn-toggle-replies-${c.id}" ><i class="fa-solid fa-chevron-down" style="margin-right: 4px;"></i>Xem thêm ${hidden} phản hồi</button></div>`;
+                            repliesHTML += `<div style="display: flex; justify-content: center; margin-top: 4px; margin-bottom: 8px;"><button class="font-inherit text-[11px] font-bold text-gray-700 bg-white border border-gray-300 dark:border-zinc-700 px-4 py-1.5 rounded-full shadow-sm transition-colors hover:bg-gray-50 dark:bg-zinc-800 dark:text-gray-300 dark:hover:bg-zinc-700" onclick="app.comments.toggleReplies('${c.id}', ${replies.length})" id="btn-toggle-replies-${c.id}" ><i class="fa-solid fa-chevron-down" style="margin-right: 4px;"></i>Xem thêm ${hidden} phản hồi</button></div>`;
                             repliesHTML += `<div id="reply-hidden-${c.id}" class="hidden">`;
                             replies.slice(2).forEach(r => {
                                 repliesHTML += app.comments.renderReplyItem(r);
@@ -21621,7 +21632,7 @@ Object.assign(window.app, {
                         const isStopped = (h.route || '').trim() === 'Dừng hoạt động';
                         if (isStopped) h.operator = 'N/A';
                         const div = document.createElement('div');
-                        div.className = "flex flex-col gap-2 bg-white p-3 border border-gray-200 rounded-md text-xs mb-2";
+                        div.className = "flex flex-col gap-2 bg-white dark:bg-[#1e2023] p-4 border border-black/5 dark:border-white/10 rounded-2xl text-xs mb-3 shadow-sm";
                         div.innerHTML = `
                             <div class="flex flex-col sm:flex-row gap-2 items-stretch sm:items-center">
                                 <div class="flex flex-col sm:flex-1 min-w-0">
@@ -21651,9 +21662,9 @@ Object.assign(window.app, {
                                 </div>
                                 <div class="flex justify-end gap-2 mt-2 sm:mt-0 w-full sm:w-auto h-full">
                                     ${ (h.plate && h.plate !== app.currentPlate) ? 
-                                    `<button type="button" onclick="app.vehicle.requestSplit('${app.currentPlate}', '${app.utils.cleanText(h.plate)}')" class="text-gray-700 hover:text-white hover:bg-black border border-gray-300 rounded-md px-3 py-2 font-bold transition min-h-[42px] whitespace-nowrap" title="Tách xe này ra khỏi lịch sử"><i class="fa-solid fa-scissors"></i></button>` : '' }
-                                    <button type="button" onclick="app.vehicle.duplicateHistoryItem(${index}, '${prefix}')" class="text-gray-700 hover:text-white hover:bg-black border border-gray-300 rounded-md px-3 py-2 font-bold transition min-h-[42px]" title="Nhân bản"><i class="fa-solid fa-copy"></i></button>
-                                    <button type="button" onclick="app.vehicle.removeHistoryItem(${index}, '${prefix}')" class="text-gray-700 hover:text-white hover:bg-black border border-gray-300 rounded-md px-3 py-2 font-bold transition min-h-[42px]" title="Xóa"><i class="fa-solid fa-trash"></i></button>
+                                    `<button type="button" onclick="app.vehicle.requestSplit('${app.currentPlate}', '${app.utils.cleanText(h.plate)}')" class="text-gray-700 hover:text-white hover:bg-black border border-gray-300 dark:border-zinc-700 rounded-full px-3 py-2 font-bold transition min-h-[42px] whitespace-nowrap" title="Tách xe này ra khỏi lịch sử"><i class="fa-solid fa-scissors"></i></button>` : '' }
+                                    <button type="button" onclick="app.vehicle.duplicateHistoryItem(${index}, '${prefix}')" class="text-gray-700 hover:text-white hover:bg-black border border-gray-300 dark:border-zinc-700 rounded-full px-3 py-2 font-bold transition min-h-[42px]" title="Nhân bản"><i class="fa-solid fa-copy"></i></button>
+                                    <button type="button" onclick="app.vehicle.removeHistoryItem(${index}, '${prefix}')" class="text-gray-700 hover:text-white hover:bg-black border border-gray-300 dark:border-zinc-700 rounded-full px-3 py-2 font-bold transition min-h-[42px]" title="Xóa"><i class="fa-solid fa-trash"></i></button>
                                 </div>
                             </div>
                         `;

@@ -197,16 +197,16 @@ Object.assign(window.app, {
                         }
                         box.classList.remove('hidden');
                         let html = (app.search.advancedFilters || []).map(f => `
-                            <div class="inline-flex items-center gap-1.5 py-1 px-2.5 text-xs font-semibold text-gray-700 bg-white border border-gray-300 hover:border-gray-500 rounded-md shadow-sm shrink-0 cursor-pointer transition-colors" onclick="event.stopPropagation(); app.search.editAdvancedFilter('${f.id}')">
-                                <span class="text-gray-500 font-normal">${f.fieldLabel}:</span>
-                                <span class="font-bold text-black">${f.opLabel} "${f.displayVal}"</span>
-                                <button type="button" onclick="event.stopPropagation(); app.search.removeAdvancedFilter('${f.id}')" class="ml-1 text-gray-400 hover:text-red-600 transition">
+                            <div class="inline-flex items-center gap-1.5 py-1 px-3 text-xs font-semibold text-gray-800 dark:text-zinc-200 bg-white dark:bg-[#1e2023] border border-black/10 dark:border-white/10 hover:border-black/20 dark:hover:border-white/20 rounded-full shadow-sm shrink-0 cursor-pointer transition-all" onclick="event.stopPropagation(); app.search.editAdvancedFilter('${f.id}')">
+                                <span class="text-gray-500 dark:text-zinc-400 font-normal">${f.fieldLabel}:</span>
+                                <span class="font-bold text-black dark:text-white">${f.opLabel} "${f.displayVal}"</span>
+                                <button type="button" onclick="event.stopPropagation(); app.search.removeAdvancedFilter('${f.id}')" class="ml-1 text-gray-400 hover:text-red-500 transition">
                                     <i class="fa-solid fa-xmark"></i>
                                 </button>
                             </div>
                         `).join('');
                         html += `
-                            <button type="button" onclick="event.stopPropagation(); app.search.openAdvancedFilterModal()" class="shrink-0 text-xs font-bold text-gray-600 bg-white border border-gray-300 hover:border-gray-400 hover:text-black rounded-md py-1 px-2.5 shadow-sm transition">
+                            <button type="button" onclick="event.stopPropagation(); app.search.openAdvancedFilterModal()" class="shrink-0 text-xs font-bold text-gray-700 dark:text-zinc-300 bg-gray-100 dark:bg-zinc-800 hover:bg-gray-200 dark:hover:bg-zinc-700 rounded-full py-1 px-3 transition">
                                 + Thêm
                             </button>
                         `;

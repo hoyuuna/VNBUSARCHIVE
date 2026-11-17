@@ -272,7 +272,7 @@ Object.assign(window.app, {
                         // If route is "Dừng hoạt động", always show "Dừng hoạt động" for operator name
                         let safeMainOperator = app.utils.cleanText(main.operator || 'Đang cập nhật');
                         if (main.route_no && main.route_no.trim() === 'Dừng hoạt động') safeMainOperator = 'Dừng hoạt động';
-                        heroMain.className = "img-wrapper w-full md:w-3/5 relative group cursor-pointer bg-gray-100 rounded-md overflow-hidden border border-gray-200 hover:-translate-y-1 hover:shadow-lg transition-all duration-300";
+                        heroMain.className = "img-wrapper w-full md:w-3/5 relative group cursor-pointer bg-gray-100 dark:bg-zinc-800 rounded-2xl overflow-hidden shadow-md hover:shadow-xl hover:-translate-y-1 transition-all duration-300";
                         heroMain.innerHTML = `
                             <div class="img-spinner absolute inset-0 flex items-center justify-center text-gray-400 z-0">
                                 <i class="fa-solid fa-circle-notch fa-spin text-3xl"></i>
@@ -280,9 +280,11 @@ Object.assign(window.app, {
                             <img loading="lazy" decoding="async" src="${app.utils.getProxiedUrl(main.url, 'main.jpg', 'full')}"
                                  onload="app.utils.handleImgLoad(this)"
                                  onerror="app.utils.fallbackHeroImage(this, 'topPhotosCache', 0)"
-                                 class="absolute inset-0 w-full h-full object-cover object-center block transition-all duration-700 opacity-0 z-10">
-                            <div class="absolute bottom-0 left-0 w-full bg-gradient-to-t from-black/85 via-black/50 to-transparent p-4 pt-14 pointer-events-none z-20 flex flex-col gap-1" style="z-index: 20;">
-                                <p class="text-white font-bold text-xl tracking-tight hero-main-text pointer-events-auto leading-tight truncate" style="text-shadow: 0 2px 4px rgba(0,0,0,0.95);">${safeMainPlate}</p>
+                                 class="absolute inset-0 w-full h-full object-cover object-center block transition-transform duration-700 hover:scale-105 opacity-0 z-10">
+                            <div class="absolute bottom-0 left-0 w-full bg-gradient-to-t from-black/85 via-black/40 to-transparent p-5 pt-16 pointer-events-none z-20 flex flex-col gap-1.5" style="z-index: 20;">
+                                <div class="pointer-events-auto">
+                                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-mono font-bold bg-white text-black shadow-md tracking-wider">${safeMainPlate}</span>
+                                </div>
                                 <p class="text-white text-xs hero-main-views pointer-events-auto truncate leading-tight font-medium" style="text-shadow: 0 1px 3px rgba(0,0,0,0.95);">${safeMainOperator}</p>
                             </div>
                         `;
@@ -295,22 +297,24 @@ Object.assign(window.app, {
                             let safeSubOperator = app.utils.cleanText(p.operator || 'Đang cập nhật');
                             if (p.route_no && p.route_no.trim() === 'Dừng hoạt động') safeSubOperator = 'Dừng hoạt động';
                             heroSub.innerHTML += `
-                                <div class="img-wrapper relative group cursor-pointer h-[196px] bg-gray-100 rounded-md overflow-hidden border border-gray-200 hover:-translate-y-1 hover:shadow-lg transition-all duration-300" onclick="app.views.loadDetail(${p.id})">
+                                <div class="img-wrapper relative group cursor-pointer h-[196px] bg-gray-100 dark:bg-zinc-800 rounded-2xl overflow-hidden shadow-md hover:shadow-xl hover:-translate-y-1 transition-all duration-300" onclick="app.views.loadDetail(${p.id})">
                                     <div class="img-spinner absolute inset-0 flex items-center justify-center text-gray-400 z-0">
                                         <i class="fa-solid fa-circle-notch fa-spin text-2xl"></i>
                                     </div>
                                     <img loading="lazy" decoding="async" src="${app.utils.getProxiedUrl(p.url, 'sub.jpg', 'thumb')}"
                                          onload="app.utils.handleImgLoad(this)"
                                          onerror="app.utils.fallbackHeroImage(this, 'topPhotosCache', ${i})"
-                                         class="absolute inset-0 w-full h-full object-cover transition-all duration-500 opacity-0 z-10">
-                                    <div class="absolute bottom-0 left-0 w-full bg-gradient-to-t from-black/85 via-black/40 to-transparent p-2.5 pt-8 pointer-events-none z-20 flex flex-col gap-0.5" style="z-index: 20;">
-                                        <p class="text-white font-bold text-xs tracking-tight truncate leading-none hero-sub-text" style="text-shadow: 0 1px 3px rgba(0,0,0,0.95);">${safeSubPlate}</p>
+                                         class="absolute inset-0 w-full h-full object-cover transition-transform duration-500 hover:scale-105 opacity-0 z-10">
+                                    <div class="absolute bottom-0 left-0 w-full bg-gradient-to-t from-black/85 via-black/40 to-transparent p-3 pt-10 pointer-events-none z-20 flex flex-col gap-1" style="z-index: 20;">
+                                        <div class="pointer-events-auto">
+                                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-mono font-bold bg-white text-black shadow-sm tracking-wider leading-none">${safeSubPlate}</span>
+                                        </div>
                                         <p class="text-white text-[11px] truncate leading-none font-medium hero-sub-operator" style="text-shadow: 0 1px 3px rgba(0,0,0,0.95);">${safeSubOperator}</p>
                                     </div>
                                 </div>`;
                         }
                     } else {
-                        heroMain.className = "w-full md:w-3/5 relative group cursor-pointer bg-gray-100 rounded-md overflow-hidden border border-gray-200";
+                        heroMain.className = "w-full md:w-3/5 relative group cursor-pointer bg-gray-100 dark:bg-zinc-800 rounded-2xl overflow-hidden shadow-sm";
                         heroMain.innerHTML = '<div class="w-full flex items-center justify-center text-gray-400" style="min-height: 404px;">Chưa có dữ liệu nổi bật</div>';
                         heroSub.innerHTML = '';
                     }
@@ -337,7 +341,7 @@ Object.assign(window.app, {
                     if (app.homeTotalPages > 1) {
                         const btnContainer = document.getElementById('load-more-container');
                         btnContainer.classList.remove('hidden');
-                        btnContainer.innerHTML = `<button id="btn-home-load-more" onclick="app.views.loadMorePhotos()" class="bg-white border border-gray-300 text-gray-700 px-6 py-2.5 text-sm font-bold rounded-md hover:bg-gray-50 hover:border-gray-400 transition shadow-sm">Xem thêm <i class="fa-solid fa-chevron-down ml-1"></i></button>`;
+                        btnContainer.innerHTML = `<button id="btn-home-load-more" onclick="app.views.loadMorePhotos()" class="bg-white dark:bg-[#1e2023] border border-gray-300 dark:border-zinc-700 text-gray-800 dark:text-zinc-200 px-8 py-3 text-sm font-bold rounded-full hover:bg-gray-50 dark:hover:bg-zinc-800 transition-all shadow-sm hover:shadow-md flex items-center gap-2">Xem thêm <i class="fa-solid fa-chevron-down text-xs"></i></button>`;
                     } else {
                         document.getElementById('load-more-container').classList.add('hidden');
                     }
@@ -596,10 +600,10 @@ Object.assign(window.app, {
                     const uDisplay = app.utils.formatProfileDisplay(p.profiles);
                     const safeUser = app.utils.cleanText(uDisplay.username);
                     const proxyUrl = app.utils.getProxiedUrl(p.url, `${safePlate}.jpg`, 'thumb');
-                    const dateHtml = p.taken_at ? `<span class="shrink-0"><i class="fa-regular fa-calendar mr-1"></i>${p.taken_at.split('T')[0].split('-').reverse().join('/')}</span>` : '';
+                    const dateHtml = p.taken_at ? `<span class="shrink-0 flex items-center gap-1"><i class="fa-regular fa-calendar"></i>${p.taken_at.split('T')[0].split('-').reverse().join('/')}</span>` : '';
                     return `
-                        <div data-id="${p.id}" class="bg-white border border-gray-200 hover:border-gray-300 hover:shadow-lg hover:-translate-y-1 cursor-pointer rounded-xl p-2 transition-all duration-300 flex flex-col fade-zoom-in-page" onclick="app.views.loadDetail(${p.id})">
-                            <div class="img-wrapper relative w-full aspect-[4/3] bg-gray-100 rounded-lg overflow-hidden shrink-0 border border-gray-100">
+                        <div data-id="${p.id}" class="photo-card bg-white dark:bg-[#1e2023] border border-black/5 dark:border-white/5 hover:border-black/10 dark:hover:border-white/10 hover:shadow-xl hover:-translate-y-1 cursor-pointer rounded-2xl p-2.5 transition-all duration-300 flex flex-col fade-zoom-in-page" onclick="app.views.loadDetail(${p.id})">
+                            <div class="img-wrapper relative w-full aspect-[4/3] bg-gray-100 dark:bg-zinc-800 rounded-xl overflow-hidden shrink-0">
                                 <div class="img-spinner absolute inset-0 flex items-center justify-center text-gray-400">
                                     <i class="fa-solid fa-circle-notch fa-spin text-2xl"></i>
                                 </div>
@@ -607,18 +611,20 @@ Object.assign(window.app, {
                                      onload="app.utils.handleImgLoad(this)"
                                      onerror="app.utils.handleImgError(this)"
                                      alt="Xe buýt ${safePlate}"
-                                     class="absolute inset-0 w-full h-full object-cover opacity-0 transition-all duration-500">
-                                <div class="img-error absolute inset-0 hidden flex-col items-center justify-center p-4 text-center bg-red-50/50">
+                                     class="absolute inset-0 w-full h-full object-cover opacity-0 transition-transform duration-500 hover:scale-105">
+                                <div class="img-error absolute inset-0 hidden flex-col items-center justify-center p-4 text-center bg-red-50/50 dark:bg-red-950/40">
                                     <i class="fa-solid fa-image-slash text-red-400 text-2xl mb-1"></i>
                                     <span class="text-[10px] font-bold text-red-500 leading-tight">Ảnh hiện không thể<br>được tải</span>
                                 </div>
                             </div>
-                            <div class="pt-3 px-1.5 pb-1 flex-1 flex flex-col justify-between">
+                            <div class="pt-3 px-1 pb-0.5 flex-1 flex flex-col justify-between">
                                 <div>
-                                    <div class="font-bold text-sm text-black">${safePlate}</div>
-                                    <div class="text-xs text-gray-600 font-semibold truncate">${safeOp}</div>
+                                    <div class="flex items-center justify-between gap-1 mb-1">
+                                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-mono font-bold bg-black text-white dark:bg-white dark:text-black tracking-wider shadow-sm">${safePlate}</span>
+                                    </div>
+                                    <div class="text-xs text-gray-700 dark:text-zinc-300 font-semibold truncate mt-1">${safeOp}</div>
                                 </div>
-                                <div class="text-[10px] text-gray-400 mt-2 flex justify-between">
+                                <div class="text-[10px] text-gray-400 dark:text-zinc-500 mt-2.5 flex items-center justify-between font-medium">
                                     <span class="truncate pr-2">${safeUser}</span>
                                     ${dateHtml}
                                 </div>

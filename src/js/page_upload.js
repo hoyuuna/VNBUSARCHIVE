@@ -4231,8 +4231,8 @@ Object.assign(window.app, {
                     const btnSystem = document.getElementById('set-theme-btn-system');
                     if (!btnLight || !btnDark) return;
 
-                    const active = 'theme-option cursor-pointer border border-black bg-black text-white rounded-xl p-5 shadow-md transition-all duration-200 flex flex-col items-center justify-center gap-2 scale-[1.02]';
-                    const inactive = 'theme-option cursor-pointer border border-gray-300 bg-white text-gray-800 rounded-xl p-5 shadow-sm transition-all duration-200 flex flex-col items-center justify-center gap-2 scale-100';
+                    const active = 'theme-option cursor-pointer border border-black/10 dark:border-white/20 bg-black text-white dark:bg-white dark:text-black rounded-2xl p-5 shadow-lg transition-all duration-200 flex flex-col items-center justify-center gap-2 scale-[1.02]';
+                    const inactive = 'theme-option cursor-pointer border border-black/5 dark:border-white/5 bg-gray-50/80 dark:bg-zinc-800/80 text-gray-800 dark:text-zinc-200 rounded-2xl p-5 shadow-sm hover:shadow-md transition-all duration-200 flex flex-col items-center justify-center gap-2 scale-100';
 
                     const cur = app.preference.theme;
                     btnLight.className = cur === 'light' ? active : inactive;
