@@ -2245,7 +2245,7 @@ html.theme-dark .ct-icon {
             if (stored === 'system') {
                 theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
             }
-            document.write('<link rel="stylesheet" href="/css/' + theme + '.css?v=1794959068554" id="theme-css">');
+            document.write('<link rel="stylesheet" href="/css/' + theme + '.css?v=1794980665928" id="theme-css">');
             document.documentElement.classList.add('theme-' + theme);
             document.documentElement.style.backgroundColor = theme === 'dark' ? '#18181b' : '#fdfcf8';
 
@@ -6752,7 +6752,7 @@ html.theme-dark .ct-icon {
                         if (configRes.ok) config = await configRes.json();
                     } catch (e) {}
                     
-                    if (!config || !config.SUPABASE_KEY || !config.SUPABASE_URL || config.SUPABASE_URL.includes('api.vnbusarchive.io.vn')) {
+                    if (!config || !config.SUPABASE_KEY) {
                         config = {
                             FIREBASE_URL: 'https://hbds-bus-tracker-default-rtdb.firebaseio.com/buses.json',
                             SUPABASE_URL: WORKERS_DEV_FALLBACK,
@@ -6786,6 +6786,7 @@ html.theme-dark .ct-icon {
                 // PostgREST Render Pool (Trực tiếp, không tốn quota Cloudflare Worker 100k)
                 const RENDER_PRIMARY = 'https://postgrest-latest-p0q8.onrender.com';
                 const RENDER_FALLBACK = 'https://postgrest-latest-se4u.onrender.com';
+                const MIDDLEWARE_API_FALLBACK = 'https://api.vnbusarchive.io.vn';
 
                 let activeRenderPool = [RENDER_PRIMARY, RENDER_FALLBACK];
                 let activeRenderIndex = 0;
@@ -6821,6 +6822,7 @@ html.theme-dark .ct-icon {
                                     const candidateBases = [
                                         primaryRender,
                                         secondaryRender,
+                                        MIDDLEWARE_API_FALLBACK + '/rest/v1',
                                         WORKERS_DEV_FALLBACK + '/rest/v1',
                                         '/api/rest'
                                     ];
@@ -6849,18 +6851,6 @@ html.theme-dark .ct-icon {
                                                 options.signal.addEventListener('abort', () => controller.abort());
                                             }
                                             fetchOpts.signal = controller.signal;
-
-                                            // Khi chưa đăng nhập (hoặc dùng apikey giả), xóa header Authorization giả để PostgREST không bị lỗi 'Expected 3 parts in JWT'
-                                            if (fetchOpts.headers) {
-                                                const cleanedHeaders = new Headers(fetchOpts.headers);
-                                                const authVal = cleanedHeaders.get('Authorization') || cleanedHeaders.get('authorization');
-                                                const apiKeyVal = cleanedHeaders.get('apikey');
-                                                if (authVal && (authVal === 'Bearer ' + apiKeyVal || authVal === apiKeyVal || (apiKeyVal && apiKeyVal.startsWith('sb_publishable_')))) {
-                                                    cleanedHeaders.delete('Authorization');
-                                                    cleanedHeaders.delete('authorization');
-                                                    fetchOpts.headers = cleanedHeaders;
-                                                }
-                                            }
 
                                             const resp = await window.fetch(targetUrl, fetchOpts);
                                             clearTimeout(timeoutId);

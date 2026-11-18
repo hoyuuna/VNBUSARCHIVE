@@ -73,7 +73,7 @@ export async function onRequest(context) {
         try {
             response = await fetch(targetUrl.toString(), init);
         } catch (initialNetErr) {
-            // Nếu targetBase bị lỗi mạng/DNS thì failover sang workers.dev
+            // Nếu targetBase (api.vnbusarchive.io.vn) bị lỗi mạng/DNS thì failover sang workers.dev
             if (targetBase !== fallbackBase) {
                 targetUrl = new URL(`/rest/v1/${subPath}`, fallbackBase);
                 targetUrl.search = reqUrl.search;
