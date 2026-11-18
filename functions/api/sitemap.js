@@ -1,4 +1,7 @@
-import { createClient } from '@supabase/supabase-js'
+const RENDER_POOL = [
+  'https://postgrest-latest-p0q8.onrender.com',
+  'https://postgrest-latest-se4u.onrender.com'
+];
 
 const escapeXML = (str) => {
   if (!str) return '';
@@ -10,38 +13,59 @@ const escapeXML = (str) => {
     .replace(/'/g, '&apos;');
 };
 
-const cleanLicensePlateForDisplay = (plate) => {
-  if (!plate) return '';
-  return plate.replace(/-\d+$/, '');
-};
+async function fetchFromRenderWithFailover(subPath, init = {}) {
+  for (let i = 0; i < RENDER_POOL.length; i++) {
+    const target = `${RENDER_POOL[i]}${subPath}`;
+    try {
+      const res = await fetch(target, {
+        ...init,
+        headers: {
+          'Accept': 'application/json',
+          ...(init.headers || {})
+        },
+        signal: AbortSignal.timeout(10000)
+      });
+      if (res.ok) return res;
+    } catch (e) {
+      console.warn(`[Sitemap] Render endpoint ${RENDER_POOL[i]} failed, switching to backup.`);
+    }
+  }
+  return null;
+}
 
-async function fetchAllData(supabase, table, select, conditions = {}) {
+async function fetchAllApprovedVehicles() {
   const step = 1000;
-  const maxPages = 15; // Hỗ trợ tới 15,000 bản ghi mỗi bảng
+  const maxPages = 10; // Hỗ trợ tới 10,000 xe
   const pagePromises = [];
 
   for (let i = 0; i < maxPages; i++) {
     const from = i * step;
     const to = from + step - 1;
-    let query = supabase.from(table).select(select).range(from, to);
-    if (conditions.column && conditions.value !== undefined) {
-      query = query.eq(conditions.column, conditions.value);
-    }
-    pagePromises.push(query);
+    pagePromises.push(
+      fetchFromRenderWithFailover(
+        '/vehicles?select=license_plate,photos!inner(status)&photos.status=eq.approved',
+        { headers: { 'Range': `${from}-${to}` } }
+      ).then(async (res) => {
+        if (!res) return [];
+        return await res.json().catch(() => []);
+      })
+    );
   }
 
   const results = await Promise.all(pagePromises);
-  let allData = [];
-  for (const res of results) {
-    if (res.error) {
-      console.error(`Lỗi lấy dữ liệu bảng ${table}:`, JSON.stringify(res.error));
-      break;
+  const seen = new Set();
+  const allVehicles = [];
+
+  for (const list of results) {
+    if (!Array.isArray(list) || list.length === 0) continue;
+    for (const v of list) {
+      if (v && v.license_plate && !seen.has(v.license_plate)) {
+        seen.add(v.license_plate);
+        allVehicles.push(v);
+      }
     }
-    if (!res.data || res.data.length === 0) break;
-    allData = allData.concat(res.data);
-    if (res.data.length < step) break;
   }
-  return allData;
+  return allVehicles;
 }
 
 export async function onRequest(context) {
@@ -62,15 +86,8 @@ export async function onRequest(context) {
   }
   const baseUrl = `${protocol}://${host}`;
 
-  const key = env.SUPABASE_SERVICE_ROLE_KEY || env.SUPABASE_KEY || env.SUPABASE_ANON_KEY;
-  if (!env.SUPABASE_URL || !key) {
-    console.error("Thiếu SUPABASE_URL hoặc SUPABASE_KEY cho sitemap");
-    return new Response('', { status: 500 });
-  }
-  const supabase = createClient(env.SUPABASE_URL, key);
-
   try {
-    const vehicles = await fetchAllData(supabase, 'vehicles', 'license_plate, photos!inner(status)', { column: 'photos.status', value: 'approved' });
+    const vehicles = await fetchAllApprovedVehicles();
 
     const xmlChunks = [];
 
@@ -106,10 +123,11 @@ export async function onRequest(context) {
 
     const finalXML = xmlChunks.join(''); 
 
+    // Giảm thời gian cache xuống 10 phút (600s) thay vì 1 tiếng (3600s) để Google bot cập nhật nhanh hơn
     const response = new Response(finalXML, {
       status: 200,
       headers: {
-        'Cache-Control': 'public, max-age=3600, s-maxage=3600, stale-while-revalidate=86400',
+        'Cache-Control': 'public, max-age=600, s-maxage=600, stale-while-revalidate=1800',
         'Content-Type': 'application/xml; charset=utf-8'
       }
     });
