@@ -34,35 +34,21 @@ async function fetchFromRenderWithFailover(subPath, init = {}) {
 }
 
 async function fetchAllApprovedVehicles() {
-  const step = 1000;
-  const maxPages = 10; // Hỗ trợ tới 10,000 xe
-  const pagePromises = [];
+  // Chỉ dùng ĐÚNG 1 request duy nhất với limit=10000 để giảm tải tối đa cho Render và DB Aiven (thay vì bắn 10 request song song)
+  const res = await fetchFromRenderWithFailover(
+    '/vehicles?select=license_plate,photos!inner(status)&photos.status=eq.approved&limit=10000'
+  );
+  if (!res) return [];
 
-  for (let i = 0; i < maxPages; i++) {
-    const from = i * step;
-    const to = from + step - 1;
-    pagePromises.push(
-      fetchFromRenderWithFailover(
-        '/vehicles?select=license_plate,photos!inner(status)&photos.status=eq.approved',
-        { headers: { 'Range': `${from}-${to}` } }
-      ).then(async (res) => {
-        if (!res) return [];
-        return await res.json().catch(() => []);
-      })
-    );
-  }
+  const list = await res.json().catch(() => []);
+  if (!Array.isArray(list)) return [];
 
-  const results = await Promise.all(pagePromises);
   const seen = new Set();
   const allVehicles = [];
-
-  for (const list of results) {
-    if (!Array.isArray(list) || list.length === 0) continue;
-    for (const v of list) {
-      if (v && v.license_plate && !seen.has(v.license_plate)) {
-        seen.add(v.license_plate);
-        allVehicles.push(v);
-      }
+  for (const v of list) {
+    if (v && v.license_plate && !seen.has(v.license_plate)) {
+      seen.add(v.license_plate);
+      allVehicles.push(v);
     }
   }
   return allVehicles;
@@ -123,11 +109,12 @@ export async function onRequest(context) {
 
     const finalXML = xmlChunks.join(''); 
 
-    // Giảm thời gian cache xuống 10 phút (600s) thay vì 1 tiếng (3600s) để Google bot cập nhật nhanh hơn
+    // Cache 30 phút (1800s) tại Cloudflare Edge: Google bot vẫn quét cập nhật đều đặn trong ngày
+    // mà Render/DB chỉ phải trả lời tối đa 2 lần/tiếng nếu có bot quét liên tục
     const response = new Response(finalXML, {
       status: 200,
       headers: {
-        'Cache-Control': 'public, max-age=600, s-maxage=600, stale-while-revalidate=1800',
+        'Cache-Control': 'public, max-age=1800, s-maxage=1800, stale-while-revalidate=3600',
         'Content-Type': 'application/xml; charset=utf-8'
       }
     });
