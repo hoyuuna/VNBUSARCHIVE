@@ -33,7 +33,8 @@ body, body.theme-light {
 #upload-info-content, #custom-prompt-content, #custom-role-content, #deny-prompt-content, #ban-prompt-content,
 #up-progress-content, #captcha-content, #webrtc-qr-content, #qr-login-host-content, #qr-login-confirm-content,
 #advanced-filter-content, #achievement-content, #operator-edit-content, #model-edit-content,
-#route-edit-content, #route-selector-content, #route-delete-content, #fav-photo-content, #manager-edit-content, #email-verify-content, #bio-edit-content {
+#route-edit-content, #route-selector-content, #route-delete-content, #fav-photo-content, #manager-edit-content, #email-verify-content, #bio-edit-content,
+#route-path-editor-content {
     background-color: #ffffff !important;
     border: 1px solid #18181b !important;
     box-shadow: none !important;
@@ -842,4 +843,20 @@ input:disabled, select:disabled, textarea:disabled {
 .vehicle-hero-badge:hover {
     background-color: #000000 !important;
     border-color: #ffffff !important;
+}
+
+/* ===== LEAFLET FLAT UI POPUP (LIGHT MODE) ===== */
+.leaflet-popup-content-wrapper {
+    background: #ffffff !important;
+    color: #18181b !important;
+    border: 1px solid #18181b !important;
+    border-radius: 6px !important;
+    box-shadow: none !important;
+}
+.leaflet-popup-tip-container,
+.leaflet-popup-tip {
+    display: none !important;
+}
+.leaflet-popup-content {
+    color: #18181b !important;
 }

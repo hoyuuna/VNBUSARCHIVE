@@ -6198,7 +6198,7 @@ html.theme-dark .ct-icon {
                         <!-- Header bản đồ lộ trình khi ĐÃ có dữ liệu -->
                         <div id="route-map-wrapper" class="hidden">
                             <div class="flex items-center justify-between mb-2.5">
-                                <h3 class="font-bold text-xs uppercase text-black tracking-wider px-1 flex items-center gap-1.5">
+                                <h3 class="font-bold text-xs uppercase text-black dark:text-white tracking-wider px-1 flex items-center gap-1.5">
                                     <i class="fa-solid fa-map-location-dot"></i> Lộ trình & Điểm dừng
                                 </h3>
                                 <div class="flex items-center gap-2">
@@ -6211,7 +6211,7 @@ html.theme-dark .ct-icon {
                                             Chiều về
                                         </button>
                                     </div>
-                                    <button type="button" onclick="app.routePath.openEditor()" class="px-3 py-1.5 bg-white dark:bg-black border border-black dark:border-white text-black dark:text-white text-xs font-bold rounded-md hover:bg-gray-100 dark:hover:bg-zinc-900 transition flex items-center gap-1">
+                                    <button type="button" onclick="app.routePath.openEditor()" class="px-3 py-1.5 bg-white dark:bg-black border border-black dark:border-white text-black dark:text-white text-xs font-bold rounded-md hover:bg-zinc-100 dark:hover:bg-zinc-800 transition flex items-center gap-1">
                                         <i class="fa-solid fa-route"></i> Sửa lộ trình
                                     </button>
                                 </div>
@@ -6221,7 +6221,7 @@ html.theme-dark .ct-icon {
                                 <div id="route-leaflet-map" class="w-full h-full z-0"></div>
                             </div>
                             <!-- Danh sách điểm dừng (Collapsible) -->
-                            <div class="border border-black dark:border-white rounded-lg p-3 bg-zinc-50 dark:bg-zinc-900">
+                            <div class="border border-black dark:border-white rounded-lg p-3 bg-white dark:bg-[#18181b]">
                                 <button type="button" onclick="app.routePath.toggleStopList()" class="w-full flex items-center justify-between text-xs font-bold text-black dark:text-white uppercase tracking-wider text-left">
                                     <span id="route-stops-summary">Danh sách điểm dừng (0 điểm)</span>
                                     <i id="route-stops-chevron" class="fa-solid fa-chevron-down text-zinc-500 transition-transform duration-200"></i>
@@ -6232,7 +6232,7 @@ html.theme-dark .ct-icon {
 
                         <!-- Nút Thêm lộ trình khi CHƯA có dữ liệu -->
                         <div id="route-map-empty-state" class="hidden">
-                            <button type="button" onclick="app.routePath.openEditor()" class="w-full py-3 px-4 bg-white dark:bg-black border border-black dark:border-white text-black dark:text-white text-xs sm:text-sm font-bold rounded-lg hover:bg-zinc-50 dark:hover:bg-zinc-900 transition flex items-center justify-center gap-2">
+                            <button type="button" onclick="app.routePath.openEditor()" class="w-full py-3 px-4 bg-white dark:bg-black border border-black dark:border-white text-black dark:text-white text-xs sm:text-sm font-bold rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 transition flex items-center justify-center gap-2">
                                 <i class="fa-solid fa-map-location-dot"></i> Cập nhật lộ trình & điểm dừng tuyến này
                             </button>
                         </div>
@@ -7834,12 +7834,7 @@ html.theme-dark .ct-icon {
                 <div class="w-full md:w-96 border-t md:border-t-0 md:border-l border-black dark:border-white flex flex-col bg-white dark:bg-[#18181b] min-h-0 max-h-[45vh] md:max-h-none">
                     <div class="p-3.5 border-b border-black dark:border-white bg-zinc-50 dark:bg-zinc-900 flex items-center justify-between shrink-0">
                         <span class="text-xs font-bold uppercase tracking-wider text-black dark:text-white" id="rpe-stop-count">Điểm dừng (0)</span>
-                        <div class="flex items-center gap-2">
-                            <button type="button" id="btn-scan-stops" onclick="app.routePath.scanNearbyStops()" class="text-xs text-blue-600 hover:underline font-bold flex items-center gap-1" title="Quét các trạm xe buýt có sẵn trên cung đường này">
-                                <i class="fa-solid fa-radar"></i> Quét trạm
-                            </button>
-                            <button type="button" onclick="app.routePath.clearCurrentStops()" class="text-xs text-red-500 hover:underline font-bold">Xóa tất cả</button>
-                        </div>
+                        <button type="button" onclick="app.routePath.clearCurrentStops()" class="text-xs text-red-500 hover:underline font-bold">Xóa tất cả</button>
                     </div>
                     <div class="p-2.5 text-xs text-zinc-500 dark:text-zinc-400 bg-zinc-50 dark:bg-zinc-900 border-b border-zinc-200 dark:border-zinc-800 flex items-center justify-between">
                         <span><i class="fa-solid fa-arrows-up-down mr-1"></i> Kéo thả để đổi thứ tự</span>
