@@ -159,7 +159,7 @@ a:hover, button:hover, [role="button"]:hover { text-decoration: none !important;
 #up-progress-content, #captcha-content, #webrtc-qr-content, #qr-login-host-content, #qr-login-confirm-content,
 #advanced-filter-content, #achievement-content, #operator-edit-content, #model-edit-content,
 #route-edit-content, #route-selector-content, #route-delete-content, #fav-photo-content, #manager-edit-content, #email-verify-content, #bio-edit-content,
-#route-path-editor-content {
+#route-path-editor-content, #route-stop-edit-content {
     background-color: #000000 !important; border-color: #ffffff !important; box-shadow: none !important; color: #ffffff !important;
 }
 

@@ -16251,68 +16251,130 @@ window.app.routePath = {
                 : `<span class="w-5 h-5 rounded-full flex items-center justify-center font-bold text-[10px] text-white shrink-0" style="background-color: ${routeColor};">${currentRealIdx}</span>`;
 
             return `
-                <div class="rpe-stop-item flex items-center gap-1.5 p-2 rounded ${isWaypoint ? 'bg-zinc-100/70 dark:bg-zinc-900/60 opacity-80 border-dashed' : 'bg-zinc-50 dark:bg-zinc-900'} border border-black dark:border-white text-xs group" data-index="${idx}">
-                    <button type="button" class="stop-drag-handle cursor-grab active:cursor-grabbing text-zinc-400 hover:text-black dark:hover:text-white px-1" title="Kéo thả để sắp xếp thứ tự">
+                <div class="rpe-stop-item flex items-center gap-2 p-2.5 rounded ${isWaypoint ? 'bg-zinc-100/70 dark:bg-zinc-900/60 opacity-85 border-dashed' : 'bg-white dark:bg-[#18181b]'} border border-black dark:border-white text-xs group transition hover:border-zinc-500" data-index="${idx}">
+                    <button type="button" class="stop-drag-handle cursor-grab active:cursor-grabbing text-zinc-400 hover:text-black dark:hover:text-white px-0.5" title="Kéo thả để sắp xếp thứ tự">
                         <i class="fa-solid fa-grip-vertical"></i>
                     </button>
                     ${badgeHtml}
-                    <div class="flex-1 min-w-0 pr-1">
-                        <input type="text" value="${app.utils.escapeAttr(s.name)}" onchange="app.routePath.renameStop(${idx}, this.value)" class="w-full bg-transparent font-bold ${isWaypoint ? 'italic text-zinc-500 dark:text-zinc-400' : 'text-black dark:text-white'} border-b border-transparent focus:border-black dark:focus:border-white outline-none truncate text-xs" title="Bấm để sửa tên trạm / mốc dẫn đường">
-                        <div class="flex items-center gap-2 mt-0.5">
-                            <span class="text-[10px] text-zinc-500 dark:text-zinc-400 truncate">${s.lat.toFixed(5)}, ${s.lng.toFixed(5)}</span>
-                            <button type="button" onclick="app.routePath.editStopCoords(${idx})" class="text-[10px] text-zinc-600 dark:text-zinc-300 hover:text-black dark:hover:text-white underline font-semibold transition" title="Sửa tọa độ">Sửa tọa độ</button>
-                            <button type="button" onclick="app.routePath.toggleStopWaypoint(${idx})" class="text-[10px] ${isWaypoint ? 'text-blue-600 dark:text-blue-400 font-bold' : 'text-zinc-400 hover:text-black dark:hover:text-white'} transition" title="Chuyển đổi giữa trạm đón khách và mốc dẫn đường">
-                                ${isWaypoint ? '<i class="fa-solid fa-check"></i> Điểm dẫn đường' : 'Đổi thành mốc dẫn đường'}
-                            </button>
+                    <div class="flex-1 min-w-0 pr-1 cursor-pointer" onclick="app.routePath.openStopEditModal(${idx})" title="Click để chỉnh sửa điểm này">
+                        <div class="flex items-center gap-1.5">
+                            <span class="font-bold truncate text-xs ${isWaypoint ? 'italic text-zinc-500 dark:text-zinc-400' : 'text-black dark:text-white'}">${app.utils.escapeHtml(s.name)}</span>
+                            ${isWaypoint ? '<span class="text-[9px] px-1 py-0.2 rounded bg-zinc-200 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400 font-bold shrink-0">Ẩn</span>' : ''}
                         </div>
+                        <span class="text-[10px] text-zinc-500 dark:text-zinc-400 block truncate mt-0.5">${s.lat.toFixed(5)}, ${s.lng.toFixed(5)}</span>
                     </div>
-                    <button type="button" onclick="app.routePath.focusEditorStop(${s.lat}, ${s.lng})" class="text-zinc-400 hover:text-black dark:hover:text-white p-1" title="Xem trên map">
-                        <i class="fa-solid fa-crosshairs"></i>
-                    </button>
-                    <button type="button" onclick="app.routePath.removeStop(${idx})" class="text-zinc-400 hover:text-red-500 p-1" title="Xóa">
-                        <i class="fa-solid fa-trash-can"></i>
-                    </button>
+                    <div class="flex items-center gap-1 shrink-0">
+                        <button type="button" onclick="app.routePath.openStopEditModal(${idx})" class="p-1.5 rounded hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-600 dark:text-zinc-300 hover:text-black dark:hover:text-white transition" title="Chỉnh sửa tên, tọa độ, loại trạm">
+                            <i class="fa-solid fa-pen text-xs"></i>
+                        </button>
+                        <button type="button" onclick="app.routePath.removeStop(${idx})" class="p-1.5 rounded hover:bg-red-50 dark:hover:bg-red-950/40 text-zinc-400 hover:text-red-500 transition" title="Xóa điểm này">
+                            <i class="fa-solid fa-trash-can text-xs"></i>
+                        </button>
+                    </div>
                 </div>
             `;
         }).join('');
     },
 
-    toggleStopWaypoint: (idx) => {
-        const stops = app.routePath.editorStops[app.routePath.editorDirection];
-        if (!stops || !stops[idx]) return;
-        stops[idx].is_waypoint = !stops[idx].is_waypoint;
-        app.routePath.renderEditorStopsList();
-        app.routePath.drawEditorRoute();
-        const isWp = stops[idx].is_waypoint;
-        app.toast.show(
-            'info',
-            isWp ? 'Đã chuyển thành điểm dẫn đường' : 'Đã chuyển thành trạm dừng',
-            isWp ? `"${stops[idx].name}" sẽ được ẩn khi người dùng xem lộ trình bên ngoài.` : `"${stops[idx].name}" đã được chuyển thành trạm đón/trả khách thông thường.`
-        );
+    // Mở popup modal chỉnh sửa điểm dừng (Thay thế prompt thô)
+    openStopEditModal: (idx = -1, defaultLat = null, defaultLng = null, defaultName = '') => {
+        const modal = document.getElementById('route-stop-edit-modal');
+        const content = document.getElementById('route-stop-edit-content');
+        if (!modal || !content) return;
+
+        const stops = app.routePath.editorStops[app.routePath.editorDirection] || [];
+        const isEditing = idx >= 0 && stops[idx];
+
+        const titleEl = document.getElementById('rse-modal-title');
+        const idxInput = document.getElementById('rse-stop-idx');
+        const nameInput = document.getElementById('rse-stop-name');
+        const latInput = document.getElementById('rse-input-lat');
+        const lngInput = document.getElementById('rse-input-lng');
+        const waypointChk = document.getElementById('rse-is-waypoint');
+
+        if (isEditing) {
+            const stop = stops[idx];
+            if (titleEl) titleEl.innerText = "Chỉnh sửa điểm dừng";
+            if (idxInput) idxInput.value = idx;
+            if (nameInput) nameInput.value = stop.name || '';
+            if (latInput) latInput.value = stop.lat.toFixed(6);
+            if (lngInput) lngInput.value = stop.lng.toFixed(6);
+            if (waypointChk) waypointChk.checked = !!stop.is_waypoint;
+        } else {
+            // Tạo mới từ click trên map
+            if (titleEl) titleEl.innerText = "Thêm điểm dừng mới";
+            if (idxInput) idxInput.value = -1;
+            const count = stops.length;
+            if (nameInput) nameInput.value = defaultName || `Điểm dừng #${count + 1}`;
+            if (latInput) latInput.value = defaultLat !== null ? Number(defaultLat).toFixed(6) : '';
+            if (lngInput) lngInput.value = defaultLng !== null ? Number(defaultLng).toFixed(6) : '';
+            if (waypointChk) waypointChk.checked = false;
+        }
+
+        modal.classList.remove('hidden');
+        app.ui.lockScroll();
+        setTimeout(() => {
+            content.classList.remove('opacity-0', 'scale-95');
+            content.classList.add('opacity-100', 'scale-100');
+            if (nameInput) {
+                nameInput.focus();
+                nameInput.select();
+            }
+        }, 30);
     },
 
-    editStopCoords: (idx) => {
-        const stops = app.routePath.editorStops[app.routePath.editorDirection];
-        if (!stops || !stops[idx]) return;
-        const curStop = stops[idx];
-        const defaultVal = `${curStop.lat.toFixed(6)}, ${curStop.lng.toFixed(6)}`;
+    closeStopEditModal: () => {
+        const modal = document.getElementById('route-stop-edit-modal');
+        const content = document.getElementById('route-stop-edit-content');
+        if (!modal || !content) return;
 
-        if (app.ui && app.ui.showPrompt) {
-            app.ui.showPrompt(`Sửa tọa độ cho trạm "${curStop.name}" (định dạng: Vĩ độ, Kinh độ):`, defaultVal, (val) => {
-                if (!val || !val.trim()) return;
-                const parts = val.split(',').map(p => parseFloat(p.trim()));
-                if (parts.length === 2 && !isNaN(parts[0]) && !isNaN(parts[1])) {
-                    curStop.lat = parts[0];
-                    curStop.lng = parts[1];
-                    app.routePath.renderEditorStopsList();
-                    app.routePath.calculateRealRoute();
-                    app.routePath.focusEditorStop(curStop.lat, curStop.lng);
-                    app.toast.show('success', 'Đã cập nhật', 'Đã cập nhật tọa độ mới cho trạm dừng!');
-                } else {
-                    app.toast.show('error', 'Lỗi', 'Định dạng tọa độ không hợp lệ. Vui lòng nhập: [lat], [lng]');
-                }
-            }, { title: "Chỉnh sửa tọa độ trạm dừng" });
+        content.classList.remove('opacity-100', 'scale-100');
+        content.classList.add('opacity-0', 'scale-95');
+        setTimeout(() => {
+            modal.classList.add('hidden');
+            app.ui.unlockScroll();
+        }, 180);
+    },
+
+    saveStopEditModal: () => {
+        const idx = parseInt(document.getElementById('rse-stop-idx').value, 10);
+        const name = (document.getElementById('rse-stop-name').value || '').trim();
+        const latVal = parseFloat(document.getElementById('rse-input-lat').value);
+        const lngVal = parseFloat(document.getElementById('rse-input-lng').value);
+        const isWaypoint = !!document.getElementById('rse-is-waypoint').checked;
+
+        if (!name) {
+            app.toast.show('warning', 'Thiếu thông tin', 'Vui lòng nhập tên điểm dừng hoặc mốc dẫn đường.');
+            return;
         }
+
+        if (isNaN(latVal) || isNaN(lngVal)) {
+            app.toast.show('error', 'Tọa độ không hợp lệ', 'Vĩ độ và Kinh độ phải là các số thập phân hợp lệ.');
+            return;
+        }
+
+        const stops = app.routePath.editorStops[app.routePath.editorDirection];
+        if (idx >= 0 && stops[idx]) {
+            // Cập nhật trạm hiện có
+            stops[idx].name = name;
+            stops[idx].lat = latVal;
+            stops[idx].lng = lngVal;
+            stops[idx].is_waypoint = isWaypoint;
+            app.toast.show('success', 'Đã lưu thay đổi', `Đã cập nhật thông tin cho "${name}".`);
+        } else {
+            // Thêm mới
+            stops.push({
+                name: name,
+                lat: latVal,
+                lng: lngVal,
+                is_waypoint: isWaypoint
+            });
+            app.toast.show('success', 'Đã thêm điểm', `Đã thêm "${name}" vào danh sách.`);
+        }
+
+        app.routePath.closeStopEditModal();
+        app.routePath.renderEditorStopsList();
+        app.routePath.calculateRealRoute();
     },
 
     renameStop: (idx, newName) => {
@@ -16331,7 +16393,6 @@ window.app.routePath = {
     promptAddStop: async (lat, lng, suggestedName = '') => {
         let name = suggestedName;
         if (!name) {
-            // Thử reverse geocoding nhanh qua Nominatim/Photon để lấy tên đường
             try {
                 const resp = await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}&accept-language=vi`);
                 if (resp.ok) {
@@ -16340,40 +16401,7 @@ window.app.routePath = {
                 }
             } catch(e) {}
         }
-
-        const count = app.routePath.editorStops[app.routePath.editorDirection].length;
-        const defaultName = name || `Điểm dừng #${count + 1}`;
-
-        // Sử dụng HoyuUI Custom Prompt thay vì prompt() native của trình duyệt
-        if (app.ui && app.ui.showPrompt) {
-            app.ui.showPrompt("Nhập tên điểm dừng (Gõ '(đường tránh)' hoặc gắn dấu ngoặc đơn để đánh dấu là mốc dẫn đường ẩn):", defaultName, (finalName) => {
-                if (!finalName || !finalName.trim()) return;
-                const trimmed = finalName.trim();
-                // Tự động nhận diện mốc dẫn đường nếu người dùng đặt tên dạng (qua đường tránh...) hoặc (tránh...)
-                const isWaypoint = /^\(.*\)$/.test(trimmed) || trimmed.toLowerCase().includes('đường tránh') || trimmed.toLowerCase().includes('dẫn đường');
-                app.routePath.editorStops[app.routePath.editorDirection].push({
-                    name: trimmed,
-                    lat: parseFloat(lat),
-                    lng: parseFloat(lng),
-                    is_waypoint: isWaypoint
-                });
-                app.routePath.renderEditorStopsList();
-                app.routePath.calculateRealRoute();
-                if (isWaypoint) {
-                    app.toast.show('info', 'Đã thêm mốc dẫn đường', `"${trimmed}" là mốc dẫn đường ẩn, sẽ không hiển thị số và không xuất hiện khi người dùng xem ngoài bản đồ.`);
-                }
-            }, { title: "Tạo Điểm Dừng / Mốc Dẫn Đường Mới" });
-        } else {
-            const isWaypoint = /^\(.*\)$/.test(defaultName) || defaultName.toLowerCase().includes('đường tránh') || defaultName.toLowerCase().includes('dẫn đường');
-            app.routePath.editorStops[app.routePath.editorDirection].push({
-                name: defaultName,
-                lat: parseFloat(lat),
-                lng: parseFloat(lng),
-                is_waypoint: isWaypoint
-            });
-            app.routePath.renderEditorStopsList();
-            app.routePath.calculateRealRoute();
-        }
+        app.routePath.openStopEditModal(-1, lat, lng, name);
     },
 
     removeStop: (idx) => {

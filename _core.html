@@ -7861,6 +7861,62 @@ html.theme-dark .ct-icon {
         </div>
     </div>
 
+    <!-- MODAL CHI TIẾT / CHỈNH SỬA ĐIỂM DỪNG HOYUUI FLAT -->
+    <div id="route-stop-edit-modal" class="hidden fixed inset-0 z-[3400] flex items-center justify-center p-4 backdrop-blur-md overflow-hidden">
+        <div id="route-stop-edit-content" class="rounded-xl w-full max-w-md flex flex-col bg-white dark:bg-[#18181b] border border-black dark:border-white transform transition-all opacity-0 scale-95 overflow-hidden shadow-none">
+            <div class="p-4 sm:p-5 flex justify-between items-center shrink-0 border-b border-black dark:border-white">
+                <h3 class="text-base font-bold text-black dark:text-white tracking-tight flex items-center gap-2">
+                    <i class="fa-solid fa-location-dot text-zinc-500"></i>
+                    <span id="rse-modal-title">Chỉnh sửa điểm dừng</span>
+                </h3>
+                <button type="button" onclick="app.routePath.closeStopEditModal()" class="text-zinc-400 hover:text-black dark:hover:text-white text-lg p-1 transition">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <div class="p-4 sm:p-5 space-y-4 overflow-y-auto">
+                <input type="hidden" id="rse-stop-idx" value="-1">
+                <input type="hidden" id="rse-stop-lat" value="">
+                <input type="hidden" id="rse-stop-lng" value="">
+
+                <div>
+                    <label class="block text-xs font-bold text-black dark:text-white uppercase mb-1.5">Tên điểm dừng / Mốc dẫn đường <span class="text-red-500">*</span></label>
+                    <input type="text" id="rse-stop-name" class="w-full bg-white dark:bg-black border border-black dark:border-white rounded-md p-2.5 text-xs font-medium text-black dark:text-white outline-none focus:ring-1 focus:ring-black dark:focus:ring-white transition" placeholder="VD: Đối diện Bưu Điện Hà Đông...">
+                </div>
+
+                <div class="grid grid-cols-2 gap-2.5">
+                    <div>
+                        <label class="block text-[11px] font-bold text-zinc-600 dark:text-zinc-400 uppercase mb-1">Vĩ độ (Lat)</label>
+                        <input type="text" id="rse-input-lat" class="w-full bg-white dark:bg-black border border-black dark:border-white rounded-md p-2 text-xs font-mono text-black dark:text-white outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-bold text-zinc-600 dark:text-zinc-400 uppercase mb-1">Kinh độ (Lng)</label>
+                        <input type="text" id="rse-input-lng" class="w-full bg-white dark:bg-black border border-black dark:border-white rounded-md p-2 text-xs font-mono text-black dark:text-white outline-none">
+                    </div>
+                </div>
+
+                <!-- CÔNG TẮC CHUYỂN ĐỔI MỐC DẪN ĐƯỜNG ẨN -->
+                <div class="flex items-center justify-between p-3 rounded-md border border-black dark:border-white bg-zinc-50 dark:bg-zinc-900">
+                    <div class="pr-2">
+                        <span class="text-xs font-bold text-black dark:text-white block">Mốc dẫn đường ẩn (Waypoint)</span>
+                        <p class="text-[10px] text-zinc-500 dark:text-zinc-400 mt-0.5 leading-snug">Dùng cho đường tránh, cầu vượt... Không có số thứ tự và hoàn toàn ẩn đi khi xem bên ngoài.</p>
+                    </div>
+                    <label class="relative inline-flex items-center cursor-pointer shrink-0">
+                        <input type="checkbox" id="rse-is-waypoint" class="sr-only peer">
+                        <div class="w-11 h-6 bg-zinc-300 dark:bg-zinc-700 peer-checked:bg-black dark:peer-checked:bg-white rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white dark:after:bg-black after:border-zinc-400 dark:after:border-zinc-800 after:border after:rounded-full after:h-5 after:w-5 after:transition-all"></div>
+                    </label>
+                </div>
+            </div>
+            <div class="p-3 sm:p-4 border-t border-black dark:border-white bg-white dark:bg-[#18181b] flex items-center justify-end gap-2 shrink-0">
+                <button type="button" onclick="app.routePath.closeStopEditModal()" class="px-4 py-2 bg-white dark:bg-black border border-black dark:border-white text-xs font-bold text-black dark:text-white rounded-md hover:bg-zinc-100 dark:hover:bg-zinc-900 transition">
+                    Hủy bỏ
+                </button>
+                <button type="button" onclick="app.routePath.saveStopEditModal()" class="px-5 py-2 bg-black text-white dark:bg-white dark:text-black border border-black dark:border-white text-xs font-bold rounded-md hover:bg-zinc-800 dark:hover:bg-zinc-200 transition">
+                    Xác nhận
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- MODAL CHỌN ẢNH TÂM ĐẮC (Glassmorphism 100% Sync) -->
     <div id="fav-photo-modal" class="hidden fixed inset-0 z-[3000] flex items-center justify-center p-2 md:p-6 backdrop-blur-md" >
         <div id="fav-photo-content" class="rounded-2xl w-full max-w-md flex flex-col overflow-hidden transform transition-all opacity-0 scale-95 relative" >
