@@ -8238,6 +8238,7 @@ Object.assign(window.app, {
                         'update_model_info': 'sửa thông tin dòng xe',
                         'create_route_info': 'tạo tuyến mới',
                         'update_route_info': 'sửa thông tin tuyến',
+                        'update_route_path': 'sửa lộ trình tuyến',
                         'delete_route': 'xóa tuyến',
                         'unmerge_vehicle': 'tách xe'
                     };
@@ -8304,6 +8305,7 @@ Object.assign(window.app, {
                         'update_model_info': 'Sửa thông tin dòng xe',
                         'create_route_info': 'Tạo tuyến mới',
                         'update_route_info': 'Sửa thông tin tuyến',
+                        'update_route_path': 'Sửa lộ trình tuyến',
                         'delete_route': 'Xóa tuyến',
                         'unmerge_vehicle': 'Tách xe'
                     };
@@ -14024,6 +14026,11 @@ if (!decodedProvince || decodedProvince.trim() === '') {
                         
                         document.getElementById('route-profile-title').innerText = app.utils.escapeHtml(titleText);
                             document.getElementById('route-badge').innerHTML = inactiveBadge;
+
+                        // Khởi tạo hiển thị Lộ trình & Bản đồ tuyến
+                        if (app.routePath && app.routePath.renderRouteView) {
+                            app.routePath.renderRouteView(exactInfo, routeName, decodedProvince);
+                        }
                     } catch (e) {
                         console.warn("Lỗi tải thông tin Tuyến:", e);
                     }
@@ -15763,6 +15770,708 @@ window.app.views.selectRouteIcon = function(val, label) {
         selectedEl.classList.add('selected');
         const icon = selectedEl.querySelector('.check-icon');
         if(icon) icon.classList.remove('opacity-0');
+    }
+};
+
+/* ==========================================================================
+   MODULE: ROUTE PATH & MAP (LỘ TRÌNH & ĐIỂM DỪNG TUYẾN)
+   ========================================================================== */
+window.app.routePath = {
+    currentRouteData: null,
+    currentRouteName: '',
+    currentProvince: '',
+    viewDirection: 'forward', // 'forward' | 'return'
+    viewMap: null,
+    viewLayers: null,
+
+    // Dành cho modal editor
+    editorDirection: 'forward',
+    editorMap: null,
+    editorLayers: null,
+    editorStops: {
+        forward: [],
+        return: []
+    },
+    editorGeoJSON: {
+        forward: null,
+        return: null
+    },
+    sortableInstance: null,
+    isCalculating: false,
+
+    // 1. HIỂN THỊ TRÊN PROFILE TUYẾN
+    renderRouteView: (routeInfo, routeName, province) => {
+        app.routePath.currentRouteData = routeInfo;
+        app.routePath.currentRouteName = routeName;
+        app.routePath.currentProvince = province || '';
+        app.routePath.viewDirection = 'forward';
+
+        const mapWrapper = document.getElementById('route-map-wrapper');
+        const emptyState = document.getElementById('route-map-empty-state');
+        if (!mapWrapper || !emptyState) return;
+
+        let paths = routeInfo?.metadata?.route_paths;
+        if (typeof paths === 'string') {
+            try { paths = JSON.parse(paths); } catch(e) { paths = null; }
+        }
+
+        const hasForward = paths?.forward?.stops?.length > 0 || paths?.forward?.geometry;
+        const hasReturn = paths?.return?.stops?.length > 0 || paths?.return?.geometry;
+
+        if (hasForward || hasReturn) {
+            mapWrapper.classList.remove('hidden');
+            emptyState.classList.add('hidden');
+            // Cập nhật nút Chiều đi / Chiều về trên view
+            const btnFwd = document.getElementById('btn-route-dir-forward');
+            const btnRet = document.getElementById('btn-route-dir-return');
+            if (btnFwd && btnRet) {
+                if (hasForward && !hasReturn) {
+                    btnRet.classList.add('opacity-40', 'cursor-not-allowed');
+                    app.routePath.viewDirection = 'forward';
+                } else if (!hasForward && hasReturn) {
+                    btnFwd.classList.add('opacity-40', 'cursor-not-allowed');
+                    app.routePath.viewDirection = 'return';
+                } else {
+                    btnFwd.classList.remove('opacity-40', 'cursor-not-allowed');
+                    btnRet.classList.remove('opacity-40', 'cursor-not-allowed');
+                }
+            }
+            app.routePath.initViewMap();
+            app.routePath.drawViewRoute();
+        } else {
+            mapWrapper.classList.add('hidden');
+            emptyState.classList.remove('hidden');
+        }
+    },
+
+    initViewMap: () => {
+        const container = document.getElementById('route-leaflet-map');
+        if (!container || typeof L === 'undefined') return;
+
+        if (app.routePath.viewMap) {
+            setTimeout(() => app.routePath.viewMap.invalidateSize(), 100);
+            return;
+        }
+
+        const isDark = document.documentElement.classList.contains('theme-dark');
+        app.routePath.viewMap = L.map(container, {
+            center: [16.047079, 108.206230],
+            zoom: 12,
+            zoomControl: true,
+            scrollWheelZoom: false
+        });
+
+        const savedType = localStorage.getItem('vnbus_map_type') || 'roadmap';
+        let lyrs = (savedType === 'satellite') ? 'y' : 'm';
+        L.tileLayer(`https://mt1.google.com/vt/lyrs=${lyrs}&x={x}&y={y}&z={z}`, {
+            attribution: '&copy; Google Maps',
+            maxZoom: 20
+        }).addTo(app.routePath.viewMap);
+
+        app.routePath.viewLayers = new L.FeatureGroup().addTo(app.routePath.viewMap);
+
+        const ro = new ResizeObserver(() => {
+            if (app.routePath.viewMap) app.routePath.viewMap.invalidateSize();
+        });
+        ro.observe(container);
+    },
+
+    switchDirection: (dir) => {
+        app.routePath.viewDirection = dir;
+        const btnFwd = document.getElementById('btn-route-dir-forward');
+        const btnRet = document.getElementById('btn-route-dir-return');
+        if (btnFwd && btnRet) {
+            if (dir === 'forward') {
+                btnFwd.className = 'px-2.5 py-1 rounded bg-black text-white dark:bg-white dark:text-black transition';
+                btnRet.className = 'px-2.5 py-1 rounded text-zinc-600 dark:text-zinc-300 hover:text-black dark:hover:text-white transition';
+            } else {
+                btnRet.className = 'px-2.5 py-1 rounded bg-black text-white dark:bg-white dark:text-black transition';
+                btnFwd.className = 'px-2.5 py-1 rounded text-zinc-600 dark:text-zinc-300 hover:text-black dark:hover:text-white transition';
+            }
+        }
+        app.routePath.drawViewRoute();
+    },
+
+    drawViewRoute: () => {
+        if (!app.routePath.viewMap || !app.routePath.viewLayers) return;
+        app.routePath.viewLayers.clearLayers();
+
+        let paths = app.routePath.currentRouteData?.metadata?.route_paths;
+        if (typeof paths === 'string') {
+            try { paths = JSON.parse(paths); } catch(e) { paths = null; }
+        }
+        const dirData = paths?.[app.routePath.viewDirection];
+        const stops = dirData?.stops || [];
+        const geometry = dirData?.geometry;
+
+        // Vẽ polyline uốn lượn
+        if (geometry && geometry.coordinates && geometry.coordinates.length > 0) {
+            const latlngs = geometry.coordinates.map(c => [c[1], c[0]]);
+            const poly = L.polyline(latlngs, {
+                color: app.routePath.viewDirection === 'forward' ? '#dc2626' : '#2563eb',
+                weight: 5,
+                opacity: 0.9,
+                lineJoin: 'round'
+            }).addTo(app.routePath.viewLayers);
+        } else if (stops.length > 1) {
+            const latlngs = stops.map(s => [s.lat, s.lng]);
+            L.polyline(latlngs, {
+                color: '#dc2626',
+                weight: 4,
+                dashArray: '6, 8',
+                opacity: 0.7
+            }).addTo(app.routePath.viewLayers);
+        }
+
+        // Vẽ marker điểm dừng
+        stops.forEach((stop, idx) => {
+            const isTerminal = (idx === 0 || idx === stops.length - 1);
+            const badgeBg = isTerminal ? (idx === 0 ? '#16a34a' : '#dc2626') : '#18181b';
+            const iconHtml = `
+                <div style="background-color: ${badgeBg}; color: #ffffff; width: 22px; height: 22px; border-radius: 9999px; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 900; border: 2px solid #ffffff; box-shadow: 0 2px 4px rgba(0,0,0,0.3);">
+                    ${idx + 1}
+                </div>
+            `;
+            const customIcon = L.divIcon({
+                className: 'route-stop-div-icon',
+                html: iconHtml,
+                iconSize: [22, 22],
+                iconAnchor: [11, 11],
+                popupAnchor: [0, -11]
+            });
+
+            const marker = L.marker([stop.lat, stop.lng], { icon: customIcon }).addTo(app.routePath.viewLayers);
+            const termLabel = idx === 0 ? ' (Bến đầu)' : (idx === stops.length - 1 ? ' (Bến cuối)' : '');
+            marker.bindPopup(`
+                <div style="padding: 8px 12px; font-family: sans-serif;">
+                    <div style="font-size: 10px; font-weight: bold; color: #71717a; text-transform: uppercase;">Điểm dừng #${idx + 1}${termLabel}</div>
+                    <div style="font-size: 13px; font-weight: bold; margin-top: 2px;">${app.utils.escapeHtml(stop.name || 'Điểm dừng')}</div>
+                </div>
+            `);
+        });
+
+        // Fit bounds
+        const bounds = app.routePath.viewLayers.getBounds();
+        if (bounds.isValid()) {
+            app.routePath.viewMap.fitBounds(bounds, { padding: [30, 30], maxZoom: 16 });
+        }
+
+        // Cập nhật danh sách collapsible điểm dừng
+        const summaryEl = document.getElementById('route-stops-summary');
+        const listBody = document.getElementById('route-stops-list-body');
+        if (summaryEl) {
+            summaryEl.innerText = `Danh sách điểm dừng (${stops.length} điểm) · ${app.routePath.viewDirection === 'forward' ? 'Chiều đi' : 'Chiều về'}`;
+        }
+        if (listBody) {
+            if (stops.length === 0) {
+                listBody.innerHTML = '<div class="text-xs text-zinc-400 italic py-2 text-center">Chưa có điểm dừng cho chiều này.</div>';
+            } else {
+                listBody.innerHTML = stops.map((s, idx) => `
+                    <div class="flex items-center gap-2 p-2 rounded bg-white dark:bg-black border border-zinc-200 dark:border-zinc-800 text-xs cursor-pointer hover:border-black dark:hover:border-white transition" onclick="app.routePath.panToStop(${s.lat}, ${s.lng}, '${app.utils.escapeAttr(s.name)}')">
+                        <span class="w-5 h-5 rounded-full bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900 flex items-center justify-center font-bold text-[10px] shrink-0">${idx + 1}</span>
+                        <span class="font-bold text-black dark:text-white truncate flex-1">${app.utils.escapeHtml(s.name)}</span>
+                        <i class="fa-solid fa-location-crosshairs text-zinc-400 text-xs shrink-0"></i>
+                    </div>
+                `).join('');
+            }
+        }
+    },
+
+    toggleStopList: () => {
+        const body = document.getElementById('route-stops-list-body');
+        const chevron = document.getElementById('route-stops-chevron');
+        if (!body) return;
+        const isHidden = body.classList.contains('hidden');
+        if (isHidden) {
+            body.classList.remove('hidden');
+            if (chevron) chevron.style.transform = 'rotate(180deg)';
+        } else {
+            body.classList.add('hidden');
+            if (chevron) chevron.style.transform = 'rotate(0deg)';
+        }
+    },
+
+    panToStop: (lat, lng, name) => {
+        if (!app.routePath.viewMap) return;
+        app.routePath.viewMap.setView([lat, lng], 16, { animate: true });
+    },
+
+    // 2. GIAO DIỆN CHỈNH SỬA (MAP EDITOR)
+    openEditor: () => {
+        if (!app.user) return app.auth.check();
+
+        const modal = document.getElementById('route-path-editor-modal');
+        const content = document.getElementById('route-path-editor-content');
+        if (!modal || !content) return;
+
+        const titleEl = document.getElementById('rpe-modal-title');
+        if (titleEl) {
+            titleEl.innerText = `Lộ trình Tuyến ${app.routePath.currentRouteName || ''}`;
+        }
+
+        // Sao chép dữ liệu hiện có
+        let paths = app.routePath.currentRouteData?.metadata?.route_paths;
+        if (typeof paths === 'string') {
+            try { paths = JSON.parse(paths); } catch(e) { paths = null; }
+        }
+        app.routePath.editorStops = {
+            forward: paths?.forward?.stops ? JSON.parse(JSON.stringify(paths.forward.stops)) : [],
+            return: paths?.return?.stops ? JSON.parse(JSON.stringify(paths.return.stops)) : []
+        };
+        app.routePath.editorGeoJSON = {
+            forward: paths?.forward?.geometry ? JSON.parse(JSON.stringify(paths.forward.geometry)) : null,
+            return: paths?.return?.geometry ? JSON.parse(JSON.stringify(paths.return.geometry)) : null
+        };
+        app.routePath.editorDirection = 'forward';
+
+        modal.classList.remove('hidden');
+        app.ui.lockScroll();
+        setTimeout(() => {
+            content.classList.remove('opacity-0', 'scale-95');
+            content.classList.add('opacity-100', 'scale-100');
+            app.routePath.initEditorMap();
+            app.routePath.switchEditorDirection('forward');
+            app.routePath.initSortable();
+        }, 30);
+    },
+
+    closeEditor: () => {
+        const modal = document.getElementById('route-path-editor-modal');
+        const content = document.getElementById('route-path-editor-content');
+        if (!modal || !content) return;
+
+        content.classList.remove('opacity-100', 'scale-100');
+        content.classList.add('opacity-0', 'scale-95');
+        setTimeout(() => {
+            modal.classList.add('hidden');
+            app.ui.unlockScroll();
+        }, 200);
+    },
+
+    initEditorMap: () => {
+        const container = document.getElementById('rpe-leaflet-map');
+        if (!container || typeof L === 'undefined') return;
+
+        if (app.routePath.editorMap) {
+            setTimeout(() => app.routePath.editorMap.invalidateSize(), 150);
+            return;
+        }
+
+        app.routePath.editorMap = L.map(container, {
+            center: [16.047079, 108.206230],
+            zoom: 12,
+            zoomControl: true
+        });
+
+        const savedType = localStorage.getItem('vnbus_map_type') || 'roadmap';
+        let lyrs = (savedType === 'satellite') ? 'y' : 'm';
+        L.tileLayer(`https://mt1.google.com/vt/lyrs=${lyrs}&x={x}&y={y}&z={z}`, {
+            attribution: '&copy; Google Maps',
+            maxZoom: 20
+        }).addTo(app.routePath.editorMap);
+
+        app.routePath.editorLayers = new L.FeatureGroup().addTo(app.routePath.editorMap);
+
+        // Click lên bản đồ để thêm trạm dừng
+        app.routePath.editorMap.on('click', async (e) => {
+            const { lat, lng } = e.latlng;
+            app.routePath.promptAddStop(lat, lng);
+        });
+
+        const ro = new ResizeObserver(() => {
+            if (app.routePath.editorMap) app.routePath.editorMap.invalidateSize();
+        });
+        ro.observe(container);
+    },
+
+    initSortable: () => {
+        const listEl = document.getElementById('rpe-stops-sortable');
+        if (!listEl || typeof Sortable === 'undefined') return;
+
+        if (app.routePath.sortableInstance) {
+            app.routePath.sortableInstance.destroy();
+        }
+
+        app.routePath.sortableInstance = new Sortable(listEl, {
+            handle: '.stop-drag-handle',
+            animation: 150,
+            ghostClass: 'opacity-50',
+            onEnd: () => {
+                // Đọc lại thứ tự từ DOM
+                const items = listEl.querySelectorAll('.rpe-stop-item');
+                const curStops = app.routePath.editorStops[app.routePath.editorDirection];
+                const newStops = [];
+                items.forEach(it => {
+                    const idx = parseInt(it.dataset.index, 10);
+                    if (curStops[idx]) newStops.push(curStops[idx]);
+                });
+                app.routePath.editorStops[app.routePath.editorDirection] = newStops;
+                app.routePath.renderEditorStopsList();
+                app.routePath.calculateRealRoute();
+            }
+        });
+    },
+
+    switchEditorDirection: (dir) => {
+        app.routePath.editorDirection = dir;
+        const tabFwd = document.getElementById('rpe-tab-forward');
+        const tabRet = document.getElementById('rpe-tab-return');
+        if (tabFwd && tabRet) {
+            if (dir === 'forward') {
+                tabFwd.className = 'px-3 py-1.5 rounded bg-black text-white dark:bg-white dark:text-black transition';
+                tabRet.className = 'px-3 py-1.5 rounded text-zinc-600 dark:text-zinc-400 hover:text-black dark:hover:text-white transition';
+            } else {
+                tabRet.className = 'px-3 py-1.5 rounded bg-black text-white dark:bg-white dark:text-black transition';
+                tabFwd.className = 'px-3 py-1.5 rounded text-zinc-600 dark:text-zinc-400 hover:text-black dark:hover:text-white transition';
+            }
+        }
+        app.routePath.renderEditorStopsList();
+        app.routePath.drawEditorRoute();
+    },
+
+    renderEditorStopsList: () => {
+        const listEl = document.getElementById('rpe-stops-sortable');
+        const countEl = document.getElementById('rpe-stop-count');
+        if (!listEl) return;
+
+        const stops = app.routePath.editorStops[app.routePath.editorDirection] || [];
+        if (countEl) countEl.innerText = `Điểm dừng (${stops.length})`;
+
+        if (stops.length === 0) {
+            listEl.innerHTML = `
+                <div class="text-center py-8 text-zinc-400 text-xs">
+                    <i class="fa-solid fa-map-pin text-xl mb-2 opacity-50 block"></i>
+                    Chưa có điểm dừng nào.<br>Hãy tìm kiếm hoặc click trực tiếp lên bản đồ để thêm trạm dừng.
+                </div>
+            `;
+            return;
+        }
+
+        listEl.innerHTML = stops.map((s, idx) => `
+            <div class="rpe-stop-item flex items-center gap-1.5 p-2 rounded bg-zinc-50 dark:bg-zinc-900 border border-black dark:border-white text-xs group" data-index="${idx}">
+                <button type="button" class="stop-drag-handle cursor-grab active:cursor-grabbing text-zinc-400 hover:text-black dark:hover:text-white px-1">
+                    <i class="fa-solid fa-grip-vertical"></i>
+                </button>
+                <span class="w-5 h-5 rounded-full bg-black text-white dark:bg-white dark:text-black flex items-center justify-center font-bold text-[10px] shrink-0">${idx + 1}</span>
+                <div class="flex-1 min-w-0 pr-1">
+                    <input type="text" value="${app.utils.escapeAttr(s.name)}" onchange="app.routePath.renameStop(${idx}, this.value)" class="w-full bg-transparent font-bold text-black dark:text-white border-b border-transparent focus:border-black dark:focus:border-white outline-none truncate text-xs">
+                    <span class="text-[10px] text-zinc-400 block truncate">${s.lat.toFixed(5)}, ${s.lng.toFixed(5)}</span>
+                </div>
+                <button type="button" onclick="app.routePath.focusEditorStop(${s.lat}, ${s.lng})" class="text-zinc-400 hover:text-black dark:hover:text-white p-1" title="Xem trên map">
+                    <i class="fa-solid fa-crosshairs"></i>
+                </button>
+                <button type="button" onclick="app.routePath.removeStop(${idx})" class="text-zinc-400 hover:text-red-500 p-1" title="Xóa trạm">
+                    <i class="fa-solid fa-trash-can"></i>
+                </button>
+            </div>
+        `).join('');
+    },
+
+    renameStop: (idx, newName) => {
+        const stops = app.routePath.editorStops[app.routePath.editorDirection];
+        if (stops && stops[idx]) {
+            stops[idx].name = newName.trim() || `Điểm dừng #${idx + 1}`;
+            app.routePath.drawEditorRoute();
+        }
+    },
+
+    focusEditorStop: (lat, lng) => {
+        if (!app.routePath.editorMap) return;
+        app.routePath.editorMap.setView([lat, lng], 17, { animate: true });
+    },
+
+    promptAddStop: async (lat, lng, suggestedName = '') => {
+        let name = suggestedName;
+        if (!name) {
+            // Thử reverse geocoding nhanh qua Nominatim để lấy tên đường
+            try {
+                const resp = await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}&accept-language=vi`);
+                if (resp.ok) {
+                    const data = await resp.json();
+                    name = data.name || data.address?.road || data.address?.suburb || '';
+                }
+            } catch(e) {}
+        }
+
+        const count = app.routePath.editorStops[app.routePath.editorDirection].length;
+        const defaultName = name || `Điểm dừng #${count + 1}`;
+        const finalName = prompt("Nhập tên điểm dừng / trạm:", defaultName);
+        if (finalName === null) return;
+
+        app.routePath.editorStops[app.routePath.editorDirection].push({
+            name: finalName.trim() || defaultName,
+            lat: parseFloat(lat),
+            lng: parseFloat(lng)
+        });
+
+        app.routePath.renderEditorStopsList();
+        app.routePath.calculateRealRoute();
+    },
+
+    removeStop: (idx) => {
+        const stops = app.routePath.editorStops[app.routePath.editorDirection];
+        if (stops && stops[idx]) {
+            stops.splice(idx, 1);
+            app.routePath.renderEditorStopsList();
+            app.routePath.calculateRealRoute();
+        }
+    },
+
+    clearCurrentStops: () => {
+        if (!confirm("Bạn có chắc muốn xóa toàn bộ điểm dừng của chiều này?")) return;
+        app.routePath.editorStops[app.routePath.editorDirection] = [];
+        app.routePath.editorGeoJSON[app.routePath.editorDirection] = null;
+        app.routePath.renderEditorStopsList();
+        app.routePath.drawEditorRoute();
+    },
+
+    // 3. TÌM KIẾM ĐỊA ĐIỂM / TRẠM DỪNG
+    searchPlace: async (query) => {
+        query = (query || '').trim();
+        const resultsEl = document.getElementById('rpe-search-results');
+        if (!query || !resultsEl) return;
+
+        resultsEl.innerHTML = '<div class="p-3 text-center text-xs text-zinc-500"><i class="fa-solid fa-circle-notch fa-spin"></i> Đang tìm kiếm...</div>';
+        resultsEl.classList.remove('hidden');
+
+        try {
+            // Dùng Nominatim hoặc Photon để tìm kiếm địa chỉ ở VN
+            const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&countrycodes=vn&limit=6&accept-language=vi`;
+            const resp = await fetch(url);
+            if (!resp.ok) throw new Error("Lỗi mạng khi tìm kiếm");
+            const data = await resp.json();
+
+            if (!data || data.length === 0) {
+                resultsEl.innerHTML = '<div class="p-3 text-center text-xs text-zinc-400">Không tìm thấy địa điểm phù hợp</div>';
+                return;
+            }
+
+            resultsEl.innerHTML = data.map(item => `
+                <div class="filter-item text-xs p-2.5 hover:bg-zinc-100 dark:hover:bg-zinc-800 cursor-pointer border-b border-zinc-100 dark:border-zinc-800 last:border-none" onclick="app.routePath.selectSearchResult(${item.lat}, ${item.lon}, '${app.utils.escapeAttr(item.display_name)}')">
+                    <p class="font-bold text-black dark:text-white truncate">${app.utils.escapeHtml(item.name || item.display_name.split(',')[0])}</p>
+                    <p class="text-[10px] text-zinc-500 dark:text-zinc-400 truncate">${app.utils.escapeHtml(item.display_name)}</p>
+                </div>
+            `).join('');
+        } catch(e) {
+            resultsEl.innerHTML = '<div class="p-3 text-center text-xs text-red-500">Lỗi khi tìm kiếm, vui lòng thử lại</div>';
+        }
+    },
+
+    selectSearchResult: (lat, lng, displayName) => {
+        const resultsEl = document.getElementById('rpe-search-results');
+        if (resultsEl) resultsEl.classList.add('hidden');
+        document.getElementById('rpe-search-input').value = '';
+
+        if (app.routePath.editorMap) {
+            app.routePath.editorMap.setView([lat, lng], 16, { animate: true });
+        }
+        const shortName = displayName.split(',')[0].trim();
+        app.routePath.promptAddStop(lat, lng, shortName);
+    },
+
+    // 4. TỰ ĐỘNG TÍNH TOÁN ĐƯỜNG ĐI THẬT (OSRM ROUTING)
+    calculateRealRoute: async () => {
+        const stops = app.routePath.editorStops[app.routePath.editorDirection] || [];
+        const badge = document.getElementById('rpe-calculating-badge');
+
+        if (stops.length < 2) {
+            app.routePath.editorGeoJSON[app.routePath.editorDirection] = null;
+            app.routePath.drawEditorRoute();
+            return;
+        }
+
+        if (badge) badge.classList.remove('hidden');
+        app.routePath.isCalculating = true;
+
+        try {
+            // OSRM format: lng,lat;lng,lat...
+            const coordsStr = stops.map(s => `${s.lng},${s.lat}`).join(';');
+            const osrmUrl = `https://router.project-osrm.org/route/v1/driving/${coordsStr}?overview=full&geometries=geojson`;
+
+            const resp = await fetch(osrmUrl);
+            if (!resp.ok) throw new Error("OSRM không phản hồi");
+            const data = await resp.json();
+
+            if (data.code === 'Ok' && data.routes && data.routes[0]) {
+                app.routePath.editorGeoJSON[app.routePath.editorDirection] = data.routes[0].geometry;
+            } else {
+                throw new Error("Không thể định tuyến qua các điểm đã chọn");
+            }
+        } catch (e) {
+            console.warn("OSRM routing fallback:", e);
+            // Fallback: Nếu OSRM lỗi, lưu đường nối các điểm dừng
+            app.routePath.editorGeoJSON[app.routePath.editorDirection] = {
+                type: 'LineString',
+                coordinates: stops.map(s => [s.lng, s.lat])
+            };
+        } finally {
+            app.routePath.isCalculating = false;
+            if (badge) badge.classList.add('hidden');
+            app.routePath.drawEditorRoute();
+        }
+    },
+
+    drawEditorRoute: () => {
+        if (!app.routePath.editorMap || !app.routePath.editorLayers) return;
+        app.routePath.editorLayers.clearLayers();
+
+        const stops = app.routePath.editorStops[app.routePath.editorDirection] || [];
+        const geometry = app.routePath.editorGeoJSON[app.routePath.editorDirection];
+
+        // Vẽ polyline
+        if (geometry && geometry.coordinates && geometry.coordinates.length > 0) {
+            const latlngs = geometry.coordinates.map(c => [c[1], c[0]]);
+            L.polyline(latlngs, {
+                color: app.routePath.editorDirection === 'forward' ? '#dc2626' : '#2563eb',
+                weight: 5,
+                opacity: 0.9,
+                lineJoin: 'round'
+            }).addTo(app.routePath.editorLayers);
+        }
+
+        // Vẽ marker điểm dừng
+        stops.forEach((stop, idx) => {
+            const isTerminal = (idx === 0 || idx === stops.length - 1);
+            const badgeBg = isTerminal ? (idx === 0 ? '#16a34a' : '#dc2626') : '#18181b';
+            const iconHtml = `
+                <div style="background-color: ${badgeBg}; color: #ffffff; width: 24px; height: 24px; border-radius: 9999px; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 900; border: 2px solid #ffffff; box-shadow: 0 2px 4px rgba(0,0,0,0.3);">
+                    ${idx + 1}
+                </div>
+            `;
+            const customIcon = L.divIcon({
+                className: 'route-stop-div-icon',
+                html: iconHtml,
+                iconSize: [24, 24],
+                iconAnchor: [12, 12],
+                popupAnchor: [0, -12]
+            });
+
+            const marker = L.marker([stop.lat, stop.lng], {
+                icon: customIcon,
+                draggable: true
+            }).addTo(app.routePath.editorLayers);
+
+            // Kéo thả marker trên map để chỉnh tọa độ trạm dừng
+            marker.on('dragend', (e) => {
+                const newPos = e.target.getLatLng();
+                stop.lat = newPos.lat;
+                stop.lng = newPos.lng;
+                app.routePath.renderEditorStopsList();
+                app.routePath.calculateRealRoute();
+            });
+
+            const termLabel = idx === 0 ? ' (Bến đầu)' : (idx === stops.length - 1 ? ' (Bến cuối)' : '');
+            marker.bindPopup(`
+                <div style="padding: 8px 12px; font-family: sans-serif;">
+                    <div style="font-size: 10px; font-weight: bold; color: #71717a; text-transform: uppercase;">Điểm dừng #${idx + 1}${termLabel}</div>
+                    <div style="font-size: 13px; font-weight: bold; margin-top: 2px;">${app.utils.escapeHtml(stop.name)}</div>
+                    <div style="font-size: 10px; color: #a1a1aa; margin-top: 4px;">Kéo thả marker để chỉnh vị trí</div>
+                </div>
+            `);
+        });
+
+        // Fit bounds nếu có điểm
+        const bounds = app.routePath.editorLayers.getBounds();
+        if (bounds.isValid() && stops.length > 0) {
+            app.routePath.editorMap.fitBounds(bounds, { padding: [30, 30], maxZoom: 16 });
+        }
+    },
+
+    // 5. LƯU LỘ TRÌNH (TỰ ĐỘNG XỬ LÝ QUY TRÌNH DUYỆT)
+    saveRoutePath: async () => {
+        if (!app.user) return app.auth.check();
+
+        const btnSave = document.getElementById('btn-save-route-path');
+        const origText = btnSave ? btnSave.innerHTML : 'Lưu';
+
+        const forwardStops = app.routePath.editorStops.forward || [];
+        const returnStops = app.routePath.editorStops.return || [];
+
+        if (forwardStops.length === 0 && returnStops.length === 0) {
+            app.toast.show('warning', 'Lộ trình trống', 'Vui lòng thêm ít nhất 1 điểm dừng trước khi lưu.');
+            return;
+        }
+
+        const payloadPaths = {
+            forward: {
+                stops: forwardStops,
+                geometry: app.routePath.editorGeoJSON.forward
+            },
+            return: {
+                stops: returnStops,
+                geometry: app.routePath.editorGeoJSON.return
+            },
+            updated_at: new Date().toISOString()
+        };
+
+        try {
+            if (btnSave) {
+                btnSave.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Đang lưu...';
+                btnSave.disabled = true;
+            }
+
+            const routeName = app.routePath.currentRouteName;
+            const isAdminOrManager = (app.role === 'admin' || app.role === 'manager');
+
+            if (isAdminOrManager) {
+                // Admin / Manager lưu trực tiếp vào bảng route_info
+                const { data: curRoute } = await window.sb.from('route_info').select('*').eq('route_name', routeName).maybeSingle();
+                let meta = curRoute?.metadata || {};
+                if (typeof meta === 'string') {
+                    try { meta = JSON.parse(meta); } catch(e) { meta = {}; }
+                }
+                meta.route_paths = payloadPaths;
+
+                const { error } = await window.sb.from('route_info').update({
+                    metadata: meta
+                }).eq('route_name', routeName);
+
+                if (error) throw error;
+
+                app.toast.show('success', 'Thành công', 'Đã lưu lộ trình tuyến thành công!');
+                app.routePath.closeEditor();
+
+                // Cập nhật lại UI profile
+                if (curRoute) {
+                    curRoute.metadata = meta;
+                    app.routePath.renderRouteView(curRoute, routeName, app.routePath.currentProvince);
+                } else if (app.route && app.route.loadRoutePage) {
+                    app.route.loadRoutePage(app.routePath.currentProvince, app.route.currentRoute, true);
+                }
+            } else {
+                // Người dùng thông thường: Gửi qua edit_requests chờ duyệt
+                const checkQuery = window.sb.from('edit_requests').select('*', { count: 'exact', head: true }).eq('status', 'pending');
+                const { count } = await checkQuery.contains('new_data', { request_type: 'update_route_path', route_name: routeName });
+                if (count > 0) throw new Error("Đã có một yêu cầu cập nhật lộ trình cho tuyến này đang chờ duyệt.");
+
+                const reqData = {
+                    requester_id: app.user.id,
+                    license_plate: 'ROUTE_INFO',
+                    new_data: {
+                        request_type: 'update_route_path',
+                        route_name: routeName,
+                        route_no: app.route?.currentRoute || routeName.split(' - ')[0],
+                        province: app.routePath.currentProvince || null,
+                        route_paths: payloadPaths
+                    },
+                    status: 'pending'
+                };
+
+                const { error } = await window.sb.from('edit_requests').insert(reqData);
+                if (error) throw error;
+
+                app.toast.show('success', 'Đã gửi yêu cầu', 'Yêu cầu cập nhật lộ trình đã được gửi đến hàng đợi và sẽ được Admin duyệt!');
+                app.routePath.closeEditor();
+            }
+        } catch (e) {
+            console.error("Lỗi lưu lộ trình:", e);
+            app.toast.show('error', 'Lỗi', e.message || 'Không thể lưu lộ trình, vui lòng thử lại.');
+        } finally {
+            if (btnSave) {
+                btnSave.innerHTML = origText;
+                btnSave.disabled = false;
+            }
+        }
     }
 };
 
@@ -23618,7 +24327,7 @@ if (app.admin._activeLoadToken !== currentLoadToken || app.adminTab !== tab) ret
                                 `;
                             };
 
-                            const routeReqs = reqs.filter(r => r.new_data?.request_type === 'update_route_info').flatMap(r => [r.new_data.old_route_name, r.new_data.route_name]).filter(Boolean);
+                            const routeReqs = reqs.filter(r => r.new_data?.request_type === 'update_route_info' || r.new_data?.request_type === 'update_route_path').flatMap(r => [r.new_data.old_route_name, r.new_data.route_name]).filter(Boolean);
                             let routeMap = {};
                             if (routeReqs.length > 0) {
                                 const { data: curRoutes } = await window.sb.from('route_info').select('*').in('route_name', routeReqs);
@@ -23770,6 +24479,43 @@ if (app.admin._activeLoadToken !== currentLoadToken || app.adminTab !== tab) ret
                                             
                                             <div class="flex gap-2 mt-3">
                                                 <button onclick="app.admin.approveReq('${r.id}', this, 'route_info')" class="flex-1 bg-green-600 text-white py-1.5 font-bold rounded hover:bg-green-700">DUYỆT</button>
+                                                <button onclick="app.admin.denyReq('${r.id}', this)" class="flex-1 bg-red-600 text-white py-1.5 font-bold rounded hover:bg-red-700">TỪ CHỐI</button>
+                                            </div>
+                                        </div>
+                                    </div>`;
+                                } else if (type === 'update_route_path') {
+                                    const forwardStops = d.route_paths?.forward?.stops || [];
+                                    const returnStops = d.route_paths?.return?.stops || [];
+                                    const fwdLen = forwardStops.length;
+                                    const retLen = returnStops.length;
+                                    const fwdTerm = fwdLen > 0 ? `${forwardStops[0]?.name || ''} ➔ ${forwardStops[fwdLen - 1]?.name || ''}` : 'Chưa có điểm dừng';
+                                    const retTerm = retLen > 0 ? `${returnStops[0]?.name || ''} ➔ ${returnStops[retLen - 1]?.name || ''}` : 'Chưa có điểm dừng';
+
+                                    return `
+                                    <div class="admin-card overflow-visible">
+                                        <div class="admin-card-header bg-teal-50"><span class="font-bold text-xs uppercase text-teal-600">LỘ TRÌNH & ĐIỂM DỪNG</span><span class="text-xs text-gray-500">${username}</span></div>
+                                        <div class="admin-card-body text-xs">
+                                            <p class="font-bold text-sm mb-2 text-black"><i class="fa-solid fa-map-location-dot mr-1 text-teal-600"></i> ${app.utils.escapeAttr(d.route_name)}</p>
+                                            
+                                            <div class="space-y-2 mb-3">
+                                                <div class="p-2.5 rounded bg-zinc-50 border border-zinc-200">
+                                                    <div class="font-bold text-black flex items-center justify-between mb-1">
+                                                        <span>Chiều đi:</span>
+                                                        <span class="text-zinc-500 text-[10px] font-bold">${fwdLen} điểm dừng</span>
+                                                    </div>
+                                                    <div class="text-[11px] text-zinc-600 truncate">${app.utils.escapeHtml(fwdTerm)}</div>
+                                                </div>
+                                                <div class="p-2.5 rounded bg-zinc-50 border border-zinc-200">
+                                                    <div class="font-bold text-black flex items-center justify-between mb-1">
+                                                        <span>Chiều về:</span>
+                                                        <span class="text-zinc-500 text-[10px] font-bold">${retLen} điểm dừng</span>
+                                                    </div>
+                                                    <div class="text-[11px] text-zinc-600 truncate">${app.utils.escapeHtml(retTerm)}</div>
+                                                </div>
+                                            </div>
+
+                                            <div class="flex gap-2 mt-3">
+                                                <button onclick="app.admin.approveReq('${r.id}', this, 'update_route_path')" class="flex-1 bg-green-600 text-white py-1.5 font-bold rounded hover:bg-green-700">DUYỆT LỘ TRÌNH</button>
                                                 <button onclick="app.admin.denyReq('${r.id}', this)" class="flex-1 bg-red-600 text-white py-1.5 font-bold rounded hover:bg-red-700">TỪ CHỐI</button>
                                             </div>
                                         </div>
@@ -26266,6 +27012,36 @@ if (cbQuality) newSubroles.push('quality_aud');
                             }
                             
                             // (Bỏ cập nhật ảnh/xe vá tuyến)
+                        }
+                        else if (reqType === 'update_route_path' || req.new_data?.request_type === 'update_route_path') {
+                            const d = req.new_data;
+                            const targetRouteName = d.route_name;
+                            const newPaths = d.route_paths;
+
+                            // Lấy thông tin route_info hiện tại
+                            const { data: curRoute } = await window.sb.from('route_info').select('*').eq('route_name', targetRouteName).maybeSingle();
+                            if (curRoute) {
+                                let meta = curRoute.metadata || {};
+                                if (typeof meta === 'string') {
+                                    try { meta = JSON.parse(meta); } catch(e) { meta = {}; }
+                                }
+                                meta.route_paths = newPaths;
+                                const { error: upErr } = await window.sb.from('route_info').update({
+                                    metadata: meta
+                                }).eq('route_name', targetRouteName);
+                                if (upErr) throw upErr;
+                            } else {
+                                const expectedRouteNo = d.route_no || (targetRouteName.includes(' - ') ? targetRouteName.split(' - ')[0].trim() : targetRouteName);
+                                const targetProvince = d.province || (targetRouteName.includes(' - ') ? targetRouteName.split(' - ')[1].trim() : null);
+                                const { error: upErr } = await window.sb.from('route_info').insert({
+                                    route_name: targetRouteName,
+                                    route_no: expectedRouteNo,
+                                    province: targetProvince,
+                                    metadata: { route_paths: newPaths }
+                                });
+                                if (upErr) throw upErr;
+                            }
+                            if (app.route) app.route.cachedRoutes = null;
                         }
                         else if (reqType === 'create_route_info' || req.new_data?.request_type === 'create_route_info') {
                             const d = req.new_data;

@@ -1209,6 +1209,7 @@ Object.assign(window.app, {
                         'update_model_info': 'sửa thông tin dòng xe',
                         'create_route_info': 'tạo tuyến mới',
                         'update_route_info': 'sửa thông tin tuyến',
+                        'update_route_path': 'sửa lộ trình tuyến',
                         'delete_route': 'xóa tuyến',
                         'unmerge_vehicle': 'tách xe'
                     };
@@ -1275,6 +1276,7 @@ Object.assign(window.app, {
                         'update_model_info': 'Sửa thông tin dòng xe',
                         'create_route_info': 'Tạo tuyến mới',
                         'update_route_info': 'Sửa thông tin tuyến',
+                        'update_route_path': 'Sửa lộ trình tuyến',
                         'delete_route': 'Xóa tuyến',
                         'unmerge_vehicle': 'Tách xe'
                     };

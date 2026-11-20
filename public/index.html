@@ -2245,7 +2245,7 @@ html.theme-dark .ct-icon {
             if (stored === 'system') {
                 theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
             }
-            document.write('<link rel="stylesheet" href="/css/' + theme + '.css?v=1795164555571" id="theme-css">');
+            document.write('<link rel="stylesheet" href="/css/' + theme + '.css?v=1795166174721" id="theme-css">');
             document.documentElement.classList.add('theme-' + theme);
             document.documentElement.style.backgroundColor = theme === 'dark' ? '#18181b' : '#fdfcf8';
 
@@ -6193,6 +6193,47 @@ html.theme-dark .ct-icon {
                         <div id="route-extra-info" class="flex flex-row flex-wrap gap-2 mt-3 hidden"></div>
                     </div>
 
+                    <!-- KHỐI LỘ TRÌNH & BẢN ĐỒ TUYẾN -->
+                    <div id="route-path-container" class="mb-6">
+                        <!-- Header bản đồ lộ trình khi ĐÃ có dữ liệu -->
+                        <div id="route-map-wrapper" class="hidden">
+                            <div class="flex items-center justify-between mb-2.5">
+                                <h3 class="font-bold text-xs uppercase text-black tracking-wider px-1 flex items-center gap-1.5">
+                                    <i class="fa-solid fa-map-location-dot"></i> Lộ trình & Điểm dừng
+                                </h3>
+                                <div class="flex items-center gap-2">
+                                    <!-- Nút đổi chiều đi / về -->
+                                    <div class="inline-flex rounded-md border border-black dark:border-white p-0.5 bg-zinc-100 dark:bg-zinc-800 text-xs font-bold">
+                                        <button type="button" id="btn-route-dir-forward" onclick="app.routePath.switchDirection('forward')" class="px-2.5 py-1 rounded bg-black text-white dark:bg-white dark:text-black transition">Chiều đi</button>
+                                        <button type="button" id="btn-route-dir-return" onclick="app.routePath.switchDirection('return')" class="px-2.5 py-1 rounded text-zinc-600 dark:text-zinc-300 hover:text-black dark:hover:text-white transition">Chiều về</button>
+                                    </div>
+                                    <button type="button" onclick="app.routePath.openEditor()" class="px-3 py-1.5 bg-white dark:bg-black border border-black dark:border-white text-black dark:text-white text-xs font-bold rounded-md hover:bg-gray-100 dark:hover:bg-zinc-900 transition flex items-center gap-1">
+                                        <i class="fa-solid fa-route"></i> Sửa lộ trình
+                                    </button>
+                                </div>
+                            </div>
+                            <!-- Khung chứa Leaflet Map -->
+                            <div class="w-full h-64 sm:h-80 md:h-96 rounded-lg border border-black dark:border-white overflow-hidden relative mb-3 bg-zinc-100 dark:bg-zinc-900">
+                                <div id="route-leaflet-map" class="w-full h-full z-0"></div>
+                            </div>
+                            <!-- Danh sách điểm dừng (Collapsible) -->
+                            <div class="border border-black dark:border-white rounded-lg p-3 bg-zinc-50 dark:bg-zinc-900">
+                                <button type="button" onclick="app.routePath.toggleStopList()" class="w-full flex items-center justify-between text-xs font-bold text-black dark:text-white uppercase tracking-wider text-left">
+                                    <span id="route-stops-summary">Danh sách điểm dừng (0 điểm)</span>
+                                    <i id="route-stops-chevron" class="fa-solid fa-chevron-down text-zinc-500 transition-transform duration-200"></i>
+                                </button>
+                                <div id="route-stops-list-body" class="hidden mt-3 max-h-48 overflow-y-auto space-y-1.5 custom-scrollbar pr-1"></div>
+                            </div>
+                        </div>
+
+                        <!-- Nút Thêm lộ trình khi CHƯA có dữ liệu -->
+                        <div id="route-map-empty-state" class="hidden">
+                            <button type="button" onclick="app.routePath.openEditor()" class="w-full py-3 px-4 bg-white dark:bg-black border border-black dark:border-white text-black dark:text-white text-xs sm:text-sm font-bold rounded-lg hover:bg-zinc-50 dark:hover:bg-zinc-900 transition flex items-center justify-center gap-2">
+                                <i class="fa-solid fa-map-location-dot"></i> Cập nhật lộ trình & điểm dừng tuyến này
+                            </button>
+                        </div>
+                    </div>
+
                     <div id="route-desc" class="text-sm text-gray-700 mb-6 whitespace-pre-wrap leading-relaxed hidden bg-gray-50 p-4 rounded-xl border border-gray-100 shadow-inner"></div>
 
                     <div class="mb-6">
@@ -7727,6 +7768,83 @@ html.theme-dark .ct-icon {
         </div>
     </div>
 
+    <!-- MODAL CHỈNH SỬA LỘ TRÌNH & ĐIỂM DỪNG TUYẾN (MAP ROUTE EDITOR) -->
+    <div id="route-path-editor-modal" class="hidden fixed inset-0 z-[3300] flex items-center justify-center p-2 sm:p-4 backdrop-blur-md overflow-hidden">
+        <div id="route-path-editor-content" class="rounded-2xl w-full max-w-4xl max-h-[92vh] flex flex-col bg-white dark:bg-[#18181b] border border-black dark:border-white transform transition-all opacity-0 scale-95 overflow-hidden">
+            <!-- Modal Header -->
+            <div class="p-4 sm:p-5 flex justify-between items-center shrink-0 border-b border-black dark:border-white">
+                <div class="min-w-0 pr-3">
+                    <h3 class="text-base sm:text-lg font-black text-black dark:text-white uppercase tracking-tight truncate flex items-center gap-2">
+                        <i class="fa-solid fa-map-location-dot"></i> <span id="rpe-modal-title">Chỉnh sửa Lộ trình Tuyến</span>
+                    </h3>
+                    <p id="rpe-modal-subtitle" class="text-xs text-zinc-500 dark:text-zinc-400 font-medium truncate mt-0.5">Thêm/sắp xếp điểm dừng để tự động nối đường đi thực tế</p>
+                </div>
+                <button type="button" onclick="app.routePath.closeEditor()" class="text-zinc-400 hover:text-black dark:hover:text-white text-xl p-1.5 transition">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <!-- Modal Subheader: Chọn Chiều Đi / Chiều Về & Search Tool -->
+            <div class="p-3 sm:p-4 bg-zinc-50 dark:bg-zinc-900 border-b border-black dark:border-white flex flex-wrap items-center justify-between gap-2 shrink-0">
+                <div class="inline-flex rounded-md border border-black dark:border-white p-0.5 bg-white dark:bg-black text-xs font-bold">
+                    <button type="button" id="rpe-tab-forward" onclick="app.routePath.switchEditorDirection('forward')" class="px-3 py-1.5 rounded bg-black text-white dark:bg-white dark:text-black transition">Chiều đi</button>
+                    <button type="button" id="rpe-tab-return" onclick="app.routePath.switchEditorDirection('return')" class="px-3 py-1.5 rounded text-zinc-600 dark:text-zinc-400 hover:text-black dark:hover:text-white transition">Chiều về</button>
+                </div>
+
+                <div class="flex items-center gap-2 flex-1 min-w-[240px] max-w-md relative">
+                    <div class="relative w-full">
+                        <input type="text" id="rpe-search-input" placeholder="Tìm trạm / địa điểm tại VN..." class="w-full bg-white dark:bg-black border border-black dark:border-white rounded-md py-1.5 pl-8 pr-8 text-xs text-black dark:text-white outline-none" onkeydown="if(event.key==='Enter') app.routePath.searchPlace(this.value)">
+                        <i class="fa-solid fa-magnifying-glass text-zinc-400 text-xs absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none"></i>
+                        <button type="button" id="rpe-search-btn" onclick="app.routePath.searchPlace(document.getElementById('rpe-search-input').value)" class="absolute right-1 top-1/2 -translate-y-1/2 px-2 py-0.5 text-[10px] font-bold bg-zinc-100 dark:bg-zinc-800 rounded text-black dark:text-white hover:bg-zinc-200">Tìm</button>
+                    </div>
+                    <!-- Menu kết quả tìm kiếm -->
+                    <div id="rpe-search-results" class="hidden filter-menu w-full mt-1 left-0 origin-top max-h-56 overflow-y-auto z-50"></div>
+                </div>
+            </div>
+
+            <!-- Modal Body: Map 60% + Stop List 40% (Responsive layout) -->
+            <div class="flex-1 flex flex-col md:flex-row min-h-0 overflow-hidden">
+                <!-- Khung Bản đồ Leaflet -->
+                <div class="flex-1 min-h-[260px] md:min-h-0 relative bg-zinc-100 dark:bg-zinc-900">
+                    <div id="rpe-leaflet-map" class="w-full h-full z-0"></div>
+                    <div class="absolute top-2 left-2 z-[400] bg-white/95 dark:bg-black/95 border border-black dark:border-white rounded px-2 py-1 text-[11px] font-bold text-black dark:text-white pointer-events-none">
+                        <i class="fa-solid fa-arrow-pointer mr-1"></i> Bấm lên map để tạo điểm dừng
+                    </div>
+                    <div id="rpe-calculating-badge" class="hidden absolute top-2 right-2 z-[400] bg-black text-white dark:bg-white dark:text-black rounded px-2.5 py-1 text-[11px] font-bold flex items-center gap-1.5">
+                        <i class="fa-solid fa-circle-notch fa-spin"></i> Đang tính toán đường đi...
+                    </div>
+                </div>
+
+                <!-- Cột Danh sách điểm dừng bên cạnh (Sortable List) -->
+                <div class="w-full md:w-80 border-t md:border-t-0 md:border-l border-black dark:border-white flex flex-col bg-white dark:bg-[#18181b] min-h-0 max-h-[40vh] md:max-h-none">
+                    <div class="p-3 border-b border-black dark:border-white bg-zinc-50 dark:bg-zinc-900 flex items-center justify-between shrink-0">
+                        <span class="text-xs font-bold uppercase tracking-wider text-black dark:text-white" id="rpe-stop-count">Điểm dừng (0)</span>
+                        <button type="button" onclick="app.routePath.clearCurrentStops()" class="text-[10px] text-red-500 hover:underline font-bold">Xóa tất cả</button>
+                    </div>
+                    <div class="p-2 text-[11px] text-zinc-500 dark:text-zinc-400 bg-zinc-50 dark:bg-zinc-900 border-b border-zinc-200 dark:border-zinc-800">
+                        <i class="fa-solid fa-arrows-up-down mr-1"></i> Kéo thả <i class="fa-solid fa-grip-vertical"></i> để đổi thứ tự trạm
+                    </div>
+                    <div id="rpe-stops-sortable" class="flex-1 overflow-y-auto p-2 space-y-1.5 custom-scrollbar min-h-[120px]">
+                        <!-- Render các item điểm dừng tại đây -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modal Footer -->
+            <div class="p-3 sm:p-4 border-t border-black dark:border-white bg-white dark:bg-[#18181b] flex items-center justify-between gap-2 shrink-0">
+                <span id="rpe-status-text" class="text-xs text-zinc-500 truncate min-w-0">Sắp xếp các điểm dừng theo thứ tự xe chạy.</span>
+                <div class="flex items-center gap-2 shrink-0">
+                    <button type="button" onclick="app.routePath.closeEditor()" class="px-3 sm:px-4 py-2 bg-white dark:bg-black border border-black dark:border-white text-xs sm:text-sm font-bold text-black dark:text-white rounded-md hover:bg-zinc-50 dark:hover:bg-zinc-900 transition">
+                        Hủy
+                    </button>
+                    <button type="button" id="btn-save-route-path" onclick="app.routePath.saveRoutePath()" class="px-4 sm:px-5 py-2 bg-black text-white dark:bg-white dark:text-black border border-black dark:border-white text-xs sm:text-sm font-bold rounded-md hover:bg-zinc-800 dark:hover:bg-zinc-200 transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-check"></i> Lưu lộ trình
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- MODAL CHỌN ẢNH TÂM ĐẮC (Glassmorphism 100% Sync) -->
     <div id="fav-photo-modal" class="hidden fixed inset-0 z-[3000] flex items-center justify-center p-2 md:p-6 backdrop-blur-md" >
         <div id="fav-photo-content" class="rounded-2xl w-full max-w-md flex flex-col overflow-hidden transform transition-all opacity-0 scale-95 relative" >
@@ -7948,7 +8066,7 @@ html.theme-dark .ct-icon {
 
     <!-- KHAY CHỨA TOAST Z-INDEX CAO NHẤT -->
     <div id="toast-container" class="fixed left-0 w-full flex flex-col items-center gap-2 pointer-events-none z-[99999]" style="z-index: 99999 !important;"></div>
-<script src="/app.bc0ea22bd0d4.js" onerror="if(!window.__app_fallback_loaded){window.__app_fallback_loaded=true;var s=document.createElement('script');s.src='/app.js?v=' + Date.now();document.head.appendChild(s);}"></script>
+<script src="/app.459290f30c61.js" onerror="if(!window.__app_fallback_loaded){window.__app_fallback_loaded=true;var s=document.createElement('script');s.src='/app.js?v=' + Date.now();document.head.appendChild(s);}"></script>
 </body>
 </html>
 

@@ -1848,7 +1848,7 @@ if (app.admin._activeLoadToken !== currentLoadToken || app.adminTab !== tab) ret
                                 `;
                             };
 
-                            const routeReqs = reqs.filter(r => r.new_data?.request_type === 'update_route_info').flatMap(r => [r.new_data.old_route_name, r.new_data.route_name]).filter(Boolean);
+                            const routeReqs = reqs.filter(r => r.new_data?.request_type === 'update_route_info' || r.new_data?.request_type === 'update_route_path').flatMap(r => [r.new_data.old_route_name, r.new_data.route_name]).filter(Boolean);
                             let routeMap = {};
                             if (routeReqs.length > 0) {
                                 const { data: curRoutes } = await window.sb.from('route_info').select('*').in('route_name', routeReqs);
@@ -2000,6 +2000,43 @@ if (app.admin._activeLoadToken !== currentLoadToken || app.adminTab !== tab) ret
                                             
                                             <div class="flex gap-2 mt-3">
                                                 <button onclick="app.admin.approveReq('${r.id}', this, 'route_info')" class="flex-1 bg-green-600 text-white py-1.5 font-bold rounded hover:bg-green-700">DUYỆT</button>
+                                                <button onclick="app.admin.denyReq('${r.id}', this)" class="flex-1 bg-red-600 text-white py-1.5 font-bold rounded hover:bg-red-700">TỪ CHỐI</button>
+                                            </div>
+                                        </div>
+                                    </div>`;
+                                } else if (type === 'update_route_path') {
+                                    const forwardStops = d.route_paths?.forward?.stops || [];
+                                    const returnStops = d.route_paths?.return?.stops || [];
+                                    const fwdLen = forwardStops.length;
+                                    const retLen = returnStops.length;
+                                    const fwdTerm = fwdLen > 0 ? `${forwardStops[0]?.name || ''} ➔ ${forwardStops[fwdLen - 1]?.name || ''}` : 'Chưa có điểm dừng';
+                                    const retTerm = retLen > 0 ? `${returnStops[0]?.name || ''} ➔ ${returnStops[retLen - 1]?.name || ''}` : 'Chưa có điểm dừng';
+
+                                    return `
+                                    <div class="admin-card overflow-visible">
+                                        <div class="admin-card-header bg-teal-50"><span class="font-bold text-xs uppercase text-teal-600">LỘ TRÌNH & ĐIỂM DỪNG</span><span class="text-xs text-gray-500">${username}</span></div>
+                                        <div class="admin-card-body text-xs">
+                                            <p class="font-bold text-sm mb-2 text-black"><i class="fa-solid fa-map-location-dot mr-1 text-teal-600"></i> ${app.utils.escapeAttr(d.route_name)}</p>
+                                            
+                                            <div class="space-y-2 mb-3">
+                                                <div class="p-2.5 rounded bg-zinc-50 border border-zinc-200">
+                                                    <div class="font-bold text-black flex items-center justify-between mb-1">
+                                                        <span>Chiều đi:</span>
+                                                        <span class="text-zinc-500 text-[10px] font-bold">${fwdLen} điểm dừng</span>
+                                                    </div>
+                                                    <div class="text-[11px] text-zinc-600 truncate">${app.utils.escapeHtml(fwdTerm)}</div>
+                                                </div>
+                                                <div class="p-2.5 rounded bg-zinc-50 border border-zinc-200">
+                                                    <div class="font-bold text-black flex items-center justify-between mb-1">
+                                                        <span>Chiều về:</span>
+                                                        <span class="text-zinc-500 text-[10px] font-bold">${retLen} điểm dừng</span>
+                                                    </div>
+                                                    <div class="text-[11px] text-zinc-600 truncate">${app.utils.escapeHtml(retTerm)}</div>
+                                                </div>
+                                            </div>
+
+                                            <div class="flex gap-2 mt-3">
+                                                <button onclick="app.admin.approveReq('${r.id}', this, 'update_route_path')" class="flex-1 bg-green-600 text-white py-1.5 font-bold rounded hover:bg-green-700">DUYỆT LỘ TRÌNH</button>
                                                 <button onclick="app.admin.denyReq('${r.id}', this)" class="flex-1 bg-red-600 text-white py-1.5 font-bold rounded hover:bg-red-700">TỪ CHỐI</button>
                                             </div>
                                         </div>
@@ -4496,6 +4533,36 @@ if (cbQuality) newSubroles.push('quality_aud');
                             }
                             
                             // (Bỏ cập nhật ảnh/xe vá tuyến)
+                        }
+                        else if (reqType === 'update_route_path' || req.new_data?.request_type === 'update_route_path') {
+                            const d = req.new_data;
+                            const targetRouteName = d.route_name;
+                            const newPaths = d.route_paths;
+
+                            // Lấy thông tin route_info hiện tại
+                            const { data: curRoute } = await window.sb.from('route_info').select('*').eq('route_name', targetRouteName).maybeSingle();
+                            if (curRoute) {
+                                let meta = curRoute.metadata || {};
+                                if (typeof meta === 'string') {
+                                    try { meta = JSON.parse(meta); } catch(e) { meta = {}; }
+                                }
+                                meta.route_paths = newPaths;
+                                const { error: upErr } = await window.sb.from('route_info').update({
+                                    metadata: meta
+                                }).eq('route_name', targetRouteName);
+                                if (upErr) throw upErr;
+                            } else {
+                                const expectedRouteNo = d.route_no || (targetRouteName.includes(' - ') ? targetRouteName.split(' - ')[0].trim() : targetRouteName);
+                                const targetProvince = d.province || (targetRouteName.includes(' - ') ? targetRouteName.split(' - ')[1].trim() : null);
+                                const { error: upErr } = await window.sb.from('route_info').insert({
+                                    route_name: targetRouteName,
+                                    route_no: expectedRouteNo,
+                                    province: targetProvince,
+                                    metadata: { route_paths: newPaths }
+                                });
+                                if (upErr) throw upErr;
+                            }
+                            if (app.route) app.route.cachedRoutes = null;
                         }
                         else if (reqType === 'create_route_info' || req.new_data?.request_type === 'create_route_info') {
                             const d = req.new_data;
