@@ -2576,14 +2576,22 @@ window.app.routePath = {
             const btnRet = document.getElementById('btn-route-dir-return');
             if (btnFwd && btnRet) {
                 if (hasForward && !hasReturn) {
-                    btnRet.classList.add('opacity-40', 'cursor-not-allowed');
+                    btnFwd.disabled = false;
+                    btnRet.disabled = true;
+                    btnRet.classList.add('opacity-30', 'cursor-not-allowed', 'pointer-events-none');
+                    btnFwd.classList.remove('opacity-30', 'cursor-not-allowed', 'pointer-events-none');
                     app.routePath.viewDirection = 'forward';
                 } else if (!hasForward && hasReturn) {
-                    btnFwd.classList.add('opacity-40', 'cursor-not-allowed');
+                    btnRet.disabled = false;
+                    btnFwd.disabled = true;
+                    btnFwd.classList.add('opacity-30', 'cursor-not-allowed', 'pointer-events-none');
+                    btnRet.classList.remove('opacity-30', 'cursor-not-allowed', 'pointer-events-none');
                     app.routePath.viewDirection = 'return';
                 } else {
-                    btnFwd.classList.remove('opacity-40', 'cursor-not-allowed');
-                    btnRet.classList.remove('opacity-40', 'cursor-not-allowed');
+                    btnFwd.disabled = false;
+                    btnRet.disabled = false;
+                    btnFwd.classList.remove('opacity-30', 'cursor-not-allowed', 'pointer-events-none');
+                    btnRet.classList.remove('opacity-30', 'cursor-not-allowed', 'pointer-events-none');
                 }
             }
             app.routePath.initViewMap();
@@ -2627,6 +2635,15 @@ window.app.routePath = {
     },
 
     switchDirection: (dir) => {
+        let paths = app.routePath.currentRouteData?.metadata?.route_paths;
+        if (typeof paths === 'string') {
+            try { paths = JSON.parse(paths); } catch(e) { paths = null; }
+        }
+        const hasForward = paths?.forward?.stops?.length > 0 || paths?.forward?.geometry;
+        const hasReturn = paths?.return?.stops?.length > 0 || paths?.return?.geometry;
+        if (dir === 'forward' && !hasForward) return;
+        if (dir === 'return' && !hasReturn) return;
+
         app.routePath.viewDirection = dir;
         const btnFwd = document.getElementById('btn-route-dir-forward');
         const btnRet = document.getElementById('btn-route-dir-return');
@@ -2893,29 +2910,45 @@ window.app.routePath = {
         app.routePath.drawEditorRoute();
     },
 
-    // Sao chép toàn bộ điểm dừng từ Chiều đi theo thứ tự đảo ngược sang Chiều về
+    // Sao chép điểm đầu - cuối từ Chiều đi theo hướng ngược lại và tìm tuyến đường hợp lý
     copyReverseFromForward: () => {
         const fwdStops = app.routePath.editorStops.forward || [];
         if (fwdStops.length < 2) {
-            app.toast.show('warning', 'Chưa đủ dữ liệu', 'Chiều đi cần có ít nhất 2 điểm dừng để thực hiện sao chép đảo chiều.');
+            app.toast.show('warning', 'Chưa đủ dữ liệu', 'Chiều đi cần có ít nhất 2 điểm dừng (Bến đầu và Bến cuối) để đảo chiều.');
             return;
         }
 
         const proceedCopy = () => {
-            // Đảo ngược mảng
-            const reversed = JSON.parse(JSON.stringify(fwdStops)).reverse();
-            app.routePath.editorStops.return = reversed;
+            const firstStop = fwdStops[0];
+            const lastStop = fwdStops[fwdStops.length - 1];
+
+            // Điểm bắt đầu của chiều về = Bến cuối của chiều đi
+            // Điểm kết thúc của chiều về = Bến đầu của chiều đi
+            const reversedTerminals = [
+                {
+                    name: lastStop.name ? `${lastStop.name} (Chiều về)` : 'Bến đầu chiều về',
+                    lat: lastStop.lat,
+                    lng: lastStop.lng
+                },
+                {
+                    name: firstStop.name ? `${firstStop.name} (Chiều về)` : 'Bến cuối chiều về',
+                    lat: firstStop.lat,
+                    lng: firstStop.lng
+                }
+            ];
+
+            app.routePath.editorStops.return = reversedTerminals;
             app.routePath.renderEditorStopsList();
             app.routePath.calculateRealRoute();
-            app.toast.show('success', 'Đã sao chép', 'Đã sao chép các trạm dừng từ Chiều đi theo hướng đảo ngược! Bạn có thể kéo thả di chuyển trạm nếu có sai lệch.');
+            app.toast.show('success', 'Đã tạo khung chiều về', 'Đã đảo bến đầu - cuối sang Chiều về và tự động tìm đường chạy ngược lại! Bạn có thể thêm các trạm dọc đường nếu cần.');
         };
 
         const retStops = app.routePath.editorStops.return || [];
         if (retStops.length > 0) {
             if (app.ui && app.ui.showAlert) {
-                app.ui.showAlert("Chiều về đã có sẵn điểm dừng. Bạn có muốn ghi đè bằng danh sách đảo chiều từ Chiều đi không?", proceedCopy, null, {
-                    title: "Xác nhận sao chép",
-                    btnOkText: "Ghi đè"
+                app.ui.showAlert("Chiều về đã có điểm dừng. Bạn có muốn đặt lại thành điểm đầu - cuối đảo ngược từ Chiều đi không?", proceedCopy, null, {
+                    title: "Xác nhận đặt lại",
+                    btnOkText: "Đặt lại"
                 });
             } else {
                 proceedCopy();
