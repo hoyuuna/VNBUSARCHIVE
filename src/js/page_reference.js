@@ -3254,10 +3254,6 @@ window.app.routePath = {
                 </div>
             `);
         });
-                    <div style="font-size: 10px; color: #a1a1aa; margin-top: 4px;">Kéo thả marker để chỉnh vị trí</div>
-                </div>
-            `);
-        });
 
         // Fit bounds nếu có điểm
         const bounds = app.routePath.editorLayers.getBounds();
