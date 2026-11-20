@@ -125,14 +125,14 @@ button.border-black, a.border-black {
 }
 
 /* 7. Inputs & Textfields (M3 Filled / Outlined Fields) */
-input[type="text"], input[type="email"], input[type="password"], textarea, select {
+input[type="text"]:not(.info-input), input[type="email"], input[type="password"], textarea:not(.info-input), select:not(.info-input) {
     background-color: #f5f3ef !important;
     border: 1px solid #c4c7cf !important;
     border-radius: 12px !important;
     color: #191c1e !important;
     transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
 }
-input[type="text"]:focus, input[type="email"]:focus, input[type="password"]:focus, textarea:focus, select:focus {
+input[type="text"]:not(.info-input):focus, input[type="email"]:focus, input[type="password"]:focus, textarea:not(.info-input):focus, select:not(.info-input):focus {
     background-color: #ffffff !important;
     border-color: #191c1e !important;
     box-shadow: 0 0 0 2px rgba(25, 28, 30, 0.15) !important;
@@ -221,4 +221,44 @@ div:has(> .history-table-wrapper),
     border: none !important;
     background: transparent !important;
     box-shadow: none !important;
+}
+
+/* ==========================================================================
+   ĐỒNG BỘ BẢNG THÔNG TIN CHI TIẾT GIỮA LIGHT VÀ DARK MODE
+   ========================================================================== */
+.info-input, 
+.info-input:read-only, 
+select.info-input, 
+#info-note-display,
+textarea.info-input {
+    background-color: transparent !important;
+    background: transparent !important;
+    border: none !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    color: #191c1e !important;
+    padding: 8px 12px !important;
+}
+
+/* Lưới ô bên trong bảng thông tin (table grid dividers) */
+.info-table td, 
+.info-table th, 
+.data-table td, 
+.data-table th, 
+.history-table td, 
+.history-table th {
+    border-bottom: 1px solid #e2e0da !important;
+    border-right: 1px solid #e2e0da !important;
+}
+.info-table tr td:last-child, 
+.info-table tr th:last-child, 
+.data-table tr td:last-child, 
+.history-table tr td:last-child, 
+.history-table tr th:last-child {
+    border-right: none !important;
+}
+.info-table tr:last-child td, 
+.data-table tr:last-child td, 
+.history-table tr:last-child td {
+    border-bottom: none !important;
 }
