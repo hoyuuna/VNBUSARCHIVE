@@ -2245,7 +2245,7 @@ html.theme-dark .ct-icon {
             if (stored === 'system') {
                 theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
             }
-            document.write('<link rel="stylesheet" href="/css/' + theme + '.css?v=1795179683296" id="theme-css">');
+            document.write('<link rel="stylesheet" href="/css/' + theme + '.css?v=1795179919973" id="theme-css">');
             document.documentElement.classList.add('theme-' + theme);
             document.documentElement.style.backgroundColor = theme === 'dark' ? '#18181b' : '#fdfcf8';
 
@@ -7798,7 +7798,7 @@ html.theme-dark .ct-icon {
             </div>
 
             <!-- Modal Subheader: Chọn Chiều Đi / Chiều Về & Search Tool -->
-            <div class="p-3 sm:p-4 bg-zinc-50 dark:bg-zinc-900 border-b border-black dark:border-white flex flex-wrap items-center justify-between gap-3 shrink-0 relative z-30">
+            <div class="p-3 sm:p-4 bg-zinc-50 dark:bg-zinc-900 border-b border-black dark:border-white flex flex-wrap items-center justify-between gap-3 shrink-0 relative z-[500]">
                 <div class="flex items-center gap-2">
                     <div class="relative inline-flex rounded-md border border-black dark:border-white p-0.5 bg-white dark:bg-black text-xs font-bold select-none overflow-hidden">
                         <!-- Nền trượt cho editor -->
@@ -7824,7 +7824,7 @@ html.theme-dark .ct-icon {
                         <button type="button" id="rpe-search-btn" onclick="app.routePath.searchPlace(document.getElementById('rpe-search-input').value)" class="absolute right-1.5 top-1/2 -translate-y-1/2 px-2.5 py-1 text-xs font-bold bg-black text-white dark:bg-white dark:text-black rounded hover:bg-zinc-800 dark:hover:bg-zinc-200 transition">Tìm</button>
                     </div>
                     <!-- Menu kết quả tìm kiếm -->
-                    <div id="rpe-search-results" class="hidden filter-menu w-full mt-1.5 left-0 right-0 origin-top max-h-64 overflow-y-auto z-50"></div>
+                    <div id="rpe-search-results" class="hidden filter-menu w-full mt-1.5 left-0 right-0 origin-top max-h-64 overflow-y-auto z-[600] shadow-xl"></div>
                 </div>
             </div>
 
