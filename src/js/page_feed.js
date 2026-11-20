@@ -2411,19 +2411,19 @@ let currentRouteProvName = null;
                                 <span id="crumb-vehicle-profile" class="font-bold text-black shrink min-w-0 block">${app.utils.displayPlate(vehicle.license_plate)}</span>
                             </div>
                             <div class="vehicle-hero-banner rounded-lg border border-black dark:border-white bg-black text-white relative overflow-hidden mb-3 shadow-sm">
-                                <div class="relative w-full aspect-[16/9] sm:aspect-[21/9] max-h-[380px] bg-black overflow-hidden flex items-center justify-center">
+                                <div class="relative w-full min-h-[180px] sm:min-h-[220px] md:min-h-[260px] bg-black overflow-hidden flex items-center justify-center">
                                     ${topPhoto ? `
-                                    <img loading="lazy" decoding="async" src="${app.utils.getProxiedUrl(topPhoto.url, 'vehicle-top.jpg', 'full')}" onerror="app.utils.fallbackHeroImage(this, 'vehiclePhotosCache', 0)" onclick="app.views.loadDetail(${topPhoto.id})" class="w-full h-full object-cover object-center block cursor-pointer transition duration-300">
+                                    <img loading="lazy" decoding="async" src="${app.utils.getProxiedUrl(topPhoto.url, 'vehicle-top.jpg', 'full')}" onerror="app.utils.fallbackHeroImage(this, 'vehiclePhotosCache', 0)" onclick="app.views.loadDetail(${topPhoto.id})" class="absolute inset-0 w-full h-full object-cover object-center block cursor-pointer transition duration-300">
                                     ` : `
-                                    <div class="w-full h-full min-h-[180px] flex items-center justify-center text-zinc-500 font-bold text-4xl">
+                                    <div class="w-full h-full min-h-[180px] flex items-center justify-center text-zinc-500 font-bold text-4xl py-12">
                                         <i class="fa-solid fa-bus"></i>
                                     </div>
                                     `}
-                                    <div class="vehicle-hero-fade pointer-events-none absolute inset-x-0 bottom-0 h-1/2 sm:h-2/5 z-10"></div>
-                                    <div class="absolute bottom-0 left-0 right-0 p-4 sm:p-6 z-20 flex flex-col items-start justify-end pointer-events-none">
-                                        <div class="text-left min-w-0 pointer-events-auto">
+                                    <div class="vehicle-hero-fade pointer-events-none absolute inset-x-0 bottom-0 h-2/3 sm:h-1/2 z-10"></div>
+                                    <div class="relative w-full pt-20 sm:pt-24 p-4 sm:p-6 z-20 flex flex-col items-start justify-end pointer-events-none">
+                                        <div class="text-left min-w-0 max-w-full pointer-events-auto">
                                             <p class="text-[11px] sm:text-xs text-zinc-300 uppercase tracking-widest font-bold mb-1">${isCoach ? 'Xe khách' : 'Xe buýt'}</p>
-                                            <h2 class="text-2xl sm:text-3xl md:text-4xl font-black uppercase text-white tracking-tight leading-tight drop-shadow-md truncate">${app.utils.displayPlate(vehicle.license_plate)}</h2>
+                                            <h2 class="text-2xl sm:text-3xl md:text-4xl font-black uppercase text-white tracking-tight leading-tight drop-shadow-md break-words">${app.utils.displayPlate(vehicle.license_plate)}</h2>
                                         </div>
                                     </div>
                                 </div>

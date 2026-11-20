@@ -2245,7 +2245,7 @@ html.theme-dark .ct-icon {
             if (stored === 'system') {
                 theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
             }
-            document.write('<link rel="stylesheet" href="/css/' + theme + '.css?v=1795163280659" id="theme-css">');
+            document.write('<link rel="stylesheet" href="/css/' + theme + '.css?v=1795163533677" id="theme-css">');
             document.documentElement.classList.add('theme-' + theme);
             document.documentElement.style.backgroundColor = theme === 'dark' ? '#18181b' : '#fdfcf8';
 
@@ -5923,19 +5923,19 @@ html.theme-dark .ct-icon {
                 <div id="operator-profile-content">
                     <!-- HERO BANNER ĐVVH -->
                     <div id="operator-hero-banner" class="vehicle-hero-banner rounded-lg border border-black dark:border-white bg-black text-white relative overflow-hidden mb-3 shadow-sm hidden">
-                        <div class="relative w-full aspect-[16/9] sm:aspect-[21/9] max-h-[380px] bg-black overflow-hidden flex items-center justify-center">
-                            <img id="operator-hero-img" loading="lazy" decoding="async" src="" class="w-full h-full object-cover object-center block cursor-pointer transition duration-300 hidden">
-                            <div id="operator-hero-placeholder" class="w-full h-full min-h-[180px] flex items-center justify-center text-zinc-500 font-bold text-4xl">
+                        <div class="relative w-full min-h-[180px] sm:min-h-[220px] md:min-h-[260px] bg-black overflow-hidden flex items-center justify-center">
+                            <img id="operator-hero-img" loading="lazy" decoding="async" src="" class="absolute inset-0 w-full h-full object-cover object-center block cursor-pointer transition duration-300 hidden">
+                            <div id="operator-hero-placeholder" class="w-full h-full min-h-[180px] flex items-center justify-center text-zinc-500 font-bold text-4xl py-12">
                                 <i class="fa-solid fa-building"></i>
                             </div>
-                            <div class="vehicle-hero-fade pointer-events-none absolute inset-x-0 bottom-0 h-1/2 sm:h-2/5 z-10"></div>
-                            <div class="absolute bottom-0 left-0 right-0 p-4 sm:p-6 z-20 flex flex-col items-start justify-end pointer-events-none">
+                            <div class="vehicle-hero-fade pointer-events-none absolute inset-x-0 bottom-0 h-2/3 sm:h-1/2 z-10"></div>
+                            <div class="relative w-full pt-20 sm:pt-24 p-4 sm:p-6 z-20 flex flex-col items-start justify-end pointer-events-none">
                                 <div class="flex items-center gap-3 sm:gap-4 max-w-full pointer-events-auto">
                                     <img id="operator-logo" src="" class="hidden w-12 h-12 sm:w-16 sm:h-16 md:w-20 md:h-20 object-contain shrink-0 rounded-xl bg-white/95 p-1 border border-white/20 shadow-md" onerror="this.classList.add('hidden');">
                                     <div class="text-left min-w-0">
                                         <p class="text-[11px] sm:text-xs text-zinc-300 uppercase tracking-widest font-bold mb-1">Đơn vị vận hành</p>
                                         <div class="flex items-center gap-2 flex-wrap">
-                                            <h2 id="operator-title" class="text-2xl sm:text-3xl md:text-4xl font-black uppercase text-white tracking-tight leading-tight drop-shadow-md truncate">...</h2>
+                                            <h2 id="operator-title" class="text-2xl sm:text-3xl md:text-4xl font-black uppercase text-white tracking-tight leading-tight drop-shadow-md break-words">...</h2>
                                             <div id="operator-badge" class="flex items-center"></div>
                                         </div>
                                     </div>
@@ -6086,18 +6086,18 @@ html.theme-dark .ct-icon {
 
                 <!-- HERO BANNER DÒNG XE -->
                 <div id="model-hero-banner" class="vehicle-hero-banner rounded-lg border border-black dark:border-white bg-black text-white relative overflow-hidden mb-3 shadow-sm">
-                    <div class="relative w-full aspect-[16/9] sm:aspect-[21/9] max-h-[380px] bg-black overflow-hidden flex items-center justify-center">
-                        <img id="model-hero-img" loading="lazy" decoding="async" src="" class="w-full h-full object-cover object-center block cursor-pointer transition duration-300 hidden">
-                        <div id="model-hero-placeholder" class="w-full h-full min-h-[180px] flex items-center justify-center text-zinc-500 font-bold text-4xl">
+                    <div class="relative w-full min-h-[180px] sm:min-h-[220px] md:min-h-[260px] bg-black overflow-hidden flex items-center justify-center">
+                        <img id="model-hero-img" loading="lazy" decoding="async" src="" class="absolute inset-0 w-full h-full object-cover object-center block cursor-pointer transition duration-300 hidden">
+                        <div id="model-hero-placeholder" class="w-full h-full min-h-[180px] flex items-center justify-center text-zinc-500 font-bold text-4xl py-12">
                             <i class="fa-solid fa-layer-group"></i>
                         </div>
-                        <div class="vehicle-hero-fade pointer-events-none absolute inset-x-0 bottom-0 h-1/2 sm:h-2/5 z-10"></div>
-                        <div class="absolute bottom-0 left-0 right-0 p-4 sm:p-6 z-20 flex flex-col items-start justify-end pointer-events-none">
+                        <div class="vehicle-hero-fade pointer-events-none absolute inset-x-0 bottom-0 h-2/3 sm:h-1/2 z-10"></div>
+                        <div class="relative w-full pt-20 sm:pt-24 p-4 sm:p-6 z-20 flex flex-col items-start justify-end pointer-events-none">
                             <div class="flex items-center gap-3 sm:gap-4 max-w-full pointer-events-auto">
                                 <img id="model-logo" src="" class="hidden w-12 h-12 sm:w-16 sm:h-16 md:w-20 md:h-20 object-contain shrink-0 rounded-xl bg-white/95 p-1 border border-white/20 shadow-md" onerror="this.classList.add('hidden');">
                                 <div class="text-left min-w-0">
                                     <p class="text-[11px] sm:text-xs text-zinc-300 uppercase tracking-widest font-bold mb-1">Dòng xe</p>
-                                    <h2 id="model-profile-title" class="text-2xl sm:text-3xl md:text-4xl font-black uppercase text-white tracking-tight leading-tight drop-shadow-md truncate">...</h2>
+                                    <h2 id="model-profile-title" class="text-2xl sm:text-3xl md:text-4xl font-black uppercase text-white tracking-tight leading-tight drop-shadow-md break-words">...</h2>
                                 </div>
                             </div>
                         </div>
@@ -6159,19 +6159,19 @@ html.theme-dark .ct-icon {
 
                 <!-- HERO BANNER TUYẾN -->
                 <div id="route-hero-banner" class="vehicle-hero-banner rounded-lg border border-black dark:border-white bg-black text-white relative overflow-hidden mb-3 shadow-sm">
-                    <div class="relative w-full aspect-[16/9] sm:aspect-[21/9] max-h-[380px] bg-black overflow-hidden flex items-center justify-center">
-                        <img id="route-hero-img" loading="lazy" decoding="async" src="" class="w-full h-full object-cover object-center block cursor-pointer transition duration-300 hidden">
-                        <div id="route-hero-placeholder" class="w-full h-full min-h-[180px] flex items-center justify-center text-zinc-500 font-bold text-4xl">
+                    <div class="relative w-full min-h-[180px] sm:min-h-[220px] md:min-h-[260px] bg-black overflow-hidden flex items-center justify-center">
+                        <img id="route-hero-img" loading="lazy" decoding="async" src="" class="absolute inset-0 w-full h-full object-cover object-center block cursor-pointer transition duration-300 hidden">
+                        <div id="route-hero-placeholder" class="w-full h-full min-h-[180px] flex items-center justify-center text-zinc-500 font-bold text-4xl py-12">
                             <i class="fa-solid fa-route"></i>
                         </div>
-                        <div class="vehicle-hero-fade pointer-events-none absolute inset-x-0 bottom-0 h-1/2 sm:h-2/5 z-10"></div>
-                        <div class="absolute bottom-0 left-0 right-0 p-4 sm:p-6 z-20 flex flex-col items-start justify-end pointer-events-none">
+                        <div class="vehicle-hero-fade pointer-events-none absolute inset-x-0 bottom-0 h-2/3 sm:h-1/2 z-10"></div>
+                        <div class="relative w-full pt-20 sm:pt-24 p-4 sm:p-6 z-20 flex flex-col items-start justify-end pointer-events-none">
                             <div class="flex items-center gap-3 sm:gap-4 max-w-full pointer-events-auto">
                                 <div id="route-logo-fallback" class="hidden shrink-0"></div>
                                 <div class="text-left min-w-0">
                                     <p class="text-[11px] sm:text-xs text-zinc-300 uppercase tracking-widest font-bold mb-1" id="route-province-label">Tuyến xe</p>
                                     <div class="flex items-center gap-2 flex-wrap">
-                                        <h2 id="route-profile-title" class="text-2xl sm:text-3xl md:text-4xl font-black uppercase text-white tracking-tight leading-tight drop-shadow-md truncate">...</h2>
+                                        <h2 id="route-profile-title" class="text-2xl sm:text-3xl md:text-4xl font-black uppercase text-white tracking-tight leading-tight drop-shadow-md break-words">...</h2>
                                         <div id="route-badge" class="flex items-center"></div>
                                     </div>
                                 </div>
@@ -7958,7 +7958,7 @@ html.theme-dark .ct-icon {
 
     <!-- KHAY CHỨA TOAST Z-INDEX CAO NHẤT -->
     <div id="toast-container" class="fixed left-0 w-full flex flex-col items-center gap-2 pointer-events-none z-[99999]" style="z-index: 99999 !important;"></div>
-<script src="/app.14820c52fa47.js" onerror="if(!window.__app_fallback_loaded){window.__app_fallback_loaded=true;var s=document.createElement('script');s.src='/app.js?v=' + Date.now();document.head.appendChild(s);}"></script>
+<script src="/app.bc0ea22bd0d4.js" onerror="if(!window.__app_fallback_loaded){window.__app_fallback_loaded=true;var s=document.createElement('script');s.src='/app.js?v=' + Date.now();document.head.appendChild(s);}"></script>
 </body>
 </html>
 
