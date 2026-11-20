@@ -6204,13 +6204,15 @@ html.theme-dark .ct-icon {
                                 </h3>
                             </div>
 
-                            <!-- Dòng 2: Nút chuyển chiều đi / về riêng 1 dòng ở dưới tiêu đề (Dài bằng bản đồ w-full) -->
+                            <!-- Dòng 2: Nút chuyển chiều đi / về riêng 1 dòng ở dưới tiêu đề (Sliding Pill Animation) -->
                             <div class="mb-3">
-                                <div class="w-full flex rounded-md border border-black dark:border-white p-0.5 bg-white dark:bg-black text-xs font-bold">
-                                    <button type="button" id="btn-route-dir-forward" onclick="app.routePath.switchDirection('forward')" class="flex-1 py-1.5 rounded bg-black text-white dark:bg-white dark:text-black transition text-center">
+                                <div class="relative w-full flex rounded-md border border-black dark:border-white p-0.5 bg-white dark:bg-black text-xs font-bold select-none overflow-hidden">
+                                    <!-- Nền trượt (Sliding Pill Indicator) -->
+                                    <div id="route-dir-indicator" class="absolute top-0.5 bottom-0.5 left-0.5 w-[calc(50%-2px)] rounded bg-black dark:bg-white transition-transform duration-250 ease-out pointer-events-none"></div>
+                                    <button type="button" id="btn-route-dir-forward" onclick="app.routePath.switchDirection('forward')" class="relative z-10 flex-1 py-1.5 rounded text-white dark:text-black transition-colors duration-200 text-center font-bold">
                                         Chiều đi
                                     </button>
-                                    <button type="button" id="btn-route-dir-return" onclick="app.routePath.switchDirection('return')" class="flex-1 py-1.5 rounded text-zinc-600 dark:text-zinc-400 hover:text-black dark:hover:text-white transition text-center">
+                                    <button type="button" id="btn-route-dir-return" onclick="app.routePath.switchDirection('return')" class="relative z-10 flex-1 py-1.5 rounded text-zinc-600 dark:text-zinc-400 hover:text-black dark:hover:text-white transition-colors duration-200 text-center font-bold">
                                         Chiều về
                                     </button>
                                 </div>
@@ -7798,11 +7800,13 @@ html.theme-dark .ct-icon {
             <!-- Modal Subheader: Chọn Chiều Đi / Chiều Về & Search Tool -->
             <div class="p-3 sm:p-4 bg-zinc-50 dark:bg-zinc-900 border-b border-black dark:border-white flex flex-wrap items-center justify-between gap-3 shrink-0 relative z-30">
                 <div class="flex items-center gap-2">
-                    <div class="inline-flex rounded-md border border-black dark:border-white p-0.5 bg-white dark:bg-black text-xs font-bold">
-                        <button type="button" id="rpe-tab-forward" onclick="app.routePath.switchEditorDirection('forward')" class="px-3.5 py-1.5 rounded bg-black text-white dark:bg-white dark:text-black transition">
+                    <div class="relative inline-flex rounded-md border border-black dark:border-white p-0.5 bg-white dark:bg-black text-xs font-bold select-none overflow-hidden">
+                        <!-- Nền trượt cho editor -->
+                        <div id="rpe-dir-indicator" class="absolute top-0.5 bottom-0.5 left-0.5 w-[calc(50%-2px)] rounded bg-black dark:bg-white transition-transform duration-250 ease-out pointer-events-none"></div>
+                        <button type="button" id="rpe-tab-forward" onclick="app.routePath.switchEditorDirection('forward')" class="relative z-10 px-3.5 py-1.5 rounded text-white dark:text-black transition-colors duration-200 font-bold text-center">
                             Chiều đi
                         </button>
-                        <button type="button" id="rpe-tab-return" onclick="app.routePath.switchEditorDirection('return')" class="px-3.5 py-1.5 rounded text-zinc-600 dark:text-zinc-400 hover:text-black dark:hover:text-white transition">
+                        <button type="button" id="rpe-tab-return" onclick="app.routePath.switchEditorDirection('return')" class="relative z-10 px-3.5 py-1.5 rounded text-zinc-600 dark:text-zinc-400 hover:text-black dark:hover:text-white transition-colors duration-200 font-bold text-center">
                             Chiều về
                         </button>
                     </div>

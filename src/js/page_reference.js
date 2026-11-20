@@ -2646,13 +2646,19 @@ window.app.routePath = {
         app.routePath.viewDirection = dir;
         const btnFwd = document.getElementById('btn-route-dir-forward');
         const btnRet = document.getElementById('btn-route-dir-return');
+        const indicator = document.getElementById('route-dir-indicator');
+
+        if (indicator) {
+            indicator.style.transform = dir === 'forward' ? 'translateX(0%)' : 'translateX(100%)';
+        }
+
         if (btnFwd && btnRet) {
             if (dir === 'forward') {
-                btnFwd.className = 'flex-1 py-1.5 rounded bg-black text-white dark:bg-white dark:text-black transition text-center';
-                btnRet.className = 'flex-1 py-1.5 rounded text-zinc-600 dark:text-zinc-400 hover:text-black dark:hover:text-white transition text-center';
+                btnFwd.className = 'relative z-10 flex-1 py-1.5 rounded text-white dark:text-black transition-colors duration-200 text-center font-bold';
+                btnRet.className = 'relative z-10 flex-1 py-1.5 rounded text-zinc-600 dark:text-zinc-400 hover:text-black dark:hover:text-white transition-colors duration-200 text-center font-bold';
             } else {
-                btnRet.className = 'flex-1 py-1.5 rounded bg-black text-white dark:bg-white dark:text-black transition text-center';
-                btnFwd.className = 'flex-1 py-1.5 rounded text-zinc-600 dark:text-zinc-400 hover:text-black dark:hover:text-white transition text-center';
+                btnRet.className = 'relative z-10 flex-1 py-1.5 rounded text-white dark:text-black transition-colors duration-200 text-center font-bold';
+                btnFwd.className = 'relative z-10 flex-1 py-1.5 rounded text-zinc-600 dark:text-zinc-400 hover:text-black dark:hover:text-white transition-colors duration-200 text-center font-bold';
             }
         }
         app.routePath.drawViewRoute();
@@ -2899,14 +2905,19 @@ window.app.routePath = {
         app.routePath.editorDirection = dir;
         const tabFwd = document.getElementById('rpe-tab-forward');
         const tabRet = document.getElementById('rpe-tab-return');
+        const indicator = document.getElementById('rpe-dir-indicator');
+
+        if (indicator) {
+            indicator.style.transform = dir === 'forward' ? 'translateX(0%)' : 'translateX(100%)';
+        }
 
         if (tabFwd && tabRet) {
             if (dir === 'forward') {
-                tabFwd.className = 'px-3.5 py-1.5 rounded bg-black text-white dark:bg-white dark:text-black transition';
-                tabRet.className = 'px-3.5 py-1.5 rounded text-zinc-600 dark:text-zinc-400 hover:text-black dark:hover:text-white transition';
+                tabFwd.className = 'relative z-10 px-3.5 py-1.5 rounded text-white dark:text-black transition-colors duration-200 font-bold text-center';
+                tabRet.className = 'relative z-10 px-3.5 py-1.5 rounded text-zinc-600 dark:text-zinc-400 hover:text-black dark:hover:text-white transition-colors duration-200 font-bold text-center';
             } else {
-                tabRet.className = 'px-3.5 py-1.5 rounded bg-black text-white dark:bg-white dark:text-black transition';
-                tabFwd.className = 'px-3.5 py-1.5 rounded text-zinc-600 dark:text-zinc-400 hover:text-black dark:hover:text-white transition';
+                tabRet.className = 'relative z-10 px-3.5 py-1.5 rounded text-white dark:text-black transition-colors duration-200 font-bold text-center';
+                tabFwd.className = 'relative z-10 px-3.5 py-1.5 rounded text-zinc-600 dark:text-zinc-400 hover:text-black dark:hover:text-white transition-colors duration-200 font-bold text-center';
             }
         }
         app.routePath.renderEditorStopsList();
@@ -3245,10 +3256,10 @@ window.app.routePath = {
         document.getElementById('rpe-search-input').value = '';
 
         if (app.routePath.editorMap) {
-            app.routePath.editorMap.setView([lat, lng], 16, { animate: true });
+            app.routePath.editorMap.setView([lat, lng], 17, { animate: true });
         }
         const shortName = displayName.split(',')[0].trim();
-        app.routePath.promptAddStop(lat, lng, shortName);
+        app.toast.show('info', 'Đã chuyển đến vị trí', `Đã di chuyển bản đồ đến "${shortName}". Bấm lên bản đồ để thêm điểm dừng nếu muốn.`);
     },
 
     // 4. TỰ ĐỘNG TÍNH TOÁN ĐƯỜNG ĐI THẬT (OSRM ROUTING)
