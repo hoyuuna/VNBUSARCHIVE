@@ -9217,7 +9217,7 @@ Object.assign(window.app, {
                         }
                         const historyPlates = historyRes.data ? historyRes.data.map(h => h.plate).filter(Boolean) : [];
                         const allPlatesToFetch = [...new Set([plate, ...historyPlates])];
-                        let pQuery = window.sb.from('photos').select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, borrowed_route, camera_model, location, status, denial_reason, is_documentary, views, profiles(id, username, role, subroles, ban_status), vehicles(model)`)
+                        let pQuery = window.sb.from('photos').select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, borrowed_route, camera_model, location, status, denial_reason, is_documentary, views, profiles(id, username, avatar_url, role, subroles, ban_status), vehicles(model)`)
                                 .in('license_plate', allPlatesToFetch)
                                 .eq('status', 'approved');
                         pQuery = app.preference.applyFilter(pQuery);
@@ -9261,6 +9261,13 @@ Object.assign(window.app, {
                             topPhoto = allPhotos.find(p => (p.location || '').trim() !== 'Chụp trong xe') || allPhotos[0];
                         }
                         const isCoach = topPhoto && topPhoto.type === 'coach';
+                        const topUploader = topPhoto ? app.utils.formatProfileDisplay(topPhoto.profiles) : null;
+                        if (topUploader && Object.keys(app.topUploaders).length === 0) {
+                            await app.utils.fetchTopUploaders();
+                        }
+                        const topUploaderBadges = (topPhoto && topUploader && !topUploader.isBanned)
+                            ? app.utils.getBadgesHTML(topPhoto.profiles?.id, topPhoto.profiles?.role, topPhoto.profiles?.subroles)
+                            : '';
                         let rawHistory = historyRes.data || [];
                         let historyData = rawHistory.map(h => {
                             if (!h.effective_date && h.note) {
@@ -9432,20 +9439,32 @@ let currentRouteProvName = null;
                                 <i class="fa-solid fa-chevron-right text-[8px] sm:text-[10px] shrink-0 text-gray-400"></i>
                                 <span id="crumb-vehicle-profile" class="font-bold text-black shrink min-w-0 block">${app.utils.displayPlate(vehicle.license_plate)}</span>
                             </div>
-                            <div class="bg-white border border-vbs-border shadow-sm rounded-lg p-6 md:p-8 mb-6 relative overflow-hidden">
-                                <div class="flex items-center gap-4 sm:gap-6 w-full min-w-0 max-w-full mb-6">
+                            <div class="vehicle-hero-banner rounded-lg border border-black dark:border-white bg-black text-white relative overflow-hidden mb-6 shadow-sm">
+                                <div class="relative w-full aspect-[16/9] sm:aspect-[21/9] max-h-[380px] bg-black overflow-hidden flex items-center justify-center">
                                     ${topPhoto ? `
-                                    <img loading="lazy" decoding="async" src="${app.utils.getProxiedUrl(topPhoto.url, 'vehicle-top.jpg', 'thumb')}" onerror="app.utils.fallbackHeroImage(this, 'vehiclePhotosCache', 0)" onclick="app.views.loadDetail(${topPhoto.id})" class="w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 rounded-xl object-cover shrink-0 border border-gray-200 shadow-sm cursor-pointer transition duration-300">
+                                    <img loading="lazy" decoding="async" src="${app.utils.getProxiedUrl(topPhoto.url, 'vehicle-top.jpg', 'full')}" onerror="app.utils.fallbackHeroImage(this, 'vehiclePhotosCache', 0)" onclick="app.views.loadDetail(${topPhoto.id})" class="w-full h-full object-cover object-center block cursor-pointer transition duration-300">
                                     ` : `
-                                    <div class="w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 rounded-xl bg-gray-100 text-gray-400 flex items-center justify-center font-bold text-3xl shrink-0 border border-gray-200">
+                                    <div class="w-full h-full min-h-[180px] flex items-center justify-center text-zinc-500 font-bold text-4xl">
                                         <i class="fa-solid fa-bus"></i>
                                     </div>
                                     `}
-                                    <div class="overflow-hidden min-w-0 flex-1 text-left">
-                                        <p class="text-[10px] md:text-xs text-gray-500 uppercase tracking-widest font-bold mb-1">${isCoach ? 'Xe khách' : 'Xe buýt'}</p>
-                                        <h2 class="text-xl md:text-3xl font-black uppercase text-black tracking-tight leading-tight block w-full">${app.utils.displayPlate(vehicle.license_plate)}</h2>
+                                    <div class="vehicle-hero-fade pointer-events-none absolute inset-x-0 bottom-0 h-1/2 sm:h-2/5 z-10"></div>
+                                    <div class="absolute bottom-0 left-0 right-0 p-4 sm:p-6 z-20 flex flex-col md:flex-row md:items-end justify-between gap-3 pointer-events-none">
+                                        <div class="order-2 md:order-1 text-left min-w-0 pointer-events-auto">
+                                            <p class="text-[11px] sm:text-xs text-zinc-300 uppercase tracking-widest font-bold mb-1">${isCoach ? 'Xe khách' : 'Xe buýt'}</p>
+                                            <h2 class="text-2xl sm:text-3xl md:text-4xl font-black uppercase text-white tracking-tight leading-tight drop-shadow-md truncate">${app.utils.displayPlate(vehicle.license_plate)}</h2>
+                                        </div>
+                                        ${topPhoto && topUploader ? `
+                                        <div class="vehicle-hero-badge order-1 md:order-2 self-start md:self-end flex items-center gap-2 px-3 py-1.5 rounded-md text-xs backdrop-blur-sm pointer-events-auto transition cursor-pointer shrink-0 max-w-full border" onclick="event.stopPropagation(); app.views.loadUserProfile('${topUploader.linkId}')">
+                                            <span class="text-zinc-300 text-[11px] whitespace-nowrap">Ảnh mới nhất bởi</span>
+                                            <img loading="lazy" decoding="async" src="${topUploader.avatar}" onerror="this.onerror=null;this.src='${DEFAULT_AVATAR}';" class="w-5 h-5 rounded-full object-cover shrink-0 border border-white/30">
+                                            <span class="font-bold text-white hover:underline truncate max-w-[140px] sm:max-w-[200px]">${app.utils.escapeHtml(topUploader.username)}</span>
+                                            ${topUploaderBadges ? `<span class="inline-flex items-center shrink-0">${topUploaderBadges}</span>` : ''}
+                                        </div>
+                                        ` : ''}
                                     </div>
                                 </div>
+                            </div>
                                 <div class="mb-8">
                                     <h3 class="font-bold text-xs uppercase text-black tracking-wider mb-2.5 px-1">Thông tin chi tiết</h3>
                                     <div class="border border-gray-200 rounded-lg overflow-hidden bg-white mb-3 shadow-sm">
