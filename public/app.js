@@ -15877,6 +15877,17 @@ window.app.routePath = {
 
         app.routePath.viewLayers = new L.FeatureGroup().addTo(app.routePath.viewMap);
 
+        // Lắng nghe zoomend để tự động ẩn/hiện các trạm giữa khi zoom xa
+        app.routePath.viewMap.on('zoomend', () => {
+            app.routePath.updateViewMarkersVisibility();
+        });
+
+        // Bắt sự kiện đóng popup để reset trạng thái trạm đang chọn
+        app.routePath.viewMap.on('popupclose', () => {
+            app.routePath.selectedViewStopIdx = null;
+            app.routePath.updateViewMarkersVisibility();
+        });
+
         const ro = new ResizeObserver(() => {
             if (app.routePath.viewMap) app.routePath.viewMap.invalidateSize();
         });
@@ -15969,9 +15980,13 @@ window.app.routePath = {
                 popupAnchor: [0, -11]
             });
 
-            const marker = L.marker([stop.lat, stop.lng], { icon: customIcon }).addTo(app.routePath.viewLayers);
-            const currentStopIdx = stopNumber - 1;
-            app.routePath.viewStopMarkers[currentStopIdx] = marker;
+            const marker = L.marker([stop.lat, stop.lng], { icon: customIcon });
+            marker.stopIndex = currentStopIdx;
+            marker.isTerminal = isTerminal;
+            marker.on('click', () => {
+                app.routePath.selectedViewStopIdx = currentStopIdx;
+                app.routePath.updateViewMarkersVisibility();
+            });
 
             const termLabel = idx === 0 ? ' (Bến đầu)' : (idx === stops.length - 1 ? ' (Bến cuối)' : '');
             marker.bindPopup(`
@@ -15980,7 +15995,12 @@ window.app.routePath = {
                     <div class="text-xs font-bold mt-1 text-black dark:text-white">${app.utils.escapeHtml(stop.name || 'Điểm dừng')}</div>
                 </div>
             `, { closeButton: false });
+
+            app.routePath.viewStopMarkers[currentStopIdx] = marker;
         });
+
+        // Cập nhật ẩn/hiện marker theo mức zoom hiện tại
+        app.routePath.updateViewMarkersVisibility();
 
         // Fit bounds
         const bounds = app.routePath.viewLayers.getBounds();
@@ -16014,6 +16034,29 @@ window.app.routePath = {
         }
     },
 
+    // Cập nhật ẩn/hiện marker điểm dừng theo mức zoom (khi zoom xa < 14: chỉ hiện bến đầu, bến cuối và điểm đang chọn)
+    updateViewMarkersVisibility: () => {
+        if (!app.routePath.viewMap || !app.routePath.viewStopMarkers || !app.routePath.viewLayers) return;
+        const currentZoom = app.routePath.viewMap.getZoom();
+        const isFarZoom = currentZoom < 14; // Mức 14: tầm nhìn phố/quận vừa phải, không quá sâu
+
+        app.routePath.viewStopMarkers.forEach((m) => {
+            if (!m) return;
+            const isSelected = (m.stopIndex === app.routePath.selectedViewStopIdx);
+            const shouldShow = !isFarZoom || m.isTerminal || isSelected;
+
+            if (shouldShow) {
+                if (!app.routePath.viewLayers.hasLayer(m)) {
+                    app.routePath.viewLayers.addLayer(m);
+                }
+            } else {
+                if (app.routePath.viewLayers.hasLayer(m)) {
+                    app.routePath.viewLayers.removeLayer(m);
+                }
+            }
+        });
+    },
+
     toggleStopList: () => {
         const body = document.getElementById('route-stops-list-body');
         const chevron = document.getElementById('route-stops-chevron');
@@ -16030,6 +16073,8 @@ window.app.routePath = {
 
     panToStop: (lat, lng, name, stopIdx = null) => {
         if (!app.routePath.viewMap) return;
+        app.routePath.selectedViewStopIdx = stopIdx;
+        app.routePath.updateViewMarkersVisibility();
         app.routePath.viewMap.setView([lat, lng], 16, { animate: true });
         if (stopIdx !== null && app.routePath.viewStopMarkers && app.routePath.viewStopMarkers[stopIdx]) {
             app.routePath.viewStopMarkers[stopIdx].openPopup();
