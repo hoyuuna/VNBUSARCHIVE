@@ -42,8 +42,12 @@ export async function onRequest(context) {
         }
     } catch (e) {}
     
+    const canonicalUrl = `https://www.vnbusarchive.io.vn/user/${encodeURIComponent(userId)}`;
     return new HTMLRewriter()
         .on('title', { element(e) { e.setInnerContent(title); } })
+        .on('link[rel="canonical"]', { element(e) { e.setAttribute('href', canonicalUrl); } })
+        .on('meta[property="og:url"]', { element(e) { e.setAttribute('content', canonicalUrl); } })
+        .on('meta[name="twitter:url"]', { element(e) { e.setAttribute('content', canonicalUrl); } })
         .on('meta[property="og:title"]', { element(e) { e.setAttribute('content', title); } })
         .on('meta[name="twitter:title"]', { element(e) { e.setAttribute('content', title); } })
         .on('meta[property="og:description"]', { element(e) { e.setAttribute('content', desc); } })

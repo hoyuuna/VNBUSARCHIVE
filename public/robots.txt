@@ -1,5 +1,6 @@
 User-agent: *
 Disallow: /api/
 Allow: /
-Crawl-delay: 10
-Sitemap: https://api.vnbusarchive.io.vn/sitemap.xml
+Crawl-delay: 2
+Sitemap: https://www.vnbusarchive.io.vn/sitemap.xml
+

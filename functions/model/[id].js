@@ -7,11 +7,15 @@ export async function onRequest(context) {
     const indexReq = new Request(url.origin + '/', request);
     const response = await env.ASSETS.fetch(indexReq);
     
+    const canonicalUrl = `https://www.vnbusarchive.io.vn/model/${encodeURIComponent(modelId)}`;
     let title = `${modelId} | VNBUSARCHIVE`;
-    let desc = `Xem c�c h�nh ?nh phuong ti?n thu?c d�ng xe ${modelId} tr�n VNBUSARCHIVE.`;
+    let desc = `Xem các hình ảnh phương tiện thuộc dòng xe ${modelId} trên VNBUSARCHIVE.`;
     
     return new HTMLRewriter()
         .on('title', { element(e) { e.setInnerContent(title); } })
+        .on('link[rel="canonical"]', { element(e) { e.setAttribute('href', canonicalUrl); } })
+        .on('meta[property="og:url"]', { element(e) { e.setAttribute('content', canonicalUrl); } })
+        .on('meta[name="twitter:url"]', { element(e) { e.setAttribute('content', canonicalUrl); } })
         .on('meta[property="og:title"]', { element(e) { e.setAttribute('content', title); } })
         .on('meta[name="twitter:title"]', { element(e) { e.setAttribute('content', title); } })
         .on('meta[property="og:description"]', { element(e) { e.setAttribute('content', desc); } })
