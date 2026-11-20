@@ -2245,7 +2245,7 @@ html.theme-dark .ct-icon {
             if (stored === 'system') {
                 theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
             }
-            document.write('<link rel="stylesheet" href="/css/' + theme + '.css?v=1795177972375" id="theme-css">');
+            document.write('<link rel="stylesheet" href="/css/' + theme + '.css?v=1795178275892" id="theme-css">');
             document.documentElement.classList.add('theme-' + theme);
             document.documentElement.style.backgroundColor = theme === 'dark' ? '#18181b' : '#fdfcf8';
 
@@ -6197,36 +6197,43 @@ html.theme-dark .ct-icon {
                     <div id="route-path-container" class="mb-6">
                         <!-- Header bản đồ lộ trình khi ĐÃ có dữ liệu -->
                         <div id="route-map-wrapper" class="hidden">
-                            <div class="flex items-center justify-between mb-2.5">
+                            <!-- Dòng 1: Tiêu đề -->
+                            <div class="mb-2.5">
                                 <h3 class="font-bold text-xs uppercase text-black dark:text-white tracking-wider px-1 flex items-center gap-1.5">
                                     <i class="fa-solid fa-map-location-dot"></i> Lộ trình & Điểm dừng
                                 </h3>
-                                <div class="flex items-center gap-2">
-                                    <!-- Nút đổi chiều đi / về -->
-                                    <div class="inline-flex rounded-md border border-black dark:border-white p-0.5 bg-zinc-100 dark:bg-zinc-800 text-xs font-bold">
-                                        <button type="button" id="btn-route-dir-forward" onclick="app.routePath.switchDirection('forward')" class="px-2.5 py-1 rounded bg-black text-white dark:bg-white dark:text-black transition">
-                                            Chiều đi
-                                        </button>
-                                        <button type="button" id="btn-route-dir-return" onclick="app.routePath.switchDirection('return')" class="px-2.5 py-1 rounded text-zinc-600 dark:text-zinc-300 hover:text-black dark:hover:text-white transition">
-                                            Chiều về
-                                        </button>
-                                    </div>
-                                    <button type="button" onclick="app.routePath.openEditor()" class="px-3 py-1.5 bg-white dark:bg-black border border-black dark:border-white text-black dark:text-white text-xs font-bold rounded-md hover:bg-zinc-100 dark:hover:bg-zinc-800 transition flex items-center gap-1">
-                                        <i class="fa-solid fa-route"></i> Sửa lộ trình
+                            </div>
+
+                            <!-- Dòng 2: Nút chuyển chiều đi / về riêng 1 dòng ở dưới tiêu đề (Nền đen / Flat UI) -->
+                            <div class="mb-3">
+                                <div class="inline-flex rounded-md border border-black dark:border-white p-0.5 bg-black dark:bg-black text-xs font-bold">
+                                    <button type="button" id="btn-route-dir-forward" onclick="app.routePath.switchDirection('forward')" class="px-3.5 py-1.5 rounded bg-white text-black dark:bg-white dark:text-black transition">
+                                        Chiều đi
+                                    </button>
+                                    <button type="button" id="btn-route-dir-return" onclick="app.routePath.switchDirection('return')" class="px-3.5 py-1.5 rounded text-zinc-400 hover:text-white transition">
+                                        Chiều về
                                     </button>
                                 </div>
                             </div>
+
                             <!-- Khung chứa Leaflet Map -->
                             <div class="w-full h-64 sm:h-80 md:h-96 rounded-lg border border-black dark:border-white overflow-hidden relative mb-3 bg-zinc-100 dark:bg-zinc-900">
                                 <div id="route-leaflet-map" class="w-full h-full z-0"></div>
                             </div>
                             <!-- Danh sách điểm dừng (Collapsible) -->
-                            <div class="border border-black dark:border-white rounded-lg p-3 bg-white dark:bg-[#18181b]">
+                            <div class="border border-black dark:border-white rounded-lg p-3 bg-white dark:bg-[#18181b] mb-3">
                                 <button type="button" onclick="app.routePath.toggleStopList()" class="w-full flex items-center justify-between text-xs font-bold text-black dark:text-white uppercase tracking-wider text-left">
                                     <span id="route-stops-summary">Danh sách điểm dừng (0 điểm)</span>
                                     <i id="route-stops-chevron" class="fa-solid fa-chevron-down text-zinc-500 transition-transform duration-200"></i>
                                 </button>
                                 <div id="route-stops-list-body" class="hidden mt-3 max-h-48 overflow-y-auto space-y-1.5 custom-scrollbar pr-1"></div>
+                            </div>
+
+                            <!-- Nút sửa lộ trình to ở dưới dropdown danh sách -->
+                            <div>
+                                <button type="button" onclick="app.routePath.openEditor()" class="w-full py-3 px-4 bg-white dark:bg-black border border-black dark:border-white text-black dark:text-white text-xs sm:text-sm font-bold rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 transition flex items-center justify-center gap-2">
+                                    <i class="fa-solid fa-route"></i> Chỉnh sửa lộ trình & điểm dừng tuyến này
+                                </button>
                             </div>
                         </div>
 
@@ -8137,7 +8144,7 @@ html.theme-dark .ct-icon {
 
     <!-- KHAY CHỨA TOAST Z-INDEX CAO NHẤT -->
     <div id="toast-container" class="fixed left-0 w-full flex flex-col items-center gap-2 pointer-events-none z-[99999]" style="z-index: 99999 !important;"></div>
-<script src="/app.207d4b1baa4c.js" onerror="if(!window.__app_fallback_loaded){window.__app_fallback_loaded=true;var s=document.createElement('script');s.src='/app.js?v=' + Date.now();document.head.appendChild(s);}"></script>
+<script src="/app.edb153352a79.js" onerror="if(!window.__app_fallback_loaded){window.__app_fallback_loaded=true;var s=document.createElement('script');s.src='/app.js?v=' + Date.now();document.head.appendChild(s);}"></script>
 </body>
 </html>
 
