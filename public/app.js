@@ -9439,7 +9439,7 @@ let currentRouteProvName = null;
                                 <i class="fa-solid fa-chevron-right text-[8px] sm:text-[10px] shrink-0 text-gray-400"></i>
                                 <span id="crumb-vehicle-profile" class="font-bold text-black shrink min-w-0 block">${app.utils.displayPlate(vehicle.license_plate)}</span>
                             </div>
-                            <div class="vehicle-hero-banner rounded-lg border border-black dark:border-white bg-black text-white relative overflow-hidden mb-6 shadow-sm">
+                            <div class="vehicle-hero-banner rounded-lg border border-black dark:border-white bg-black text-white relative overflow-hidden mb-3 shadow-sm">
                                 <div class="relative w-full aspect-[16/9] sm:aspect-[21/9] max-h-[380px] bg-black overflow-hidden flex items-center justify-center">
                                     ${topPhoto ? `
                                     <img loading="lazy" decoding="async" src="${app.utils.getProxiedUrl(topPhoto.url, 'vehicle-top.jpg', 'full')}" onerror="app.utils.fallbackHeroImage(this, 'vehiclePhotosCache', 0)" onclick="app.views.loadDetail(${topPhoto.id})" class="w-full h-full object-cover object-center block cursor-pointer transition duration-300">
@@ -9449,22 +9449,23 @@ let currentRouteProvName = null;
                                     </div>
                                     `}
                                     <div class="vehicle-hero-fade pointer-events-none absolute inset-x-0 bottom-0 h-1/2 sm:h-2/5 z-10"></div>
-                                    <div class="absolute bottom-0 left-0 right-0 p-4 sm:p-6 z-20 flex flex-col md:flex-row md:items-end justify-between gap-3 pointer-events-none">
-                                        <div class="order-2 md:order-1 text-left min-w-0 pointer-events-auto">
+                                    <div class="absolute bottom-0 left-0 right-0 p-4 sm:p-6 z-20 flex flex-col items-start justify-end pointer-events-none">
+                                        <div class="text-left min-w-0 pointer-events-auto">
                                             <p class="text-[11px] sm:text-xs text-zinc-300 uppercase tracking-widest font-bold mb-1">${isCoach ? 'Xe khách' : 'Xe buýt'}</p>
                                             <h2 class="text-2xl sm:text-3xl md:text-4xl font-black uppercase text-white tracking-tight leading-tight drop-shadow-md truncate">${app.utils.displayPlate(vehicle.license_plate)}</h2>
                                         </div>
-                                        ${topPhoto && topUploader ? `
-                                        <div class="vehicle-hero-badge order-1 md:order-2 self-start md:self-end flex items-center gap-2 px-3 py-1.5 rounded-md text-xs backdrop-blur-sm pointer-events-auto transition cursor-pointer shrink-0 max-w-full border" onclick="event.stopPropagation(); app.views.loadUserProfile('${topUploader.linkId}')">
-                                            <span class="text-zinc-300 text-[11px] whitespace-nowrap">Ảnh mới nhất bởi</span>
-                                            <img loading="lazy" decoding="async" src="${topUploader.avatar}" onerror="this.onerror=null;this.src='${DEFAULT_AVATAR}';" class="w-5 h-5 rounded-full object-cover shrink-0 border border-white/30">
-                                            <span class="font-bold text-white hover:underline truncate max-w-[140px] sm:max-w-[200px]">${app.utils.escapeHtml(topUploader.username)}</span>
-                                            ${topUploaderBadges ? `<span class="inline-flex items-center shrink-0">${topUploaderBadges}</span>` : ''}
-                                        </div>
-                                        ` : ''}
                                     </div>
                                 </div>
                             </div>
+                            ${topPhoto && topUploader ? `
+                            <div class="flex items-center gap-1.5 text-xs text-gray-500 dark:text-zinc-400 mb-6 px-1 flex-wrap">
+                                <span>Ảnh mới nhất bởi</span>
+                                <span class="font-bold text-black dark:text-white cursor-pointer hover:underline inline-flex items-center gap-1" onclick="app.views.loadUserProfile('${topUploader.linkId}')">
+                                    <img loading="lazy" decoding="async" src="${topUploader.avatar}" onerror="this.onerror=null;this.src='${DEFAULT_AVATAR}';" class="w-4 h-4 rounded-full object-cover inline-block border border-gray-300 dark:border-zinc-700">
+                                    ${app.utils.escapeHtml(topUploader.username)}
+                                </span>
+                            </div>
+                            ` : ''}
                                 <div class="mb-8">
                                     <h3 class="font-bold text-xs uppercase text-black tracking-wider mb-2.5 px-1">Thông tin chi tiết</h3>
                                     <div class="border border-gray-200 rounded-lg overflow-hidden bg-white mb-3 shadow-sm">
