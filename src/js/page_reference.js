@@ -2693,12 +2693,16 @@ window.app.routePath = {
             }).addTo(app.routePath.viewLayers);
         }
 
-        // Vẽ marker điểm dừng mang màu của đường kẻ
+        // Vẽ marker điểm dừng mang màu của đường kẻ (chỉ vẽ trạm dừng thật, ẩn các điểm dẫn đường waypoint)
+        const visibleStops = stops.filter(s => !s.is_waypoint);
+        let stopNumber = 0;
         stops.forEach((stop, idx) => {
+            if (stop.is_waypoint) return; // Điểm dẫn đường không hiển thị trên map người xem
+            stopNumber++;
             const isTerminal = (idx === 0 || idx === stops.length - 1);
             const iconHtml = `
                 <div style="background-color: ${routeColor}; color: #ffffff; width: 22px; height: 22px; border-radius: 9999px; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 900; border: 2px solid #ffffff; box-shadow: 0 2px 4px rgba(0,0,0,0.35);">
-                    ${idx + 1}
+                    ${stopNumber}
                 </div>
             `;
             const customIcon = L.divIcon({
@@ -2713,7 +2717,7 @@ window.app.routePath = {
             const termLabel = idx === 0 ? ' (Bến đầu)' : (idx === stops.length - 1 ? ' (Bến cuối)' : '');
             marker.bindPopup(`
                 <div class="route-custom-popup p-2.5 font-sans bg-white dark:bg-[#18181b] text-black dark:text-white rounded border border-black dark:border-white">
-                    <div class="text-[10px] font-bold uppercase tracking-wider" style="color: ${routeColor};">Điểm dừng #${idx + 1}${termLabel} · ${isFwd ? 'Chiều đi' : 'Chiều về'}</div>
+                    <div class="text-[10px] font-bold uppercase tracking-wider" style="color: ${routeColor};">Điểm dừng #${stopNumber}${termLabel} · ${isFwd ? 'Chiều đi' : 'Chiều về'}</div>
                     <div class="text-xs font-bold mt-1 text-black dark:text-white">${app.utils.escapeHtml(stop.name || 'Điểm dừng')}</div>
                 </div>
             `, { closeButton: false });
@@ -2725,23 +2729,28 @@ window.app.routePath = {
             app.routePath.viewMap.fitBounds(bounds, { padding: [30, 30], maxZoom: 16 });
         }
 
-        // Cập nhật danh sách collapsible điểm dừng
+        // Cập nhật danh sách collapsible điểm dừng (chỉ hiện các trạm đón khách thực tế)
         const summaryEl = document.getElementById('route-stops-summary');
         const listBody = document.getElementById('route-stops-list-body');
         if (summaryEl) {
-            summaryEl.innerText = `Danh sách điểm dừng (${stops.length} điểm) · ${isFwd ? 'Chiều đi' : 'Chiều về'}`;
+            summaryEl.innerText = `Danh sách điểm dừng (${visibleStops.length} điểm) · ${isFwd ? 'Chiều đi' : 'Chiều về'}`;
         }
         if (listBody) {
-            if (stops.length === 0) {
+            if (visibleStops.length === 0) {
                 listBody.innerHTML = '<div class="text-xs text-zinc-400 italic py-2 text-center">Chưa có điểm dừng cho chiều này.</div>';
             } else {
-                listBody.innerHTML = stops.map((s, idx) => `
-                    <div class="flex items-center gap-2 p-2 rounded bg-white dark:bg-black border border-zinc-200 dark:border-zinc-800 text-xs cursor-pointer hover:border-black dark:hover:border-white transition" onclick="app.routePath.panToStop(${s.lat}, ${s.lng}, '${app.utils.escapeAttr(s.name)}')">
-                        <span class="w-5 h-5 rounded-full flex items-center justify-center font-bold text-[10px] text-white shrink-0" style="background-color: ${routeColor};">${idx + 1}</span>
-                        <span class="font-bold text-black dark:text-white truncate flex-1">${app.utils.escapeHtml(s.name)}</span>
-                        <i class="fa-solid fa-location-crosshairs text-zinc-400 text-xs shrink-0"></i>
-                    </div>
-                `).join('');
+                let vIdx = 0;
+                listBody.innerHTML = stops.map((s) => {
+                    if (s.is_waypoint) return '';
+                    vIdx++;
+                    return `
+                        <div class="flex items-center gap-2 p-2 rounded bg-white dark:bg-black border border-zinc-200 dark:border-zinc-800 text-xs cursor-pointer hover:border-black dark:hover:border-white transition" onclick="app.routePath.panToStop(${s.lat}, ${s.lng}, '${app.utils.escapeAttr(s.name)}')">
+                            <span class="w-5 h-5 rounded-full flex items-center justify-center font-bold text-[10px] text-white shrink-0" style="background-color: ${routeColor};">${vIdx}</span>
+                            <span class="font-bold text-black dark:text-white truncate flex-1">${app.utils.escapeHtml(s.name)}</span>
+                            <i class="fa-solid fa-location-crosshairs text-zinc-400 text-xs shrink-0"></i>
+                        </div>
+                    `;
+                }).join('');
             }
         }
     },
@@ -2967,7 +2976,11 @@ window.app.routePath = {
         const routeColor = isFwd ? '#3b82f6' : '#e11d48'; // Xanh dịu / Đỏ dịu
 
         const stops = app.routePath.editorStops[app.routePath.editorDirection] || [];
-        if (countEl) countEl.innerText = `Điểm dừng (${stops.length}) · ${isFwd ? 'Chiều đi' : 'Chiều về'}`;
+        const realStops = stops.filter(s => !s.is_waypoint);
+        const waypointCount = stops.length - realStops.length;
+        if (countEl) {
+            countEl.innerText = `Điểm dừng (${realStops.length}${waypointCount > 0 ? ` + ${waypointCount} dẫn đường` : ''}) · ${isFwd ? 'Chiều đi' : 'Chiều về'}`;
+        }
 
         if (stops.length === 0) {
             listEl.innerHTML = `
@@ -2979,27 +2992,53 @@ window.app.routePath = {
             return;
         }
 
-        listEl.innerHTML = stops.map((s, idx) => `
-            <div class="rpe-stop-item flex items-center gap-1.5 p-2 rounded bg-zinc-50 dark:bg-zinc-900 border border-black dark:border-white text-xs group" data-index="${idx}">
-                <button type="button" class="stop-drag-handle cursor-grab active:cursor-grabbing text-zinc-400 hover:text-black dark:hover:text-white px-1" title="Kéo thả để sắp xếp thứ tự">
-                    <i class="fa-solid fa-grip-vertical"></i>
-                </button>
-                <span class="w-5 h-5 rounded-full flex items-center justify-center font-bold text-[10px] text-white shrink-0" style="background-color: ${routeColor};">${idx + 1}</span>
-                <div class="flex-1 min-w-0 pr-1">
-                    <input type="text" value="${app.utils.escapeAttr(s.name)}" onchange="app.routePath.renameStop(${idx}, this.value)" class="w-full bg-transparent font-bold text-black dark:text-white border-b border-transparent focus:border-black dark:focus:border-white outline-none truncate text-xs" title="Bấm để sửa tên trạm">
-                    <div class="flex items-center gap-2 mt-0.5">
-                        <span class="text-[10px] text-zinc-500 dark:text-zinc-400 truncate">${s.lat.toFixed(5)}, ${s.lng.toFixed(5)}</span>
-                        <button type="button" onclick="app.routePath.editStopCoords(${idx})" class="text-[10px] text-zinc-600 dark:text-zinc-300 hover:text-black dark:hover:text-white underline font-semibold transition" title="Sửa tọa độ">Sửa tọa độ</button>
+        let currentRealIdx = 0;
+        listEl.innerHTML = stops.map((s, idx) => {
+            const isWaypoint = !!s.is_waypoint;
+            if (!isWaypoint) currentRealIdx++;
+            const badgeHtml = isWaypoint
+                ? `<span class="w-5 h-5 rounded-full flex items-center justify-center font-bold text-[10px] bg-zinc-200 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400 shrink-0 border border-dashed border-zinc-400 dark:border-zinc-600" title="Điểm dẫn đường (ẩn khi xem)"><i class="fa-solid fa-diamond text-[8px]"></i></span>`
+                : `<span class="w-5 h-5 rounded-full flex items-center justify-center font-bold text-[10px] text-white shrink-0" style="background-color: ${routeColor};">${currentRealIdx}</span>`;
+
+            return `
+                <div class="rpe-stop-item flex items-center gap-1.5 p-2 rounded ${isWaypoint ? 'bg-zinc-100/70 dark:bg-zinc-900/60 opacity-80 border-dashed' : 'bg-zinc-50 dark:bg-zinc-900'} border border-black dark:border-white text-xs group" data-index="${idx}">
+                    <button type="button" class="stop-drag-handle cursor-grab active:cursor-grabbing text-zinc-400 hover:text-black dark:hover:text-white px-1" title="Kéo thả để sắp xếp thứ tự">
+                        <i class="fa-solid fa-grip-vertical"></i>
+                    </button>
+                    ${badgeHtml}
+                    <div class="flex-1 min-w-0 pr-1">
+                        <input type="text" value="${app.utils.escapeAttr(s.name)}" onchange="app.routePath.renameStop(${idx}, this.value)" class="w-full bg-transparent font-bold ${isWaypoint ? 'italic text-zinc-500 dark:text-zinc-400' : 'text-black dark:text-white'} border-b border-transparent focus:border-black dark:focus:border-white outline-none truncate text-xs" title="Bấm để sửa tên trạm / mốc dẫn đường">
+                        <div class="flex items-center gap-2 mt-0.5">
+                            <span class="text-[10px] text-zinc-500 dark:text-zinc-400 truncate">${s.lat.toFixed(5)}, ${s.lng.toFixed(5)}</span>
+                            <button type="button" onclick="app.routePath.editStopCoords(${idx})" class="text-[10px] text-zinc-600 dark:text-zinc-300 hover:text-black dark:hover:text-white underline font-semibold transition" title="Sửa tọa độ">Sửa tọa độ</button>
+                            <button type="button" onclick="app.routePath.toggleStopWaypoint(${idx})" class="text-[10px] ${isWaypoint ? 'text-blue-600 dark:text-blue-400 font-bold' : 'text-zinc-400 hover:text-black dark:hover:text-white'} transition" title="Chuyển đổi giữa trạm đón khách và mốc dẫn đường">
+                                ${isWaypoint ? '<i class="fa-solid fa-check"></i> Điểm dẫn đường' : 'Đổi thành mốc dẫn đường'}
+                            </button>
+                        </div>
                     </div>
+                    <button type="button" onclick="app.routePath.focusEditorStop(${s.lat}, ${s.lng})" class="text-zinc-400 hover:text-black dark:hover:text-white p-1" title="Xem trên map">
+                        <i class="fa-solid fa-crosshairs"></i>
+                    </button>
+                    <button type="button" onclick="app.routePath.removeStop(${idx})" class="text-zinc-400 hover:text-red-500 p-1" title="Xóa">
+                        <i class="fa-solid fa-trash-can"></i>
+                    </button>
                 </div>
-                <button type="button" onclick="app.routePath.focusEditorStop(${s.lat}, ${s.lng})" class="text-zinc-400 hover:text-black dark:hover:text-white p-1" title="Xem trên map">
-                    <i class="fa-solid fa-crosshairs"></i>
-                </button>
-                <button type="button" onclick="app.routePath.removeStop(${idx})" class="text-zinc-400 hover:text-red-500 p-1" title="Xóa trạm">
-                    <i class="fa-solid fa-trash-can"></i>
-                </button>
-            </div>
-        `).join('');
+            `;
+        }).join('');
+    },
+
+    toggleStopWaypoint: (idx) => {
+        const stops = app.routePath.editorStops[app.routePath.editorDirection];
+        if (!stops || !stops[idx]) return;
+        stops[idx].is_waypoint = !stops[idx].is_waypoint;
+        app.routePath.renderEditorStopsList();
+        app.routePath.drawEditorRoute();
+        const isWp = stops[idx].is_waypoint;
+        app.toast.show(
+            'info',
+            isWp ? 'Đã chuyển thành điểm dẫn đường' : 'Đã chuyển thành trạm dừng',
+            isWp ? `"${stops[idx].name}" sẽ được ẩn khi người dùng xem lộ trình bên ngoài.` : `"${stops[idx].name}" đã được chuyển thành trạm đón/trả khách thông thường.`
+        );
     },
 
     editStopCoords: (idx) => {
@@ -3057,21 +3096,30 @@ window.app.routePath = {
 
         // Sử dụng HoyuUI Custom Prompt thay vì prompt() native của trình duyệt
         if (app.ui && app.ui.showPrompt) {
-            app.ui.showPrompt("Nhập tên điểm dừng / trạm:", defaultName, (finalName) => {
+            app.ui.showPrompt("Nhập tên điểm dừng (Gõ '(đường tránh)' hoặc gắn dấu ngoặc đơn để đánh dấu là mốc dẫn đường ẩn):", defaultName, (finalName) => {
                 if (!finalName || !finalName.trim()) return;
+                const trimmed = finalName.trim();
+                // Tự động nhận diện mốc dẫn đường nếu người dùng đặt tên dạng (qua đường tránh...) hoặc (tránh...)
+                const isWaypoint = /^\(.*\)$/.test(trimmed) || trimmed.toLowerCase().includes('đường tránh') || trimmed.toLowerCase().includes('dẫn đường');
                 app.routePath.editorStops[app.routePath.editorDirection].push({
-                    name: finalName.trim(),
+                    name: trimmed,
                     lat: parseFloat(lat),
-                    lng: parseFloat(lng)
+                    lng: parseFloat(lng),
+                    is_waypoint: isWaypoint
                 });
                 app.routePath.renderEditorStopsList();
                 app.routePath.calculateRealRoute();
-            }, { title: "Tạo Điểm Dừng Mới" });
+                if (isWaypoint) {
+                    app.toast.show('info', 'Đã thêm mốc dẫn đường', `"${trimmed}" là mốc dẫn đường ẩn, sẽ không hiển thị số và không xuất hiện khi người dùng xem ngoài bản đồ.`);
+                }
+            }, { title: "Tạo Điểm Dừng / Mốc Dẫn Đường Mới" });
         } else {
+            const isWaypoint = /^\(.*\)$/.test(defaultName) || defaultName.toLowerCase().includes('đường tránh') || defaultName.toLowerCase().includes('dẫn đường');
             app.routePath.editorStops[app.routePath.editorDirection].push({
                 name: defaultName,
                 lat: parseFloat(lat),
-                lng: parseFloat(lng)
+                lng: parseFloat(lng),
+                is_waypoint: isWaypoint
             });
             app.routePath.renderEditorStopsList();
             app.routePath.calculateRealRoute();
@@ -3248,19 +3296,31 @@ window.app.routePath = {
         }
 
         // Vẽ marker điểm dừng mang màu tương ứng với đường kẻ
+        let realStopCounter = 0;
         stops.forEach((stop, idx) => {
+            const isWaypoint = !!stop.is_waypoint;
+            if (!isWaypoint) realStopCounter++;
             const isTerminal = (idx === 0 || idx === stops.length - 1);
-            const iconHtml = `
-                <div style="background-color: ${routeColor}; color: #ffffff; width: 24px; height: 24px; border-radius: 9999px; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 900; border: 2px solid #ffffff; box-shadow: 0 2px 4px rgba(0,0,0,0.35); cursor: move;">
-                    ${idx + 1}
-                </div>
-            `;
+
+            // Mốc dẫn đường (waypoint) hiển thị mờ, nhỏ hơn, không có số để phân biệt với trạm thật
+            const iconHtml = isWaypoint
+                ? `
+                    <div style="background-color: #71717a; color: #ffffff; width: 16px; height: 16px; border-radius: 9999px; display: flex; align-items: center; justify-content: center; font-size: 8px; border: 2px solid #ffffff; box-shadow: 0 1px 3px rgba(0,0,0,0.3); opacity: 0.65; cursor: move;" title="Mốc dẫn đường (ẩn khi xem)">
+                        <i class="fa-solid fa-diamond text-[7px]"></i>
+                    </div>
+                  `
+                : `
+                    <div style="background-color: ${routeColor}; color: #ffffff; width: 24px; height: 24px; border-radius: 9999px; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 900; border: 2px solid #ffffff; box-shadow: 0 2px 4px rgba(0,0,0,0.35); cursor: move;">
+                        ${realStopCounter}
+                    </div>
+                  `;
+
             const customIcon = L.divIcon({
                 className: 'route-stop-div-icon',
                 html: iconHtml,
-                iconSize: [24, 24],
-                iconAnchor: [12, 12],
-                popupAnchor: [0, -12]
+                iconSize: isWaypoint ? [16, 16] : [24, 24],
+                iconAnchor: isWaypoint ? [8, 8] : [12, 12],
+                popupAnchor: isWaypoint ? [0, -8] : [0, -12]
             });
 
             const marker = L.marker([stop.lat, stop.lng], {
@@ -3278,7 +3338,7 @@ window.app.routePath = {
                     stop.lng = newPos.lng;
                     app.routePath.renderEditorStopsList();
                     app.routePath.calculateRealRoute();
-                    app.toast.show('success', 'Đã chuyển vị trí', `Đã dời trạm "${stop.name}" đến tọa độ mới!`);
+                    app.toast.show('success', 'Đã chuyển vị trí', `Đã dời ${isWaypoint ? 'mốc dẫn đường' : 'trạm'} "${stop.name}" đến tọa độ mới!`);
                 };
 
                 const cancelMove = () => {
@@ -3288,11 +3348,11 @@ window.app.routePath = {
 
                 if (app.ui && app.ui.showAlert) {
                     app.ui.showAlert(
-                        `Bạn có chắc chắn muốn dời trạm "<b>${app.utils.escapeHtml(stop.name)}</b>" đến vị trí mới này không?`,
+                        `Bạn có chắc chắn muốn dời ${isWaypoint ? 'mốc dẫn đường' : 'trạm'} "<b>${app.utils.escapeHtml(stop.name)}</b>" đến vị trí mới này không?`,
                         proceedMove,
                         cancelMove,
                         {
-                            title: "Xác nhận chuyển vị trí trạm",
+                            title: `Xác nhận chuyển vị trí ${isWaypoint ? 'mốc dẫn đường' : 'trạm'}`,
                             btnOkText: "Xác nhận",
                             btnCancelText: "Hoàn tác"
                         }
@@ -3303,9 +3363,13 @@ window.app.routePath = {
             });
 
             const termLabel = idx === 0 ? ' (Bến đầu)' : (idx === stops.length - 1 ? ' (Bến cuối)' : '');
+            const badgeTitle = isWaypoint
+                ? 'Mốc dẫn đường (Ẩn khi xem)'
+                : `Điểm dừng #${realStopCounter}${termLabel} · ${isFwd ? 'Chiều đi' : 'Chiều về'}`;
+
             marker.bindPopup(`
                 <div class="route-custom-popup p-2.5 font-sans bg-white dark:bg-[#18181b] text-black dark:text-white rounded border border-black dark:border-white">
-                    <div class="text-[10px] font-bold uppercase tracking-wider" style="color: ${routeColor};">Điểm dừng #${idx + 1}${termLabel} · ${isFwd ? 'Chiều đi' : 'Chiều về'}</div>
+                    <div class="text-[10px] font-bold uppercase tracking-wider" style="color: ${isWaypoint ? '#a1a1aa' : routeColor};">${badgeTitle}</div>
                     <div class="text-xs font-bold mt-1 text-black dark:text-white">${app.utils.escapeHtml(stop.name)}</div>
                     <div class="text-[10px] text-zinc-500 dark:text-zinc-400 mt-1"><i class="fa-solid fa-arrows-up-down-left-right mr-1"></i>Kéo thả icon trên map để đổi vị trí</div>
                 </div>
