@@ -2253,8 +2253,6 @@ html.theme-dark .ct-icon {
                 if (window.AndroidBridge || window.location.search.includes('app_preview=1')) {
                     window.__isAppDiscontinued = true;
                     document.documentElement.classList.add('app-discontinued-mode');
-                } else if (sessionStorage.getItem('vnbus_app_loaded') === '1') {
-                    document.documentElement.classList.add('app-already-loaded');
                 }
             } catch (e) {}
         })();
@@ -2264,14 +2262,6 @@ html.theme-dark .ct-icon {
         html.theme-dark #loading-screen .text-inner span { color: #ffffff !important; }
         html.theme-dark #loading-screen .spinner { border-color: rgba(255, 255, 255, 0.1) !important; border-left-color: #ffffff !important; }
         html.theme-dark #top-loading-bar { background-color: #ffffff !important; box-shadow: 0 0 10px rgba(255, 255, 255, 0.5) !important; }
-
-        html.app-already-loaded #loading-screen {
-            display: none !important;
-        }
-        html.app-already-loaded #app-container {
-            display: block !important;
-            opacity: 1 !important;
-        }
 
         /* Khi truy cập từ App Android đã dừng hoạt động */
         html.app-discontinued-mode #loading-screen,
