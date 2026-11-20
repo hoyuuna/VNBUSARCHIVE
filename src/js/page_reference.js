@@ -2648,11 +2648,11 @@ window.app.routePath = {
         const btnRet = document.getElementById('btn-route-dir-return');
         if (btnFwd && btnRet) {
             if (dir === 'forward') {
-                btnFwd.className = 'px-3.5 py-1.5 rounded bg-black text-white dark:bg-white dark:text-black transition';
-                btnRet.className = 'px-3.5 py-1.5 rounded text-zinc-600 dark:text-zinc-400 hover:text-black dark:hover:text-white transition';
+                btnFwd.className = 'flex-1 py-1.5 rounded bg-black text-white dark:bg-white dark:text-black transition text-center';
+                btnRet.className = 'flex-1 py-1.5 rounded text-zinc-600 dark:text-zinc-400 hover:text-black dark:hover:text-white transition text-center';
             } else {
-                btnRet.className = 'px-3.5 py-1.5 rounded bg-black text-white dark:bg-white dark:text-black transition';
-                btnFwd.className = 'px-3.5 py-1.5 rounded text-zinc-600 dark:text-zinc-400 hover:text-black dark:hover:text-white transition';
+                btnRet.className = 'flex-1 py-1.5 rounded bg-black text-white dark:bg-white dark:text-black transition text-center';
+                btnFwd.className = 'flex-1 py-1.5 rounded text-zinc-600 dark:text-zinc-400 hover:text-black dark:hover:text-white transition text-center';
             }
         }
         app.routePath.drawViewRoute();

@@ -2245,7 +2245,7 @@ html.theme-dark .ct-icon {
             if (stored === 'system') {
                 theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
             }
-            document.write('<link rel="stylesheet" href="/css/' + theme + '.css?v=1795178435503" id="theme-css">');
+            document.write('<link rel="stylesheet" href="/css/' + theme + '.css?v=1795178554571" id="theme-css">');
             document.documentElement.classList.add('theme-' + theme);
             document.documentElement.style.backgroundColor = theme === 'dark' ? '#18181b' : '#fdfcf8';
 
@@ -6204,13 +6204,13 @@ html.theme-dark .ct-icon {
                                 </h3>
                             </div>
 
-                            <!-- Dòng 2: Nút chuyển chiều đi / về riêng 1 dòng ở dưới tiêu đề (Đồng bộ Dark/Light Mode) -->
+                            <!-- Dòng 2: Nút chuyển chiều đi / về riêng 1 dòng ở dưới tiêu đề (Dài bằng bản đồ w-full) -->
                             <div class="mb-3">
-                                <div class="inline-flex rounded-md border border-black dark:border-white p-0.5 bg-white dark:bg-black text-xs font-bold">
-                                    <button type="button" id="btn-route-dir-forward" onclick="app.routePath.switchDirection('forward')" class="px-3.5 py-1.5 rounded bg-black text-white dark:bg-white dark:text-black transition">
+                                <div class="w-full flex rounded-md border border-black dark:border-white p-0.5 bg-white dark:bg-black text-xs font-bold">
+                                    <button type="button" id="btn-route-dir-forward" onclick="app.routePath.switchDirection('forward')" class="flex-1 py-1.5 rounded bg-black text-white dark:bg-white dark:text-black transition text-center">
                                         Chiều đi
                                     </button>
-                                    <button type="button" id="btn-route-dir-return" onclick="app.routePath.switchDirection('return')" class="px-3.5 py-1.5 rounded text-zinc-600 dark:text-zinc-400 hover:text-black dark:hover:text-white transition">
+                                    <button type="button" id="btn-route-dir-return" onclick="app.routePath.switchDirection('return')" class="flex-1 py-1.5 rounded text-zinc-600 dark:text-zinc-400 hover:text-black dark:hover:text-white transition text-center">
                                         Chiều về
                                     </button>
                                 </div>
@@ -8144,7 +8144,7 @@ html.theme-dark .ct-icon {
 
     <!-- KHAY CHỨA TOAST Z-INDEX CAO NHẤT -->
     <div id="toast-container" class="fixed left-0 w-full flex flex-col items-center gap-2 pointer-events-none z-[99999]" style="z-index: 99999 !important;"></div>
-<script src="/app.144dbd0a6bc6.js" onerror="if(!window.__app_fallback_loaded){window.__app_fallback_loaded=true;var s=document.createElement('script');s.src='/app.js?v=' + Date.now();document.head.appendChild(s);}"></script>
+<script src="/app.e1bc51c6137e.js" onerror="if(!window.__app_fallback_loaded){window.__app_fallback_loaded=true;var s=document.createElement('script');s.src='/app.js?v=' + Date.now();document.head.appendChild(s);}"></script>
 </body>
 </html>
 
