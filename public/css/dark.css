@@ -181,7 +181,7 @@ input[type="text"]:focus, input[type="email"]:focus, input[type="password"]:focu
     background-color: #1e2023 !important;
     overflow: hidden !important;
 }
-.info-table td, .info-table th, .data-table td, .data-table th, .history-table td, .history-table th {
+.info-table td, .info-table th, .data-table td, .data-table th, .history-table td, .history-table th, .info-table .value-cell {
     border-color: #282a2d !important;
     padding: 12px 14px !important;
     color: #e2e2e5 !important;

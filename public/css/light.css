@@ -165,7 +165,7 @@ input[type="text"]:focus, input[type="email"]:focus, input[type="password"]:focu
     background-color: #ffffff !important;
     overflow: hidden !important;
 }
-.info-table td, .info-table th, .data-table td, .data-table th, .history-table td, .history-table th {
+.info-table td, .info-table th, .data-table td, .data-table th, .history-table td, .history-table th, .info-table .value-cell {
     border-color: #efede8 !important;
     padding: 12px 14px !important;
 }

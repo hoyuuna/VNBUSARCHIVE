@@ -1934,7 +1934,7 @@ Object.assign(window.app, {
                             deleteBtn.classList.remove('hidden');
                             deleteBtn.disabled = false;
                             deleteBtn.innerHTML = '<i class="fa-solid fa-radiation mr-1"></i> Quản lý: Xóa ảnh này';
-                            deleteBtn.className = "w-full bg-red-600 border border-red-600 text-white py-2.5 text-sm font-bold rounded-md hover:bg-red-700 transition shadow-sm";
+                            deleteBtn.className = "w-full bg-red-600 border border-red-600 text-white py-2.5 text-sm font-bold rounded-lg hover:bg-red-700 transition shadow-sm";
                             deleteBtn.onclick = () => {
                                 app.denyFilterTab = null;
                                 app.denyIsDoc = Boolean(photo?.is_documentary);
