@@ -21,8 +21,11 @@ body, body.theme-dark, html.theme-dark {
 /* Surface Container (Standard Cards & Panels) */
 .bg-white,
 .admin-card-body,
-.bg-white\/95, .bg-white\/90, .bg-white\/80, .bg-white\/70, .bg-white\/60, .bg-white\/50,
-.bg-gray-50\/50, .bg-gray-100\/50, .bg-gray-200\/80, .bg-gray-200\/50 {
+.bg-white\/95, .bg-white\/90, .bg-white\/80, .bg-white\/70, .bg-white\/60, .bg-white\/50, .bg-white\/40, .bg-white\/30, .bg-white\/20, .bg-white\/10,
+.bg-gray-50\/50, .bg-gray-50\/30, .bg-gray-50\/20, .bg-gray-100\/50, .bg-gray-100\/30, .bg-gray-200\/80, .bg-gray-200\/50 {
+    background-color: #1e2023 !important;
+    color: #e2e2e5 !important;
+    backdrop-filter: none !important;
     background-color: #1e2023 !important;
     color: #e2e2e5 !important;
 }
@@ -321,4 +324,70 @@ textarea.info-input {
 #info-date {
     background-color: transparent !important;
     color: #ffffff !important;
+}
+
+/* ==========================================================================
+   FIX ACTIVE STATES & CONTRAST IN DARK MODE
+   ========================================================================== */
+.bg-black,
+.bg-black *,
+.bg-black i,
+.bg-black svg,
+.bg-black span,
+.bg-black div,
+.crop-ratio-btn.bg-black,
+.crop-ratio-btn.bg-black *,
+#set-menu-main button.bg-black,
+#set-menu-main button.bg-black *,
+#set-menu-account button.bg-black,
+#set-menu-account button.bg-black *,
+#newsboard-toc .bg-black,
+#newsboard-toc .bg-black *,
+.pref-option.bg-black,
+.pref-option.bg-black * {
+    color: #121416 !important;
+    fill: #121416 !important;
+}
+
+/* Các button phụ / tab inactive trong Settings và Modal */
+#set-menu-main button:not(.bg-black),
+#set-menu-account button:not(.bg-black),
+.crop-ratio-btn:not(.bg-black) {
+    background-color: #1e2023 !important;
+    border: 1px solid #333538 !important;
+    color: #e2e2e5 !important;
+}
+#set-menu-main button:not(.bg-black):hover,
+#set-menu-account button:not(.bg-black):hover,
+.crop-ratio-btn:not(.bg-black):hover {
+    background-color: #282a2d !important;
+    color: #ffffff !important;
+}
+
+/* Đường viền giữa các ô trong bảng (Table grid lines) */
+.info-table, 
+.data-table, 
+.history-table {
+    border: 1px solid #333538 !important;
+}
+.info-table td, 
+.info-table th, 
+.data-table td, 
+.data-table th, 
+.history-table td, 
+.history-table th {
+    border-bottom: 1px solid #333538 !important;
+    border-right: 1px solid #333538 !important;
+}
+.info-table tr td:last-child, 
+.info-table tr th:last-child, 
+.data-table tr td:last-child, 
+.history-table tr td:last-child, 
+.history-table tr th:last-child {
+    border-right: none !important;
+}
+.info-table tr:last-child td, 
+.data-table tr:last-child td, 
+.history-table tr:last-child td {
+    border-bottom: none !important;
 }
