@@ -16173,7 +16173,7 @@ window.app.routePath = {
             }
         }
         app.routePath.renderEditorStopsList();
-        app.routePath.drawEditorRoute();
+        app.routePath.drawEditorRoute(true);
     },
 
     // Sao chép điểm đầu - cuối từ Chiều đi theo hướng ngược lại và tìm tuyến đường hợp lý
@@ -16563,7 +16563,7 @@ window.app.routePath = {
         }
     },
 
-    drawEditorRoute: () => {
+    drawEditorRoute: (autoFit = false) => {
         if (!app.routePath.editorMap || !app.routePath.editorLayers) return;
         app.routePath.editorLayers.clearLayers();
 
@@ -16667,10 +16667,12 @@ window.app.routePath = {
             `, { closeButton: false });
         });
 
-        // Fit bounds nếu có điểm
-        const bounds = app.routePath.editorLayers.getBounds();
-        if (bounds.isValid() && stops.length > 0) {
-            app.routePath.editorMap.fitBounds(bounds, { padding: [30, 30], maxZoom: 16 });
+        // Fit bounds nếu có yêu cầu (ví dụ khi mới mở map hoặc chuyển chiều)
+        if (autoFit) {
+            const bounds = app.routePath.editorLayers.getBounds();
+            if (bounds.isValid() && stops.length > 0) {
+                app.routePath.editorMap.fitBounds(bounds, { padding: [30, 30], maxZoom: 16 });
+            }
         }
     },
 
