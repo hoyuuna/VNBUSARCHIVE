@@ -15882,11 +15882,11 @@ window.app.routePath = {
         const btnRet = document.getElementById('btn-route-dir-return');
         if (btnFwd && btnRet) {
             if (dir === 'forward') {
-                btnFwd.className = 'px-2.5 py-1 rounded bg-black text-white dark:bg-white dark:text-black transition';
-                btnRet.className = 'px-2.5 py-1 rounded text-zinc-600 dark:text-zinc-300 hover:text-black dark:hover:text-white transition';
+                btnFwd.className = 'px-2.5 py-1 rounded bg-blue-600 text-white transition flex items-center gap-1.5';
+                btnRet.className = 'px-2.5 py-1 rounded text-zinc-600 dark:text-zinc-300 hover:text-black dark:hover:text-white transition flex items-center gap-1.5';
             } else {
-                btnRet.className = 'px-2.5 py-1 rounded bg-black text-white dark:bg-white dark:text-black transition';
-                btnFwd.className = 'px-2.5 py-1 rounded text-zinc-600 dark:text-zinc-300 hover:text-black dark:hover:text-white transition';
+                btnRet.className = 'px-2.5 py-1 rounded bg-red-600 text-white transition flex items-center gap-1.5';
+                btnFwd.className = 'px-2.5 py-1 rounded text-zinc-600 dark:text-zinc-300 hover:text-black dark:hover:text-white transition flex items-center gap-1.5';
             }
         }
         app.routePath.drawViewRoute();
@@ -15900,15 +15900,18 @@ window.app.routePath = {
         if (typeof paths === 'string') {
             try { paths = JSON.parse(paths); } catch(e) { paths = null; }
         }
+        const isFwd = app.routePath.viewDirection === 'forward';
         const dirData = paths?.[app.routePath.viewDirection];
         const stops = dirData?.stops || [];
         const geometry = dirData?.geometry;
 
+        const routeColor = isFwd ? '#2563eb' : '#dc2626'; // Chiều đi: Xanh dương, Chiều về: Đỏ
+
         // Vẽ polyline uốn lượn
         if (geometry && geometry.coordinates && geometry.coordinates.length > 0) {
             const latlngs = geometry.coordinates.map(c => [c[1], c[0]]);
-            const poly = L.polyline(latlngs, {
-                color: app.routePath.viewDirection === 'forward' ? '#dc2626' : '#2563eb',
+            L.polyline(latlngs, {
+                color: routeColor,
                 weight: 5,
                 opacity: 0.9,
                 lineJoin: 'round'
@@ -15916,19 +15919,18 @@ window.app.routePath = {
         } else if (stops.length > 1) {
             const latlngs = stops.map(s => [s.lat, s.lng]);
             L.polyline(latlngs, {
-                color: '#dc2626',
+                color: routeColor,
                 weight: 4,
                 dashArray: '6, 8',
                 opacity: 0.7
             }).addTo(app.routePath.viewLayers);
         }
 
-        // Vẽ marker điểm dừng
+        // Vẽ marker điểm dừng mang màu của đường kẻ
         stops.forEach((stop, idx) => {
             const isTerminal = (idx === 0 || idx === stops.length - 1);
-            const badgeBg = isTerminal ? (idx === 0 ? '#16a34a' : '#dc2626') : '#18181b';
             const iconHtml = `
-                <div style="background-color: ${badgeBg}; color: #ffffff; width: 22px; height: 22px; border-radius: 9999px; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 900; border: 2px solid #ffffff; box-shadow: 0 2px 4px rgba(0,0,0,0.3);">
+                <div style="background-color: ${routeColor}; color: #ffffff; width: 22px; height: 22px; border-radius: 9999px; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 900; border: 2px solid #ffffff; box-shadow: 0 2px 4px rgba(0,0,0,0.35);">
                     ${idx + 1}
                 </div>
             `;
@@ -15944,7 +15946,7 @@ window.app.routePath = {
             const termLabel = idx === 0 ? ' (Bến đầu)' : (idx === stops.length - 1 ? ' (Bến cuối)' : '');
             marker.bindPopup(`
                 <div style="padding: 8px 12px; font-family: sans-serif;">
-                    <div style="font-size: 10px; font-weight: bold; color: #71717a; text-transform: uppercase;">Điểm dừng #${idx + 1}${termLabel}</div>
+                    <div style="font-size: 10px; font-weight: bold; color: ${routeColor}; text-transform: uppercase;">Điểm dừng #${idx + 1}${termLabel} · ${isFwd ? 'Chiều đi' : 'Chiều về'}</div>
                     <div style="font-size: 13px; font-weight: bold; margin-top: 2px;">${app.utils.escapeHtml(stop.name || 'Điểm dừng')}</div>
                 </div>
             `);
@@ -15960,7 +15962,7 @@ window.app.routePath = {
         const summaryEl = document.getElementById('route-stops-summary');
         const listBody = document.getElementById('route-stops-list-body');
         if (summaryEl) {
-            summaryEl.innerText = `Danh sách điểm dừng (${stops.length} điểm) · ${app.routePath.viewDirection === 'forward' ? 'Chiều đi' : 'Chiều về'}`;
+            summaryEl.innerText = `Danh sách điểm dừng (${stops.length} điểm) · ${isFwd ? 'Chiều đi' : 'Chiều về'}`;
         }
         if (listBody) {
             if (stops.length === 0) {
@@ -15968,7 +15970,7 @@ window.app.routePath = {
             } else {
                 listBody.innerHTML = stops.map((s, idx) => `
                     <div class="flex items-center gap-2 p-2 rounded bg-white dark:bg-black border border-zinc-200 dark:border-zinc-800 text-xs cursor-pointer hover:border-black dark:hover:border-white transition" onclick="app.routePath.panToStop(${s.lat}, ${s.lng}, '${app.utils.escapeAttr(s.name)}')">
-                        <span class="w-5 h-5 rounded-full bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900 flex items-center justify-center font-bold text-[10px] shrink-0">${idx + 1}</span>
+                        <span class="w-5 h-5 rounded-full flex items-center justify-center font-bold text-[10px] text-white shrink-0" style="background-color: ${routeColor};">${idx + 1}</span>
                         <span class="font-bold text-black dark:text-white truncate flex-1">${app.utils.escapeHtml(s.name)}</span>
                         <i class="fa-solid fa-location-crosshairs text-zinc-400 text-xs shrink-0"></i>
                     </div>
@@ -16116,17 +16118,61 @@ window.app.routePath = {
         app.routePath.editorDirection = dir;
         const tabFwd = document.getElementById('rpe-tab-forward');
         const tabRet = document.getElementById('rpe-tab-return');
+        const btnCopyReverse = document.getElementById('btn-copy-reverse-route');
+
         if (tabFwd && tabRet) {
             if (dir === 'forward') {
-                tabFwd.className = 'px-3 py-1.5 rounded bg-black text-white dark:bg-white dark:text-black transition';
-                tabRet.className = 'px-3 py-1.5 rounded text-zinc-600 dark:text-zinc-400 hover:text-black dark:hover:text-white transition';
+                tabFwd.className = 'px-3.5 py-1.5 rounded bg-blue-600 text-white transition flex items-center gap-1.5';
+                tabRet.className = 'px-3.5 py-1.5 rounded text-zinc-600 dark:text-zinc-400 hover:text-black dark:hover:text-white transition flex items-center gap-1.5';
+                if (btnCopyReverse) btnCopyReverse.classList.add('hidden');
             } else {
-                tabRet.className = 'px-3 py-1.5 rounded bg-black text-white dark:bg-white dark:text-black transition';
-                tabFwd.className = 'px-3 py-1.5 rounded text-zinc-600 dark:text-zinc-400 hover:text-black dark:hover:text-white transition';
+                tabRet.className = 'px-3.5 py-1.5 rounded bg-red-600 text-white transition flex items-center gap-1.5';
+                tabFwd.className = 'px-3.5 py-1.5 rounded text-zinc-600 dark:text-zinc-400 hover:text-black dark:hover:text-white transition flex items-center gap-1.5';
+                // Hiện nút Copy đảo chiều nếu Chiều đi đã có ít nhất 2 trạm
+                if (btnCopyReverse) {
+                    const fwdStops = app.routePath.editorStops.forward || [];
+                    if (fwdStops.length > 1) {
+                        btnCopyReverse.classList.remove('hidden');
+                    } else {
+                        btnCopyReverse.classList.add('hidden');
+                    }
+                }
             }
         }
         app.routePath.renderEditorStopsList();
         app.routePath.drawEditorRoute();
+    },
+
+    // Sao chép toàn bộ điểm dừng từ Chiều đi theo thứ tự đảo ngược sang Chiều về
+    copyReverseFromForward: () => {
+        const fwdStops = app.routePath.editorStops.forward || [];
+        if (fwdStops.length < 2) {
+            app.toast.show('warning', 'Chưa đủ dữ liệu', 'Chiều đi cần có ít nhất 2 điểm dừng để thực hiện sao chép đảo chiều.');
+            return;
+        }
+
+        const proceedCopy = () => {
+            // Đảo ngược mảng
+            const reversed = JSON.parse(JSON.stringify(fwdStops)).reverse();
+            app.routePath.editorStops.return = reversed;
+            app.routePath.renderEditorStopsList();
+            app.routePath.calculateRealRoute();
+            app.toast.show('success', 'Đã sao chép', 'Đã sao chép các trạm dừng từ Chiều đi theo hướng đảo ngược! Bạn có thể kéo thả di chuyển trạm nếu có sai lệch.');
+        };
+
+        const retStops = app.routePath.editorStops.return || [];
+        if (retStops.length > 0) {
+            if (app.ui && app.ui.showAlert) {
+                app.ui.showAlert("Chiều về đã có sẵn điểm dừng. Bạn có muốn ghi đè bằng danh sách đảo chiều từ Chiều đi không?", proceedCopy, null, {
+                    title: "Xác nhận sao chép",
+                    btnOkText: "Ghi đè"
+                });
+            } else {
+                proceedCopy();
+            }
+        } else {
+            proceedCopy();
+        }
     },
 
     renderEditorStopsList: () => {
@@ -16134,8 +16180,11 @@ window.app.routePath = {
         const countEl = document.getElementById('rpe-stop-count');
         if (!listEl) return;
 
+        const isFwd = app.routePath.editorDirection === 'forward';
+        const routeColor = isFwd ? '#2563eb' : '#dc2626'; // Xanh dương / Đỏ
+
         const stops = app.routePath.editorStops[app.routePath.editorDirection] || [];
-        if (countEl) countEl.innerText = `Điểm dừng (${stops.length})`;
+        if (countEl) countEl.innerText = `Điểm dừng (${stops.length}) · ${isFwd ? 'Chiều đi' : 'Chiều về'}`;
 
         if (stops.length === 0) {
             listEl.innerHTML = `
@@ -16149,13 +16198,16 @@ window.app.routePath = {
 
         listEl.innerHTML = stops.map((s, idx) => `
             <div class="rpe-stop-item flex items-center gap-1.5 p-2 rounded bg-zinc-50 dark:bg-zinc-900 border border-black dark:border-white text-xs group" data-index="${idx}">
-                <button type="button" class="stop-drag-handle cursor-grab active:cursor-grabbing text-zinc-400 hover:text-black dark:hover:text-white px-1">
+                <button type="button" class="stop-drag-handle cursor-grab active:cursor-grabbing text-zinc-400 hover:text-black dark:hover:text-white px-1" title="Kéo thả để sắp xếp thứ tự">
                     <i class="fa-solid fa-grip-vertical"></i>
                 </button>
-                <span class="w-5 h-5 rounded-full bg-black text-white dark:bg-white dark:text-black flex items-center justify-center font-bold text-[10px] shrink-0">${idx + 1}</span>
+                <span class="w-5 h-5 rounded-full flex items-center justify-center font-bold text-[10px] text-white shrink-0" style="background-color: ${routeColor};">${idx + 1}</span>
                 <div class="flex-1 min-w-0 pr-1">
-                    <input type="text" value="${app.utils.escapeAttr(s.name)}" onchange="app.routePath.renameStop(${idx}, this.value)" class="w-full bg-transparent font-bold text-black dark:text-white border-b border-transparent focus:border-black dark:focus:border-white outline-none truncate text-xs">
-                    <span class="text-[10px] text-zinc-400 block truncate">${s.lat.toFixed(5)}, ${s.lng.toFixed(5)}</span>
+                    <input type="text" value="${app.utils.escapeAttr(s.name)}" onchange="app.routePath.renameStop(${idx}, this.value)" class="w-full bg-transparent font-bold text-black dark:text-white border-b border-transparent focus:border-black dark:focus:border-white outline-none truncate text-xs" title="Bấm để sửa tên trạm">
+                    <div class="flex items-center gap-2 mt-0.5">
+                        <span class="text-[10px] text-zinc-400 truncate">${s.lat.toFixed(5)}, ${s.lng.toFixed(5)}</span>
+                        <button type="button" onclick="app.routePath.editStopCoords(${idx})" class="text-[10px] text-blue-600 hover:underline" title="Sửa tọa độ">Sửa tọa độ</button>
+                    </div>
                 </div>
                 <button type="button" onclick="app.routePath.focusEditorStop(${s.lat}, ${s.lng})" class="text-zinc-400 hover:text-black dark:hover:text-white p-1" title="Xem trên map">
                     <i class="fa-solid fa-crosshairs"></i>
@@ -16165,6 +16217,30 @@ window.app.routePath = {
                 </button>
             </div>
         `).join('');
+    },
+
+    editStopCoords: (idx) => {
+        const stops = app.routePath.editorStops[app.routePath.editorDirection];
+        if (!stops || !stops[idx]) return;
+        const curStop = stops[idx];
+        const defaultVal = `${curStop.lat.toFixed(6)}, ${curStop.lng.toFixed(6)}`;
+
+        if (app.ui && app.ui.showPrompt) {
+            app.ui.showPrompt(`Sửa tọa độ cho trạm "${curStop.name}" (định dạng: Vĩ độ, Kinh độ):`, defaultVal, (val) => {
+                if (!val || !val.trim()) return;
+                const parts = val.split(',').map(p => parseFloat(p.trim()));
+                if (parts.length === 2 && !isNaN(parts[0]) && !isNaN(parts[1])) {
+                    curStop.lat = parts[0];
+                    curStop.lng = parts[1];
+                    app.routePath.renderEditorStopsList();
+                    app.routePath.calculateRealRoute();
+                    app.routePath.focusEditorStop(curStop.lat, curStop.lng);
+                    app.toast.show('success', 'Đã cập nhật', 'Đã cập nhật tọa độ mới cho trạm dừng!');
+                } else {
+                    app.toast.show('error', 'Lỗi', 'Định dạng tọa độ không hợp lệ. Vui lòng nhập: [lat], [lng]');
+                }
+            }, { title: "Chỉnh sửa tọa độ trạm dừng" });
+        }
     },
 
     renameStop: (idx, newName) => {
@@ -16372,6 +16448,8 @@ window.app.routePath = {
         if (!app.routePath.editorMap || !app.routePath.editorLayers) return;
         app.routePath.editorLayers.clearLayers();
 
+        const isFwd = app.routePath.editorDirection === 'forward';
+        const routeColor = isFwd ? '#2563eb' : '#dc2626'; // Chiều đi: Xanh dương, Chiều về: Đỏ
         const stops = app.routePath.editorStops[app.routePath.editorDirection] || [];
         const geometry = app.routePath.editorGeoJSON[app.routePath.editorDirection];
 
@@ -16379,19 +16457,18 @@ window.app.routePath = {
         if (geometry && geometry.coordinates && geometry.coordinates.length > 0) {
             const latlngs = geometry.coordinates.map(c => [c[1], c[0]]);
             L.polyline(latlngs, {
-                color: app.routePath.editorDirection === 'forward' ? '#dc2626' : '#2563eb',
+                color: routeColor,
                 weight: 5,
                 opacity: 0.9,
                 lineJoin: 'round'
             }).addTo(app.routePath.editorLayers);
         }
 
-        // Vẽ marker điểm dừng
+        // Vẽ marker điểm dừng mang màu tương ứng với đường kẻ
         stops.forEach((stop, idx) => {
             const isTerminal = (idx === 0 || idx === stops.length - 1);
-            const badgeBg = isTerminal ? (idx === 0 ? '#16a34a' : '#dc2626') : '#18181b';
             const iconHtml = `
-                <div style="background-color: ${badgeBg}; color: #ffffff; width: 24px; height: 24px; border-radius: 9999px; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 900; border: 2px solid #ffffff; box-shadow: 0 2px 4px rgba(0,0,0,0.3);">
+                <div style="background-color: ${routeColor}; color: #ffffff; width: 24px; height: 24px; border-radius: 9999px; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 900; border: 2px solid #ffffff; box-shadow: 0 2px 4px rgba(0,0,0,0.35); cursor: move;">
                     ${idx + 1}
                 </div>
             `;
@@ -16405,7 +16482,7 @@ window.app.routePath = {
 
             const marker = L.marker([stop.lat, stop.lng], {
                 icon: customIcon,
-                draggable: true
+                draggable: true // Cho phép kéo di chuyển trực tiếp trên bản đồ
             }).addTo(app.routePath.editorLayers);
 
             // Kéo thả marker trên map để chỉnh tọa độ trạm dừng
@@ -16415,13 +16492,18 @@ window.app.routePath = {
                 stop.lng = newPos.lng;
                 app.routePath.renderEditorStopsList();
                 app.routePath.calculateRealRoute();
+                app.toast.show('success', 'Đã chuyển vị trí', `Đã dời trạm "${stop.name}" đến tọa độ mới!`);
             });
 
             const termLabel = idx === 0 ? ' (Bến đầu)' : (idx === stops.length - 1 ? ' (Bến cuối)' : '');
             marker.bindPopup(`
                 <div style="padding: 8px 12px; font-family: sans-serif;">
-                    <div style="font-size: 10px; font-weight: bold; color: #71717a; text-transform: uppercase;">Điểm dừng #${idx + 1}${termLabel}</div>
+                    <div style="font-size: 10px; font-weight: bold; color: ${routeColor}; text-transform: uppercase;">Điểm dừng #${idx + 1}${termLabel} · ${isFwd ? 'Chiều đi' : 'Chiều về'}</div>
                     <div style="font-size: 13px; font-weight: bold; margin-top: 2px;">${app.utils.escapeHtml(stop.name)}</div>
+                    <div style="font-size: 10px; color: #71717a; margin-top: 4px;"><i class="fa-solid fa-arrows-up-down-left-right mr-1"></i>Kéo thả icon trên map để đổi vị trí</div>
+                </div>
+            `);
+        });
                     <div style="font-size: 10px; color: #a1a1aa; margin-top: 4px;">Kéo thả marker để chỉnh vị trí</div>
                 </div>
             `);
