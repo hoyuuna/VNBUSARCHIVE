@@ -391,3 +391,99 @@ textarea.info-input {
 .history-table tr:last-child td {
     border-bottom: none !important;
 }
+
+/* ==========================================================================
+   FIX INLINE ALERTS & DROPDOWN CONTRAST TRONG DARK MODE
+   ========================================================================== */
+/* 1. Inline Alerts (Đỏ, Vàng, Cam, Xanh) trong Dark Mode */
+.bg-red-50, .bg-red-100 { 
+    background-color: #3b1219 !important; 
+    border: 1px solid #7f1d1d !important; 
+    color: #fca5a5 !important; 
+}
+.bg-red-50 *, .bg-red-100 * { 
+    color: #fca5a5 !important; 
+}
+.bg-red-50 a, .bg-red-100 a {
+    color: #fecaca !important;
+    text-decoration: underline !important;
+}
+
+.bg-yellow-50, .bg-yellow-100, .bg-orange-50, .bg-orange-100, .bg-amber-50, .bg-amber-100 { 
+    background-color: #382405 !important; 
+    border: 1px solid #78350f !important; 
+    color: #fde047 !important; 
+}
+.bg-yellow-50 *, .bg-yellow-100 *, .bg-orange-50 *, .bg-orange-100 *, .bg-amber-50 *, .bg-amber-100 * { 
+    color: #fde047 !important; 
+}
+
+.bg-green-50, .bg-green-100, .bg-emerald-50, .bg-emerald-100 { 
+    background-color: #0d2818 !important; 
+    border: 1px solid #14532d !important; 
+    color: #86efac !important; 
+}
+.bg-green-50 *, .bg-green-100 *, .bg-emerald-50 *, .bg-emerald-100 * { 
+    color: #86efac !important; 
+}
+
+.bg-blue-50, .bg-blue-100, .bg-indigo-50, .bg-indigo-100 { 
+    background-color: #0f1f3d !important; 
+    border: 1px solid #1e3a8a !important; 
+    color: #93c5fd !important; 
+}
+.bg-blue-50 *, .bg-blue-100 *, .bg-indigo-50 *, .bg-indigo-100 * { 
+    color: #93c5fd !important; 
+}
+
+/* 2. Dropdowns & Menus Contrast Fix (Dropdown items chữ trắng sáng, item inactive không bị xám mờ) */
+.filter-menu, .suggestion-box, #user-dropdown, .dropdown-menu {
+    background-color: #1e2023 !important;
+    border: 1px solid #333538 !important;
+    color: #e2e2e5 !important;
+}
+
+.filter-menu .filter-item, 
+.suggestion-box .suggestion-item, 
+#user-dropdown a, 
+#user-dropdown button,
+.dropdown-menu a,
+.dropdown-menu button {
+    color: #e2e2e5 !important;
+}
+
+.filter-menu .filter-item *, 
+.suggestion-box .suggestion-item *, 
+#user-dropdown a *, 
+#user-dropdown button * {
+    color: inherit !important;
+}
+
+/* Item hover trong dropdown */
+.filter-menu .filter-item:hover, 
+.suggestion-box .suggestion-item:hover,
+#user-dropdown a:hover,
+#user-dropdown button:hover {
+    background-color: #282a2d !important;
+    color: #ffffff !important;
+}
+
+/* Item Selected (Đang chọn) trong dropdown */
+.filter-menu .filter-item.selected,
+.dropdown-menu .selected {
+    background-color: #ffffff !important;
+    color: #121416 !important;
+    font-weight: 700 !important;
+}
+
+.filter-menu .filter-item.selected *,
+.dropdown-menu .selected * {
+    color: #121416 !important;
+    fill: #121416 !important;
+}
+
+.filter-menu .filter-item.selected i.check-icon,
+.filter-menu .filter-item.selected .fa-check {
+    color: #121416 !important;
+    opacity: 1 !important;
+}
