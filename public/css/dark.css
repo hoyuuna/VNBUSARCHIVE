@@ -269,3 +269,56 @@ div:has(> .history-table-wrapper),
     border-left: 4px solid #44474e !important;
     color: #c4c7cf !important;
 }
+
+/* ==========================================================================
+   TRIỆT ĐỂ FIX TRẮNG MỐC Ô GIÁ TRỊ VÀ BẢNG THÔNG TIN CHI TIẾT
+   ========================================================================== */
+.info-table, 
+.data-table, 
+.history-table {
+    background-color: #1e2023 !important;
+    background: #1e2023 !important;
+}
+
+.info-table td, 
+.info-table th, 
+.data-table td, 
+.data-table th, 
+.history-table td, 
+.history-table th, 
+.info-table .value-cell, 
+.value-cell,
+td.value-cell,
+.info-table td.value-cell {
+    background-color: #1e2023 !important;
+    background: #1e2023 !important;
+    color: #e2e2e5 !important;
+}
+
+.info-table .label,
+.data-table .label,
+td.label,
+.info-table td.label {
+    background-color: #282a2d !important;
+    background: #282a2d !important;
+    color: #c4c7cf !important;
+}
+
+.info-input, 
+.info-input:read-only, 
+.info-input:not(:read-only),
+select.info-input, 
+#info-note-display,
+textarea.info-input {
+    background-color: transparent !important;
+    background: transparent !important;
+    color: #ffffff !important;
+    border-color: transparent !important;
+    box-shadow: none !important;
+}
+
+/* Fix tr-info-date date picker input */
+#info-date {
+    background-color: transparent !important;
+    color: #ffffff !important;
+}
