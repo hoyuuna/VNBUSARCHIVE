@@ -16151,76 +16151,58 @@ window.app.routePath = {
         app.routePath.editorDirection = dir;
         const tabFwd = document.getElementById('rpe-tab-forward');
         const tabRet = document.getElementById('rpe-tab-return');
-        const btnCopyReverse = document.getElementById('btn-copy-reverse-route');
 
         if (tabFwd && tabRet) {
             if (dir === 'forward') {
                 tabFwd.className = 'px-3.5 py-1.5 rounded bg-black text-white dark:bg-white dark:text-black transition';
                 tabRet.className = 'px-3.5 py-1.5 rounded text-zinc-600 dark:text-zinc-400 hover:text-black dark:hover:text-white transition';
-                if (btnCopyReverse) btnCopyReverse.classList.add('hidden');
             } else {
                 tabRet.className = 'px-3.5 py-1.5 rounded bg-black text-white dark:bg-white dark:text-black transition';
                 tabFwd.className = 'px-3.5 py-1.5 rounded text-zinc-600 dark:text-zinc-400 hover:text-black dark:hover:text-white transition';
-                // Hiện nút Copy đảo chiều nếu Chiều đi đã có ít nhất 2 trạm
-                if (btnCopyReverse) {
-                    const fwdStops = app.routePath.editorStops.forward || [];
-                    if (fwdStops.length > 1) {
-                        btnCopyReverse.classList.remove('hidden');
-                    } else {
-                        btnCopyReverse.classList.add('hidden');
-                    }
-                }
             }
         }
         app.routePath.renderEditorStopsList();
         app.routePath.drawEditorRoute(true);
     },
 
-    // Sao chép điểm đầu - cuối từ Chiều đi theo hướng ngược lại và tìm tuyến đường hợp lý
-    copyReverseFromForward: () => {
+    // Hoán đổi dữ liệu giữa 2 chiều (nếu người dùng lỡ điền nhầm chiều đi sang chiều về hoặc ngược lại)
+    swapDirections: () => {
         const fwdStops = app.routePath.editorStops.forward || [];
-        if (fwdStops.length < 2) {
-            app.toast.show('warning', 'Chưa đủ dữ liệu', 'Chiều đi cần có ít nhất 2 điểm dừng (Bến đầu và Bến cuối) để đảo chiều.');
+        const retStops = app.routePath.editorStops.return || [];
+
+        if (fwdStops.length === 0 && retStops.length === 0) {
+            app.toast.show('warning', 'Không có dữ liệu', 'Chưa có điểm dừng nào ở cả 2 chiều để đảo đổi.');
             return;
         }
 
-        const proceedCopy = () => {
-            const firstStop = fwdStops[0];
-            const lastStop = fwdStops[fwdStops.length - 1];
+        const proceedSwap = () => {
+            // Hoán đổi stops
+            const tempStops = app.routePath.editorStops.forward;
+            app.routePath.editorStops.forward = app.routePath.editorStops.return;
+            app.routePath.editorStops.return = tempStops;
 
-            // Điểm bắt đầu của chiều về = Bến cuối của chiều đi
-            // Điểm kết thúc của chiều về = Bến đầu của chiều đi
-            const reversedTerminals = [
-                {
-                    name: lastStop.name ? `${lastStop.name} (Chiều về)` : 'Bến đầu chiều về',
-                    lat: lastStop.lat,
-                    lng: lastStop.lng
-                },
-                {
-                    name: firstStop.name ? `${firstStop.name} (Chiều về)` : 'Bến cuối chiều về',
-                    lat: firstStop.lat,
-                    lng: firstStop.lng
-                }
-            ];
+            // Hoán đổi geometry
+            const tempGeo = app.routePath.editorGeoJSON.forward;
+            app.routePath.editorGeoJSON.forward = app.routePath.editorGeoJSON.return;
+            app.routePath.editorGeoJSON.return = tempGeo;
 
-            app.routePath.editorStops.return = reversedTerminals;
             app.routePath.renderEditorStopsList();
-            app.routePath.calculateRealRoute();
-            app.toast.show('success', 'Đã tạo khung chiều về', 'Đã đảo bến đầu - cuối sang Chiều về và tự động tìm đường chạy ngược lại! Bạn có thể thêm các trạm dọc đường nếu cần.');
+            app.routePath.drawEditorRoute(true);
+            app.toast.show('success', 'Đã đảo 2 chiều', 'Đã hoán đổi toàn bộ dữ liệu giữa Chiều đi và Chiều về thành công!');
         };
 
-        const retStops = app.routePath.editorStops.return || [];
-        if (retStops.length > 0) {
-            if (app.ui && app.ui.showAlert) {
-                app.ui.showAlert("Chiều về đã có điểm dừng. Bạn có muốn đặt lại thành điểm đầu - cuối đảo ngược từ Chiều đi không?", proceedCopy, null, {
-                    title: "Xác nhận đặt lại",
-                    btnOkText: "Đặt lại"
-                });
-            } else {
-                proceedCopy();
-            }
+        if (app.ui && app.ui.showAlert) {
+            app.ui.showAlert(
+                "Bạn có muốn hoán đổi toàn bộ điểm dừng và lộ trình giữa Chiều đi và Chiều về không?",
+                proceedSwap,
+                null,
+                {
+                    title: "Xác nhận đảo chiều",
+                    btnOkText: "Đảo chiều"
+                }
+            );
         } else {
-            proceedCopy();
+            proceedSwap();
         }
     },
 

@@ -7800,9 +7800,9 @@ html.theme-dark .ct-icon {
                         </button>
                     </div>
 
-                    <!-- Nút Copy đảo ngược từ Chiều đi sang Chiều về -->
-                    <button type="button" id="btn-copy-reverse-route" onclick="app.routePath.copyReverseFromForward()" class="hidden px-2.5 py-1.5 text-xs font-bold bg-white dark:bg-black border border-black dark:border-white rounded-md hover:bg-zinc-100 dark:hover:bg-zinc-800 text-black dark:text-white transition flex items-center gap-1.5" title="Sao chép các trạm từ Chiều đi theo thứ tự đảo ngược">
-                        <i class="fa-solid fa-arrows-rotate text-zinc-500"></i> <span class="hidden sm:inline">Sao chép đảo chiều từ Chiều đi</span><span class="sm:hidden">Đảo chiều</span>
+                    <!-- Nút Hoán đổi 2 chiều (Đảo chiều nếu điền ngược) -->
+                    <button type="button" id="btn-swap-directions" onclick="app.routePath.swapDirections()" class="px-2.5 py-1.5 text-xs font-bold bg-white dark:bg-black border border-black dark:border-white rounded-md hover:bg-zinc-100 dark:hover:bg-zinc-800 text-black dark:text-white transition flex items-center gap-1.5" title="Đảo đổi dữ liệu giữa Chiều đi và Chiều về">
+                        <i class="fa-solid fa-arrows-rotate text-zinc-500"></i> <span>Đảo chiều</span>
                     </button>
                 </div>
 
@@ -7834,7 +7834,6 @@ html.theme-dark .ct-icon {
                 <div class="w-full md:w-96 border-t md:border-t-0 md:border-l border-black dark:border-white flex flex-col bg-white dark:bg-[#18181b] min-h-0 max-h-[45vh] md:max-h-none">
                     <div class="p-3.5 border-b border-black dark:border-white bg-zinc-50 dark:bg-zinc-900 flex items-center justify-between shrink-0">
                         <span class="text-xs font-bold uppercase tracking-wider text-black dark:text-white" id="rpe-stop-count">Điểm dừng (0)</span>
-                        <button type="button" onclick="app.routePath.clearCurrentStops()" class="text-xs text-red-500 hover:underline font-bold">Xóa tất cả</button>
                     </div>
                     <div class="p-2.5 text-xs text-zinc-500 dark:text-zinc-400 bg-zinc-50 dark:bg-zinc-900 border-b border-zinc-200 dark:border-zinc-800 flex items-center justify-between">
                         <span><i class="fa-solid fa-arrows-up-down mr-1"></i> Kéo thả để đổi thứ tự</span>
