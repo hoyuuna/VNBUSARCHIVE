@@ -15796,6 +15796,19 @@ window.app.routePath = {
     sortableInstance: null,
     isCalculating: false,
 
+    // Hàm tính khoảng cách giữa 2 tọa độ (mét) theo công thức Haversine
+    calculateDistanceMeters: (lat1, lon1, lat2, lon2) => {
+        const R = 6371e3; // bán kính Trái Đất theo mét
+        const rad = Math.PI / 180;
+        const dLat = (lat2 - lat1) * rad;
+        const dLon = (lon2 - lon1) * rad;
+        const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                  Math.cos(lat1 * rad) * Math.cos(lat2 * rad) *
+                  Math.sin(dLon / 2) * Math.sin(dLon / 2);
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        return R * c;
+    },
+
     // 1. HIỂN THỊ TRÊN PROFILE TUYẾN
     renderRouteView: (routeInfo, routeName, province) => {
         app.routePath.currentRouteData = routeInfo;
@@ -16006,11 +16019,29 @@ window.app.routePath = {
             app.routePath.viewMap.fitBounds(bounds, { padding: [30, 30], maxZoom: 16 });
         }
 
+        // Tính tổng cự ly (km) từ hình học OSRM hoặc các điểm dừng
+        let totalDistanceKm = 0;
+        if (geometry && geometry.coordinates && geometry.coordinates.length > 1) {
+            let meters = 0;
+            const coords = geometry.coordinates;
+            for (let i = 0; i < coords.length - 1; i++) {
+                meters += app.routePath.calculateDistanceMeters(coords[i][1], coords[i][0], coords[i + 1][1], coords[i + 1][0]);
+            }
+            totalDistanceKm = meters / 1000;
+        } else if (stops.length > 1) {
+            let meters = 0;
+            for (let i = 0; i < stops.length - 1; i++) {
+                meters += app.routePath.calculateDistanceMeters(stops[i].lat, stops[i].lng, stops[i + 1].lat, stops[i + 1].lng);
+            }
+            totalDistanceKm = meters / 1000;
+        }
+        const distText = totalDistanceKm > 0 ? ` · ${totalDistanceKm.toFixed(1)} km` : '';
+
         // Cập nhật danh sách collapsible điểm dừng (chỉ hiện các trạm đón khách thực tế)
         const summaryEl = document.getElementById('route-stops-summary');
         const listBody = document.getElementById('route-stops-list-body');
         if (summaryEl) {
-            summaryEl.innerText = `Danh sách điểm dừng (${visibleStops.length} điểm) · ${isFwd ? 'Chiều đi' : 'Chiều về'}`;
+            summaryEl.innerText = `Danh sách điểm dừng (${visibleStops.length} điểm) · ${isFwd ? 'Chiều đi' : 'Chiều về'}${distText}`;
         }
         if (listBody) {
             if (visibleStops.length === 0) {
@@ -16269,8 +16300,28 @@ window.app.routePath = {
         const stops = app.routePath.editorStops[app.routePath.editorDirection] || [];
         const realStops = stops.filter(s => !s.is_waypoint);
         const waypointCount = stops.length - realStops.length;
+
+        // Tính cự ly hiển thị trong editor
+        const geometry = app.routePath.editorGeoJSON[app.routePath.editorDirection];
+        let totalDistanceKm = 0;
+        if (geometry && geometry.coordinates && geometry.coordinates.length > 1) {
+            let meters = 0;
+            const coords = geometry.coordinates;
+            for (let i = 0; i < coords.length - 1; i++) {
+                meters += app.routePath.calculateDistanceMeters(coords[i][1], coords[i][0], coords[i + 1][1], coords[i + 1][0]);
+            }
+            totalDistanceKm = meters / 1000;
+        } else if (stops.length > 1) {
+            let meters = 0;
+            for (let i = 0; i < stops.length - 1; i++) {
+                meters += app.routePath.calculateDistanceMeters(stops[i].lat, stops[i].lng, stops[i + 1].lat, stops[i + 1].lng);
+            }
+            totalDistanceKm = meters / 1000;
+        }
+        const distText = totalDistanceKm > 0 ? ` · ${totalDistanceKm.toFixed(1)} km` : '';
+
         if (countEl) {
-            countEl.innerText = `Điểm dừng (${realStops.length}${waypointCount > 0 ? ` + ${waypointCount} dẫn đường` : ''}) · ${isFwd ? 'Chiều đi' : 'Chiều về'}`;
+            countEl.innerText = `Điểm dừng (${realStops.length}${waypointCount > 0 ? ` + ${waypointCount} dẫn đường` : ''}) · ${isFwd ? 'Chiều đi' : 'Chiều về'}${distText}`;
         }
 
         if (stops.length === 0) {
