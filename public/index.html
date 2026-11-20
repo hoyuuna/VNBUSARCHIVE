@@ -2245,7 +2245,7 @@ html.theme-dark .ct-icon {
             if (stored === 'system') {
                 theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
             }
-            document.write('<link rel="stylesheet" href="/css/' + theme + '.css?v=1795166174721" id="theme-css">');
+            document.write('<link rel="stylesheet" href="/css/' + theme + '.css?v=1795166666048" id="theme-css">');
             document.documentElement.classList.add('theme-' + theme);
             document.documentElement.style.backgroundColor = theme === 'dark' ? '#18181b' : '#fdfcf8';
 
@@ -7769,8 +7769,8 @@ html.theme-dark .ct-icon {
     </div>
 
     <!-- MODAL CHỈNH SỬA LỘ TRÌNH & ĐIỂM DỪNG TUYẾN (MAP ROUTE EDITOR) -->
-    <div id="route-path-editor-modal" class="hidden fixed inset-0 z-[3300] flex items-center justify-center p-2 sm:p-4 backdrop-blur-md overflow-hidden">
-        <div id="route-path-editor-content" class="rounded-2xl w-full max-w-4xl max-h-[92vh] flex flex-col bg-white dark:bg-[#18181b] border border-black dark:border-white transform transition-all opacity-0 scale-95 overflow-hidden">
+    <div id="route-path-editor-modal" class="hidden fixed inset-0 z-[3300] flex items-center justify-center p-2 sm:p-4 md:p-6 backdrop-blur-md overflow-hidden">
+        <div id="route-path-editor-content" class="rounded-2xl w-full max-w-6xl h-[94vh] flex flex-col bg-white dark:bg-[#18181b] border border-black dark:border-white transform transition-all opacity-0 scale-95 overflow-hidden">
             <!-- Modal Header -->
             <div class="p-4 sm:p-5 flex justify-between items-center shrink-0 border-b border-black dark:border-white">
                 <div class="min-w-0 pr-3">
@@ -7785,46 +7785,47 @@ html.theme-dark .ct-icon {
             </div>
 
             <!-- Modal Subheader: Chọn Chiều Đi / Chiều Về & Search Tool -->
-            <div class="p-3 sm:p-4 bg-zinc-50 dark:bg-zinc-900 border-b border-black dark:border-white flex flex-wrap items-center justify-between gap-2 shrink-0">
+            <div class="p-3 sm:p-4 bg-zinc-50 dark:bg-zinc-900 border-b border-black dark:border-white flex flex-wrap items-center justify-between gap-3 shrink-0 relative z-30">
                 <div class="inline-flex rounded-md border border-black dark:border-white p-0.5 bg-white dark:bg-black text-xs font-bold">
-                    <button type="button" id="rpe-tab-forward" onclick="app.routePath.switchEditorDirection('forward')" class="px-3 py-1.5 rounded bg-black text-white dark:bg-white dark:text-black transition">Chiều đi</button>
-                    <button type="button" id="rpe-tab-return" onclick="app.routePath.switchEditorDirection('return')" class="px-3 py-1.5 rounded text-zinc-600 dark:text-zinc-400 hover:text-black dark:hover:text-white transition">Chiều về</button>
+                    <button type="button" id="rpe-tab-forward" onclick="app.routePath.switchEditorDirection('forward')" class="px-3.5 py-1.5 rounded bg-black text-white dark:bg-white dark:text-black transition">Chiều đi</button>
+                    <button type="button" id="rpe-tab-return" onclick="app.routePath.switchEditorDirection('return')" class="px-3.5 py-1.5 rounded text-zinc-600 dark:text-zinc-400 hover:text-black dark:hover:text-white transition">Chiều về</button>
                 </div>
 
-                <div class="flex items-center gap-2 flex-1 min-w-[240px] max-w-md relative">
+                <div class="flex items-center gap-2 flex-1 min-w-[280px] max-w-xl relative">
                     <div class="relative w-full">
-                        <input type="text" id="rpe-search-input" placeholder="Tìm trạm / địa điểm tại VN..." class="w-full bg-white dark:bg-black border border-black dark:border-white rounded-md py-1.5 pl-8 pr-8 text-xs text-black dark:text-white outline-none" onkeydown="if(event.key==='Enter') app.routePath.searchPlace(this.value)">
-                        <i class="fa-solid fa-magnifying-glass text-zinc-400 text-xs absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none"></i>
-                        <button type="button" id="rpe-search-btn" onclick="app.routePath.searchPlace(document.getElementById('rpe-search-input').value)" class="absolute right-1 top-1/2 -translate-y-1/2 px-2 py-0.5 text-[10px] font-bold bg-zinc-100 dark:bg-zinc-800 rounded text-black dark:text-white hover:bg-zinc-200">Tìm</button>
+                        <input type="text" id="rpe-search-input" placeholder="Tìm trạm / địa điểm tại VN (VD: Yên Nghĩa, Bến xe Miền Đông, Cầu Giấy...)" class="w-full bg-white dark:bg-black border border-black dark:border-white rounded-md py-2 pl-9 pr-14 text-xs text-black dark:text-white outline-none" onkeydown="if(event.key==='Enter') app.routePath.searchPlace(this.value)">
+                        <i class="fa-solid fa-magnifying-glass text-zinc-400 text-xs absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none"></i>
+                        <button type="button" id="rpe-search-btn" onclick="app.routePath.searchPlace(document.getElementById('rpe-search-input').value)" class="absolute right-1.5 top-1/2 -translate-y-1/2 px-2.5 py-1 text-xs font-bold bg-black text-white dark:bg-white dark:text-black rounded hover:bg-zinc-800 dark:hover:bg-zinc-200 transition">Tìm</button>
                     </div>
                     <!-- Menu kết quả tìm kiếm -->
-                    <div id="rpe-search-results" class="hidden filter-menu w-full mt-1 left-0 origin-top max-h-56 overflow-y-auto z-50"></div>
+                    <div id="rpe-search-results" class="hidden filter-menu w-full mt-1.5 left-0 right-0 origin-top max-h-64 overflow-y-auto z-50"></div>
                 </div>
             </div>
 
-            <!-- Modal Body: Map 60% + Stop List 40% (Responsive layout) -->
-            <div class="flex-1 flex flex-col md:flex-row min-h-0 overflow-hidden">
+            <!-- Modal Body: Map 65% + Stop List 35% -->
+            <div class="flex-1 flex flex-col md:flex-row min-h-0 overflow-hidden relative">
                 <!-- Khung Bản đồ Leaflet -->
-                <div class="flex-1 min-h-[260px] md:min-h-0 relative bg-zinc-100 dark:bg-zinc-900">
+                <div class="flex-1 min-h-[300px] md:min-h-0 relative bg-zinc-100 dark:bg-zinc-900">
                     <div id="rpe-leaflet-map" class="w-full h-full z-0"></div>
-                    <div class="absolute top-2 left-2 z-[400] bg-white/95 dark:bg-black/95 border border-black dark:border-white rounded px-2 py-1 text-[11px] font-bold text-black dark:text-white pointer-events-none">
+                    <div class="absolute top-3 left-3 z-[400] bg-white/95 dark:bg-black/95 border border-black dark:border-white rounded-md px-2.5 py-1.5 text-xs font-bold text-black dark:text-white shadow-sm pointer-events-none">
                         <i class="fa-solid fa-arrow-pointer mr-1"></i> Bấm lên map để tạo điểm dừng
                     </div>
-                    <div id="rpe-calculating-badge" class="hidden absolute top-2 right-2 z-[400] bg-black text-white dark:bg-white dark:text-black rounded px-2.5 py-1 text-[11px] font-bold flex items-center gap-1.5">
+                    <div id="rpe-calculating-badge" class="hidden absolute top-3 right-3 z-[400] bg-black text-white dark:bg-white dark:text-black rounded-md px-3 py-1.5 text-xs font-bold flex items-center gap-2 shadow-sm">
                         <i class="fa-solid fa-circle-notch fa-spin"></i> Đang tính toán đường đi...
                     </div>
                 </div>
 
                 <!-- Cột Danh sách điểm dừng bên cạnh (Sortable List) -->
-                <div class="w-full md:w-80 border-t md:border-t-0 md:border-l border-black dark:border-white flex flex-col bg-white dark:bg-[#18181b] min-h-0 max-h-[40vh] md:max-h-none">
-                    <div class="p-3 border-b border-black dark:border-white bg-zinc-50 dark:bg-zinc-900 flex items-center justify-between shrink-0">
+                <div class="w-full md:w-96 border-t md:border-t-0 md:border-l border-black dark:border-white flex flex-col bg-white dark:bg-[#18181b] min-h-0 max-h-[45vh] md:max-h-none">
+                    <div class="p-3.5 border-b border-black dark:border-white bg-zinc-50 dark:bg-zinc-900 flex items-center justify-between shrink-0">
                         <span class="text-xs font-bold uppercase tracking-wider text-black dark:text-white" id="rpe-stop-count">Điểm dừng (0)</span>
-                        <button type="button" onclick="app.routePath.clearCurrentStops()" class="text-[10px] text-red-500 hover:underline font-bold">Xóa tất cả</button>
+                        <button type="button" onclick="app.routePath.clearCurrentStops()" class="text-xs text-red-500 hover:underline font-bold">Xóa tất cả</button>
                     </div>
-                    <div class="p-2 text-[11px] text-zinc-500 dark:text-zinc-400 bg-zinc-50 dark:bg-zinc-900 border-b border-zinc-200 dark:border-zinc-800">
-                        <i class="fa-solid fa-arrows-up-down mr-1"></i> Kéo thả <i class="fa-solid fa-grip-vertical"></i> để đổi thứ tự trạm
+                    <div class="p-2.5 text-xs text-zinc-500 dark:text-zinc-400 bg-zinc-50 dark:bg-zinc-900 border-b border-zinc-200 dark:border-zinc-800 flex items-center justify-between">
+                        <span><i class="fa-solid fa-arrows-up-down mr-1"></i> Kéo thả để đổi thứ tự</span>
+                        <span class="text-[10px] text-zinc-400">Click marker để xem</span>
                     </div>
-                    <div id="rpe-stops-sortable" class="flex-1 overflow-y-auto p-2 space-y-1.5 custom-scrollbar min-h-[120px]">
+                    <div id="rpe-stops-sortable" class="flex-1 overflow-y-auto p-2.5 space-y-2 custom-scrollbar min-h-[140px]">
                         <!-- Render các item điểm dừng tại đây -->
                     </div>
                 </div>
@@ -8066,7 +8067,7 @@ html.theme-dark .ct-icon {
 
     <!-- KHAY CHỨA TOAST Z-INDEX CAO NHẤT -->
     <div id="toast-container" class="fixed left-0 w-full flex flex-col items-center gap-2 pointer-events-none z-[99999]" style="z-index: 99999 !important;"></div>
-<script src="/app.459290f30c61.js" onerror="if(!window.__app_fallback_loaded){window.__app_fallback_loaded=true;var s=document.createElement('script');s.src='/app.js?v=' + Date.now();document.head.appendChild(s);}"></script>
+<script src="/app.9f4621e95bad.js" onerror="if(!window.__app_fallback_loaded){window.__app_fallback_loaded=true;var s=document.createElement('script');s.src='/app.js?v=' + Date.now();document.head.appendChild(s);}"></script>
 </body>
 </html>
 

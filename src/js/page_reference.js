@@ -2933,7 +2933,7 @@ window.app.routePath = {
     promptAddStop: async (lat, lng, suggestedName = '') => {
         let name = suggestedName;
         if (!name) {
-            // Thử reverse geocoding nhanh qua Nominatim để lấy tên đường
+            // Thử reverse geocoding nhanh qua Nominatim/Photon để lấy tên đường
             try {
                 const resp = await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}&accept-language=vi`);
                 if (resp.ok) {
@@ -2945,17 +2945,28 @@ window.app.routePath = {
 
         const count = app.routePath.editorStops[app.routePath.editorDirection].length;
         const defaultName = name || `Điểm dừng #${count + 1}`;
-        const finalName = prompt("Nhập tên điểm dừng / trạm:", defaultName);
-        if (finalName === null) return;
 
-        app.routePath.editorStops[app.routePath.editorDirection].push({
-            name: finalName.trim() || defaultName,
-            lat: parseFloat(lat),
-            lng: parseFloat(lng)
-        });
-
-        app.routePath.renderEditorStopsList();
-        app.routePath.calculateRealRoute();
+        // Sử dụng HoyuUI Custom Prompt thay vì prompt() native của trình duyệt
+        if (app.ui && app.ui.showPrompt) {
+            app.ui.showPrompt("Nhập tên điểm dừng / trạm:", defaultName, (finalName) => {
+                if (!finalName || !finalName.trim()) return;
+                app.routePath.editorStops[app.routePath.editorDirection].push({
+                    name: finalName.trim(),
+                    lat: parseFloat(lat),
+                    lng: parseFloat(lng)
+                });
+                app.routePath.renderEditorStopsList();
+                app.routePath.calculateRealRoute();
+            }, { title: "Tạo Điểm Dừng Mới" });
+        } else {
+            app.routePath.editorStops[app.routePath.editorDirection].push({
+                name: defaultName,
+                lat: parseFloat(lat),
+                lng: parseFloat(lng)
+            });
+            app.routePath.renderEditorStopsList();
+            app.routePath.calculateRealRoute();
+        }
     },
 
     removeStop: (idx) => {
@@ -2968,14 +2979,22 @@ window.app.routePath = {
     },
 
     clearCurrentStops: () => {
-        if (!confirm("Bạn có chắc muốn xóa toàn bộ điểm dừng của chiều này?")) return;
-        app.routePath.editorStops[app.routePath.editorDirection] = [];
-        app.routePath.editorGeoJSON[app.routePath.editorDirection] = null;
-        app.routePath.renderEditorStopsList();
-        app.routePath.drawEditorRoute();
+        if (app.ui && app.ui.showAlert) {
+            app.ui.showAlert("Bạn có chắc chắn muốn xóa toàn bộ điểm dừng của chiều này không?", () => {
+                app.routePath.editorStops[app.routePath.editorDirection] = [];
+                app.routePath.editorGeoJSON[app.routePath.editorDirection] = null;
+                app.routePath.renderEditorStopsList();
+                app.routePath.drawEditorRoute();
+            }, null, { isDestructive: true, btnOkText: "Xóa hết" });
+        } else {
+            app.routePath.editorStops[app.routePath.editorDirection] = [];
+            app.routePath.editorGeoJSON[app.routePath.editorDirection] = null;
+            app.routePath.renderEditorStopsList();
+            app.routePath.drawEditorRoute();
+        }
     },
 
-    // 3. TÌM KIẾM ĐỊA ĐIỂM / TRẠM DỪNG
+    // 3. TÌM KIẾM ĐỊA ĐIỂM / TRẠM DỪNG (HỖ TRỢ PHOTON & NOMINATIM FALLBACK)
     searchPlace: async (query) => {
         query = (query || '').trim();
         const resultsEl = document.getElementById('rpe-search-results');
@@ -2983,23 +3002,58 @@ window.app.routePath = {
 
         resultsEl.innerHTML = '<div class="p-3 text-center text-xs text-zinc-500"><i class="fa-solid fa-circle-notch fa-spin"></i> Đang tìm kiếm...</div>';
         resultsEl.classList.remove('hidden');
+        resultsEl.classList.add('active');
 
         try {
-            // Dùng Nominatim hoặc Photon để tìm kiếm địa chỉ ở VN
-            const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&countrycodes=vn&limit=6&accept-language=vi`;
-            const resp = await fetch(url);
-            if (!resp.ok) throw new Error("Lỗi mạng khi tìm kiếm");
-            const data = await resp.json();
+            // 1. Thử tìm qua Photon Komoot trước (cực nhanh, không bị rate limit gắt)
+            let items = [];
+            try {
+                const photonUrl = `https://photon.komoot.io/api/?q=${encodeURIComponent(query)}&limit=7`;
+                const pResp = await fetch(photonUrl);
+                if (pResp.ok) {
+                    const pData = await pResp.json();
+                    if (pData.features && pData.features.length > 0) {
+                        items = pData.features.map(f => {
+                            const p = f.properties || {};
+                            const coords = f.geometry?.coordinates || [];
+                            const lineParts = [p.name, p.street, p.district, p.city, p.country].filter(Boolean);
+                            return {
+                                name: p.name || query,
+                                display_name: lineParts.join(', '),
+                                lat: coords[1],
+                                lon: coords[0]
+                            };
+                        }).filter(it => typeof it.lat === 'number' && typeof it.lon === 'number');
+                    }
+                }
+            } catch(pErr) {}
 
-            if (!data || data.length === 0) {
+            // 2. Nếu Photon không có kết quả, fallback sang Nominatim
+            if (items.length === 0) {
+                const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&countrycodes=vn&limit=7&accept-language=vi`;
+                const resp = await fetch(url);
+                if (resp.ok) {
+                    const data = await resp.json();
+                    if (data && data.length > 0) {
+                        items = data.map(d => ({
+                            name: d.name || d.display_name.split(',')[0],
+                            display_name: d.display_name,
+                            lat: parseFloat(d.lat),
+                            lon: parseFloat(d.lon)
+                        }));
+                    }
+                }
+            }
+
+            if (items.length === 0) {
                 resultsEl.innerHTML = '<div class="p-3 text-center text-xs text-zinc-400">Không tìm thấy địa điểm phù hợp</div>';
                 return;
             }
 
-            resultsEl.innerHTML = data.map(item => `
-                <div class="filter-item text-xs p-2.5 hover:bg-zinc-100 dark:hover:bg-zinc-800 cursor-pointer border-b border-zinc-100 dark:border-zinc-800 last:border-none" onclick="app.routePath.selectSearchResult(${item.lat}, ${item.lon}, '${app.utils.escapeAttr(item.display_name)}')">
-                    <p class="font-bold text-black dark:text-white truncate">${app.utils.escapeHtml(item.name || item.display_name.split(',')[0])}</p>
-                    <p class="text-[10px] text-zinc-500 dark:text-zinc-400 truncate">${app.utils.escapeHtml(item.display_name)}</p>
+            resultsEl.innerHTML = items.map(item => `
+                <div class="filter-item text-xs p-2.5 hover:bg-zinc-100 dark:hover:bg-zinc-800 cursor-pointer border-b border-zinc-100 dark:border-zinc-800 last:border-none flex flex-col items-start gap-0.5 text-left" onclick="app.routePath.selectSearchResult(${item.lat}, ${item.lon}, '${app.utils.escapeAttr(item.name)}')">
+                    <p class="font-bold text-black dark:text-white truncate w-full"><i class="fa-solid fa-location-dot text-zinc-400 mr-1.5 text-[11px]"></i>${app.utils.escapeHtml(item.name)}</p>
+                    <p class="text-[10px] text-zinc-500 dark:text-zinc-400 truncate w-full">${app.utils.escapeHtml(item.display_name)}</p>
                 </div>
             `).join('');
         } catch(e) {
@@ -3009,7 +3063,10 @@ window.app.routePath = {
 
     selectSearchResult: (lat, lng, displayName) => {
         const resultsEl = document.getElementById('rpe-search-results');
-        if (resultsEl) resultsEl.classList.add('hidden');
+        if (resultsEl) {
+            resultsEl.classList.remove('active');
+            resultsEl.classList.add('hidden');
+        }
         document.getElementById('rpe-search-input').value = '';
 
         if (app.routePath.editorMap) {
