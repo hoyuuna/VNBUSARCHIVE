@@ -2809,6 +2809,7 @@ window.app.routePath = {
         const content = document.getElementById('route-path-editor-content');
         if (!modal || !content) return;
 
+        if (app.routePath.suggestedStopsLayer) app.routePath.suggestedStopsLayer.clearLayers();
         content.classList.remove('opacity-100', 'scale-100');
         content.classList.add('opacity-0', 'scale-95');
         setTimeout(() => {
@@ -2840,6 +2841,7 @@ window.app.routePath = {
         }).addTo(app.routePath.editorMap);
 
         app.routePath.editorLayers = new L.FeatureGroup().addTo(app.routePath.editorMap);
+        app.routePath.suggestedStopsLayer = new L.FeatureGroup().addTo(app.routePath.editorMap);
 
         // Click lên bản đồ để thêm trạm dừng
         app.routePath.editorMap.on('click', async (e) => {
@@ -2907,6 +2909,7 @@ window.app.routePath = {
             }
         }
         app.routePath.renderEditorStopsList();
+        if (app.routePath.suggestedStopsLayer) app.routePath.suggestedStopsLayer.clearLayers();
         app.routePath.drawEditorRoute();
     },
 
@@ -3192,6 +3195,7 @@ window.app.routePath = {
 
         if (stops.length < 2) {
             app.routePath.editorGeoJSON[app.routePath.editorDirection] = null;
+            if (app.routePath.suggestedStopsLayer) app.routePath.suggestedStopsLayer.clearLayers();
             app.routePath.drawEditorRoute();
             return;
         }
@@ -3293,6 +3297,244 @@ window.app.routePath = {
         if (bounds.isValid() && stops.length > 0) {
             app.routePath.editorMap.fitBounds(bounds, { padding: [30, 30], maxZoom: 16 });
         }
+    },
+
+    // 4.5. QUÉT VÀ GỢI Ý CÁC TRẠM DỌC THEO CUNG ĐƯỜNG (OVERPASS API)
+    scanNearbyStops: async () => {
+        const btnScan = document.getElementById('btn-scan-stops');
+        const origScanHtml = btnScan ? btnScan.innerHTML : 'Quét trạm';
+        const stops = app.routePath.editorStops[app.routePath.editorDirection] || [];
+        const geom = app.routePath.editorGeoJSON[app.routePath.editorDirection];
+
+        if (stops.length < 2 || !geom || !geom.coordinates || geom.coordinates.length === 0) {
+            app.toast.show('warning', 'Chưa có lộ trình', 'Cần có ít nhất 2 điểm dừng (Bến đầu và Bến cuối) để hệ thống tìm tuyến đường trước khi quét trạm.');
+            return;
+        }
+
+        if (!app.routePath.suggestedStopsLayer) {
+            app.routePath.suggestedStopsLayer = new L.FeatureGroup().addTo(app.routePath.editorMap);
+        }
+        app.routePath.suggestedStopsLayer.clearLayers();
+
+        if (btnScan) {
+            btnScan.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin text-blue-600"></i> Đang quét...';
+            btnScan.disabled = true;
+        }
+
+        try {
+            // 1. Tính bounding box của tuyến đường
+            let minLat = 90, maxLat = -90, minLng = 180, maxLng = -180;
+            geom.coordinates.forEach(c => {
+                const lng = c[0], lat = c[1];
+                if (lat < minLat) minLat = lat;
+                if (lat > maxLat) maxLat = lat;
+                if (lng < minLng) minLng = lng;
+                if (lng > maxLng) maxLng = lng;
+            });
+
+            // Mở rộng bbox thêm ~0.002 độ (~200m)
+            const pad = 0.002;
+            const bboxStr = `${(minLat - pad).toFixed(6)},${(minLng - pad).toFixed(6)},${(maxLat + pad).toFixed(6)},${(maxLng + pad).toFixed(6)}`;
+
+            // 2. Truy vấn Overpass API lấy các node highway=bus_stop hoặc public_transport=platform trong bbox
+            const overpassQuery = `[out:json][timeout:15];(node["highway"="bus_stop"](${bboxStr});node["public_transport"="platform"](${bboxStr}););out body;`;
+            const overpassUrl = `https://overpass-api.de/api/interpreter?data=${encodeURIComponent(overpassQuery)}`;
+
+            const resp = await fetch(overpassUrl);
+            if (!resp.ok) throw new Error("Không thể kết nối đến máy chủ bản đồ trạm xe buýt");
+            const data = await resp.json();
+            const elements = data.elements || [];
+
+            if (elements.length === 0) {
+                app.toast.show('info', 'Không có trạm trên bản đồ', 'Không tìm thấy dữ liệu điểm dừng xe buýt nào của OpenStreetMap dọc cung đường này.');
+                return;
+            }
+
+            // Hàm tính khoảng cách từ điểm P (lat, lng) đến đoạn thẳng AB (latA, lngA, latB, lngB) theo mét
+            const distToSegmentMeters = (pLat, pLng, aLat, aLng, bLat, bLng) => {
+                // Đổi sang hệ mét phẳng xấp xỉ
+                const degToMetersLat = 111320;
+                const degToMetersLng = 111320 * Math.cos((pLat * Math.PI) / 180);
+                const px = pLng * degToMetersLng, py = pLat * degToMetersLat;
+                const ax = aLng * degToMetersLng, ay = aLat * degToMetersLat;
+                const bx = bLng * degToMetersLng, by = bLat * degToMetersLat;
+
+                const dx = bx - ax, dy = by - ay;
+                const lenSq = dx * dx + dy * dy;
+                let t = lenSq === 0 ? 0 : ((px - ax) * dx + (py - ay) * dy) / lenSq;
+                t = Math.max(0, Math.min(1, t));
+                const projX = ax + t * dx, projY = ay + t * dy;
+                return Math.hypot(px - projX, py - projY);
+            };
+
+            // Hàm tính khoảng cách tối thiểu từ điểm P đến polyline
+            const distToPolylineMeters = (pLat, pLng, coords) => {
+                let minDist = Infinity;
+                for (let i = 0; i < coords.length - 1; i++) {
+                    const cA = coords[i], cB = coords[i + 1];
+                    const d = distToSegmentMeters(pLat, pLng, cA[1], cA[0], cB[1], cB[0]);
+                    if (d < minDist) minDist = d;
+                }
+                return minDist;
+            };
+
+            // 3. Lọc các trạm cách polyline không quá 45 mét
+            const existingStops = app.routePath.editorStops[app.routePath.editorDirection] || [];
+            const nearbyCandidates = [];
+
+            elements.forEach(node => {
+                if (typeof node.lat !== 'number' || typeof node.lon !== 'number') return;
+                const lat = node.lat, lng = node.lon;
+
+                // Bỏ qua nếu trạm này đã có sẵn trong danh sách điểm dừng (bán kính < 20m)
+                const alreadyAdded = existingStops.some(s => {
+                    const dLat = (s.lat - lat) * 111320;
+                    const dLng = (s.lng - lng) * 111320 * Math.cos((lat * Math.PI) / 180);
+                    return Math.hypot(dLat, dLng) < 20;
+                });
+                if (alreadyAdded) return;
+
+                const dist = distToPolylineMeters(lat, lng, geom.coordinates);
+                if (dist <= 45) { // Cách tuyến tối đa 45m (làn xe chạy)
+                    const tags = node.tags || {};
+                    const stopName = tags.name || tags['name:vi'] || tags.description || 'Trạm xe buýt';
+                    nearbyCandidates.push({
+                        id: node.id,
+                        name: stopName,
+                        lat: lat,
+                        lng: lng,
+                        distance: dist
+                    });
+                }
+            });
+
+            if (nearbyCandidates.length === 0) {
+                app.toast.show('info', 'Không có trạm phù hợp', 'Đã quét nhưng không thấy trạm xe buýt nào nằm sát làn đường của tuyến hiện tại.');
+                return;
+            }
+
+            // 4. Vẽ các marker gợi ý lên bản đồ
+            const isFwd = app.routePath.editorDirection === 'forward';
+            const routeColor = isFwd ? '#3b82f6' : '#e11d48';
+
+            nearbyCandidates.forEach(cand => {
+                const iconHtml = `
+                    <div style="background-color: #ffffff; color: #18181b; width: 22px; height: 22px; border-radius: 9999px; display: flex; align-items: center; justify-content: center; font-size: 10px; border: 2px solid ${routeColor}; box-shadow: 0 2px 4px rgba(0,0,0,0.3); cursor: pointer;" title="${app.utils.escapeAttr(cand.name)}">
+                        <i class="fa-solid fa-bus-simple text-[10px]"></i>
+                    </div>
+                `;
+                const customIcon = L.divIcon({
+                    className: 'suggested-bus-stop-icon',
+                    html: iconHtml,
+                    iconSize: [22, 22],
+                    iconAnchor: [11, 11],
+                    popupAnchor: [0, -11]
+                });
+
+                const marker = L.marker([cand.lat, cand.lng], { icon: customIcon }).addTo(app.routePath.suggestedStopsLayer);
+                
+                const popupContent = document.createElement('div');
+                popupContent.style.padding = '8px 10px';
+                popupContent.style.fontFamily = 'sans-serif';
+                popupContent.innerHTML = `
+                    <div style="font-size: 10px; font-weight: bold; color: ${routeColor}; text-transform: uppercase;">
+                        <i class="fa-solid fa-radar mr-1"></i>Trạm xe buýt gợi ý
+                    </div>
+                    <div style="font-size: 13px; font-weight: bold; margin-top: 2px; color: #000000;">
+                        ${app.utils.escapeHtml(cand.name)}
+                    </div>
+                    <div style="font-size: 10px; color: #71717a; margin-top: 2px;">
+                        Cách tuyến đường: ~${Math.round(cand.distance)}m
+                    </div>
+                    <div style="margin-top: 8px;">
+                        <button type="button" class="btn-add-cand-stop px-3 py-1 bg-black text-white text-xs font-bold rounded hover:opacity-80 transition cursor-pointer flex items-center gap-1.5 w-full justify-center">
+                            <i class="fa-solid fa-plus text-[10px]"></i> Thêm trạm vào lộ trình
+                        </button>
+                    </div>
+                `;
+
+                popupContent.querySelector('.btn-add-cand-stop').addEventListener('click', () => {
+                    app.routePath.insertStopAlongRoute(cand.name, cand.lat, cand.lng);
+                    app.routePath.suggestedStopsLayer.removeLayer(marker);
+                });
+
+                marker.bindPopup(popupContent);
+            });
+
+            app.toast.show('success', 'Đã quét xong', `Tìm thấy ${nearbyCandidates.length} trạm xe buýt gợi ý dọc tuyến đường! Click vào biểu tượng xe buýt màu trắng trên bản đồ để thêm vào lộ trình.`);
+        } catch (e) {
+            console.error("Lỗi khi quét trạm OSM:", e);
+            app.toast.show('error', 'Lỗi quét trạm', e.message || 'Không thể quét trạm lúc này, vui lòng thử lại.');
+        } finally {
+            if (btnScan) {
+                btnScan.innerHTML = origScanHtml;
+                btnScan.disabled = false;
+            }
+        }
+    },
+
+    // Chèn trạm dừng vào vị trí hợp lý theo tiến trình tuyến đường từ đầu đến cuối
+    insertStopAlongRoute: (name, lat, lng) => {
+        const stops = app.routePath.editorStops[app.routePath.editorDirection] || [];
+        const geom = app.routePath.editorGeoJSON[app.routePath.editorDirection];
+
+        const newStop = {
+            name: name || `Điểm dừng #${stops.length + 1}`,
+            lat: parseFloat(lat),
+            lng: parseFloat(lng)
+        };
+
+        if (stops.length < 2 || !geom || !geom.coordinates || geom.coordinates.length === 0) {
+            stops.push(newStop);
+            app.routePath.renderEditorStopsList();
+            app.routePath.calculateRealRoute();
+            return;
+        }
+
+        // Tìm chỉ số gần nhất trên polyline geometry để chèn đúng thứ tự
+        const coords = geom.coordinates;
+        let bestPolyIdx = 0;
+        let bestPolyDist = Infinity;
+
+        coords.forEach((c, i) => {
+            const dLat = (c[1] - lat) * 111320;
+            const dLng = (c[0] - lng) * 111320 * Math.cos((lat * Math.PI) / 180);
+            const dist = Math.hypot(dLat, dLng);
+            if (dist < bestPolyDist) {
+                bestPolyDist = dist;
+                bestPolyIdx = i;
+            }
+        });
+
+        // Xác định vị trí chèn giữa các stop hiện tại
+        // Với mỗi stop hiện tại, tìm chỉ số polyline gần nhất của nó
+        const stopPolyIndices = stops.map(s => {
+            let bIdx = 0, bDist = Infinity;
+            coords.forEach((c, i) => {
+                const dLat = (c[1] - s.lat) * 111320;
+                const dLng = (c[0] - s.lng) * 111320 * Math.cos((s.lat * Math.PI) / 180);
+                const dist = Math.hypot(dLat, dLng);
+                if (dist < bDist) {
+                    bDist = dist;
+                    bIdx = i;
+                }
+            });
+            return bIdx;
+        });
+
+        // Tìm vị trí chèn insertAt sao cho stopPolyIndices[insertAt - 1] <= bestPolyIdx <= stopPolyIndices[insertAt]
+        let insertAt = stops.length - 1; // Mặc định trước trạm cuối
+        for (let i = 0; i < stops.length; i++) {
+            if (bestPolyIdx < stopPolyIndices[i]) {
+                insertAt = Math.max(1, i);
+                break;
+            }
+        }
+
+        stops.splice(insertAt, 0, newStop);
+        app.routePath.renderEditorStopsList();
+        app.routePath.calculateRealRoute();
+        app.toast.show('success', 'Đã thêm trạm', `Đã thêm "${newStop.name}" vào vị trí số ${insertAt + 1} của lộ trình!`);
     },
 
     // 5. LƯU LỘ TRÌNH (TỰ ĐỘNG XỬ LÝ QUY TRÌNH DUYỆT)

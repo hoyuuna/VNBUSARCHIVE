@@ -7834,7 +7834,12 @@ html.theme-dark .ct-icon {
                 <div class="w-full md:w-96 border-t md:border-t-0 md:border-l border-black dark:border-white flex flex-col bg-white dark:bg-[#18181b] min-h-0 max-h-[45vh] md:max-h-none">
                     <div class="p-3.5 border-b border-black dark:border-white bg-zinc-50 dark:bg-zinc-900 flex items-center justify-between shrink-0">
                         <span class="text-xs font-bold uppercase tracking-wider text-black dark:text-white" id="rpe-stop-count">Điểm dừng (0)</span>
-                        <button type="button" onclick="app.routePath.clearCurrentStops()" class="text-xs text-red-500 hover:underline font-bold">Xóa tất cả</button>
+                        <div class="flex items-center gap-2">
+                            <button type="button" id="btn-scan-stops" onclick="app.routePath.scanNearbyStops()" class="text-xs text-blue-600 hover:underline font-bold flex items-center gap-1" title="Quét các trạm xe buýt có sẵn trên cung đường này">
+                                <i class="fa-solid fa-radar"></i> Quét trạm
+                            </button>
+                            <button type="button" onclick="app.routePath.clearCurrentStops()" class="text-xs text-red-500 hover:underline font-bold">Xóa tất cả</button>
+                        </div>
                     </div>
                     <div class="p-2.5 text-xs text-zinc-500 dark:text-zinc-400 bg-zinc-50 dark:bg-zinc-900 border-b border-zinc-200 dark:border-zinc-800 flex items-center justify-between">
                         <span><i class="fa-solid fa-arrows-up-down mr-1"></i> Kéo thả để đổi thứ tự</span>
