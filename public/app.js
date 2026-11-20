@@ -15944,6 +15944,7 @@ window.app.routePath = {
         }
 
         // Vẽ marker điểm dừng mang màu của đường kẻ (chỉ vẽ trạm dừng thật, ẩn các điểm dẫn đường waypoint)
+        app.routePath.viewStopMarkers = [];
         const visibleStops = stops.filter(s => !s.is_waypoint);
         let stopNumber = 0;
         stops.forEach((stop, idx) => {
@@ -15964,6 +15965,9 @@ window.app.routePath = {
             });
 
             const marker = L.marker([stop.lat, stop.lng], { icon: customIcon }).addTo(app.routePath.viewLayers);
+            const currentStopIdx = stopNumber - 1;
+            app.routePath.viewStopMarkers[currentStopIdx] = marker;
+
             const termLabel = idx === 0 ? ' (Bến đầu)' : (idx === stops.length - 1 ? ' (Bến cuối)' : '');
             marker.bindPopup(`
                 <div class="route-custom-popup p-2.5 font-sans bg-white dark:bg-[#18181b] text-black dark:text-white rounded border border-black dark:border-white">
@@ -15992,12 +15996,12 @@ window.app.routePath = {
                 let vIdx = 0;
                 listBody.innerHTML = stops.map((s) => {
                     if (s.is_waypoint) return '';
+                    const stopIdx = vIdx;
                     vIdx++;
                     return `
-                        <div class="flex items-center gap-2 p-2 rounded bg-white dark:bg-black border border-zinc-200 dark:border-zinc-800 text-xs cursor-pointer hover:border-black dark:hover:border-white transition" onclick="app.routePath.panToStop(${s.lat}, ${s.lng}, '${app.utils.escapeAttr(s.name)}')">
+                        <div class="flex items-center gap-2 p-2 rounded bg-white dark:bg-black border border-zinc-200 dark:border-zinc-800 text-xs cursor-pointer hover:border-black dark:hover:border-white transition" onclick="app.routePath.panToStop(${s.lat}, ${s.lng}, '${app.utils.escapeAttr(s.name)}', ${stopIdx})">
                             <span class="w-5 h-5 rounded-full flex items-center justify-center font-bold text-[10px] text-white shrink-0" style="background-color: ${routeColor};">${vIdx}</span>
                             <span class="font-bold text-black dark:text-white truncate flex-1">${app.utils.escapeHtml(s.name)}</span>
-                            <i class="fa-solid fa-location-crosshairs text-zinc-400 text-xs shrink-0"></i>
                         </div>
                     `;
                 }).join('');
@@ -16019,9 +16023,12 @@ window.app.routePath = {
         }
     },
 
-    panToStop: (lat, lng, name) => {
+    panToStop: (lat, lng, name, stopIdx = null) => {
         if (!app.routePath.viewMap) return;
         app.routePath.viewMap.setView([lat, lng], 16, { animate: true });
+        if (stopIdx !== null && app.routePath.viewStopMarkers && app.routePath.viewStopMarkers[stopIdx]) {
+            app.routePath.viewStopMarkers[stopIdx].openPopup();
+        }
     },
 
     // 2. GIAO DIỆN CHỈNH SỬA (MAP EDITOR)
@@ -16385,9 +16392,12 @@ window.app.routePath = {
         }
     },
 
-    focusEditorStop: (lat, lng) => {
+    focusEditorStop: (lat, lng, idx = null) => {
         if (!app.routePath.editorMap) return;
         app.routePath.editorMap.setView([lat, lng], 17, { animate: true });
+        if (idx !== null && app.routePath.editorStopMarkers && app.routePath.editorStopMarkers[idx]) {
+            app.routePath.editorStopMarkers[idx].openPopup();
+        }
     },
 
     promptAddStop: async (lat, lng, suggestedName = '') => {
@@ -16574,6 +16584,7 @@ window.app.routePath = {
         }
 
         // Vẽ marker điểm dừng mang màu tương ứng với đường kẻ
+        app.routePath.editorStopMarkers = [];
         let realStopCounter = 0;
         stops.forEach((stop, idx) => {
             const isWaypoint = !!stop.is_waypoint;
@@ -16605,6 +16616,8 @@ window.app.routePath = {
                 icon: customIcon,
                 draggable: true // Cho phép kéo di chuyển trực tiếp trên bản đồ
             }).addTo(app.routePath.editorLayers);
+
+            app.routePath.editorStopMarkers[idx] = marker;
 
             // Kéo thả marker trên map để chỉnh tọa độ trạm dừng (có popup xác nhận tránh lỡ tay)
             const origLat = stop.lat;
