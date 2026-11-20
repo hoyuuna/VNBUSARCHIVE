@@ -94,14 +94,9 @@ Object.assign(window.app, {
                     if (id === 'auth') {
                         if (mainHeader) mainHeader.style.display = 'none';
                         if (headerSpacer) headerSpacer.style.display = 'none';
-                        const bNav = document.getElementById('app-bottom-nav');
-                        if (bNav) bNav.style.display = 'none';
                     } else {
                         if (mainHeader) { mainHeader.style.display = ''; mainHeader.style.transform = 'translateY(0)'; }
                         if (headerSpacer) headerSpacer.style.display = '';
-                        const bNav = document.getElementById('app-bottom-nav');
-                        const isApp = (window.AndroidBridge && typeof window.AndroidBridge.isNativeApp === 'function' && window.AndroidBridge.isNativeApp()) || window.location.search.includes('app_preview=1');
-                        if (bNav && isApp && !app._bottomNavHiddenByPage) bNav.style.display = '';
                         
                         const footer = document.querySelector('footer');
                         if (footer) {
@@ -118,9 +113,6 @@ Object.assign(window.app, {
                                     app.map.stopLocation();
                                 }
                             }
-                        }
-                        if (app.pullRefresh && typeof app.pullRefresh.setEnabled === 'function') {
-                            app.pullRefresh.setEnabled(id !== 'map');
                         }
                         
                         if (['upload', 'search', 'mobile-upload', 'map', 'support-us'].includes(id)) {
@@ -158,12 +150,11 @@ Object.assign(window.app, {
                     const currentId = document.querySelector('.view-section.active')?.id || 'home';
                     const currentDepth = depths[currentId] || 0;
                     const targetDepth = depths[id] || 0;
-                    const isNative = document.body.classList.contains('is-native-app') || (window.AndroidBridge && typeof window.AndroidBridge.isNativeApp === 'function' && window.AndroidBridge.isNativeApp());
-                    let animationClass = isNative ? '' : 'slide-in-right'; 
+                    let animationClass = 'slide-in-right'; 
                     if (targetDepth < currentDepth) {
-                        animationClass = isNative ? '' : 'slide-in-left';  
+                        animationClass = 'slide-in-left';  
                     } else if (targetDepth === currentDepth) {
-                        animationClass = isNative ? '' : 'fade-zoom-in-page'; 
+                        animationClass = 'fade-zoom-in-page'; 
                     }
                     const targetEl = document.getElementById(id);
                     if (targetEl) {

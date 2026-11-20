@@ -3,6 +3,30 @@ window.INITIAL_SEARCH = window.location.search;
 window.INITIAL_HASH = window.location.hash;
 Object.assign(window.app, {
     init: async () => {
+        const isApp = window.__isAppDiscontinued || (window.AndroidBridge && typeof window.AndroidBridge.isNativeApp === 'function' && window.AndroidBridge.isNativeApp()) || window.location.search.includes('app_preview=1');
+        if (isApp) {
+            document.documentElement.classList.add('app-discontinued-mode');
+            const discScreen = document.getElementById('app-discontinued-screen');
+            if (discScreen) discScreen.style.display = 'flex';
+            const loadScreen = document.getElementById('loading-screen');
+            if (loadScreen) loadScreen.style.display = 'none';
+            const appContainer = document.getElementById('app-container');
+            if (appContainer) appContainer.style.display = 'none';
+
+            const openBrowserBtn = document.getElementById('btn-open-in-browser');
+            if (openBrowserBtn) {
+                openBrowserBtn.onclick = (e) => {
+                    e.preventDefault();
+                    if (window.AndroidBridge && typeof window.AndroidBridge.openExternalBrowser === 'function') {
+                        window.AndroidBridge.openExternalBrowser('https://www.vnbusarchive.io.vn/');
+                    } else {
+                        window.open('https://www.vnbusarchive.io.vn/', '_blank');
+                    }
+                };
+            }
+            return;
+        }
+
         window.onpopstate = () => {
             if (app.transitionHeaderLogo) app.transitionHeaderLogo();
             app.handleRoute();

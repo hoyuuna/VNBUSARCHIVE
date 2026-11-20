@@ -979,48 +979,6 @@ body.theme-dark #donation-modal-main-btn:hover {
     background-color: #e4e4e7 !important;
 }
 
-/* Auth Android App View Dark Mode */
-#auth #auth-app-view .border-black { border-color: #ffffff !important; }
-#auth #auth-app-view .bg-gray-50 { background-color: #121212 !important; }
-
-/* Native App Bottom Navigation Bar Dark Mode */
-html.theme-dark #app-bottom-nav {
-    background-color: #000000 !important;
-    border-color: #ffffff !important;
-}
-html.theme-dark #app-bottom-nav .bottom-nav-item.text-black {
-    color: #ffffff !important;
-}
-html.theme-dark #app-bottom-nav .bottom-nav-item.text-gray-400 {
-    color: #71717a !important;
-}
-html.theme-dark #app-bottom-nav #bottom-tab-upload div {
-    background-color: #ffffff !important;
-    color: #000000 !important;
-    border-color: #ffffff !important;
-}
-
-/* Android App Promo Banner Dark Mode */
-html.theme-dark #uptime-section,
-html.theme-dark #android-app-promo-card {
-    background-color: #000000 !important;
-    border: 1px solid #ffffff !important;
-}
-html.theme-dark #android-app-promo-card h4 {
-    color: #ffffff !important;
-}
-html.theme-dark #android-app-promo-card p {
-    color: #a1a1aa !important;
-}
-html.theme-dark #android-promo-download-btn {
-    background-color: #ffffff !important;
-    color: #000000 !important;
-    border: 1px solid #ffffff !important;
-}
-html.theme-dark #android-promo-download-btn:hover {
-    background-color: #e4e4e7 !important;
-}
-
 /* HoyuShot EXIF thanks notice Dark Mode */
 html.theme-dark #up-hoyushot-thanks {
     color: #d4d4d8 !important;

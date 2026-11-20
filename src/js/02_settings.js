@@ -86,17 +86,6 @@ Object.assign(window.app, {
                     app.settings.closeAccountMenu(true);
                     if (targetParent === 'account') app.settings.openAccountMenu();
 
-                    // Kích hoạt các nút chỉ dành riêng cho app Android
-                    if (window.AndroidBridge && typeof window.AndroidBridge.isNativeApp === 'function' && window.AndroidBridge.isNativeApp()) {
-                        document.querySelectorAll('.app-only-btn').forEach(el => el.classList.remove('hidden'));
-                        const pendingTab = window.AndroidBridge.getPendingOpenTab ? window.AndroidBridge.getPendingOpenTab() : '';
-                        if (pendingTab === 'app' && !targetTab) {
-                            targetTab = 'app';
-                        }
-                        if (app.androidUpdate) {
-                            app.androidUpdate.loadUI();
-                        }
-                    }
                     if (app.user) {
                         document.querySelectorAll('.account-only-btn').forEach(el => el.style.display = '');
                         if (app.user.email) {
@@ -175,9 +164,6 @@ Object.assign(window.app, {
                     if (tab === 'badges') {
                         app.settings.loadBadges();
                         app.settings.loadWebBadges();
-                    }
-                    if (tab === 'app' && app.androidUpdate) {
-                        app.androidUpdate.loadUI();
                     }
                 },
                 loadDiscordVerifyStatus: async () => {
@@ -554,141 +540,4 @@ grid.innerHTML = tiers.map(tier => {
 }
                 },
 
-});
-
-// Quản lý cập nhật và thiết lập ứng dụng Android
-Object.assign(window.app, {
-    androidUpdate: {
-        loadUI: () => {
-            if (!window.AndroidBridge || typeof window.AndroidBridge.isNativeApp !== 'function' || !window.AndroidBridge.isNativeApp()) return;
-            const verEl = document.getElementById('app-current-version');
-            if (verEl && window.AndroidBridge.getAppVersion) {
-                const v = window.AndroidBridge.getAppVersion();
-                if (v && v !== '--') {
-                    verEl.innerText = v.startsWith('v') ? v : ('v' + v);
-                }
-            }
-            try {
-                if (window.AndroidBridge.getUpdatePreferences) {
-                    const prefs = JSON.parse(window.AndroidBridge.getUpdatePreferences());
-                    const autoCheck = document.getElementById('app-toggle-auto-check');
-                    const prerelease = document.getElementById('app-toggle-prerelease');
-                    if (autoCheck) autoCheck.checked = prefs.autoCheck !== false;
-                    if (prerelease) prerelease.checked = prefs.includePrerelease === true;
-                }
-            } catch (e) {
-                console.warn('Lỗi đọc cấu hình cập nhật Android:', e);
-            }
-        },
-        savePrefs: () => {
-            if (!window.AndroidBridge || !window.AndroidBridge.setUpdatePreferences) return;
-            const autoCheck = document.getElementById('app-toggle-auto-check')?.checked !== false;
-            const prerelease = document.getElementById('app-toggle-prerelease')?.checked === true;
-            window.AndroidBridge.setUpdatePreferences(prerelease, autoCheck);
-        },
-        check: (manual = false) => {
-            if (!window.AndroidBridge || !window.AndroidBridge.checkUpdate) {
-                return app.ui.showAlert('Chức năng này chỉ khả dụng trên ứng dụng VNBUSARCHIVE Android.');
-            }
-            app.androidUpdate.loadUI();
-            const btn = document.getElementById('app-check-update-btn');
-            const box = document.getElementById('app-update-result-box');
-            if (btn) {
-                btn.disabled = true;
-                btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1"></i> Đang kiểm tra...';
-            }
-            if (box) {
-                box.classList.remove('hidden');
-                box.innerHTML = '<div class="flex items-center gap-2 text-gray-500"><i class="fa-solid fa-circle-notch fa-spin"></i> Đang kết nối tới máy chủ GitHub...</div>';
-            }
-
-            window._onAndroidUpdateResult = (rawPayload, isBase64) => {
-                if (btn) {
-                    btn.disabled = false;
-                    btn.innerHTML = '<i class="fa-solid fa-rotate mr-1"></i> Kiểm tra cập nhật';
-                }
-                let data;
-                try {
-                    if (isBase64 || (typeof rawPayload === 'string' && !rawPayload.trim().startsWith('{'))) {
-                        const binaryString = atob(rawPayload);
-                        const bytes = new Uint8Array(binaryString.length);
-                        for (let i = 0; i < binaryString.length; i++) {
-                            bytes[i] = binaryString.charCodeAt(i);
-                        }
-                        const jsonText = new TextDecoder('utf-8').decode(bytes);
-                        data = JSON.parse(jsonText);
-                    } else {
-                        data = typeof rawPayload === 'string' ? JSON.parse(rawPayload) : rawPayload;
-                    }
-                } catch (err) {
-                    if (box) box.innerHTML = `<div class="text-red-500 font-bold">Lỗi xử lý dữ liệu: ${app.utils.escapeHtml(err.message)}</div>`;
-                    return;
-                }
-
-                // Cập nhật số phiên bản hiện tại lên badge thông tin ứng dụng
-                const verEl = document.getElementById('app-current-version');
-                if (verEl && data.currentVersion) {
-                    verEl.innerText = data.currentVersion.startsWith('v') ? data.currentVersion : ('v' + data.currentVersion);
-                }
-
-                if (data.hasUpdate) {
-                    const tag = app.utils.escapeHtml(data.latestVersion);
-                    const isPre = data.isPrerelease ? '<span class="ml-2 text-[10px] font-bold px-1.5 py-0.5 rounded bg-yellow-100 text-yellow-800 border border-yellow-300">THỬ NGHIỆM</span>' : '';
-                    box.innerHTML = `
-                        <div class="space-y-3">
-                            <div class="flex flex-wrap items-center justify-between gap-2">
-                                <span class="font-bold text-black dark:text-white flex items-center text-xs sm:text-sm">
-                                    <i class="fa-solid fa-sparkles text-yellow-500 mr-2"></i> Có bản cập nhật mới: v${tag}${isPre}
-                                </span>
-                                <span class="text-[10px] text-gray-500 font-mono">Phiên bản hiện tại: v${app.utils.escapeHtml(data.currentVersion || '')}</span>
-                            </div>
-                            <div class="text-[11px] text-gray-700 dark:text-zinc-300 leading-relaxed max-h-36 overflow-y-auto whitespace-pre-wrap font-mono p-3 bg-white dark:bg-black rounded-md border border-black dark:border-white">
-${app.utils.escapeHtml(data.notes || 'Không có mô tả cập nhật.')}
-                            </div>
-                            <div class="pt-1">
-                                <button onclick="app.androidUpdate.startDownload('${data.downloadUrl}')" class="w-full sm:w-auto bg-black text-white dark:bg-white dark:text-black px-5 py-2.5 text-xs font-bold rounded-md hover:bg-gray-800 dark:hover:bg-zinc-200 transition shadow-sm flex items-center justify-center gap-2">
-                                    <i class="fa-solid fa-download"></i> Tải về & Cập nhật ngay
-                                </button>
-                            </div>
-                        </div>
-                    `;
-                } else {
-                    box.innerHTML = `
-                        <div class="flex items-center gap-2 text-green-700 font-bold">
-                            <i class="fa-solid fa-circle-check text-green-600"></i> Bạn đang sử dụng phiên bản mới nhất (v${app.utils.escapeHtml(data.latestVersion)}).
-                        </div>
-                    `;
-                }
-            };
-
-            window.AndroidBridge.checkUpdate('window._onAndroidUpdateResult');
-        },
-        startDownload: (url) => {
-            if (!url) return app.ui.showAlert('Không tìm thấy link tải file APK cho phiên bản này.');
-            const box = document.getElementById('app-update-result-box');
-            if (box) {
-                box.innerHTML = `
-                    <div class="space-y-2">
-                        <div class="flex items-center justify-between font-bold text-xs text-black dark:text-white">
-                            <span><i class="fa-solid fa-spinner fa-spin mr-1"></i> Đang tải bản cập nhật...</span>
-                            <span id="app-update-percent">0%</span>
-                        </div>
-                        <div class="w-full bg-gray-200 dark:bg-zinc-700 rounded-full h-2 overflow-hidden">
-                            <div id="app-update-bar" class="bg-black dark:bg-white h-2 transition-all duration-200" style="width: 0%"></div>
-                        </div>
-                        <p class="text-[10px] text-gray-500">File APK sau khi tải xong sẽ tự động mở màn hình xác nhận cài đặt đè.</p>
-                    </div>
-                `;
-            }
-
-            window._onAndroidDownloadProgress = (percent) => {
-                const pEl = document.getElementById('app-update-percent');
-                const bEl = document.getElementById('app-update-bar');
-                if (pEl) pEl.innerText = percent + '%';
-                if (bEl) bEl.style.width = percent + '%';
-            };
-
-            window.AndroidBridge.startUpdateDownload(url, 'window._onAndroidDownloadProgress');
-        }
-    }
 });

@@ -1,121 +1,7 @@
 
 Object.assign(window.app, {
     auth: {
-        appWebPeer: null,
-        appWebConn: null,
-        currentAppWebLoginUrl: null,
-        updateNativeAppAuthUI: () => {
-            const isApp = window.AndroidBridge && typeof window.AndroidBridge.isNativeApp === 'function' && window.AndroidBridge.isNativeApp();
-            const appView = document.getElementById('auth-app-view');
-            const webView = document.getElementById('auth-web-view');
-            if (appView && webView) {
-                if (isApp) {
-                    appView.classList.remove('hidden');
-                    webView.classList.add('hidden');
-                } else {
-                    appView.classList.add('hidden');
-                    webView.classList.remove('hidden');
-                }
-            }
-        },
-        startAppWebLogin: () => {
-            const idleEl = document.getElementById('app-web-login-idle');
-            const waitEl = document.getElementById('app-web-login-waiting');
-            const statusText = document.getElementById('app-web-login-status-text');
-            if (idleEl) idleEl.classList.add('hidden');
-            if (waitEl) waitEl.classList.remove('hidden');
-            if (statusText) statusText.innerText = "Đang tạo phiên kết nối...";
-
-            if (app.auth.appWebPeer) {
-                try { app.auth.appWebPeer.destroy(); } catch(e){}
-                app.auth.appWebPeer = null;
-            }
-            app.auth.appWebPeer = new Peer();
-            app.auth.appWebPeer.on('open', (id) => {
-                const loginUrl = window.location.origin + '/login?qr=' + id + '&client=android_app';
-                app.auth.currentAppWebLoginUrl = loginUrl;
-                if (window.AndroidBridge && typeof window.AndroidBridge.openExternalBrowser === 'function') {
-                    window.AndroidBridge.openExternalBrowser(loginUrl);
-                } else {
-                    window.open(loginUrl, '_blank');
-                }
-                if (statusText) statusText.innerText = 'Đã mở trình duyệt web. Đang chờ bạn xác nhận...';
-            });
-            app.auth.appWebPeer.on('connection', (conn) => {
-                app.auth.appWebConn = conn;
-                conn.on('open', () => {
-                    conn.send({ type: 'host_info', userAgent: 'VNBUSARCHIVE Android App' });
-                });
-                conn.on('data', async (data) => {
-                    if (data.type === 'login_token') {
-                        if (statusText) statusText.innerText = 'Xác thực thành công! Đang đăng nhập...';
-                        try {
-                            const { data: sessData, error: sessErr } = await window.sb.auth.setSession({
-                                access_token: data.access_token,
-                                refresh_token: data.refresh_token
-                            });
-                            if (sessErr) throw sessErr;
-                            conn.send({ type: 'success' });
-                            setTimeout(() => {
-                                window.location.href = '/';
-                            }, 600);
-                        } catch(err) {
-                            try {
-                                const projectUrl = window.sb?.supabaseUrl || '';
-                                const ref = projectUrl.split('//')[1]?.split('.')[0] || 'auth';
-                                const storageKey = 'sb-' + ref + '-auth-token';
-                                localStorage.setItem(storageKey, JSON.stringify({
-                                    access_token: data.access_token,
-                                    refresh_token: data.refresh_token,
-                                    token_type: 'bearer',
-                                    user: data.user || null
-                                }));
-                                conn.send({ type: 'success' });
-                                setTimeout(() => {
-                                    window.location.href = '/';
-                                }, 600);
-                                return;
-                            } catch (fbErr) {}
-                            app.ui.showAlert('Lỗi khi thiết lập phiên đăng nhập: ' + (err.message || err));
-                            app.auth.cancelAppWebLogin();
-                        }
-                    } else if (data.type === 'cancel') {
-                        app.ui.showAlert('Yêu cầu đăng nhập đã bị hủy từ trình duyệt.');
-                        app.auth.cancelAppWebLogin();
-                    }
-                });
-            });
-            app.auth.appWebPeer.on('error', (err) => {
-                console.error('App Web Login Peer error:', err);
-                if (statusText) statusText.innerText = 'Lỗi kết nối phiên đăng nhập: ' + (err.message || err);
-            });
-        },
-        reopenAppWebBrowser: () => {
-            if (app.auth.currentAppWebLoginUrl) {
-                if (window.AndroidBridge && typeof window.AndroidBridge.openExternalBrowser === 'function') {
-                    window.AndroidBridge.openExternalBrowser(app.auth.currentAppWebLoginUrl);
-                } else {
-                    window.open(app.auth.currentAppWebLoginUrl, '_blank');
-                }
-            } else {
-                app.auth.startAppWebLogin();
-            }
-        },
-        cancelAppWebLogin: () => {
-            if (app.auth.appWebConn) {
-                try { app.auth.appWebConn.close(); } catch(e){}
-                app.auth.appWebConn = null;
-            }
-            if (app.auth.appWebPeer) {
-                try { app.auth.appWebPeer.destroy(); } catch(e){}
-                app.auth.appWebPeer = null;
-            }
-            const idleEl = document.getElementById('app-web-login-idle');
-            const waitEl = document.getElementById('app-web-login-waiting');
-            if (idleEl) idleEl.classList.remove('hidden');
-            if (waitEl) waitEl.classList.add('hidden');
-        },
-                mode: 'login',
+        mode: 'login',
                 uuidTimeout: null,
                 unverifiedEmail: null,
                 showVerificationModal: (email) => {
@@ -1024,31 +910,6 @@ changePassword: async () => {
                 const btnConfirm = document.getElementById('qr-confirm-btn');
                 const avatarImg = document.getElementById('qr-confirm-avatar');
                 const deviceText = document.getElementById('qr-confirm-device');
-                const appHint = document.getElementById('qr-confirm-app-hint');
-                if (appHint) {
-                    if (searchClient === 'android_app') {
-                        appHint.classList.remove('hidden');
-                    } else {
-                        appHint.classList.add('hidden');
-                    }
-                }
-                btnConfirm.disabled = true;
-                btnConfirm.classList.add('opacity-50', 'cursor-not-allowed');
-                let timeLeft = 3;
-                btnConfirm.innerText = 'Đăng nhập (' + timeLeft + ')';
-                document.getElementById('qr-confirm-name').innerText = app.username;
-                try {
-                    const { data: profile } = await window.sb.from('profiles').select('avatar_url').eq('id', app.user.id).single();
-                    if (profile && profile.avatar_url) {
-                        avatarImg.src = app.utils.getProxiedUrl(profile.avatar_url.replace(/"/g, ''), 'avatar.jpg', 'avatar');
-                    } else if (app.user.user_metadata?.avatar_url) {
-                        avatarImg.src = app.utils.getProxiedUrl(app.user.user_metadata.avatar_url, 'avatar.jpg', 'avatar');
-                    } else {
-                        avatarImg.src = 'https://files.catbox.moe/zzh1q1.png';
-                    }
-                } catch(e) {
-                    avatarImg.src = 'https://files.catbox.moe/zzh1q1.png';
-                }
                 deviceText.innerText = "Đang kết nối để lấy thông tin thiết bị...";
                 app.qrLogin.getIP();
                 modal.classList.remove('hidden');
@@ -1091,22 +952,12 @@ changePassword: async () => {
                         if (data.type === 'host_info') {
                             deviceText.innerText = data.userAgent || 'Trình duyệt không xác định';
                             deviceText.className = "text-[10px] font-mono text-gray-800 break-words leading-tight mt-0.5";
-                            if (data.userAgent && data.userAgent.includes('Android App')) {
-                                app.qrLogin.currentClientType = 'android_app';
-                                const appHintEl = document.getElementById('qr-confirm-app-hint');
-                                if (appHintEl) appHintEl.classList.remove('hidden');
-                            }
                         }
                         else if (data.type === 'success') {
                             app.qrLogin.isSuccess = true;
-                            const isTargetApp = app.qrLogin.currentClientType === 'android_app' || (deviceText.innerText && deviceText.innerText.includes('Android App'));
-                            const appNotice = isTargetApp 
-                                ? '<div class="bg-amber-50 border border-amber-200 p-2.5 rounded-md mb-2 text-left"><p class="text-[11px] text-amber-900 font-semibold m-0"><i class="fa-solid fa-mobile-screen-button mr-1 text-amber-600"></i> Sau khi xác nhận xong, vui lòng <b>mở hoặc quay lại app VNBUSARCHIVE</b> để ứng dụng hoàn tất nhận phiên đăng nhập.</p></div>'
-                                : '';
                             app.ui.showAlert(
                                 '<div class="text-left">' +
                                     '<p class="text-sm font-bold text-green-600 mb-2"><i class="fa-solid fa-check-circle mr-1"></i> Đăng nhập thành công!</p>' +
-                                    appNotice +
                                     '<p class="text-xs text-gray-700 mb-2">Thiết bị yêu cầu đã được cấp quyền truy cập hệ thống.</p>' +
                                     '<div class="bg-gray-50 border border-gray-200 p-3 rounded-md mt-3 shadow-sm">' +
                                         '<p class="text-[10.5px] text-gray-600 font-medium leading-relaxed m-0">' +
@@ -1470,18 +1321,4 @@ changePassword: async () => {
                     }, 200);
                 }
             }
-});
-
-window.addEventListener('auth-opened', () => {
-    if (window.app && app.auth && app.auth.updateNativeAppAuthUI) {
-        app.auth.updateNativeAppAuthUI();
-    }
-});
-document.addEventListener('DOMContentLoaded', () => {
-    if (window.app && app.auth && app.auth.updateNativeAppAuthUI) {
-        app.auth.updateNativeAppAuthUI();
-    }
-    if (window.app && app.androidUpdate) {
-        app.androidUpdate.loadUI();
-    }
 });

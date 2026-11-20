@@ -2250,11 +2250,11 @@ html.theme-dark .ct-icon {
             document.documentElement.style.backgroundColor = theme === 'dark' ? '#18181b' : '#fdfcf8';
 
             try {
-                if (sessionStorage.getItem('vnbus_app_loaded') === '1') {
+                if (window.AndroidBridge || window.location.search.includes('app_preview=1')) {
+                    window.__isAppDiscontinued = true;
+                    document.documentElement.classList.add('app-discontinued-mode');
+                } else if (sessionStorage.getItem('vnbus_app_loaded') === '1') {
                     document.documentElement.classList.add('app-already-loaded');
-                }
-                if (sessionStorage.getItem('vnbus_is_refreshing') === '1') {
-                    document.documentElement.classList.add('app-is-refreshing');
                 }
             } catch (e) {}
         })();
@@ -2272,13 +2272,44 @@ html.theme-dark .ct-icon {
             display: block !important;
             opacity: 1 !important;
         }
-        html.app-is-refreshing #app-pull-refresh-badge {
-            opacity: 1 !important;
+
+        /* Khi truy cập từ App Android đã dừng hoạt động */
+        html.app-discontinued-mode #loading-screen,
+        html.app-discontinued-mode #app-container,
+        html.app-discontinued-mode header,
+        html.app-discontinued-mode footer,
+        html.app-discontinued-mode #header-spacer {
+            display: none !important;
+        }
+        html.app-discontinued-mode #app-discontinued-screen {
+            display: flex !important;
         }
     </style>
 </head>
 
 <body class="antialiased">
+
+    <!-- THÔNG BÁO DỪNG HOẠT ĐỘNG DÀNH CHO APP ANDROID -->
+    <div id="app-discontinued-screen" class="hidden fixed inset-0 z-[999999] flex-col items-center justify-center p-6 bg-white dark:bg-[#121212] text-center select-none">
+        <div class="max-w-sm w-full mx-auto flex flex-col items-center">
+            <img src="/media/icon.png" alt="VNBUSARCHIVE" class="w-20 h-20 rounded-2xl object-contain border border-black dark:border-white p-2 bg-white dark:bg-black shadow-sm mb-5">
+            <h1 class="text-xl md:text-2xl font-black text-black dark:text-white uppercase tracking-tight mb-2">VNBUSARCHIVE</h1>
+            <span class="inline-block px-2.5 py-1 text-[11px] font-bold uppercase rounded-md bg-zinc-100 dark:bg-zinc-800 text-zinc-800 dark:text-zinc-200 border border-black dark:border-white mb-4">
+                Ứng dụng Android
+            </span>
+            <div class="p-4 rounded-xl border border-black dark:border-white bg-zinc-50 dark:bg-zinc-900 w-full mb-5">
+                <p class="text-sm font-bold text-black dark:text-white mb-2">
+                    Ứng dụng đã chính thức dừng hoạt động vào ngày 20/11/2026
+                </p>
+                <p class="text-xs text-zinc-600 dark:text-zinc-400 leading-relaxed mb-0">
+                    Để tiếp tục sử dụng dịch vụ với đầy đủ tính năng và trải nghiệm mới nhất, vui lòng truy cập trực tiếp bằng trình duyệt web. Bạn có thể gỡ cài đặt ứng dụng này khỏi thiết bị.
+                </p>
+            </div>
+            <a id="btn-open-in-browser" href="https://www.vnbusarchive.io.vn/" class="w-full bg-black text-white dark:bg-white dark:text-black border border-black dark:border-white font-bold py-3 px-5 rounded-lg text-xs hover:bg-zinc-800 dark:hover:bg-zinc-200 transition flex items-center justify-center gap-2 shadow-sm no-underline">
+                <i class="fa-solid fa-arrow-up-right-from-square"></i> Mở trên trình duyệt web
+            </a>
+        </div>
+    </div>
 
     <!-- FACEBOOK SDK -->
 
@@ -3204,50 +3235,7 @@ html.theme-dark .ct-icon {
                     </div>
 
 
-                    <!-- HỘP ĐĂNG NHẬP DÀNH RIÊNG CHO APP ANDROID -->
-                    <div id="auth-app-view" class="hidden">
-                        <div class="text-center mb-6">
-                            <div class="w-14 h-14 bg-black text-white dark:bg-white dark:text-black rounded-2xl flex items-center justify-center text-xl mb-3 mx-auto shadow-md border border-black dark:border-white">
-                                <i class="fa-solid fa-globe"></i>
-                            </div>
-                            <h2 class="text-lg md:text-xl font-bold text-black dark:text-white uppercase tracking-tight mb-2">Đăng nhập qua Web</h2>
-                            <p class="text-xs text-gray-600 dark:text-zinc-400 leading-relaxed max-w-sm mx-auto">
-                                Ứng dụng Android xác thực an toàn thông qua trình duyệt web trên thiết bị của bạn.
-                            </p>
-                        </div>
 
-                        <!-- Trạng thái chờ nhấn nút -->
-                        <div id="app-web-login-idle" class="space-y-4">
-                            <button type="button" id="btn-start-app-web-login" onclick="app.auth.startAppWebLogin()" class="w-full bg-black text-white dark:bg-white dark:text-black font-bold py-3.5 rounded-xl hover:bg-gray-800 dark:hover:bg-zinc-200 transition-colors shadow-lg flex justify-center items-center gap-2">
-                                <i class="fa-solid fa-arrow-up-right-from-square"></i> Đăng nhập bằng Web
-                            </button>
-                        </div>
-
-                        <!-- Trạng thái đang kết nối & chờ xác nhận từ trình duyệt -->
-                        <div id="app-web-login-waiting" class="hidden space-y-4">
-                            <div class="p-4 rounded-xl border border-black dark:border-white bg-gray-50 dark:bg-zinc-900 text-center space-y-3">
-                                <div class="flex items-center justify-center gap-2 font-bold text-xs text-black dark:text-white">
-                                    <i class="fa-solid fa-circle-notch fa-spin text-sm"></i>
-                                    <span id="app-web-login-status-text">Đang mở trình duyệt và đợi xác nhận...</span>
-                                </div>
-                                <p class="text-[11px] text-gray-500 dark:text-zinc-400 leading-relaxed">
-                                    Vui lòng hoàn tất đăng nhập và nhấn <b>"Đăng nhập"</b> trên trình duyệt web để cấp quyền cho ứng dụng.
-                                </p>
-                                <div class="flex flex-col sm:flex-row gap-2 pt-1">
-                                    <button type="button" onclick="app.auth.reopenAppWebBrowser()" class="flex-1 bg-black text-white dark:bg-white dark:text-black text-xs font-bold py-2.5 rounded-lg hover:bg-gray-800 dark:hover:bg-zinc-200 transition shadow-sm">
-                                        <i class="fa-solid fa-arrow-up-right-from-square mr-1"></i> Mở lại trình duyệt
-                                    </button>
-                                    <button type="button" onclick="app.auth.cancelAppWebLogin()" class="flex-1 bg-white text-black dark:bg-black dark:text-white border border-black dark:border-white text-xs font-bold py-2.5 rounded-lg hover:bg-gray-100 dark:hover:bg-zinc-800 transition shadow-sm">
-                                        Hủy bỏ
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="text-center mt-6">
-                            <button type="button" onclick="app.utils.navigate('/')" class="text-xs font-semibold text-gray-500 hover:text-black dark:hover:text-white transition-colors">&larr; Quay lại trang chủ</button>
-                        </div>
-                    </div>
 
                     <!-- HỘP ĐĂNG NHẬP TIÊU CHUẨN (DÀNH CHO BẢN WEB) -->
                     <div id="auth-web-view">
@@ -3561,9 +3549,7 @@ html.theme-dark .ct-icon {
                                 <i class="fa-solid fa-layer-group w-6 text-center mr-2"></i> Cá nhân hóa
                             </button>
 
-                            <button onclick="app.settings.switchTab('app')" id="set-tab-app" class="app-only-btn hidden w-full flex items-center justify-start text-left px-4 py-3 rounded-md font-bold text-sm transition-colors bg-white text-gray-600 hover:bg-gray-50 border border-gray-200 shrink-0">
-                                <i class="fa-solid fa-mobile-screen-button w-6 text-center mr-2"></i> Cài đặt ứng dụng
-                            </button>
+
 
 
 
@@ -3740,60 +3726,7 @@ html.theme-dark .ct-icon {
                             </div>
                         </div>
 
-                        <!-- CÀI ĐẶT ỨNG DỤNG (CHỈ DÀNH CHO APP ANDROID) -->
-                        <div id="set-content-app" class="space-y-4 md:space-y-6 hidden">
-                            <!-- Card thông tin ứng dụng (Flat UI) -->
-                            <div class="bg-white dark:bg-black p-4 md:p-5 rounded-lg border border-black dark:border-white shadow-sm">
-                                <div class="flex flex-col sm:flex-row sm:items-center gap-4 pb-2">
-                                    <img src="/media/icon.png" alt="App Icon" class="w-14 h-14 rounded-lg object-contain border border-black dark:border-white p-1 bg-white dark:bg-black shrink-0">
-                                    <div class="flex-1 min-w-0">
-                                        <div class="flex flex-wrap items-center gap-2 mb-1">
-                                            <h3 class="font-bold text-base md:text-lg text-black dark:text-white uppercase tracking-tight">VNBUSARCHIVE</h3>
-                                            <span id="app-current-version" class="text-xs font-mono font-bold px-2 py-0.5 rounded-md bg-black text-white dark:bg-white dark:text-black">--</span>
-                                            <span class="text-[10px] font-bold px-2 py-0.5 rounded-md bg-gray-100 dark:bg-zinc-800 text-gray-800 dark:text-zinc-200 border border-black dark:border-white">ANDROID</span>
-                                        </div>
-                                        <p class="text-xs text-gray-500 leading-relaxed">Ứng dụng di động tra cứu và lưu trữ xe buýt Việt Nam</p>
-                                    </div>
-                                </div>
-                                <div class="pt-3">
-                                    <button id="app-check-update-btn" onclick="app.androidUpdate.check(true)" class="w-full sm:w-auto bg-black text-white dark:bg-white dark:text-black px-5 py-2.5 text-xs font-bold rounded-md hover:bg-gray-800 dark:hover:bg-zinc-200 transition shadow-sm flex items-center justify-center gap-2">
-                                        <i class="fa-solid fa-rotate mr-1"></i> Kiểm tra cập nhật
-                                    </button>
-                                </div>
-                                <div id="app-update-result-box" class="hidden mt-4 p-4 rounded-lg border border-black dark:border-white bg-gray-50 dark:bg-zinc-900 text-xs">
-                                </div>
-                            </div>
 
-                            <!-- Card tùy chọn cập nhật (Tái sử dụng .custom-cb-box) -->
-                            <div class="bg-white dark:bg-black p-4 md:p-5 rounded-lg border border-black dark:border-white shadow-sm">
-                                <h3 class="font-bold text-xs md:text-sm text-black dark:text-white mb-4 uppercase tracking-wide flex items-center gap-2">
-                                    <i class="fa-solid fa-sliders text-gray-500"></i> Tùy chọn cập nhật
-                                </h3>
-                                <div class="space-y-4">
-                                    <label class="flex items-start cursor-pointer group">
-                                        <input type="checkbox" id="app-toggle-auto-check" class="custom-cb-input sr-only" onchange="app.androidUpdate.savePrefs()">
-                                        <div class="custom-cb-box">
-                                            <i class="fa-solid fa-check"></i>
-                                        </div>
-                                        <div class="flex-1">
-                                            <div class="font-bold text-xs md:text-sm text-black dark:text-white">Tự động kiểm tra cập nhật khi mở app</div>
-                                            <div class="text-xs text-gray-500 mt-0.5 leading-relaxed">Tự động kiểm tra bản cập nhật mới trên GitHub và gửi thông báo khi có bản mới.</div>
-                                        </div>
-                                    </label>
-
-                                    <label class="flex items-start cursor-pointer group">
-                                        <input type="checkbox" id="app-toggle-prerelease" class="custom-cb-input sr-only" onchange="app.androidUpdate.savePrefs()">
-                                        <div class="custom-cb-box">
-                                            <i class="fa-solid fa-check"></i>
-                                        </div>
-                                        <div class="flex-1">
-                                            <div class="font-bold text-xs md:text-sm text-black dark:text-white">Cập nhật cả bản thử nghiệm (Pre-release)</div>
-                                            <div class="text-xs text-gray-500 mt-0.5 leading-relaxed">Nhận các bản build thử nghiệm mới nhất ngay khi vừa được biên dịch trên GitHub.</div>
-                                        </div>
-                                    </label>
-                                </div>
-                            </div>
-                        </div>
 </div>
 
 
@@ -3900,25 +3833,6 @@ html.theme-dark .ct-icon {
                     <p class="text-[13px] md:text-sm font-bold text-black dark:text-white uppercase tracking-wide">
                         ĐÃ LƯU TRỮ ẢNH XE BUÝT/KHÁCH HOÀN TOÀN MIỄN PHÍ <span id="uptime-timer" class="text-black dark:text-white">ĐANG TÍNH TOÁN...</span>
                     </p>
-                </div>
-
-                <!-- BANNER QUẢNG CÁO APP CHO NGƯỜI DÙNG ANDROID TRÊN TRÌNH DUYỆT -->
-                <div id="android-app-promo-card" class="hidden mt-4 bg-white dark:bg-black border border-black dark:border-white p-4 md:p-5 rounded-lg text-left flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                    <div class="flex items-center gap-3.5">
-                        <img src="/media/icon.png" alt="VNBUSARCHIVE App Icon" class="w-12 h-12 rounded-lg object-contain border border-black dark:border-white p-1 bg-white dark:bg-black shrink-0">
-                        <div>
-                            <h4 class="font-bold text-sm text-black dark:text-white leading-tight mb-1 flex items-center gap-1.5">
-                                Trải nghiệm VNBUSARCHIVE trên ứng dụng Android
-                                <span class="text-[9px] bg-black text-white dark:bg-white dark:text-black font-bold px-1.5 py-0.5 rounded uppercase tracking-wider">Mới</span>
-                            </h4>
-                            <p class="text-xs text-gray-600 dark:text-zinc-400 m-0 leading-relaxed">
-                                Nhanh hơn, mượt mà hơn với công nghệ tăng tốc phần cứng, tải ảnh ngầm và nhận diện trực tiếp.
-                            </p>
-                        </div>
-                    </div>
-                    <a id="android-promo-download-btn" href="https://github.com/hoyuuna/VNBUSARCHIVE/releases/download/v0.1.14/VNBUSARCHIVE-v0.1.14.apk" target="_blank" download class="w-full sm:w-auto shrink-0 bg-black text-white dark:bg-white dark:text-black border border-black dark:border-white font-bold py-2.5 px-4 rounded-lg text-xs hover:bg-gray-800 dark:hover:bg-zinc-200 transition flex items-center justify-center gap-2 no-underline">
-                        <i class="fa-solid fa-download"></i> Tải file APK
-                    </a>
                 </div>
             </div>
 
@@ -5811,29 +5725,7 @@ html.theme-dark .ct-icon {
                         </div>
                     </div>
                     <div class="w-full lg:w-3/4 space-y-6">
-                        <!-- CARD RIÊNG BIỆT CHO HÀNG NÚT CHỨC NĂNG -->
-                        <div id="profile-actions-card" class="bg-white dark:bg-black border border-black dark:border-white shadow-sm p-4 md:p-5 rounded-lg">
-                            <div id="profile-action-buttons" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2.5">
-                                <button type="button" onclick="app.settings.open()" class="bg-white dark:bg-black border border-black dark:border-white text-black dark:text-white px-3 py-2.5 rounded-lg text-xs font-bold hover:bg-gray-100 dark:hover:bg-zinc-800 transition shadow-sm flex items-center justify-center gap-2">
-                                    <i class="fa-solid fa-gear"></i> Cài đặt
-                                </button>
-                                <button type="button" onclick="app.newsboard.open()" class="bg-white dark:bg-black border border-black dark:border-white text-black dark:text-white px-3 py-2.5 rounded-lg text-xs font-bold hover:bg-gray-100 dark:hover:bg-zinc-800 transition shadow-sm flex items-center justify-center gap-2">
-                                    <i class="fa-solid fa-bell"></i> Bảng tin
-                                </button>
-                                <button type="button" onclick="app.utils.navigate('/help')" class="bg-white dark:bg-black border border-black dark:border-white text-black dark:text-white px-3 py-2.5 rounded-lg text-xs font-bold hover:bg-gray-100 dark:hover:bg-zinc-800 transition shadow-sm flex items-center justify-center gap-2">
-                                    <i class="fa-solid fa-book-open"></i> Hỗ trợ
-                                </button>
-                                <button type="button" onclick="app.utils.navigate('/contact')" class="bg-white dark:bg-black border border-black dark:border-white text-black dark:text-white px-3 py-2.5 rounded-lg text-xs font-bold hover:bg-gray-100 dark:hover:bg-zinc-800 transition shadow-sm flex items-center justify-center gap-2">
-                                    <i class="fa-solid fa-headset"></i> Liên hệ
-                                </button>
-                                <button type="button" id="btn-profile-admin" onclick="app.utils.navigate('/admin')" class="hidden bg-white dark:bg-black border border-black dark:border-white text-black dark:text-white px-3 py-2.5 rounded-lg text-xs font-bold hover:bg-gray-100 dark:hover:bg-zinc-800 transition shadow-sm flex items-center justify-center gap-2">
-                                    <i class="fa-solid fa-shield-halved"></i> Quản trị
-                                </button>
-                                <button type="button" id="btn-profile-logout" onclick="app.auth.logout()" class="col-span-2 sm:col-span-1 bg-white dark:bg-black border border-red-500 text-red-600 dark:text-red-400 px-3 py-2.5 rounded-lg text-xs font-bold hover:bg-red-50 dark:hover:bg-red-950/30 transition shadow-sm flex items-center justify-center gap-2">
-                                    <i class="fa-solid fa-right-from-bracket"></i> Đăng xuất
-                                </button>
-                            </div>
-                        </div>
+
 
                         <!-- CARD RIÊNG BIỆT CHO THỐNG KÊ & HOẠT ĐỘNG (ẨN VỚI KHÁCH) -->
                         <div id="profile-auth-only-content" class="bg-white border border-vbs-border shadow-sm p-6 rounded-lg">
@@ -7008,14 +6900,6 @@ html.theme-dark .ct-icon {
                 </p>
             </div>
 
-            <!-- Hướng dẫn cho người dùng khi xác thực đăng nhập vào ứng dụng di động -->
-            <div id="qr-confirm-app-hint" class="hidden bg-amber-50 border border-amber-200 p-3 rounded-lg mb-5 text-left">
-                <p class="text-[11px] text-amber-900 font-medium leading-relaxed">
-                    <i class="fa-solid fa-mobile-screen-button mr-1.5 text-amber-600"></i>
-                    Sau khi ấn xác nhận <b>Đăng nhập</b> xong, bạn cần <b>mở hoặc quay lại app VNBUSARCHIVE</b> để ứng dụng hoàn tất nhận phiên đăng nhập.
-                </p>
-            </div>
-
             <div class="flex gap-2">
                 <button type="button" onclick="app.qrLogin.cancelClient()" class="flex-1 bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 font-bold py-2.5 rounded-lg text-sm transition shadow-sm">
                     Hủy bỏ
@@ -8042,51 +7926,6 @@ html.theme-dark .ct-icon {
             </div>
         </div>
     </div>
-
-    <!-- BADGE PULL-TO-REFRESH CHO APP ANDROID -->
-    <div id="app-pull-refresh-badge" class="fixed inset-x-0 mx-auto w-max z-[99999] pointer-events-none opacity-0 transition-opacity duration-150" style="top: max(16px, calc(12px + env(safe-area-inset-top, 0px)));">
-        <div id="app-pull-refresh-inner" class="px-4 py-2 rounded-full border border-black dark:border-white bg-white dark:bg-black text-black dark:text-white shadow-2xl flex items-center gap-2 text-xs font-bold">
-            <i id="app-pull-refresh-icon" class="fa-solid fa-arrow-down text-xs transition-transform duration-200"></i>
-            <span id="app-pull-refresh-text">Kéo xuống để làm mới</span>
-        </div>
-    </div>
-
-    <!-- THANH ĐIỀU HƯỚNG DƯỚI ĐÁY (BOTTOM NAVIGATION BAR - DÀNH CHO APP ANDROID) -->
-    <nav id="app-bottom-nav" class="hidden fixed inset-x-0 mx-auto w-[calc(100%-1.5rem)] max-w-md bg-white dark:bg-black border border-black dark:border-white rounded-2xl z-[2500] px-1 py-1 grid grid-cols-5 items-center justify-items-center select-none shadow-2xl h-[58px]" style="bottom: 18px; -webkit-tap-highlight-color: transparent;">
-        <!-- 1. Trang chủ -->
-        <button type="button" onclick="app.bottomNav.navigate('home')" id="bottom-tab-home" class="bottom-nav-item w-full flex flex-col items-center justify-center text-gray-400 dark:text-zinc-500 hover:text-black dark:hover:text-white transition">
-            <i class="fa-solid fa-house text-lg"></i>
-            <span class="text-[10px] font-bold mt-0.5 text-center">Trang chủ</span>
-        </button>
-
-        <!-- 2. Tìm kiếm -->
-        <button type="button" onclick="app.bottomNav.navigate('search')" id="bottom-tab-search" class="bottom-nav-item w-full flex flex-col items-center justify-center text-gray-400 dark:text-zinc-500 hover:text-black dark:hover:text-white transition">
-            <i class="fa-solid fa-magnifying-glass text-lg"></i>
-            <span class="text-[10px] font-bold mt-0.5 text-center">Tìm kiếm</span>
-        </button>
-
-        <!-- 3. Nút Đăng ảnh trung tâm -->
-        <button type="button" onclick="app.bottomNav.navigate('upload')" id="bottom-tab-upload" class="bottom-nav-item w-full flex items-center justify-center">
-            <div class="w-10 h-10 rounded-lg bg-black text-white dark:bg-white dark:text-black flex items-center justify-center text-lg shadow-sm hover:scale-105 active:scale-95 transition-transform border border-black dark:border-white">
-                <i class="fa-solid fa-plus"></i>
-            </div>
-        </button>
-
-        <!-- 4. Bản đồ -->
-        <button type="button" onclick="app.bottomNav.navigate('map')" id="bottom-tab-map" class="bottom-nav-item w-full flex flex-col items-center justify-center text-gray-400 dark:text-zinc-500 hover:text-black dark:hover:text-white transition">
-            <i class="fa-solid fa-map-location-dot text-lg"></i>
-            <span class="text-[10px] font-bold mt-0.5 text-center">Bản đồ</span>
-        </button>
-
-        <!-- 5. Cá nhân (Avatar viền xám khi chưa chọn) -->
-        <button type="button" onclick="app.bottomNav.navigate('profile')" id="bottom-tab-profile" class="bottom-nav-item w-full flex flex-col items-center justify-center text-gray-400 dark:text-zinc-500 hover:text-black dark:hover:text-white transition">
-            <div class="w-5 h-5 flex items-center justify-center">
-                <img id="bottom-tab-avatar" src="" class="w-5 h-5 rounded-full object-cover border border-gray-400 dark:border-zinc-600 shrink-0" style="display: none;" alt="Avatar">
-                <i id="bottom-tab-avatar-icon" class="fa-solid fa-circle-user text-lg shrink-0"></i>
-            </div>
-            <span id="bottom-tab-profile-label" class="text-[10px] font-bold mt-0.5 text-center">Tài khoản</span>
-        </button>
-    </nav>
 
     <!-- KHAY CHỨA TOAST Z-INDEX CAO NHẤT -->
     <div id="toast-container" class="fixed left-0 w-full flex flex-col items-center gap-2 pointer-events-none z-[99999]" style="z-index: 99999 !important;"></div>

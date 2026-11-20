@@ -112,175 +112,19 @@ window.addEventListener('error', function(event) {
 const initCoreHeader = () => {
     const header = document.querySelector('header');
     if (!header) return;
-    const headerNavCard = header.querySelector('.header-nav-card') || header.querySelector(':scope > div');
-    const headerCardContent = header.querySelector('.header-card-content');
+    if (!header.classList.contains('transition-transform')) {
+        header.classList.add('transition-transform', 'duration-300');
+    }
+    const headerInner = header.querySelector(':scope > div');
 
     let lastScrollY = window.scrollY;
-    let targetProgress = 0;   // 0 = fully expanded, 1 = fully collapsed & hidden
-    let currentProgress = 0;
+    let lastScrollDirection = 'up';
     let isMouseNearTop = false;
-    let rafId = null;
-    let lastDropletHiddenState = false;
+    const threshold = 50; 
+    const scrollDelta = 8;
 
-    const SCROLL_RANGE = 160; // Khoảng cách cuộn mượt mà để hoàn tất 1 chu kỳ thu gọn / mở ra (160px)
-    const circleSize = 48;    // Kích thước chuẩn của hình tròn giọt nước (48px x 48px)
-    const targetRadius = circleSize / 2; // 24px: Bán kính để tạo hình tròn 100% chuẩn xác
-
-    let naturalWidth = 0;
-    let naturalHeight = 0;
-
-    const updateNaturalDimensions = () => {
-        if (!headerNavCard || currentProgress > 0.001) return;
-        const rect = headerNavCard.getBoundingClientRect();
-        if (rect.width > 100) naturalWidth = rect.width;
-        if (rect.height > 30) naturalHeight = rect.height;
-    };
-
-    const getFullWidth = () => {
-        if (naturalWidth > 100) return naturalWidth;
-        const clientW = document.documentElement.clientWidth || window.innerWidth;
-        return Math.min(1280, clientW - 32);
-    };
-
-    const getFullHeight = () => {
-        if (naturalHeight > 30) return naturalHeight;
-        return window.innerWidth >= 1024 ? 66 : (headerNavCard.offsetHeight || 66);
-    };
-
-    updateNaturalDimensions();
-
-    const renderHeaderProgress = (p) => {
-        if (!headerNavCard) return;
-
-        const fullW = getFullWidth();
-        const fullH = getFullHeight();
-        const isDark = document.documentElement.classList.contains('theme-dark');
-        const baseRadius = isDark ? 8 : 16;
-
-        // Trạng thái 0: Mở hoàn toàn (100% kích thước tự nhiên, xóa toàn bộ inline styles để không lệch layout)
-        if (p <= 0.001) {
-            headerNavCard.style.width = '';
-            headerNavCard.style.height = '';
-            headerNavCard.style.transform = '';
-            headerNavCard.style.borderRadius = '';
-            headerNavCard.style.opacity = '';
-            headerNavCard.style.pointerEvents = 'auto';
-            if (headerCardContent) {
-                headerCardContent.style.opacity = '';
-                headerCardContent.style.visibility = '';
-                headerCardContent.style.pointerEvents = 'auto';
-            }
-            if (lastDropletHiddenState) {
-                lastDropletHiddenState = false;
-                header.classList.remove('header-droplet-hidden');
-                if (app.toast && app.toast.updatePosition) app.toast.updatePosition();
-            }
-            updateNaturalDimensions();
-            return;
-        }
-
-        // Trạng thái 1: Đã thu thành giọt nước và bay mất hoàn toàn lên mép trên
-        if (p >= 0.999) {
-            headerNavCard.style.width = `${circleSize}px`;
-            headerNavCard.style.height = `${circleSize}px`;
-            headerNavCard.style.borderRadius = '50%';
-            headerNavCard.style.transform = 'translate3d(0, -90px, 0) scale(0.7)';
-            headerNavCard.style.opacity = '0';
-            headerNavCard.style.pointerEvents = 'none';
-            if (headerCardContent) {
-                headerCardContent.style.opacity = '0';
-                headerCardContent.style.visibility = 'hidden';
-                headerCardContent.style.pointerEvents = 'none';
-            }
-            if (!lastDropletHiddenState) {
-                lastDropletHiddenState = true;
-                header.classList.add('header-droplet-hidden');
-                if (app.toast && app.toast.updatePosition) app.toast.updatePosition();
-            }
-            return;
-        }
-
-        if (lastDropletHiddenState) {
-            lastDropletHiddenState = false;
-            header.classList.remove('header-droplet-hidden');
-            if (app.toast && app.toast.updatePosition) app.toast.updatePosition();
-        }
-
-        // Quản lý nội dung bên trong:
-        // Hiển thị mượt mà khi navbar nở ra đủ không gian (p <= 0.18).
-        // Logo, Ô tìm kiếm và Menu hiện đồng thời và đạt 100% độ rõ trước khi chạm đích, không bị trễ hay quên.
-        if (headerCardContent) {
-            if (p <= 0.22) {
-                const op = Math.min(1, (0.22 - p) / 0.16);
-                headerCardContent.style.visibility = 'visible';
-                headerCardContent.style.opacity = op.toFixed(3);
-                headerCardContent.style.pointerEvents = p <= 0.04 ? 'auto' : 'none';
-            } else {
-                headerCardContent.style.opacity = '0';
-                headerCardContent.style.visibility = 'hidden';
-                headerCardContent.style.pointerEvents = 'none';
-            }
-        }
-
-        if (p <= 0.55) {
-            // GIAI ĐOẠN 1: Thu gọn từ thanh navbar thành hình tròn giọt nước (48x48px)
-            // hoặc phóng to từ giọt nước ra thanh navbar theo đúng cử chỉ cuộn của người dùng
-            const t = p / 0.55; // 0 -> 1
-            const ease = t * t * (3 - 2 * t); // Smoothstep mượt mà
-
-            const currentW = fullW - ease * (fullW - circleSize);
-            const currentH = fullH - ease * (fullH - circleSize);
-            const currentR = baseRadius + ease * (targetRadius - baseRadius);
-            const ty = ease * 6; // Lắng nhẹ 6px xuống tạo cảm giác giọt nước gom tụ tự nhiên
-
-            headerNavCard.style.width = `${currentW.toFixed(1)}px`;
-            headerNavCard.style.height = `${currentH.toFixed(1)}px`;
-            headerNavCard.style.borderRadius = `${currentR.toFixed(1)}px`;
-            headerNavCard.style.transform = `translate3d(0, ${ty.toFixed(1)}px, 0)`;
-            headerNavCard.style.opacity = '1';
-            headerNavCard.style.pointerEvents = p > 0.35 ? 'none' : 'auto';
-        } else {
-            // GIAI ĐOẠN 2: Đã là HÌNH TRÒN 100% (48x48px, border-radius 50%), trượt vút lên trên ẩn khỏi màn hình
-            const u = (p - 0.55) / 0.45; // 0 -> 1
-            const easeU = u * u;
-            const ty = 6 - easeU * 90;
-            const scale = 1 - easeU * 0.3; // Scale đồng đều 1:1, tuyệt đối không bị méo mó
-            const cardOpacity = Math.max(0, 1 - u * 1.6);
-
-            headerNavCard.style.width = `${circleSize}px`;
-            headerNavCard.style.height = `${circleSize}px`;
-            headerNavCard.style.borderRadius = '50%';
-            headerNavCard.style.transform = `translate3d(0, ${ty.toFixed(1)}px, 0) scale(${scale.toFixed(3)})`;
-            headerNavCard.style.opacity = cardOpacity.toFixed(3);
-            headerNavCard.style.pointerEvents = 'none';
-        }
-    };
-
-    const updateLoop = () => {
-        const diff = targetProgress - currentProgress;
-        if (Math.abs(diff) > 0.002) {
-            currentProgress += diff * 0.45;
-            renderHeaderProgress(currentProgress);
-            rafId = window.requestAnimationFrame(updateLoop);
-        } else {
-            currentProgress = targetProgress;
-            renderHeaderProgress(currentProgress);
-            rafId = null;
-        }
-    };
-
-    const requestUpdate = () => {
-        if (!rafId) {
-            rafId = window.requestAnimationFrame(updateLoop);
-        }
-    };
-
-    window.addEventListener('scroll', () => {
+    const checkHeaderState = () => {
         const currentScrollY = window.scrollY;
-        const diff = currentScrollY - lastScrollY;
-        lastScrollY = currentScrollY;
-
-        // Nếu ở sát đỉnh trang (scrollY <= 10) hoặc đang mở popup/menu, luôn mở hoàn toàn
         const isSearchFocused = document.activeElement && document.activeElement.id === 'search-input';
         const userMenu = document.getElementById('user-dropdown');
         const isUserMenuOpen = userMenu && userMenu.classList.contains('opacity-100');
@@ -288,55 +132,93 @@ const initCoreHeader = () => {
         const isFilterMenuOpen = filterMenu && filterMenu.classList.contains('active');
         const searchSuggestions = document.getElementById('main-search-suggestions');
         const isSuggestionsOpen = searchSuggestions && searchSuggestions.classList.contains('active');
+        const isHoveringCard = headerInner && headerInner.matches(':hover');
 
-        const anyMenuOpen = (isSearchFocused || isUserMenuOpen || isFilterMenuOpen || isSuggestionsOpen);
-        header.classList.toggle('menu-open', !!anyMenuOpen);
-
-        if (anyMenuOpen || currentScrollY <= 10) {
-            targetProgress = 0;
-            requestUpdate();
+        if (isSearchFocused || isUserMenuOpen || isFilterMenuOpen || isSuggestionsOpen || isHoveringCard || isMouseNearTop) {
+            header.style.transform = 'translateY(0)';
             return;
         }
 
-        // Cuộn xuống (diff > 0): 120px để thu gọn nhẹ nhàng vào giọt nước
-        // Cuộn lên (diff < 0): chỉ cần 75px là bung ra trọn vẹn ngay lập tức, cực kỳ nhạy bén khi đang kéo sâu
-        const scrollDeltaRange = diff < 0 ? 75 : 120;
-        targetProgress = Math.max(0, Math.min(1, targetProgress + diff / scrollDeltaRange));
-        requestUpdate();
-    }, { passive: true });
+        if (currentScrollY <= threshold) {
+            header.style.transform = 'translateY(0)';
+            return;
+        }
 
-    window.addEventListener('mousemove', (e) => {
-        // Chỉ khi chuột rê lên sát mép trên cùng (<= 15px) mới gọi header xuống
-        const nearTop = e.clientY <= 15;
-        if (nearTop !== isMouseNearTop) {
-            isMouseNearTop = nearTop;
-            if (isMouseNearTop) {
-                targetProgress = 0;
-                requestUpdate();
-            }
+        if (lastScrollDirection === 'down') {
+            header.style.transform = 'translateY(-100%)';
+        } else {
+            header.style.transform = 'translateY(0)';
+        }
+    };
+
+    const syncHeader = () => {
+        checkHeaderState();
+        if (app.toast && app.toast.updatePosition) app.toast.updatePosition();
+    };
+
+    let scrollTicking = false;
+    window.addEventListener('scroll', () => {
+        const currentScrollY = window.scrollY;
+        const diff = currentScrollY - lastScrollY;
+        if (Math.abs(diff) >= scrollDelta) {
+            lastScrollDirection = diff > 0 ? 'down' : 'up';
+            lastScrollY = currentScrollY;
+        }
+        if (!scrollTicking) {
+            window.requestAnimationFrame(() => {
+                syncHeader();
+                scrollTicking = false;
+            });
+            scrollTicking = true;
         }
     }, { passive: true });
+
+    document.addEventListener('click', () => {
+        setTimeout(syncHeader, 50);
+    });
+
+    document.addEventListener('focusout', () => {
+        setTimeout(syncHeader, 50);
+    });
+
+    document.addEventListener('mousemove', (e) => {
+        const wasNearTop = isMouseNearTop;
+        if (e.clientY <= 12) {
+            isMouseNearTop = true;
+        } else {
+            isMouseNearTop = false;
+        }
+        if (wasNearTop !== isMouseNearTop) {
+            syncHeader();
+        }
+    });
 
     document.addEventListener('mouseleave', () => {
         if (isMouseNearTop) {
             isMouseNearTop = false;
+            syncHeader();
         }
     });
+
+    if (headerInner) {
+        headerInner.addEventListener('mouseenter', () => {
+            syncHeader();
+        });
+        headerInner.addEventListener('mouseleave', () => {
+            syncHeader();
+        });
+    }
 
     let resizeTicking = false;
     window.addEventListener('resize', () => {
         if (!resizeTicking) {
             window.requestAnimationFrame(() => {
-                naturalWidth = 0;
-                naturalHeight = 0;
-                updateNaturalDimensions();
                 if (app.toast && app.toast.updatePosition) app.toast.updatePosition();
                 resizeTicking = false;
             });
             resizeTicking = true;
         }
     }, { passive: true });
-
 
     if (app.toast && app.toast.updatePosition) app.toast.updatePosition();
 
@@ -421,7 +303,7 @@ Object.assign(window.app, {
                     if (!container) return;
                     const GAP = 16;
                     const header = document.querySelector('header');
-                    if (!header || header.style.display === 'none' || header.classList.contains('header-droplet-hidden') || (header.style.transform || '').includes('-100%')) {
+                    if (!header || header.style.display === 'none' || (header.style.transform || '').includes('-100%')) {
                         container.style.top = `calc(env(safe-area-inset-top, 0px) + ${GAP}px)`;
                         return;
                     }
@@ -697,1997 +579,18 @@ Object.assign(window.app, {
                 }
             },
 
-            _initialLoadingDismissed: false,
-            _headerLogoTimer: null,
-            _headerLogoTransitioned: false,
-            _headerLogoComplete: false,
-            transitionHeaderLogo: () => {
-                if (app._headerLogoTransitioned) return;
-                app._headerLogoTransitioned = true;
-                if (app._headerLogoTimer) {
-                    clearTimeout(app._headerLogoTimer);
-                    app._headerLogoTimer = null;
-                }
-                const textEl = document.getElementById('header-logo-text');
-                const imgEl = document.getElementById('header-logo-img');
-                const containerEl = document.getElementById('header-logo');
-                if (!textEl || !imgEl) return;
-
-                textEl.style.transition = 'transform 0.45s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.35s ease-out, filter 0.35s ease-out';
-                imgEl.style.transition = 'transform 0.45s cubic-bezier(0.16, 1, 0.3, 1) 0.05s, opacity 0.38s cubic-bezier(0.16, 1, 0.3, 1) 0.05s';
-
-                textEl.style.transform = 'translateX(90px)';
-                textEl.style.opacity = '0';
-                textEl.style.filter = 'blur(8px)';
-                imgEl.style.transform = 'translateX(0)';
-                imgEl.style.opacity = '1';
-                imgEl.style.pointerEvents = 'auto';
-                setTimeout(() => {
-                    app._headerLogoComplete = true;
-                    textEl.style.display = 'none';
-                    imgEl.style.position = 'static';
-                    imgEl.style.transform = 'none';
-                    imgEl.style.transition = 'none';
-                    if (containerEl) {
-                        containerEl.style.overflow = 'visible';
-                    }
-                }, 520);
-            },
-            dismissInitialLoadingScreen: () => {
-                if (app._initialLoadingDismissed) return;
-                app._initialLoadingDismissed = true;
-                const loadingScreen = document.getElementById('loading-screen');
-                const appContainer = document.getElementById('app-container');
-                if (appContainer) {
-                    appContainer.style.display = 'block';
-                    void appContainer.offsetHeight;
-                    appContainer.style.opacity = '1';
-                }
-                if (loadingScreen) {
-                    loadingScreen.style.opacity = '0';
-                    loadingScreen.style.pointerEvents = 'none';
-                    setTimeout(() => {
-                        loadingScreen.style.display = 'none';
-                    }, 400);
-                }
-                if (!app._headerLogoTransitioned) {
-                    if (app._headerLogoTimer) clearTimeout(app._headerLogoTimer);
-                    app._headerLogoTimer = setTimeout(() => {
-                        app.transitionHeaderLogo();
-                    }, 3000);
-                }
-            },
-
-    ui: {
-                initSliderEditableBadges: () => {
-                    if (window._sliderEditableBadgesInit) return;
-                    window._sliderEditableBadgesInit = true;
-
-                    const sliderMap = {
-                        'crop-rotate-val': { slider: 'crop-rotate-slider', unit: '°' },
-                        'val-brightness': { slider: 'adj-brightness', unit: '%' },
-                        'val-contrast': { slider: 'adj-contrast', unit: '%' },
-                        'val-saturation': { slider: 'adj-saturation', unit: '%' },
-                        'val-denoise': { slider: 'adj-denoise', unit: '%' },
-                        'wm-rotate-val': { slider: 'wm-rotate-slider', unit: '°' },
-                        'wm-scale-val': { slider: 'wm-scale-slider', unit: '%' },
-                        'wm-bar-scale-val': { slider: 'wm-bar-scale-slider', unit: '%' },
-                        'mgr-wm-scale-val': { slider: 'mgr-wm-scale', unit: '%' },
-                        'mgr-wm-dx-val': { slider: 'mgr-wm-dx', unit: ' px' },
-                        'mgr-wm-dy-val': { slider: 'mgr-wm-dy', unit: ' px' }
-                    };
-
-                    document.addEventListener('click', (e) => {
-                        const badge = e.target.closest('[data-slider], #crop-rotate-val, #val-brightness, #val-contrast, #val-saturation, #val-denoise, #wm-rotate-val, #wm-scale-val, #wm-bar-scale-val, #mgr-wm-scale-val, #mgr-wm-dx-val, #mgr-wm-dy-val');
-                        if (!badge) return;
-
-                        if (badge.dataset.isEditing === 'true') return;
-
-                        let sliderId = badge.getAttribute('data-slider');
-                        let unit = badge.getAttribute('data-unit');
-                        if (!sliderId && sliderMap[badge.id]) {
-                            sliderId = sliderMap[badge.id].slider;
-                            unit = sliderMap[badge.id].unit;
-                        }
-
-                        const slider = sliderId ? document.getElementById(sliderId) : null;
-                        if (!slider) return;
-
-                        e.preventDefault();
-                        e.stopPropagation();
-
-                        if (!unit) {
-                            const text = badge.textContent || '';
-                            if (text.includes('°')) unit = '°';
-                            else if (text.includes('%')) unit = '%';
-                            else if (text.includes('px')) unit = ' px';
-                            else unit = '';
-                        }
-
-                        const min = slider.min !== '' ? parseFloat(slider.min) : -Infinity;
-                        const max = slider.max !== '' ? parseFloat(slider.max) : Infinity;
-                        const step = (slider.step !== '' && slider.step !== 'any') ? parseFloat(slider.step) : 1;
-
-                        const currentVal = slider.value !== undefined ? slider.value : '';
-                        const oldVal = currentVal;
-
-                        badge.dataset.isEditing = 'true';
-
-                        const wrapper = document.createElement('span');
-                        wrapper.className = 'inline-flex items-center justify-center p-0 m-0';
-
-                        const input = document.createElement('input');
-                        input.type = 'text';
-                        input.inputMode = (min < 0 || step < 1) ? 'text' : 'numeric';
-                        input.value = currentVal;
-                        input.className = 'bg-transparent text-center font-mono font-bold text-[10px] text-black dark:text-white outline-none p-0 m-0 border-none';
-                        input.style.width = Math.max(22, (String(currentVal).length + 0.5) * 7.5) + 'px';
-                        input.style.lineHeight = '1';
-
-                        const unitSpan = document.createElement('span');
-                        unitSpan.className = 'font-mono font-bold text-[10px] text-gray-500 dark:text-gray-400 select-none pointer-events-none';
-                        unitSpan.style.lineHeight = '1';
-                        unitSpan.innerText = unit;
-
-                        wrapper.appendChild(input);
-                        if (unit) wrapper.appendChild(unitSpan);
-
-                        badge.innerHTML = '';
-                        badge.appendChild(wrapper);
-
-                        badge.classList.add('ring-1', 'ring-black', 'dark:ring-white', 'border-black', 'dark:border-white', 'bg-white', 'dark:bg-black');
-
+            // Tự động kích hoạt thanh tải trên cùng hoặc pill làm mới khi trang được reload/refresh trong phiên
+            _sessionAutoLoadStarted: (() => {
+                try {
+                    const isAppLoaded = sessionStorage.getItem('vnbus_app_loaded') === '1';
+                    const isRefreshing = sessionStorage.getItem('vnbus_is_refreshing') === '1';
+                    if (isAppLoaded || isRefreshing) {
                         setTimeout(() => {
-                            input.focus();
-                            input.select();
-                        }, 20);
-
-                        let finished = false;
-
-                        const cleanup = () => {
-                            badge.dataset.isEditing = 'false';
-                            badge.classList.remove('ring-1', 'ring-black', 'dark:ring-white', 'border-black', 'dark:border-white', 'bg-white', 'dark:bg-black');
-                        };
-
-                        const revert = () => {
-                            if (finished) return;
-                            finished = true;
-                            cleanup();
-                            badge.innerText = oldVal + unit;
-                        };
-
-                        const commit = () => {
-                            if (finished) return;
-                            finished = true;
-                            cleanup();
-
-                            let raw = input.value.trim();
-                            if (unit) {
-                                const escapedUnit = unit.trim().replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
-                                if (escapedUnit) {
-                                    raw = raw.replace(new RegExp('[\\s' + escapedUnit + ']', 'g'), '');
-                                }
+                            if (window.app && app.loadingBar && app.loadingBar.start) {
+                                app.loadingBar.start();
                             }
-
-                            if (raw === '' || isNaN(Number(raw)) || raw === '-' || raw === '+') {
-                                badge.innerText = oldVal + unit;
-                                return;
-                            }
-
-                            let num = parseFloat(raw);
-                            if (isNaN(num)) {
-                                badge.innerText = oldVal + unit;
-                                return;
-                            }
-
-                            if (num < min) num = min;
-                            if (num > max) num = max;
-
-                            if (step && step > 0) {
-                                const base = min !== -Infinity ? min : 0;
-                                num = Math.round((num - base) / step) * step + base;
-                                if (step < 1) num = parseFloat(num.toFixed(4));
-                            }
-
-                            slider.value = num;
-
-                            if (typeof slider.oninput === 'function') {
-                                try { slider.oninput.call(slider); } catch(err) {}
-                            }
-                            slider.dispatchEvent(new Event('input', { bubbles: true }));
-                            if (typeof slider.onchange === 'function') {
-                                try { slider.onchange.call(slider); } catch(err) {}
-                            }
-                            slider.dispatchEvent(new Event('change', { bubbles: true }));
-
-                            badge.innerText = num + unit;
-                        };
-
-                        input.addEventListener('input', () => {
-                            let v = input.value;
-                            if (min >= 0) v = v.replace(/-/g, '');
-                            if (step >= 1) v = v.replace(/\./g, '');
-                            v = v.replace(/[^0-9\.\-]/g, '');
-                            if (v !== input.value) input.value = v;
-                            input.style.width = Math.max(22, (input.value.length + 0.5) * 7.5) + 'px';
-                        });
-
-                        input.addEventListener('keydown', (ke) => {
-                            if (ke.key === 'Enter') {
-                                ke.preventDefault();
-                                commit();
-                            } else if (ke.key === 'Escape') {
-                                ke.preventDefault();
-                                revert();
-                            } else if (ke.key === 'ArrowUp') {
-                                ke.preventDefault();
-                                let cur = parseFloat(input.value) || 0;
-                                cur = Math.min(max, cur + step);
-                                if (step < 1) cur = parseFloat(cur.toFixed(4));
-                                input.value = cur;
-                                input.dispatchEvent(new Event('input'));
-                            } else if (ke.key === 'ArrowDown') {
-                                ke.preventDefault();
-                                let cur = parseFloat(input.value) || 0;
-                                cur = Math.max(min, cur - step);
-                                if (step < 1) cur = parseFloat(cur.toFixed(4));
-                                input.value = cur;
-                                input.dispatchEvent(new Event('input'));
-                            } else {
-                                const allowedControlKeys = [
-                                    'Backspace', 'Delete', 'Tab', 'Escape', 'Enter',
-                                    'ArrowLeft', 'ArrowRight', 'Home', 'End'
-                                ];
-                                if (allowedControlKeys.includes(ke.key) || ke.ctrlKey || ke.metaKey) {
-                                    return;
-                                }
-                                if (ke.key === '-' && min < 0) {
-                                    if (input.selectionStart === 0 && (!input.value.includes('-') || input.selectionEnd > 0)) {
-                                        return;
-                                    }
-                                }
-                                if (ke.key === '.' && step < 1) {
-                                    if (!input.value.includes('.')) {
-                                        return;
-                                    }
-                                }
-                                if (/^[0-9]$/.test(ke.key)) {
-                                    return;
-                                }
-                                ke.preventDefault();
-                            }
-                        });
-
-                        input.addEventListener('blur', () => {
-                            commit();
-                        });
-                    });
-                },
-                alertInterval: null,
-                showAlert: (msg, okCallback = null, cancelCallback = null, options = {}) => {
-                    const cleanMsg = (msg || '').toLowerCase();
-                    const isSuccess = cleanMsg.includes('thành công') || cleanMsg.includes('đã lưu') || cleanMsg.includes('đã cập nhật');
-                    if (isSuccess && !okCallback && !cancelCallback && !options.countdown) {
-                        app.toast.show('success', 'Thành công', msg);
-                        return;
-                    }
-                    if (app.ui.alertInterval) clearInterval(app.ui.alertInterval);
-                    if (app.ui.alertCloseTimeout) clearTimeout(app.ui.alertCloseTimeout);
-                    document.getElementById('custom-alert-msg').innerHTML = msg;
-                    const modal = document.getElementById('custom-alert-modal');
-                    const content = document.getElementById('custom-alert-content');
-                    const titleEl = document.getElementById('custom-alert-title');
-                    const imgEl = document.getElementById('custom-alert-img');
-                    const okBtn = document.getElementById('custom-alert-ok-btn');
-                    const cancelBtn = document.getElementById('custom-alert-cancel-btn');
-                    const iconBox = document.getElementById('custom-alert-icon');
-                    if (titleEl) titleEl.innerText = options.title || "Thông báo";
-                    if (iconBox) {
-                        iconBox.style.display = options.hideButtons ? 'none' : 'flex';
-                        iconBox.innerHTML = options.iconHtml || '<i class="fa-solid fa-bell text-xl text-black"></i>';
-                    }
-                    if (okBtn) {
-                        if (okBtn.parentElement) okBtn.parentElement.style.display = '';
-                        let defaultText = options.btnOkText || "Đồng ý";
-                        okBtn.style.display = options.hideButtons ? 'none' : 'inline-flex';
-                        if (options.isDestructive) {
-                            okBtn.className = "w-full inline-flex items-center justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-medium text-white hover:bg-red-700 focus:outline-none sm:ml-3 sm:w-auto sm:text-sm transition";
-                        } else {
-                            okBtn.className = "w-full inline-flex items-center justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-black text-base font-medium text-white hover:bg-gray-800 focus:outline-none sm:ml-3 sm:w-auto sm:text-sm transition";
-                        }
-                        if (options.countdown) {
-                            okBtn.disabled = true;
-                            okBtn.classList.add('opacity-50', 'cursor-not-allowed');
-                            let timeLeft = 3;
-                            okBtn.innerHTML = `${defaultText} (${timeLeft})`;
-                            app.ui.alertInterval = setInterval(() => {
-                                timeLeft--;
-                                if (timeLeft <= 0) {
-                                    clearInterval(app.ui.alertInterval);
-                                    okBtn.disabled = false;
-                                    okBtn.classList.remove('opacity-50', 'cursor-not-allowed');
-                                    okBtn.innerHTML = defaultText;
-                                } else {
-                                    okBtn.innerHTML = `${defaultText} (${timeLeft})`;
-                                }
-                            }, 1000);
-                        } else {
-                            okBtn.disabled = false;
-                            okBtn.classList.remove('opacity-50', 'cursor-not-allowed');
-                            okBtn.innerHTML = defaultText;
-                        }
-                    }
-                    if (imgEl) {
-                        if (options.imgSrc) {
-                            imgEl.src = options.imgSrc;
-                            imgEl.classList.remove('hidden');
-                        } else {
-                            imgEl.src = "";
-                            imgEl.classList.add('hidden');
-                        }
-                    }
-                    if (cancelCallback || options.btnCancelText) {
-                        cancelBtn.classList.remove('hidden');
-                        cancelBtn.innerHTML = options.btnCancelText || "Hủy bỏ";
-                        cancelBtn.style.display = options.hideButtons ? 'none' : 'inline-flex';
-                        if (options.isCancelDestructive) {
-                            cancelBtn.className = "mt-3 w-full inline-flex items-center justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-medium text-white hover:bg-red-700 focus:outline-none sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm transition";
-                        } else if (options.isCancelPrimary) {
-                            cancelBtn.className = "mt-3 w-full inline-flex items-center justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-black text-base font-medium text-white hover:bg-gray-800 focus:outline-none sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm transition";
-                        } else {
-                            cancelBtn.className = "mt-3 w-full inline-flex items-center justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm transition";
-                        }
-                        app.alertCancelCallback = cancelCallback || (() => { });
-                    } else {
-                        cancelBtn.classList.add('hidden');
-                        cancelBtn.style.display = 'none';
-                        app.alertCancelCallback = null;
-                    }
-                    modal.classList.remove('hidden');
-                    content.classList.remove('modal-content-leave');
-                    content.classList.add('modal-content-enter');
-                    app.alertCallback = okCallback;
-                    app.ui.lockScroll();
-                },
-                closeAlert: (isOk) => {
-                    if (app.ui.alertInterval) clearInterval(app.ui.alertInterval);
-                    if (app.ui.alertCloseTimeout) clearTimeout(app.ui.alertCloseTimeout);
-                    const modal = document.getElementById('custom-alert-modal');
-                    const content = document.getElementById('custom-alert-content');
-                    content.classList.remove('modal-content-enter');
-                    content.classList.add('modal-content-leave');
-                    app.ui.alertCloseTimeout = setTimeout(() => {
-                        modal.classList.add('hidden');
-                        content.classList.remove('modal-content-leave');
-                        app.ui.unlockScroll();
-                        const cb = isOk ? app.alertCallback : app.alertCancelCallback;
-                        app.alertCallback = null;
-                        app.alertCancelCallback = null;
-                        if (cb) cb();
-                    }, 200);
-                },
-                showVerifiedPopup: (type, link) => {
-                    let desc = "";
-                    let helpUrl = "";
-                    if (type === 'vvcc') {
-                        helpUrl = 'https://www.vnbusarchive.io.vn/help/1537750814507008101';
-                        desc = `Danh hiệu <b>VNBUSARCHIVE Verified Content Creator</b> được cấp cho các nhà sáng tạo nội dung sở hữu kênh truyền thông đạt chuẩn, có công lan tỏa hình ảnh giao thông công cộng đến với cộng đồng.<br><br><a href="${helpUrl}" target="_blank" class="text-black hover:underline font-bold text-[13px] inline-flex items-center">Tìm hiểu thêm về danh hiệu này</a>`;
-                        if (link) {
-                            app.ui.showAlert(desc, 
-                                () => { window.open(link, '_blank'); }, 
-                                null, 
-                                {
-                                    title: "VNBUSARCHIVE Verified",
-                                    iconHtml: '<i class="fa-solid fa-circle-check text-3xl text-black"></i>',
-                                    btnOkText: '<i class="fa-solid fa-arrow-up-right-from-square mr-2 text-[12px] pt-0.5"></i> Xem kênh',
-                                    btnCancelText: "Đóng"
-                                }
-                            );
-                        } else {
-                            app.ui.showAlert(desc, 
-                                null, 
-                                null, 
-                                {
-                                    title: "VNBUSARCHIVE Verified",
-                                    iconHtml: '<i class="fa-solid fa-circle-check text-3xl text-black"></i>',
-                                    btnOkText: "Đóng"
-                                }
-                            );
-                        }
-                    } else if (type === 'dev') {
-                        helpUrl = 'https://www.vnbusarchive.io.vn/help/1538729901798989934';
-                        desc = `Danh hiệu <b>VNBUSARCHIVE Code Contributor</b> được cấp cho các lập trình viên đã có đóng góp Pull Request hợp lệ trên GitHub cho dự án.<br><br><a href="${helpUrl}" target="_blank" class="text-black hover:underline font-bold text-[13px] inline-flex items-center">Tìm hiểu thêm về danh hiệu này</a>`;
-                        app.ui.showAlert(desc, 
-                            null, 
-                            null, 
-                            {
-                                title: "VNBUSARCHIVE Verified",
-                                iconHtml: '<i class="fa-solid fa-code text-3xl text-black"></i>',
-                                btnOkText: "Đóng"
-                            }
-                        );
-
-                    }
-                },
-                showQuotaInfo: () => {
-                    const q = app.upload?.currentQuota;
-                    const limitTxt = (q && q.limit !== null) ? `${q.limit}` : 'không giới hạn';
-                    app.ui.showAlert(
-                        `Nhằm bảo vệ hạ tầng máy chủ và dung lượng lưu trữ, hệ thống giới hạn mỗi người dùng chỉ được tải lên tối đa <b>${limitTxt} ảnh</b> hàng ngày.<br><br>Giới hạn này được tính động theo <b>điểm uy tín</b> của bạn.<br><br>Chu kỳ sẽ được tự động đặt lại vào mỗi <b>7 giờ sáng (Giờ Việt Nam)</b>.`,
-                        null, null, { title: "Chính sách giới hạn đăng tải", btnOkText: "Đã hiểu" }
-                    );
-                },
-                showPrompt: (msg, defaultValue = '', callback, options = {}) => {
-                    const modal = document.getElementById('custom-prompt-modal');
-                    const content = document.getElementById('custom-prompt-content');
-                    const titleEl = document.getElementById('custom-prompt-title');
-                    const msgEl = document.getElementById('custom-prompt-msg');
-                    const inputEl = document.getElementById('custom-prompt-input');
-                    const okBtn = document.getElementById('custom-prompt-ok-btn');
-                    titleEl.innerText = options.title || "Nhập thông tin";
-                    msgEl.innerText = msg;
-                    inputEl.value = defaultValue;
-                    if (app.ui.promptCloseTimeout) clearTimeout(app.ui.promptCloseTimeout);
-                    modal.classList.remove('hidden');
-                    content.classList.remove('modal-content-leave');
-                    content.classList.add('modal-content-enter');
-                    app.promptCallback = callback;
-                    app.ui.lockScroll();
-                    setTimeout(() => {
-                        inputEl.focus();
-                        inputEl.select();
-                    }, 200);
-                    inputEl.onkeydown = (e) => {
-                        if (e.key === 'Enter') {
-                            if (!options.allowEmpty && !inputEl.value.trim()) {
-                                app.ui.showAlert("Vui lòng nhập nội dung, không được để trống!");
-                                return;
-                            }
-                            app.ui.closePrompt(true);
-                        }
-                    };
-                    okBtn.onclick = () => {
-                        if (!options.allowEmpty && !inputEl.value.trim()) {
-                            app.ui.showAlert("Vui lòng nhập nội dung, không được để trống!");
-                            return;
-                        }
-                        app.ui.closePrompt(true);
-                    };
-                },
-                closePrompt: (isOk) => {
-                    if (app.ui.promptCloseTimeout) clearTimeout(app.ui.promptCloseTimeout);
-                    const modal = document.getElementById('custom-prompt-modal');
-                    const content = document.getElementById('custom-prompt-content');
-                    const inputEl = document.getElementById('custom-prompt-input');
-                    content.classList.remove('modal-content-enter');
-                    content.classList.add('modal-content-leave');
-                    app.ui.promptCloseTimeout = setTimeout(() => {
-                        modal.classList.add('hidden');
-                        content.classList.remove('modal-content-leave');
-                        app.ui.unlockScroll();
-                        if (isOk && app.promptCallback) {
-                            const value = inputEl.value.trim();
-                            app.promptCallback(value);
-                        }
-                        app.promptCallback = null;
-                        inputEl.value = '';
-                    }, 200);
-                 },
-closeCustomRolePrompt: () => {
-                    const modal = document.getElementById('custom-role-modal');
-                    const content = document.getElementById('custom-role-content');
-                    content.classList.remove('modal-content-enter');
-                    content.classList.add('modal-content-leave');
-                    setTimeout(() => {
-                        modal.classList.add('hidden');
-                        content.classList.remove('modal-content-leave');
-                        app.ui.unlockScroll();
-                    }, 200);
-                },
-                 filterDenyQuick: (query) => {
-                    const q = (query || '').trim().toLowerCase();
-                    const section = document.getElementById('deny-section-quick');
-                    if (!section) return;
-
-                    const isQuality = app.denyFilterTab === 'quality';
-                    const isInfo = app.denyFilterTab === 'info';
-
-                    const qualWrap = document.getElementById('deny-group-quality-wrapper');
-                    const qualGroup = document.getElementById('deny-group-quality');
-                    const infoWrap = document.getElementById('deny-group-info-wrapper');
-                    const infoGroup = document.getElementById('deny-group-info');
-
-                    // Filter Quality Group
-                    if (qualWrap && qualGroup) {
-                        if (isInfo) {
-                            qualWrap.style.display = 'none';
-                        } else {
-                            let matchCount = 0;
-                            qualGroup.querySelectorAll('label').forEach(lbl => {
-                                const text = (lbl.textContent || '').toLowerCase();
-                                const match = !q || text.includes(q);
-                                lbl.style.display = match ? 'flex' : 'none';
-                                if (match) matchCount++;
-                            });
-                            qualWrap.style.display = matchCount > 0 ? '' : 'none';
-                        }
-                    }
-
-                    // Filter Info Group
-                    if (infoWrap && infoGroup) {
-                        if (isQuality) {
-                            infoWrap.style.display = 'none';
-                        } else {
-                            const docWrapper = document.getElementById('deny-abuse-doc-wrapper');
-                            if (docWrapper) docWrapper.classList.toggle('hidden', !app.denyIsDoc);
-
-                            let matchCount = 0;
-                            infoGroup.querySelectorAll('label').forEach(lbl => {
-                                if (lbl.closest('#deny-abuse-doc-wrapper') && !app.denyIsDoc) {
-                                    lbl.style.display = 'none';
-                                    return;
-                                }
-                                const text = (lbl.textContent || '').toLowerCase();
-                                const match = !q || text.includes(q);
-                                lbl.style.display = match ? 'flex' : 'none';
-                                if (match) matchCount++;
-                            });
-                            infoWrap.style.display = matchCount > 0 ? '' : 'none';
-                        }
-                    }
-                },
-                 toggleDenySection: (section) => {
-                    app.activeDenySection = section;
-                    const quickSection = document.getElementById('deny-section-quick');
-                    const customSection = document.getElementById('deny-section-custom');
-                    const btnQuick = document.getElementById('btn-deny-quick');
-                    const btnCustom = document.getElementById('btn-deny-custom');
-                    if (section === 'quick') {
-                        quickSection.classList.remove('hidden');
-                        customSection.classList.add('hidden');
-                        const searchEl = document.getElementById('deny-quick-search');
-                        if (searchEl) {
-                            searchEl.value = '';
-                            app.ui.filterDenyQuick('');
-                        }
-                        btnQuick.className = "w-full bg-black text-white p-3 text-center font-bold text-sm rounded-lg shadow-sm transition border border-black";
-                        btnCustom.className = "w-full bg-white text-gray-700 p-3 text-center font-bold text-sm rounded-lg shadow-sm transition border border-gray-300 hover:bg-gray-50 hover:text-black";
-                        document.getElementById('deny-custom-input').value = '';
-                    } else if (section === 'custom') {
-                        quickSection.classList.add('hidden');
-                        customSection.classList.remove('hidden');
-                        btnQuick.className = "w-full bg-white text-gray-700 p-3 text-center font-bold text-sm rounded-lg shadow-sm transition border border-gray-300 hover:bg-gray-50 hover:text-black";
-                        btnCustom.className = "w-full bg-black text-white p-3 text-center font-bold text-sm rounded-lg shadow-sm transition border border-black";
-                        document.querySelectorAll('.deny-quick-cb').forEach(cb => cb.checked = false);
-                    }
-                },
-                showDenyPrompt: (titleStr, callback) => {
-                    const modal = document.getElementById('deny-prompt-modal');
-                    const content = document.getElementById('deny-prompt-content');
-                    const titleEl = document.getElementById('deny-prompt-title');
-                    const okBtn = document.getElementById('deny-prompt-ok-btn');
-                    const customInput = document.getElementById('deny-custom-input');
-                    titleEl.innerHTML = `<i class="fa-solid fa-triangle-exclamation mr-2"></i>${titleStr || 'Từ chối ảnh'}`;
-                    customInput.value = '';
-                    document.querySelectorAll('.deny-quick-cb').forEach(cb => cb.checked = false);
-                    app.ui.toggleDenySection('quick');
-                    modal.classList.remove('hidden');
-                    content.classList.remove('modal-content-leave');
-                    content.classList.add('modal-content-enter');
-                    app.denyPromptCallback = callback;
-                    app.ui.lockScroll();
-                    okBtn.onclick = () => {
-                        let reasonString = '';
-                        if (app.activeDenySection === 'quick') {
-                            const selectedChecks = Array.from(document.querySelectorAll('.deny-quick-cb:checked')).map(cb => cb.value);
-                            if (selectedChecks.length === 0) {
-                                app.ui.showAlert("Vui lòng chọn ít nhất một lý do từ danh sách!");
-                                return;
-                            }
-                            reasonString = selectedChecks.join(' + ');
-                        } else if (app.activeDenySection === 'custom') {
-                            const customText = customInput.value.trim();
-                            if (!customText) {
-                                app.ui.showAlert("Vui lòng nhập lý do từ chối cụ thể!");
-                                document.getElementById('deny-custom-input').focus();
-                                return;
-                            }
-                            reasonString = customText;
-                        }
-                        app.ui.closeDenyPrompt(true, reasonString);
-                    };
-                },
-                closeDenyPrompt: (isOk, reasonString = '') => {
-                    const modal = document.getElementById('deny-prompt-modal');
-                    const content = document.getElementById('deny-prompt-content');
-                    content.classList.remove('modal-content-enter');
-                    content.classList.add('modal-content-leave');
-                    setTimeout(() => {
-                        modal.classList.add('hidden');
-                        content.classList.remove('modal-content-leave');
-                        app.ui.unlockScroll();
-                        app.denyFilterTab = null;
-                        app.denyIsDoc = false;
-                        if (isOk && app.denyPromptCallback) {
-                            app.denyPromptCallback(reasonString);
-                        }
-                        app.denyPromptCallback = null;
-                    }, 200);
-                },
-                uploadProgressValue: 0,
-                progressInterval: null,
-                setUploadProgress: (targetPercent, durationMs = 1500) => {
-                    const circle = document.getElementById('up-progress-circle');
-                    const text = document.getElementById('up-progress-text');
-                    if (!circle || !text) return;
-                    circle.style.transition = `stroke-dashoffset ${durationMs}ms ease-out, stroke 0.5s ease`;
-                    const targetOffset = 339.29 * (1 - targetPercent / 100);
-                    circle.setAttribute('stroke-dashoffset', targetOffset.toString());
-                    if (app.ui.progressInterval) clearInterval(app.ui.progressInterval);
-                    const stepCount = durationMs / 30;
-                    const stepSize = (targetPercent - app.ui.uploadProgressValue) / stepCount;
-                    app.ui.progressInterval = setInterval(() => {
-                        app.ui.uploadProgressValue += stepSize;
-                        let displayValue = Math.round(app.ui.uploadProgressValue);
-                        if ((stepSize > 0 && displayValue >= targetPercent) || (stepSize < 0 && displayValue <= targetPercent)) {
-                            app.ui.uploadProgressValue = targetPercent;
-                            displayValue = targetPercent;
-                            clearInterval(app.ui.progressInterval);
-                        }
-                        if (text.innerText.includes('%')) {
-                            text.innerText = displayValue + '%';
-                        }
-                    }, 30);
-                },
-                showUploadProgress: () => {
-                    const modal = document.getElementById('upload-progress-modal');
-                    const content = document.getElementById('up-progress-content');
-                    const circle = document.getElementById('up-progress-circle');
-                    const text = document.getElementById('up-progress-text');
-                    const title = document.getElementById('up-progress-title');
-                    const desc = document.getElementById('up-progress-desc');
-                    const errorBox = document.getElementById('up-progress-error');
-                    const infoBox = document.getElementById('up-progress-info');
-                    const actions = document.getElementById('up-progress-actions');
-                    circle.style.transition = 'none';
-                    circle.setAttribute('stroke-dashoffset', '339.29');
-                    circle.setAttribute('stroke', '#18181b');
-                    app.ui.uploadProgressValue = 0;
-                    text.innerHTML = '0%';
-                    text.className = 'absolute inset-0 flex items-center justify-center text-2xl font-bold text-black';
-                    title.innerText = 'Đang chuẩn bị...';
-                    title.className = 'text-lg font-bold text-gray-900 mb-1';
-                    desc.innerText = 'Bạn có thể chuyển sang trang khác, tải lên vẫn tiếp diễn';
-                    errorBox.classList.add('hidden');
-                    if (infoBox) infoBox.classList.add('hidden');
-                    actions.classList.add('hidden');
-                    actions.innerHTML = '';
-                    modal.classList.remove('hidden');
-                    content.classList.remove('modal-content-leave');
-                    content.style.opacity = '1';
-                    content.classList.add('modal-content-enter');
-                    app.ui.lockScroll();
-                    setTimeout(() => {
-                        app.ui.setUploadProgress(15, 800);
-                    }, 150);
-                },
-                updateUploadSuccess: () => {
-                    const circle = document.getElementById('up-progress-circle');
-                    const text = document.getElementById('up-progress-text');
-                    const title = document.getElementById('up-progress-title');
-                    const desc = document.getElementById('up-progress-desc');
-                    const infoBox = document.getElementById('up-progress-info');
-                    const queueCountSpan = document.getElementById('up-progress-queue-count');
-                    const actions = document.getElementById('up-progress-actions');
-                    circle.style.transition = 'stroke-dashoffset 0.8s ease-out, stroke 0.5s ease';
-                    circle.setAttribute('stroke-dashoffset', '0');
-                    circle.setAttribute('stroke', '#16a34a');
-                    if (app.ui.progressInterval) clearInterval(app.ui.progressInterval);
-                    const interval = setInterval(() => {
-                        app.ui.uploadProgressValue += 2;
-                        if (app.ui.uploadProgressValue >= 100) {
-                            clearInterval(interval);
-                            text.innerHTML = '<i class="fa-solid fa-check"></i>';
-                            text.classList.replace('text-black', 'text-green-600');
-                            text.classList.add('text-4xl', 'modal-content-enter');
-                        } else {
-                            if (text.innerText.includes('%')) text.innerText = Math.round(app.ui.uploadProgressValue) + '%';
-                        }
-                    }, 20);
-                    title.innerText = 'Ảnh đã upload thành công';
-                    title.classList.replace('text-gray-900', 'text-green-600');
-                    desc.innerText = 'Ảnh sẽ xuất hiện sau khi được admin duyệt!';
-                    if (infoBox && queueCountSpan) {
-                        infoBox.classList.remove('hidden');
-                        queueCountSpan.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
-                        window.sb.from('photos').select('id, created_at, uploader_id, profiles(role)').eq('status', 'pending')
-                            .then(({ data, error }) => {
-                                if (!error && data) {
-                                    let ahead = 0;
-                                    const isMePrivileged = (app.role === 'admin' || app.role === 'manager');
-                                    const myPhotos = data.filter(p => p.uploader_id === app.user.id).sort((a,b) => new Date(b.created_at) - new Date(a.created_at));
-                                    if (myPhotos.length === 0) {
-                                        queueCountSpan.innerText = Math.max(0, data.length - 1);
-                                        return;
-                                    }
-                                    const myPhoto = myPhotos[0];
-                                    const myTime = new Date(myPhoto.created_at).getTime();
-                                    data.forEach(p => {
-                                        if (p.id === myPhoto.id) return;
-                                        const pRole = p.profiles?.role || 'user';
-                                        const pPrivileged = (pRole === 'admin' || pRole === 'manager');
-                                        const pTime = new Date(p.created_at).getTime();
-                                        if (isMePrivileged) {
-                                            if (pPrivileged && pTime < myTime) ahead++;
-                                        } else {
-                                            if (pPrivileged) ahead++;
-                                            else if (pTime < myTime) ahead++;
-                                        }
-                                    });
-                                    queueCountSpan.innerText = ahead;
-                                } else {
-                                    queueCountSpan.innerText = '?';
-                                }
-                            });
-                    }
-                    actions.className = "mt-6 flex gap-3 justify-center w-full"; 
-                    actions.innerHTML = `
-                        <button onclick="app.utils.cleanupState(); window.scrollTo({ top: 0, behavior: 'smooth' });" class="flex-1 bg-white border border-gray-300 text-gray-700 py-2.5 rounded-md font-bold text-xs hover:bg-gray-50 transition shadow-sm">Upload thêm</button>
-                        <button onclick="app.utils.navigate('/');" class="flex-1 bg-black text-white py-2.5 rounded-md font-bold text-xs hover:bg-gray-800 transition shadow-sm">Trang chủ</button>
-                    `;
-                    actions.classList.remove('hidden');
-                },
-                updateUploadError: (errMsg) => {
-                    const circle = document.getElementById('up-progress-circle');
-                    const text = document.getElementById('up-progress-text');
-                    const title = document.getElementById('up-progress-title');
-                    const desc = document.getElementById('up-progress-desc');
-                    const errorBox = document.getElementById('up-progress-error');
-                    const actions = document.getElementById('up-progress-actions');
-                    circle.style.transition = 'stroke-dashoffset 0.5s ease-out, stroke 0.5s ease';
-                    circle.setAttribute('stroke-dashoffset', '339.29');
-                    circle.setAttribute('stroke', '#dc2626');
-                    let current = parseInt(text.innerText) || 80;
-                    const interval = setInterval(() => {
-                        current -= 5;
-                        if (current <= 0) {
-                            clearInterval(interval);
-                            text.innerHTML = '<i class="fa-solid fa-exclamation"></i>';
-                            text.classList.replace('text-black', 'text-red-600');
-                            text.classList.add('text-4xl', 'modal-content-enter');
-                        } else {
-                            if (text.innerText.includes('%')) text.innerText = current + '%';
-                        }
-                    }, 10);
-                    title.innerText = 'Không thể tải ảnh lên';
-                    title.classList.replace('text-gray-900', 'text-red-600');
-                    let cleanMsg = errMsg;
-                    if (errMsg.includes('EXCEPTION:')) {
-                        cleanMsg = errMsg.split('EXCEPTION:')[1].trim();
-                    }
-                    if (errMsg.toLowerCase().includes('cloudflare') || errMsg.toLowerCase().includes('turnstile')) {
-                        title.innerText = 'Lỗi xác thực bảo mật';
-                    } else if (errMsg.toLowerCase().includes('image') || errMsg.toLowerCase().includes('upload')) {
-                        title.innerText = 'Lỗi máy chủ hình ảnh';
-                    } else {
-                        title.innerText = 'Không thể tải ảnh lên';
-                    }
-                    desc.innerHTML = `<b class="text-red-700">${cleanMsg}</b>`;
-                    errorBox.innerHTML = `Mã lỗi: ${cleanMsg}`;
-                    errorBox.classList.remove('hidden');
-                    
-                    const statusTextHtml = `<span id="auto-report-status" class="text-amber-600"><i class="fa-solid fa-spinner fa-spin"></i> Đang gửi báo cáo lỗi tự động...</span>`;
-                    
-                    actions.className = "mt-5 flex flex-col w-full"; 
-                    actions.innerHTML = `
-                        <div class="text-[10px] text-black font-medium text-center mb-3">
-                            <span class="inline-flex flex-wrap justify-center items-center gap-1">
-                                ${statusTextHtml}
-                                <a href="javascript:void(0)" onclick="app.ui.closeUploadProgress(); setTimeout(() => app.utils.navigate('/help/1516405301996421281'), 300)" class="font-bold underline hover:text-gray-800 transition-colors inline-flex items-center">Tìm hiểu thêm & hướng dẫn khắc phục</a>
-                            </span>
-                        </div>
-                        <div class="flex gap-3 w-full">
-                            <button onclick="app.ui.closeUploadProgress(); app.utils.resetTurnstile('#upload .cf-turnstile');" class="flex-1 bg-white border border-gray-300 text-gray-700 py-2.5 rounded-md font-bold text-xs hover:bg-gray-50 transition shadow-sm">Thử lại</button>
-                            <button onclick="app.utils.navigate('/');" class="flex-1 bg-black text-white py-2.5 rounded-md font-bold text-xs hover:bg-gray-800 transition shadow-sm">Trang chủ</button>
-                        </div>
-                    `;
-                },
-                closeUploadProgress: () => {
-                    const modal = document.getElementById('upload-progress-modal');
-                    modal.classList.add('hidden');
-                    app.ui.unlockScroll();
-                },
-                lockScroll: () => {
-                    document.documentElement.classList.add('no-scroll');
-                    document.body.classList.add('no-scroll');
-                },
-                unlockScroll: () => {
-                    document.documentElement.classList.remove('no-scroll');
-                    document.body.classList.remove('no-scroll');
-                },
-                toggleUserMenu: (forceOpen = null) => {
-                    const menu = document.getElementById('user-dropdown');
-                    if (!menu) return;
-                    const isOpen = menu.classList.contains('opacity-100');
-                    let willOpen = !isOpen;
-                    if (forceOpen === false) willOpen = false;
-                    if (willOpen) {
-                        menu.classList.remove('opacity-0', '-translate-y-4', 'pointer-events-none');
-                        menu.classList.add('opacity-100', 'translate-y-0', 'pointer-events-auto');
-                    } else {
-                        menu.classList.remove('opacity-100', 'translate-y-0', 'pointer-events-auto');
-                        menu.classList.add('opacity-0', '-translate-y-4', 'pointer-events-none');
-                    }
-                },
-                closeUserDropdown: () => app.ui.toggleUserMenu(false)
-            },
-
-    maintenance: {
-                settings: {},
-                timer: null,
-                isBypassed: false,
-                fetch: async () => {
-                    try {
-                        const { data, error } = await window.sb.from('system_settings').select('id, is_active, auto_reactivate_at, reason');
-                        if (data) {
-                            data.forEach(item => { app.maintenance.settings[item.id] = item; });
-                        }
-                        
-                        // Update notices if any
-                        const ops = app.maintenance.settings['admin_ops'];
-                        const opsNotice1 = document.getElementById('contact-admin-ops-notice');
-                        if (ops && ops.is_active && ops.reason) {
-                            const times = ops.reason.split('|');
-                            const textContact = `Chúng mình sẽ tạm ngưng tiếp nhận và xử lý yêu cầu trong khung giờ ${times[0] || '22:00'} - ${times[1] || '08:00'} hàng ngày. Các yêu cầu gửi trong thời gian này sẽ được ưu tiên xử lý vào ngày làm việc tiếp theo.`;
-                            if (opsNotice1) { opsNotice1.innerText = textContact; opsNotice1.classList.remove('hidden'); }
-                        } else {
-                            if (opsNotice1) opsNotice1.classList.add('hidden');
-                        }
-
-                    } catch (e) { console.error("Lỗi lấy thông tin bảo trì", e); }
-                },
-                checkAdminHours: () => {
-                    if (app.maintenance.isBypassed) return false;
-                    const ops = app.maintenance.settings['admin_ops'];
-                    if (!ops || !ops.is_active) return false;
-                    const times = (ops.reason || '22:00|08:00').split('|');
-                    const startStr = times[0] || '22:00';
-                    const endStr = times[1] || '08:00';
-
-                    const now = new Date();
-                    const currentMins = now.getHours() * 60 + now.getMinutes();
-
-                    const parseMins = (t) => {
-                        const p = t.split(':');
-                        return parseInt(p[0]) * 60 + parseInt(p[1]);
-                    };
-                    const startMins = parseMins(startStr);
-                    const endMins = parseMins(endStr);
-
-                    let isBreak = false;
-                    if (startMins <= endMins) {
-                        isBreak = currentMins >= startMins && currentMins < endMins;
-                    } else {
-                        isBreak = currentMins >= startMins || currentMins < endMins;
-                    }
-
-                    if (isBreak) {
-                        return {
-                            is_active: false,
-                            reason: `Chúng mình sẽ tạm ngưng tiếp nhận và xử lý yêu cầu trong khung giờ ${startStr} - ${endStr} hàng ngày. Các yêu cầu gửi trong thời gian này sẽ được ưu tiên xử lý vào ngày làm việc tiếp theo.`,
-                            auto_reactivate_at: null
-                        };
-                    }
-                    return false;
-                },
-                check: (sysId) => {
-
-                    if (app.maintenance.isBypassed) return false; 
-                    const target = app.maintenance.settings['global']?.is_active === false
-                                 ? app.maintenance.settings['global']
-                                 : app.maintenance.settings[sysId];
-                    if (!target) return false;
-                    if (target.is_active === false) {
-                        return target;
-                    }
-                    return false;
-                },
-                showScreen: (targetData) => {
-                    const screen = document.getElementById('maintenance-screen');
-                    document.querySelectorAll('header, main, footer, #header-spacer').forEach(el => el.style.display = 'none');
-                    document.body.style.backgroundColor = '#ffffff';
-                    document.getElementById('mt-reason').innerText = targetData.reason || "Hệ thống đang được bảo trì, vui lòng quay lại sau.";
-                    if (app.role === 'manager') {
-                        document.getElementById('mt-manager-bypass').classList.remove('hidden');
-                    }
-                    if (app.maintenance.timer) clearInterval(app.maintenance.timer);
-                    const countdownEl = document.getElementById('mt-countdown');
-                    if (targetData.auto_reactivate_at) {
-                        const autoTime = new Date(targetData.auto_reactivate_at).getTime();
-                        app.maintenance.timer = setInterval(() => {
-                            const now = Date.now();
-                            const distance = autoTime - now;
-                            if (distance < 0) {
-                                clearInterval(app.maintenance.timer);
-                                countdownEl.innerText = "Cập nhật sau";
-                                countdownEl.className = "text-xl font-bold tracking-normal text-gray-400";
-                                return;
-                            }
-                            const d = Math.floor(distance / (1000 * 60 * 60 * 24));
-                            const h = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-                            const m = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-                            const s = Math.floor((distance % (1000 * 60)) / 1000);
-                            let timeStr = "";
-                            if(d > 0) timeStr += `${d}d `;
-                            timeStr += `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
-                            countdownEl.innerText = timeStr;
-                        }, 1000);
-                    } else {
-                        countdownEl.innerText = "Cập nhật sau";
-                        countdownEl.className = "text-xl font-bold tracking-normal text-gray-400"; 
-                    }
-                    screen.classList.remove('hidden');
-                    app.ui.lockScroll(); 
-                },
-                hideScreen: () => {
-                    document.getElementById('maintenance-screen').classList.add('hidden');
-                    document.querySelectorAll('header, main, footer, #header-spacer').forEach(el => el.style.display = '');
-                    document.body.style.backgroundColor = '';
-                    if (app.maintenance.timer) clearInterval(app.maintenance.timer);
-                },
-                bypass: () => {
-                    app.maintenance.isBypassed = true;
-                    app.maintenance.hideScreen();
-                    app.handleRoute(); 
-                }
-            },
-
-    utils: {
-                isValidUsername: (name) => {
-                    return /^[\p{L}0-9 ]+$/u.test(name) && name.length >= 3 && name.length <= 20;
-                },
-                updateCanonical: (customPath = null) => {
-                    let link = document.querySelector('link[rel="canonical"]');
-                    if (!link) {
-                        link = document.createElement('link');
-                        link.setAttribute('rel', 'canonical');
-                        document.head.appendChild(link);
-                    }
-                    let path = customPath || window.location.pathname;
-                    if (path !== '/' && path.endsWith('/')) {
-                        path = path.slice(0, -1);
-                    }
-                    link.setAttribute('href', `https://www.vnbusarchive.io.vn${path}`);
-                },
-                stripMarkdown: (md) => {
-                    if (!md) return '';
-                    const html = marked.parse(md);
-                    const temp = document.createElement('div');
-                    temp.innerHTML = html;
-                    return (temp.textContent || temp.innerText || '').replace(/\s+/g, ' ').trim();
-                },
-                resetTurnstile: (selector) => {
-                },
-                isIOS: () => {
-                    return /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-                },
-                getTargetMimeType: () => {
-                    return 'image/webp';
-                },
-                getTargetExtension: () => {
-                    return 'webp';
-                },
-                decodeHeic: async (file) => {
-                    if (!file) return null;
-                    const isHeic = /\.(heic|heif)$/i.test(file.name) || file.type === 'image/heic' || file.type === 'image/heif';
-                    if (!isHeic) return file;
-                    let heicBlob = null;
-                    if (window.heic2any) {
-                        const result = await window.heic2any({ blob: file, toType: 'image/png' });
-                        heicBlob = Array.isArray(result) ? result[0] : result;
-                    } else {
-                        const { default: heic2any } = await import("https://esm.sh/heic2any@0.0.4");
-                        const result = await heic2any({ blob: file, toType: 'image/png' });
-                        heicBlob = Array.isArray(result) ? result[0] : result;
-                    }
-                    if (!heicBlob) throw new Error("Không thể chuyển đổi ảnh HEIC/HEIF sang PNG.");
-                    return new File([heicBlob], file.name.replace(/\.[^/.]+$/, "") + ".png", { type: "image/png" });
-                },
-                convertToWebpCpu: async (imageSource, initialQuality = 0.8) => {
-                    try {
-                        const { encode } = await import("https://esm.sh/@jsquash/webp@1.5.0");
-                        let img;
-                        if (imageSource instanceof HTMLCanvasElement) {
-                            const ctx = imageSource.getContext('2d');
-                            const imageData = ctx.getImageData(0, 0, imageSource.width, imageSource.height);
-                            let q = Math.round(initialQuality * 100);
-                            let webpBuffer = await encode(imageData, { quality: q });
-                            return new Blob([webpBuffer], { type: 'image/webp' });
-                        } else {
-                            img = new Image();
-                            const url = imageSource instanceof Blob || imageSource instanceof File ? URL.createObjectURL(imageSource) : imageSource;
-                            img.src = url;
-                            await new Promise((resolve, reject) => {
-                                img.onload = resolve;
-                                img.onerror = () => reject(new Error("Lỗi tải ảnh để encode WebP CPU"));
-                            });
-                            if (imageSource instanceof Blob || imageSource instanceof File) URL.revokeObjectURL(url);
-                            let w = img.naturalWidth || img.width;
-                            let h = img.naturalHeight || img.height;
-                            if (w > 1920 || h > 1920) {
-                                const ratio = Math.min(1920 / w, 1920 / h);
-                                w = Math.round(w * ratio);
-                                h = Math.round(h * ratio);
-                            }
-                            const canvas = document.createElement('canvas');
-                            canvas.width = w;
-                            canvas.height = h;
-                            const ctx = canvas.getContext('2d');
-                            ctx.drawImage(img, 0, 0, w, h);
-                            const imageData = ctx.getImageData(0, 0, w, h);
-                            let q = Math.round(initialQuality * 100);
-                            let webpBuffer = await encode(imageData, { quality: q });
-                            return new Blob([webpBuffer], { type: 'image/webp' });
-                        }
-                    } catch (err) {
-                        console.warn("WASM WebP encode bằng CPU lỗi, fallback:", err);
-                        return null;
-                    }
-                },
-                compressToSizeLoop: async (imageSource, targetMime = 'image/webp', targetKB = 500) => {
-                    const targetBytes = targetKB * 1024;
-                    let canvas;
-                    let w, h;
-                    let ctx;
-                    if (typeof HTMLCanvasElement !== 'undefined' && imageSource instanceof HTMLCanvasElement) {
-                        canvas = imageSource;
-                        w = canvas.width;
-                        h = canvas.height;
-                        ctx = canvas.getContext('2d');
-                    } else {
-                        const url = imageSource instanceof Blob || imageSource instanceof File ? URL.createObjectURL(imageSource) : imageSource;
-                        const img = new Image();
-                        img.src = url;
-                        await new Promise((resolve, reject) => {
-                            img.onload = resolve;
-                            img.onerror = () => reject(new Error("Lỗi tải ảnh để nén vòng lặp"));
-                        });
-                        if (imageSource instanceof Blob || imageSource instanceof File) URL.revokeObjectURL(url);
-                        w = img.naturalWidth || img.width;
-                        h = img.naturalHeight || img.height;
-                        if (w > 1920 || h > 1920) {
-                            const ratio = Math.min(1920 / w, 1920 / h);
-                            w = Math.round(w * ratio);
-                            h = Math.round(h * ratio);
-                        }
-                        canvas = document.createElement('canvas');
-                        canvas.width = w;
-                        canvas.height = h;
-                        ctx = canvas.getContext('2d');
-                        ctx.imageSmoothingEnabled = true;
-                        ctx.imageSmoothingQuality = 'high';
-                        ctx.drawImage(img, 0, 0, w, h);
-                    }
-
-                    // Helper nhị phân tìm chất lượng WebP tối ưu nhất nhưng <= targetBytes trên canvas (giữ cố định 1080p, không scale)
-                    const searchBestWebpNative = async (cv, minQuality = 0.70, maxQuality = 0.95) => {
-                        let best = null;
-                        let minQ = minQuality;
-                        let maxQ = maxQuality;
-                        let supported = false;
-                        while (maxQ - minQ >= 0.02) {
-                            let midQ = (minQ + maxQ) / 2;
-                            let q = parseFloat(midQ.toFixed(3));
-                            let compressedBlob = await new Promise(resolve => cv.toBlob(resolve, 'image/webp', q));
-                            if (compressedBlob && compressedBlob.type === 'image/webp') {
-                                supported = true;
-                                if (compressedBlob.size <= targetBytes) {
-                                    best = compressedBlob;
-                                    minQ = midQ;
-                                } else {
-                                    maxQ = midQ;
-                                }
-                            } else {
-                                break;
-                            }
-                        }
-                        if (!best && supported) {
-                            let finalBlob = await new Promise(resolve => cv.toBlob(resolve, 'image/webp', minQuality));
-                            if (finalBlob && finalBlob.size <= targetBytes) best = finalBlob;
-                        }
-                        return { best, supported };
-                    };
-
-                    // Thử nén giữ nguyên 100% kích thước 1080p ở chất lượng tối thiểu 70% (0.70 - 0.95)
-                    let nativeResult = await searchBestWebpNative(canvas, 0.70, 0.95);
-                    if (nativeResult.best) return nativeResult.best;
-
-                    // Fallback WASM WebP (nếu trình duyệt không hỗ trợ WebP Native)
-                    if (!nativeResult.supported) {
-                        try {
-                            const { encode } = await import("https://esm.sh/@jsquash/webp@1.5.0");
-                            const cctx = canvas.getContext('2d');
-                            const imgData = cctx.getImageData(0, 0, canvas.width, canvas.height);
-                            let best = null;
-                            let minQ = 70;
-                            let maxQ = 95;
-                            while (maxQ - minQ >= 2) {
-                                let midQ = Math.round((minQ + maxQ) / 2);
-                                let buf = await encode(imgData, { quality: midQ, use_sharp_yuv: 1 });
-                                let blob = new Blob([buf], { type: 'image/webp' });
-                                if (blob.size <= targetBytes) {
-                                    best = blob;
-                                    minQ = midQ;
-                                } else {
-                                    maxQ = midQ;
-                                }
-                            }
-                            if (!best) {
-                                let buf = await encode(imgData, { quality: 70, use_sharp_yuv: 1 });
-                                let blob = new Blob([buf], { type: 'image/webp' });
-                                if (blob.size <= targetBytes) best = blob;
-                            }
-                            if (best) return best;
-                        } catch (e) {
-                            console.warn("WASM WebP fallback error:", e);
-                        }
-                    }
-
-                    // Không thể nén xuống dưới targetBytes ở mức chất lượng tối thiểu 70%
-                    throw new Error(`BLIND_WM_ERROR:Ảnh quá chi tiết, không thể nén thành WebP xuống dưới ${targetKB}KB (chất lượng tối thiểu 70%). Vui lòng cắt nhỏ hoặc chọn ảnh khác.`);
-                },
-                canvasToBlobUniversal: async (canvas, targetMime = 'image/webp', quality = 0.95) => {
-                    const nativeBlob = await new Promise((resolve) => {
-                        canvas.toBlob((blob) => resolve(blob), targetMime, quality);
-                    });
-                    if (nativeBlob && (nativeBlob.type === targetMime || targetMime !== 'image/webp')) {
-                        return nativeBlob;
-                    }
-                    if (nativeBlob) return nativeBlob;
-                    if (targetMime === 'image/webp') {
-                        throw new Error("Trình duyệt không hỗ trợ xuất định dạng WebP.");
-                    }
-                    return new Promise((resolve) => {
-                        canvas.toBlob((blob) => resolve(blob), targetMime, quality);
-                    });
-                },
-                computeHistogramData: (img, filterString = 'none') => {
-                    const sw = 256;
-                    const sh = Math.max(1, Math.round(sw * ((img.naturalHeight || img.height || 150) / (img.naturalWidth || img.width || 256))));
-                    const offCanvas = document.createElement('canvas');
-                    offCanvas.width = sw;
-                    offCanvas.height = sh;
-                    const ctx = offCanvas.getContext('2d', { willReadFrequently: true });
-                    if (filterString && filterString !== 'none') {
-                        ctx.filter = filterString;
-                    }
-                    ctx.drawImage(img, 0, 0, sw, sh);
-                    const data = ctx.getImageData(0, 0, sw, sh).data;
-                    
-                    const lumaBins = new Uint32Array(256);
-                    const rBins = new Uint32Array(256);
-                    const gBins = new Uint32Array(256);
-                    const bBins = new Uint32Array(256);
-                    let totalLuma = 0;
-                    let totalR = 0, totalG = 0, totalB = 0;
-                    let totalSat = 0;
-                    const totalPixels = data.length / 4;
-                    let shadowCount = 0;
-                    let highlightCount = 0;
-                    
-                    let centerLumaTotal = 0;
-                    let centerPixels = 0;
-                    let centerShadowCount = 0;
-                    let centerHighlightCount = 0;
-                    
-                    let topLumaTotal = 0;
-                    let topPixels = 0;
-                    
-                    let neutralRTotal = 0, neutralGTotal = 0, neutralBTotal = 0;
-                    let neutralPixels = 0;
-                    
-                    let rClipCount = 0, gClipCount = 0, bClipCount = 0;
-                    
-                    const minCenterX = sw * 0.12;
-                    const maxCenterX = sw * 0.88;
-                    const minCenterY = sh * 0.15;
-                    const maxCenterY = sh * 0.85;
-                    const maxTopY = sh * 0.25;
-                    
-                    for (let i = 0; i < data.length; i += 4) {
-                        const r = data[i];
-                        const g = data[i + 1];
-                        const b = data[i + 2];
-                        const luma = Math.round(0.299 * r + 0.587 * g + 0.114 * b);
-                        
-                        rBins[r]++;
-                        gBins[g]++;
-                        bBins[b]++;
-                        lumaBins[luma]++;
-                        
-                        totalLuma += luma;
-                        totalR += r;
-                        totalG += g;
-                        totalB += b;
-                        
-                        const maxVal = Math.max(r, g, b);
-                        const minVal = Math.min(r, g, b);
-                        let sat = 0;
-                        if (maxVal > 0) {
-                            sat = (maxVal - minVal) / maxVal;
-                            totalSat += sat;
-                        }
-                        
-                        if (luma <= 5) shadowCount++;
-                        if (luma >= 250) highlightCount++;
-                        
-                        if (r >= 252) rClipCount++;
-                        if (g >= 252) gClipCount++;
-                        if (b >= 252) bClipCount++;
-                        
-                        const pixelIdx = i / 4;
-                        const px = pixelIdx % sw;
-                        const py = (pixelIdx / sw) | 0;
-                        
-                        // Center zone (Vehicle body)
-                        if (px >= minCenterX && px <= maxCenterX && py >= minCenterY && py <= maxCenterY) {
-                            centerPixels++;
-                            centerLumaTotal += luma;
-                            if (luma <= 8) centerShadowCount++;
-                            if (luma >= 248) centerHighlightCount++;
-                        }
-                        
-                        // Top zone (Sky / Background)
-                        if (py <= maxTopY) {
-                            topPixels++;
-                            topLumaTotal += luma;
-                        }
-                        
-                        // Neutral surfaces (Asphalt road, curb, gray decals, concrete, neutral background)
-                        if (sat < 0.26 && luma >= 40 && luma <= 220) {
-                            neutralPixels++;
-                            neutralRTotal += r;
-                            neutralGTotal += g;
-                            neutralBTotal += b;
-                        }
-                    }
-                    
-                    let shadowZoneCount = 0;
-                    let deepShadowCount = 0;
-                    let midZoneCount = 0;
-                    let highlightZoneCount = 0;
-                    let count = 0;
-                    let p10 = 0, p50 = 128, p90 = 255;
-                    const t10 = totalPixels * 0.1;
-                    const t50 = totalPixels * 0.5;
-                    const t90 = totalPixels * 0.9;
-                    
-                    for (let i = 0; i < 256; i++) {
-                        const bin = lumaBins[i];
-                        if (i < 50) deepShadowCount += bin;
-                        if (i < 85) shadowZoneCount += bin;
-                        else if (i <= 175) midZoneCount += bin;
-                        else highlightZoneCount += bin;
-                        
-                        count += bin;
-                        if (p10 === 0 && count >= t10) p10 = i;
-                        if (p50 === 128 && count >= t50) p50 = i;
-                        if (count >= t90 && p90 === 255) p90 = i;
-                    }
-                    
-                    const avgNeutralR = neutralPixels > 0 ? (neutralRTotal / neutralPixels) : 128;
-                    const avgNeutralG = neutralPixels > 0 ? (neutralGTotal / neutralPixels) : 128;
-                    const avgNeutralB = neutralPixels > 0 ? (neutralBTotal / neutralPixels) : 128;
-                    
-                    return {
-                        totalPixels,
-                        lumaBins,
-                        rBins,
-                        gBins,
-                        bBins,
-                        avgLuma: totalPixels > 0 ? (totalLuma / totalPixels) : 128,
-                        avgR: totalPixels > 0 ? (totalR / totalPixels) : 128,
-                        avgG: totalPixels > 0 ? (totalG / totalPixels) : 128,
-                        avgB: totalPixels > 0 ? (totalB / totalPixels) : 128,
-                        avgSat: totalPixels > 0 ? ((totalSat / totalPixels) * 100) : 0,
-                        shadowPercent: totalPixels > 0 ? ((shadowCount / totalPixels) * 100) : 0,
-                        highlightPercent: totalPixels > 0 ? ((highlightCount / totalPixels) * 100) : 0,
-                        shadowZonePct: totalPixels > 0 ? ((shadowZoneCount / totalPixels) * 100) : 0,
-                        deepShadowPct: totalPixels > 0 ? ((deepShadowCount / totalPixels) * 100) : 0,
-                        midZonePct: totalPixels > 0 ? ((midZoneCount / totalPixels) * 100) : 0,
-                        highlightZonePct: totalPixels > 0 ? ((highlightZoneCount / totalPixels) * 100) : 0,
-                        p50,
-                        dynamicSpan: p90 - p10,
-                        centerLuma: centerPixels > 0 ? (centerLumaTotal / centerPixels) : (totalLuma / totalPixels),
-                        centerShadowPct: centerPixels > 0 ? ((centerShadowCount / centerPixels) * 100) : 0,
-                        centerHighlightPct: centerPixels > 0 ? ((centerHighlightCount / centerPixels) * 100) : 0,
-                        topLuma: topPixels > 0 ? (topLumaTotal / topPixels) : (totalLuma / totalPixels),
-                        neutralPixels,
-                        avgNeutralR,
-                        avgNeutralG,
-                        avgNeutralB,
-                        neutralDiffRB: avgNeutralR - avgNeutralB,
-                        neutralDiffGB: avgNeutralG - avgNeutralB,
-                        neutralDiffRG: avgNeutralR - avgNeutralG,
-                        neutralDiffGR: avgNeutralG - avgNeutralR,
-                        neutralDiffBR: avgNeutralB - avgNeutralR,
-                        channelClipR: totalPixels > 0 ? ((rClipCount / totalPixels) * 100) : 0,
-                        channelClipG: totalPixels > 0 ? ((gClipCount / totalPixels) * 100) : 0,
-                        channelClipB: totalPixels > 0 ? ((bClipCount / totalPixels) * 100) : 0
-                    };
-                },
-                drawHistogramCanvas: (canvas, data, mode = 'luma') => {
-                    if (!canvas || !data) return;
-                    const ctx = canvas.getContext('2d');
-                    if (!ctx) return;
-                    const w = canvas.width;
-                    const h = canvas.height;
-                    ctx.clearRect(0, 0, w, h);
-                    
-                    const smoothBins = (bins) => {
-                        const res = new Float32Array(256);
-                        for (let i = 0; i < 256; i++) {
-                            let sum = 0, count = 0;
-                            for (let j = Math.max(0, i - 2); j <= Math.min(255, i + 2); j++) {
-                                sum += bins[j];
-                                count++;
-                            }
-                            res[i] = sum / count;
-                        }
-                        return res;
-                    };
-                    
-                    const drawCurve = (bins, fillColor, strokeColor, compositeOp = 'source-over') => {
-                        let maxVal = 1;
-                        for (let i = 1; i < 255; i++) {
-                            if (bins[i] > maxVal) maxVal = bins[i];
-                        }
-                        
-                        ctx.save();
-                        ctx.globalCompositeOperation = compositeOp;
-                        ctx.beginPath();
-                        ctx.moveTo(0, h);
-                        
-                        for (let i = 0; i < 256; i++) {
-                            const x = (i / 255) * w;
-                            const normVal = Math.min(1.05, bins[i] / maxVal);
-                            const y = h - (normVal * (h - 8));
-                            ctx.lineTo(x, y);
-                        }
-                        
-                        ctx.lineTo(w, h);
-                        ctx.closePath();
-                        
-                        if (fillColor) {
-                            ctx.fillStyle = fillColor;
-                            ctx.fill();
-                        }
-                        if (strokeColor) {
-                            ctx.strokeStyle = strokeColor;
-                            ctx.lineWidth = 2;
-                            ctx.stroke();
-                        }
-                        ctx.restore();
-                    };
-                    
-                    const isDark = document.documentElement.classList.contains('theme-dark') || 
-                                   document.body.classList.contains('theme-dark');
-                    
-                    if (mode === 'luma') {
-                        const smoothed = smoothBins(data.lumaBins);
-                        if (isDark) {
-                            const grad = ctx.createLinearGradient(0, 0, 0, h);
-                            grad.addColorStop(0, 'rgba(255, 255, 255, 0.7)');
-                            grad.addColorStop(0.6, 'rgba(210, 210, 210, 0.35)');
-                            grad.addColorStop(1, 'rgba(160, 160, 160, 0.08)');
-                            drawCurve(smoothed, grad, '#ffffff');
-                        } else {
-                            const grad = ctx.createLinearGradient(0, 0, 0, h);
-                            grad.addColorStop(0, 'rgba(24, 24, 27, 0.75)');
-                            grad.addColorStop(0.6, 'rgba(63, 63, 70, 0.35)');
-                            grad.addColorStop(1, 'rgba(161, 161, 170, 0.08)');
-                            drawCurve(smoothed, grad, '#18181b');
-                        }
-                    } else {
-                        const rSmooth = smoothBins(data.rBins);
-                        const gSmooth = smoothBins(data.gBins);
-                        const bSmooth = smoothBins(data.bBins);
-                        
-                        if (isDark) {
-                            drawCurve(rSmooth, 'rgba(239, 68, 68, 0.4)', '#ef4444', 'screen');
-                            drawCurve(gSmooth, 'rgba(34, 197, 94, 0.4)', '#22c55e', 'screen');
-                            drawCurve(bSmooth, 'rgba(59, 130, 246, 0.4)', '#3b82f6', 'screen');
-                        } else {
-                            drawCurve(rSmooth, 'rgba(220, 38, 38, 0.35)', '#dc2626', 'multiply');
-                            drawCurve(gSmooth, 'rgba(22, 163, 74, 0.35)', '#16a34a', 'multiply');
-                            drawCurve(bSmooth, 'rgba(37, 99, 235, 0.35)', '#2563eb', 'multiply');
-                        }
-                    }
-                },
-                handleImgLoad: (img) => {
-                    img.style.opacity = '1';
-                    img.style.pointerEvents = 'auto';
-                    const wrapper = img.closest('.img-wrapper');
-                    if (wrapper) {
-                        const spinner = wrapper.querySelector('.img-spinner');
-                        if (spinner) spinner.style.display = 'none';
-                    }
-                },
-                handleImgError: (img) => {
-                    img.style.pointerEvents = 'none';
-                    const wrapper = img.closest('.img-wrapper');
-                    if (wrapper) {
-                        const spinner = wrapper.querySelector('.img-spinner');
-                        if (spinner) spinner.style.display = 'none';
-                        const errorBox = wrapper.querySelector('.img-error');
-                        if (errorBox) errorBox.classList.remove('hidden');
-                        img.style.display = 'none';
-                    }
-                },
-                navigate: (url) => {
-                    if (window.location.pathname + window.location.search === url) {
-                        window.scrollTo({ top: 0, behavior: 'smooth' });
-                        return;
-                    }
-                    const prevPath = window.location.pathname;
-                    const prevFull = prevPath + window.location.search;
-                    let parentInfo = window.history.state?.parentInfo;
-                    const rootPages = ['/', '/profile', '/profile/comments', '/search', '/upload', '/admin', '/contact', '/user/', '/help', '/leaderboard', '/tos', '/ar', '/cr', '/intro'];
-                    const isDestLeaf = url.startsWith('/vehicle/') || url.startsWith('/photo/') || url.startsWith('/operator/') || url.startsWith('/model/') || url.startsWith('/user/');
-                    const isCurrentRoot = rootPages.some(r => prevPath === r || (r !== '/' && prevPath.startsWith(r)));
-                    if (isCurrentRoot) {
-                        let bName = "Trang chủ";
-                        if (prevPath === '/profile/comments') bName = "Quản lý bình luận";
-                        else if (prevPath === '/profile') bName = "Hồ sơ của tôi";
-                        else if (prevPath.startsWith('/search')) bName = "Kết quả tìm kiếm";
-                        else if (prevPath.startsWith('/user/')) bName = "Hồ sơ người dùng";
-                        else if (prevPath === '/upload') bName = "Đăng tải";
-                        else if (prevPath === '/admin') bName = "Quản trị";
-                        else if (prevPath === '/contact') bName = "Liên hệ";
-                        else if (prevPath === '/leaderboard') bName = "Bảng xếp hạng đóng góp";
-                        else if (prevPath === '/help' || prevPath.startsWith('/help/')) bName = "Trung tâm hỗ trợ";
-                        else if (prevPath === '/tos' || prevPath === '/ar' || prevPath === '/cr' || prevPath === '/intro') bName = "Trung tâm hỗ trợ";
-                        parentInfo = { name: bName, url: prevFull };
-                    }
-                    app.previousPath = prevFull;
-                    window.history.pushState({ parentInfo: isDestLeaf ? parentInfo : null }, '', url);
-                    if (app.transitionHeaderLogo) app.transitionHeaderLogo();
-                    app.handleRoute();
-                },
-cleanupState: () => {
-                    if (document.getElementById('upload-form')) {
-                        document.getElementById('upload-form').reset();
-                        document.querySelectorAll('.upload-req-err').forEach(el => el.classList.add('hidden'));
-                        const docAlert = document.getElementById('up-doc-alert');
-                        if (docAlert) docAlert.classList.add('hidden');
-                        const modNoteLabel = document.getElementById('up-mod-note-label');
-                        if (modNoteLabel) modNoteLabel.innerHTML = 'Ghi chú dành cho kiểm duyệt';
-                        const plateMsg = document.getElementById('plate-msg');
-                        if (plateMsg) {
-                            plateMsg.innerHTML = '';
-                            plateMsg.className = 'text-xs mt-1';
-                        }
-                        ['up-plate', 'up-route', 'up-operator', 'up-model', 'up-location'].forEach(id => {
-                            const el = document.getElementById(id);
-                            if (el) {
-                                el.classList.remove('border-red-500', 'focus:ring-red-500');
-                                el.classList.add('border-gray-300', 'focus:ring-black');
-                            }
-                        });
-                        app.upload.removeImage();
-                        if (app.upload && app.upload.selectProvince) app.upload.selectProvince('');
-                        
-                        // Tự động reset lại nút Ghim địa điểm về trạng thái gốc
-                        if (app.upload && app.upload.checkLocationPinStatus) {
-                            app.upload.checkLocationPinStatus('');
-                        }
-
-                        document.getElementById('locked-msg')?.classList.add('hidden');
-                        app.vehicleLocked = false;
-                        document.getElementById('plate-msg').innerText = '';
-                        app.utils.resetTurnstile('#upload .cf-turnstile');
-                        app.utils.resetTurnstile('#auth .cf-turnstile');
-                        if(app.upload.applyPreferenceUI) app.upload.applyPreferenceUI();
-                        document.getElementById('type-msg')?.classList.add('hidden');
-                        
-                        
-                    }
-                    app.ui.closeUploadProgress();
-                    app.ui.closeAlert(false);
-                    app.ui.closePrompt(false);
-                    if(app.crop && app.crop.close) app.crop.close();
-                    if(app.settings && app.settings.close) app.settings.close();
-                    const zoomModal = document.getElementById('image-zoom-modal');
-                    if (zoomModal && !zoomModal.classList.contains('hidden')) {
-                        zoomModal.classList.add('hidden');
-                        document.body.style.overflow = '';
-                    }
-                    app.ui.closeUserDropdown();
-                    document.getElementById('search-filter-menu')?.classList.remove('active');
-                    app.ui.toggleUserMenu(false);
-                    if (app.edit && app.edit.isEditing) app.edit.cancel();
-                    app.ui.unlockScroll();
-                    app.upload.checkQuota();
-                },
-                provinceData: [],
-                loadProvinceData: async () => {
-                    try {
-                        const res = await fetch('/licence-no.json');
-                        if (res.ok) {
-                            const rawData = await res.json();
-                            app.utils.provinceData = rawData.sort((a, b) => (a.ten || '').localeCompare(b.ten || '', 'vi'));
-                            if (app.upload && app.upload.initProvinceMenu) app.upload.initProvinceMenu();
-                            if (app.views && app.views.initInfoProvinceSelect) app.views.initInfoProvinceSelect();
-                            if (app.search && app.search.initExactRouteMenu) app.search.initExactRouteMenu();
-                            if (app.search && app.search.syncExactUI) app.search.syncExactUI(app.search.currentExactPrefix, app.search.currentExactProvName);
-                        }
-                    } catch (e) { console.warn("Không thể tải licence-no.json", e); }
-                },
-                getProvinceFromPlate: (plate) => {
-                    if (!plate) return 'Không xác định';
-                    if (/^[A-Z]{3}\d{4,7}/.test(plate)) return 'Buýt sân bay';
-                    if (!app.utils.provinceData.length) return 'Không xác định';
-                    if (plate.startsWith('T')) return 'Biển tạm';
-                    if (/^[A-Z]{2}/.test(plate.substring(0, 2))) return 'Biển quân đội / Ngoại giao';
-                    const prefix = plate.substring(0, 2);
-                    const province = app.utils.provinceData.find(p => p.ky_hieu.includes(prefix));
-                    return province ? province.ten : 'Không xác định';
-                },
-                getRelatedPrefixes: (prefix) => {
-                    if (!app.utils.provinceData.length) return [prefix];
-                    const province = app.utils.provinceData.find(p => p.ky_hieu.includes(prefix));
-                    if (province && province.ky_hieu) {
-                        return Array.isArray(province.ky_hieu) ? province.ky_hieu : province.ky_hieu.split(',').map(s => s.trim());
-                    }
-                    return [prefix];
-                },
-                matchProvinceName: (rawText) => {
-                    if (!rawText || !app.utils.provinceData || !app.utils.provinceData.length) return null;
-                    const clean = rawText
-                        .replace(/^(Tỉnh|Thành phố|TP\.?)\s+/i, '')
-                        .replace(/\s+(Province|City)$/i, '')
-                        .trim().toLowerCase();
-                    const found = app.utils.provinceData.find(p => {
-                        const pName = p.ten.toLowerCase()
-                            .replace(/^(tp\.?\s*)/i, '')
-                            .replace(/^(tỉnh\s*)/i, '').trim();
-                        return clean.includes(pName) || pName.includes(clean);
-                    });
-                    return found ? found.ten : null;
-                },
-                formatCompact: (num) => {
-                    if (!num && num !== 0) return '0';
-                    num = parseInt(num);
-                    if (num >= 1_000_000_000) return (num / 1_000_000_000).toFixed(1).replace(/\.0$/, '') + 'T';
-                    if (num >= 1_000_000)     return (num / 1_000_000).toFixed(1).replace(/\.0$/, '') + 'Tr';
-                    if (num >= 1_000)         return (num / 1_000).toFixed(1).replace(/\.0$/, '') + 'N';
-                    return num.toString();
-                },
-                verifyImageLoaded: async (url, maxRetries = 3) => {
-                    const delay = (ms) => new Promise(res => setTimeout(res, ms));
-                    for (let i = 0; i < maxRetries; i++) {
-                        try {
-                            await new Promise((resolve, reject) => {
-                                const img = new Image();
-                                const cacheBuster = url.includes('?') ? '&cb=' : '?cb=';
-                                img.src = url + cacheBuster + new Date().getTime();
-                        img.onload = async () => {
-                                    if (img.naturalWidth > 10) resolve(true);
-                                    else reject(new Error("File ảnh bị hỏng hoặc trống."));
-                                };
-                                img.onerror = () => {
-                                    reject(new Error("Lỗi máy chủ lưu trữ (404 / Bị chặn)."));
-                                };
-                            });
-                            return true;
-                        } catch (e) {
-                            if (i === maxRetries - 1) throw e;
-                            await delay(1500);
-                        }
-                    }
-                },
-                renderPagination: (containerId, currentPage, totalPages, onPageChange) => {
-                    const container = document.getElementById(containerId);
-                    if (!container) return;
-                    if (totalPages <= 1) { container.innerHTML = ''; return; }
-                    const delta = 1;
-                    const middle = [];
-                    for (let i = Math.max(2, currentPage - delta); i <= Math.min(totalPages - 1, currentPage + delta); i++) {
-                        middle.push(i);
-                    }
-                    const leftDots  = middle.length > 0 && middle[0] > 2;
-                    const rightDots = middle.length > 0 && middle[middle.length - 1] < totalPages - 1;
-                    const range = [1];
-                    if (leftDots)  range.push('..._left');
-                    range.push(...middle);
-                    if (rightDots) range.push('..._right');
-                    if (totalPages > 1) range.push(totalPages);
-                    const wrap = document.createElement('div');
-                    wrap.className = 'pagination-wrap';
-                    const prevBtn = document.createElement('button');
-                    prevBtn.className = 'page-btn';
-                    prevBtn.innerHTML = '<i class="fa-solid fa-chevron-left text-xs"></i>';
-                    prevBtn.disabled = currentPage === 1;
-                    prevBtn.addEventListener('click', () => onPageChange(currentPage - 1));
-                    wrap.appendChild(prevBtn);
-                    range.forEach((p) => {
-                        if (typeof p === 'string' && p.startsWith('...')) {
-                            const dotsBtn = document.createElement('button');
-                            dotsBtn.className = 'page-btn dots';
-                            dotsBtn.innerHTML = '•••';
-                            dotsBtn.style.cursor = 'pointer';
-                            dotsBtn.title = 'Nhảy đến trang bất kỳ';
-                            dotsBtn.addEventListener('click', function () {
-                                const jumpWrap = document.createElement('span');
-                                jumpWrap.className = 'page-jump-wrap';
-                                const input = document.createElement('input');
-                                input.type = 'number';
-                                input.className = 'page-jump-input';
-                                input.min = 1;
-                                input.max = totalPages;
-                                input.placeholder = '#';
-                                const goBtn = document.createElement('button');
-                                goBtn.className = 'page-jump-btn';
-                                goBtn.textContent = '→';
-                                const doJump = () => {
-                                    const val = parseInt(input.value);
-                                    if (val >= 1 && val <= totalPages) onPageChange(val);
-                                };
-                                goBtn.addEventListener('click', doJump);
-                                input.addEventListener('keydown', (e) => { if (e.key === 'Enter') doJump(); });
-                                input.addEventListener('blur', () => {
-                                    setTimeout(() => {
-                                        if (!jumpWrap.contains(document.activeElement)) {
-                                            jumpWrap.replaceWith(dotsBtn);
-                                        }
-                                    }, 150);
-                                });
-                                jumpWrap.appendChild(input);
-                                jumpWrap.appendChild(goBtn);
-                                dotsBtn.replaceWith(jumpWrap);
-                                input.focus();
-                            });
-                            wrap.appendChild(dotsBtn);
-                        } else {
-                            const btn = document.createElement('button');
-                            btn.className = 'page-btn' + (p === currentPage ? ' active' : '');
-                            btn.textContent = p;
-                            if (p !== currentPage) btn.addEventListener('click', () => onPageChange(p));
-                            wrap.appendChild(btn);
-                        }
-                    });
-                    const nextBtn = document.createElement('button');
-                    nextBtn.className = 'page-btn';
-                    nextBtn.innerHTML = '<i class="fa-solid fa-chevron-right text-xs"></i>';
-                    nextBtn.disabled = currentPage === totalPages;
-                    nextBtn.addEventListener('click', () => onPageChange(currentPage + 1));
-                    wrap.appendChild(nextBtn);
-                    container.innerHTML = '';
-                    container.appendChild(wrap);
-                },
-                shareProfile: (userId, userName) => {
-                    const id = userId || app.user?.id;
-                    const name = userName || app.user?.username || 'Người dùng';
-                    if (!id) return;
-                    const profileUrl = window.location.origin + '/user/' + id;
-                    if (navigator.share) {
-                        navigator.share({
-                            title: 'Hồ sơ của ' + name,
-                            url: profileUrl
-                        }).catch(console.error);
-                    } else {
-                        navigator.clipboard.writeText(profileUrl).then(() => {
-                            app.toast.show('success', 'Thành công', 'Đã sao chép liên kết hồ sơ!', 3000);
-                        }).catch(() => {
-                            app.toast.show('error', 'Lỗi', 'Không thể sao chép liên kết.', 3000);
-                        });
-                    }
-                },
-                updateBreadcrumbs: () => {
-                    const state = window.history.state;
-                    const parent = state?.parentInfo || { name: "Trang chủ", url: "/" };
-                    document.querySelectorAll('.crumb-back').forEach(el => {
-                        el.innerText = parent.name;
-                        el.onclick = () => { app.utils.navigate(parent.url); };
-                    });
-                },
-                checkRouteStatus: (routeVal, opInputId, containerId) => {
-                    const isStopped = (routeVal || '').trim() === 'Dừng hoạt động';
-                    const opEl = document.getElementById(opInputId);
-                    if (!opEl) return;
-                    if (isStopped) {
-                        if (!opEl.disabled) opEl.dataset.oldValue = opEl.value;
-                        opEl.value = 'N/A';
-                        opEl.disabled = true;
-                        opEl.removeAttribute('required');
-                        opEl.classList.add('bg-gray-100', 'cursor-not-allowed', 'opacity-60');
-                    } else {
-                        if (opEl.disabled) {
-                            if (opEl.value === 'N/A' || opEl.value === '') {
-                                if (opEl.dataset.oldValue && opEl.dataset.oldValue !== 'N/A') {
-                                    opEl.value = opEl.dataset.oldValue;
-                                } else {
-                                    opEl.value = '';
-                                }
-                            }
-                            delete opEl.dataset.oldValue;
-                        }
-                        opEl.disabled = false;
-                        opEl.setAttribute('required', 'true');
-                        opEl.classList.remove('cursor-not-allowed', 'opacity-60');
-                        if (opEl.tagName !== 'INPUT' || !opEl.classList.contains('info-input')) {
-                            opEl.classList.remove('bg-gray-100');
-                        }
-                    }
-                    if (containerId) {
-                        const container = document.getElementById(containerId);
-                        if (container) {
-                            if (isStopped) container.classList.add('hidden');
-                            else container.classList.remove('hidden');
-                        }
-                    } else {
-                        const tr = opEl.closest('tr');
-                        if (tr) {
-                            if (isStopped) tr.classList.add('hidden');
-                            else tr.classList.remove('hidden');
-                        } else {
-                            const wrapper = opEl.closest('div.grid-cols-1') || opEl.closest('div');
-                            if (wrapper && wrapper.id !== opInputId) {
-                                if (isStopped) wrapper.classList.add('hidden');
-                                else wrapper.classList.remove('hidden');
-                            }
-                        }
-                    }
-                },
-                autoResizeTextarea: (el) => {
-                    if (!el || el.tagName !== 'TEXTAREA') return;
-                    el.style.height = 'auto';
-                    el.style.height = Math.max(38, el.scrollHeight) + 'px';
-                },
-                formatPlateInput: (el) => {
-                    let val = el.value;
-                    const upperVal = val.toUpperCase();
-                    if (val !== upperVal) {
-                        const start = el.selectionStart;
-                        const end = el.selectionEnd;
-                        el.value = upperVal;
-                        el.setSelectionRange(start, end);
-                    }
-                },
-                formatDateInput: (el) => {
-                    let val = el.value.replace(/\D/g, '');
-                    if (val.length > 8) val = val.substring(0, 8);
-                    let formatted = '';
-                    if (val.length > 0) formatted += val.substring(0, 2);
-                    if (val.length > 2) formatted += '/' + val.substring(2, 4);
-                    if (val.length > 4) formatted += '/' + val.substring(4, 8);
-                    const oldLen = el.value.length;
-                    const oldStart = el.selectionStart;
-                    el.value = formatted;
-                    const diff = formatted.length - oldLen;
-                    el.setSelectionRange(oldStart + diff, oldStart + diff);
-                },
-                formatDateToDDMMYYYY: (dateStr) => {
-                    if (!dateStr) return '';
-                    const parts = dateStr.split('-');
-                    if (parts.length === 3) {
-                        return `${parts[2]}/${parts[1]}/${parts[0]}`;
-                    }
-                    return dateStr;
-                },
-                parseDDMMYYYYToDate: (str) => {
-                    if (!str || str.length !== 10) return null;
-                    const parts = str.split('/');
-                    if (parts.length !== 3) return null;
-                    const d = parseInt(parts[0], 10);
-                    const m = parseInt(parts[1], 10);
-                    const y = parseInt(parts[2], 10);
-                    if (isNaN(d) || isNaN(m) || isNaN(y)) return null;
-                    if (m < 1 || m > 12) return null;
-                    const daysInMonth = new Date(y, m, 0).getDate();
-                    if (d < 1 || d > daysInMonth) return null;
-                    if (y < 1900 || y > 2100) return null;
-                    return `${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
-                },
-                formatNoPunctuation: (el) => {
-                    return;
-                },
-                fallbackHeroImage: (imgElement, cacheName, currentIndex) => {
-                    const photos = app[cacheName];
-                    const wrapper = imgElement.closest('#hero-main') || imgElement.closest('.group');
-                    if (!photos || currentIndex >= photos.length - 1) {
-                        imgElement.style.display = 'none';
-                        if (wrapper) {
-                            wrapper.onclick = null;
-                            wrapper.classList.remove('cursor-pointer');
-                            let errBox = wrapper.querySelector('.fallback-error');
-                            if (!errBox) {
-                                wrapper.innerHTML += `<div class="fallback-error absolute inset-0 flex flex-col items-center justify-center bg-gray-100 z-10 w-full h-full min-h-[200px]">
-                                    <i class="fa-solid fa-image-slash text-gray-400 text-4xl mb-2"></i>
-                                    <span class="text-sm font-bold text-gray-500">Ảnh đã bị lỗi hoặc gỡ bỏ</span>
-                                </div>`;
-                            }
-                        }
-                        return;
-                    }
-                    const nextIndex = currentIndex + 1;
-                    const nextPhoto = photos[nextIndex];
-                    imgElement.src = app.utils.getProxiedUrl(nextPhoto.url, 'fallback.jpg', 'thumb');
-                    imgElement.setAttribute('onerror', `app.utils.fallbackHeroImage(this, '${cacheName}', ${nextIndex})`);
-                    if (wrapper) {
-                        wrapper.onclick = () => app.views.loadDetail(nextPhoto.id);
-                        if (cacheName === 'topPhotosCache') {
-                             const textPlate = wrapper.querySelector('.hero-main-text') || wrapper.querySelector('.hero-sub-text');
-                             const textViews = wrapper.querySelector('.hero-main-views') || wrapper.querySelector('.hero-sub-operator');
-                             if (textPlate) {
-                                 const safePlate = app.utils.displayPlate(app.utils.cleanText(nextPhoto.license_plate));
-                                 textPlate.innerHTML = safePlate;
-                             }
-                             if (textViews) {
-                                 const safeOperator = app.utils.cleanText(nextPhoto.operator || 'Đang cập nhật');
-                                 textViews.innerHTML = safeOperator;
-                             }
-                        }
-                    }
-                },
-                normalizePlateQuery: (str) => {
-                    if (!str) return '';
-                    let s = str.toUpperCase().replace(/[\s.,_]/g, '');
-                    s = s.replace(/\-(\d{3,5})(?!\d)/g, '$1');
-                    if (s === '-') return '';
-                    return s;
-                },
-                cleanText: (str) => {
-                    if (!str) return '';
-                    return DOMPurify.sanitize(str, { ALLOWED_TAGS: [] });
-                },
-                escapeHtml: (str) => {
-                    if (!str) return '';
-                    return DOMPurify.sanitize(str, { ALLOWED_TAGS: [] });
-                },
-                // Dựng icon số tuyến (tròn / thang cân). Cỡ chữ tính theo đơn vị viewBox 0-100
-                // nên SVG tự scale đúng ở mọi kích thước container, không phụ thuộc px cứng.
-                buildRouteIcon: async (name, type, sizeClass) => {
-                    if (!type || type === 'default') return null;
-                    const label = String(name == null ? '' : name).trim();
-                    if (!label) return null;
-                    const text = label.length <= 5 ? label : label.substring(0, 5);
-                    try { await document.fonts.load('400 1em Anton'); } catch (e) {}
-                    const cv = document.createElement('canvas');
-                    const cx = cv.getContext('2d');
-                    cx.font = '400 100px Anton, sans-serif';
-                    const mt = cx.measureText(text);
-                    const w100 = mt.width || 1;
-                    const h100 = mt.actualBoundingBoxAscent || 72;
-                    const safeText = app.utils.escapeHtml(text);
-                    const iconClass = `${sizeClass} flex flex-col items-center justify-center shrink-0 relative`;
-
-                    if (type === 'circle') {
-                        // Lòng trong r = 44 (r 48 trừ nửa stroke 4). Chữ nằm gọn trong đường tròn
-                        // nội tiếp khi w^2 + h^2 <= (2*44)^2 -> f = 8800 / sqrt(w^2 + h^2).
-                        const fSize = 8800 / Math.sqrt(w100 * w100 + h100 * h100);
-                        const y = 50 + (h100 * fSize) / 200;
-                        return {
-                            iconClass,
-                            iconHtml: `
-                            <svg viewBox="0 0 100 100" class="absolute inset-0 w-full h-full overflow-visible drop-shadow-sm" preserveAspectRatio="none">
-                                <circle cx="50" cy="50" r="48" fill="white" stroke="black" stroke-width="4"/>
-                                <text x="50" y="${y.toFixed(2)}" text-anchor="middle" font-family="Anton, sans-serif" font-weight="400" fill="#dc2626" font-size="${fSize.toFixed(2)}">${safeText}</text>
-                            </svg>`
-                        };
-                    }
-
-                    if (type === 'trapezoid') {
-                        // Đa giác 15,15 85,15 100,85 0,85 (chừa ~3 đơn vị lề): chiều cao tối đa 64,
-                        // bề rộng khả dụng hẹp dần về đỉnh nên ràng buộc w + 0.2143h <= 42.5*2.
-                        const fSize = Math.min(6400 / h100, 8300 / (w100 + 0.2143 * h100));
-                        const y = 50 + (h100 * fSize) / 200;
-                        return {
-                            iconClass,
-                            iconHtml: `
-                            <svg viewBox="0 0 100 100" class="absolute inset-0 w-full h-full overflow-visible drop-shadow-sm" preserveAspectRatio="none">
-                                <polygon points="15,15 85,15 100,85 0,85" fill="white" stroke="black" stroke-width="4" stroke-linejoin="round"/>
-                                <text x="50" y="${y.toFixed(2)}" text-anchor="middle" font-family="Anton, sans-serif" font-weight="400" fill="#dc2626" font-size="${fSize.toFixed(2)}">${safeText}</text>
-                            </svg>`
-                        };
-                    }
-
-                    return null;
-                },
-                checkModelDuplicatePolicy: async (plate, model) => {
-                    if (!plate || !model || !String(plate).includes('-')) return false;
-                    const parts = String(plate).split('-');
-                    if (parts.length < 2 || isNaN(parts[1])) return false;
-                    const basePlate = parts[0];
-                    try {
-                        const { data: relatedVehicles } = await window.sb.from('vehicles').select('license_plate, model').ilike('license_plate', `${basePlate}%`);
-                        if (relatedVehicles && relatedVehicles.length > 0) {
-                            const currentModelLower = String(model).trim().toLowerCase();
-                            const duplicateVehicle = relatedVehicles.find(v => {
-                                if (!v.model || v.license_plate === plate) return false;
-                                if (v.license_plate !== basePlate) {
-                                    const pts = v.license_plate.split('-');
-                                    if (pts.length !== 2 || pts[0] !== basePlate || isNaN(pts[1])) return false;
-                                }
-                                const mLower = v.model.trim().toLowerCase();
-                                return mLower === currentModelLower || mLower.includes(currentModelLower) || currentModelLower.includes(mLower);
-                            });
-                            if (duplicateVehicle) {
-                                app.ui.showAlert("Xe định danh phụ không được trùng dòng xe với xe khác cùng biển kiểm soát.", null, null, { title: "Vi phạm chính sách" });
-                                return true;
-                            }
-                        }
-                    } catch(e) { console.warn("Lỗi kiểm tra dòng xe gốc:", e); }
-                    return false;
-                },
-                fixUnicode: (str) => {
-                    if (!str) return '';
-                    return str.normalize('NFC').replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F-\u009F]/g, "");
-                },
-                normOperator: (str) => {
-                    if (!str) return '';
-                    return String(str)
-                        .normalize('NFKC')
-                        .replace(/[（）]/g, m => m === '（' ? '(' : ')')
-                        .replace(/[ ­ᅟᅠ﻿]/g, ' ')
-                        .replace(/[ ]/g, ' ')
-                        .replace(/\s+/g, ' ')
-                        .trim();
-                },
-                displayPlate: (plate) => {
-                    if (!plate) return '';
-                    return plate.replace(/-\d+$/, '');
-                },
-                formatPlateVariations: (plate) => {
-                    if (!plate) return '';
-                    const p = String(plate).trim().replace(/-\d+$/, '');
-                    if (!p) return '';
-                    const clean = p.replace(/[\s.,_-]/g, '').toUpperCase();
-                    const match = clean.match(/^([A-Z0-9]*[A-Z])(\d{4,5})$/);
-                    if (!match) return p;
-                    const prefix = match[1];
-                    const num = match[2];
-                    if (num.length === 5) {
-                        return [...new Set([
-                            `${prefix}${num}`,
-                            `${prefix}-${num.slice(0, 3)}.${num.slice(3)}`,
-                            `${prefix}-${num}`
-                        ])].join(' / ');
-                    } else if (num.length === 4) {
-                        return [...new Set([
-                            `${prefix}${num}`,
-                            `${prefix}-${num}`
-                        ])].join(' / ');
-                    }
-                    return p;
-                },
-                escapeAttr: (str) => {
-                    if (!str) return '';
-                    return String(str)
-                        .replace(/&/g, '&amp;')
-                        .replace(/"/g, '&quot;')
-                        .replace(/'/g, '&#39;')
-                        .replace(/</g, '&lt;')
-                        .replace(/>/g, '&gt;');
-                },
-                linkify: (str) => {
-                    if (!str) return '';
-                    const urlRegex = /(https?:\/\/[^\s]+)/g;
-                    return str.replace(urlRegex, function(url) {
-                        return `<a href="${url}" target="_blank" class="text-black font-medium hover:underline break-all">${url}</a>`;
-                    });
-                },
-                resolveSandboxUrls: async (items) => {
-                    if (!items) return;
-                    const list = Array.isArray(items) ? items : [items];
-                    list.forEach(item => {
-                        if (item && typeof item === 'object' && item.url && typeof item.url === 'string') {
-                            if (item.url.startsWith('sandbox:') || item.url.startsWith('data:') || item.url === 'https://cdn.vnbusarchive.io.vn/file/daonguyenthanhnhan') {
-                                item._isSandboxMissing = true;
-                            }
-                        }
-                    });
-                },
+                        }, 10);
+                        ,
                 getProxiedUrl: (url, filename = 'image.jpg', type = 'full') => {
                     if (!url) return '';
                     if (typeof url === 'string' && (url.startsWith('data:') || url.startsWith('sandbox:') || url === 'https://cdn.vnbusarchive.io.vn/file/daonguyenthanhnhan')) return '';
@@ -3629,8 +1532,9 @@ cleanupState: () => {
                 const searchParams = new URLSearchParams(window.location.search);
                 app.currentPathForScroll = path + window.location.search;
                 if (path === '/login' && searchParams.get('qr')) {
+                    const qrClient = searchParams.get('client') || '';
                     app.views.switch('home', false);
-                    setTimeout(() => app.qrLogin.initClient(searchParams.get('qr')), 500);
+                    setTimeout(() => app.qrLogin.initClient(searchParams.get('qr'), qrClient), 500);
                 } else if (path === '/auth') {
                     document.title = 'Xác thực | VNBUSARCHIVE';
                     const isRecovery = window.location.hash.includes('type=recovery') || app.auth.mode === 'recovery';
@@ -3769,7 +1673,21 @@ cleanupState: () => {
                         }
                         app.handleSearch(false);
                     } else {
-                        app.views.loadHome();
+                        app.views.switch('search', false);
+                        const headerInp = document.getElementById('search-input');
+                        const pageInp = document.getElementById('page-search-input');
+                        if (headerInp) headerInp.value = '';
+                        if (pageInp) pageInp.value = '';
+                        app.currentViewMode = 'search';
+                        document.title = 'Tìm kiếm | VNBUSARCHIVE';
+                        const grid = document.getElementById('search-grid');
+                        if (grid) grid.innerHTML = '';
+                        document.getElementById('search-count-container')?.classList.add('hidden');
+                        document.getElementById('search-load-more-container')?.classList.add('hidden');
+                        setTimeout(() => {
+                            const pInp = document.getElementById('page-search-input');
+                            if (pInp) pInp.focus();
+                        }, 200);
                     }
                 } else {
                     app.views.switch('home', false);
@@ -3815,7 +1733,7 @@ cleanupState: () => {
 
     detailMarker: null,
 
-    currentExif: { camera: 'N/A', params: 'N/A' },
+    currentExif: { camera: 'N/A', params: 'N/A', software: '' },
 
     searchTimeout: null,
 
@@ -4625,6 +2543,7 @@ dropdown.innerHTML = `
                     app.auth.close();
                     if (app.role === 'admin' || app.role === 'manager') {
                         document.getElementById('nav-admin').classList.remove('hidden');
+                        document.getElementById('btn-profile-admin')?.classList.remove('hidden');
                         app.admin.checkNotification();
                         if (app.role === 'manager') {
                             document.getElementById('adm-tab-manager').classList.remove('hidden');
@@ -4632,6 +2551,7 @@ dropdown.innerHTML = `
                         if (typeof app.initRealtimeChannel === 'function') app.initRealtimeChannel();
                     } else {
                         document.getElementById('nav-admin').classList.add('hidden');
+                        document.getElementById('btn-profile-admin')?.classList.add('hidden');
                         if (typeof app.initRealtimeChannel === 'function') app.initRealtimeChannel();
                     }
                 } else {
@@ -4700,13 +2620,36 @@ if (window.app && window.app.ui && window.app.ui.initSliderEditableBadges) {
     window.app.ui.initSliderEditableBadges();
 }
 
-
 /* --- MODULE: 01_router.js --- */
 // Capture URL params BEFORE Supabase SDK clears them (PKCE flow removes token_hash after exchange)
 window.INITIAL_SEARCH = window.location.search;
 window.INITIAL_HASH = window.location.hash;
 Object.assign(window.app, {
     init: async () => {
+        const isApp = window.__isAppDiscontinued || (window.AndroidBridge && typeof window.AndroidBridge.isNativeApp === 'function' && window.AndroidBridge.isNativeApp()) || window.location.search.includes('app_preview=1');
+        if (isApp) {
+            document.documentElement.classList.add('app-discontinued-mode');
+            const discScreen = document.getElementById('app-discontinued-screen');
+            if (discScreen) discScreen.style.display = 'flex';
+            const loadScreen = document.getElementById('loading-screen');
+            if (loadScreen) loadScreen.style.display = 'none';
+            const appContainer = document.getElementById('app-container');
+            if (appContainer) appContainer.style.display = 'none';
+
+            const openBrowserBtn = document.getElementById('btn-open-in-browser');
+            if (openBrowserBtn) {
+                openBrowserBtn.onclick = (e) => {
+                    e.preventDefault();
+                    if (window.AndroidBridge && typeof window.AndroidBridge.openExternalBrowser === 'function') {
+                        window.AndroidBridge.openExternalBrowser('https://www.vnbusarchive.io.vn/');
+                    } else {
+                        window.open('https://www.vnbusarchive.io.vn/', '_blank');
+                    }
+                };
+            }
+            return;
+        }
+
         window.onpopstate = () => {
             if (app.transitionHeaderLogo) app.transitionHeaderLogo();
             app.handleRoute();
@@ -4799,6 +2742,15 @@ Object.assign(window.app, {
                         else if (event === 'SIGNED_IN') {
                             if (session && session.user) {
                                 await app.setUser(session.user);
+                            }
+                            const pendingQr = sessionStorage.getItem('pending_qr_login');
+                            const pendingClient = sessionStorage.getItem('pending_qr_client') || '';
+                            if (pendingQr) {
+                                sessionStorage.removeItem('pending_qr_login');
+                                sessionStorage.removeItem('pending_qr_client');
+                                app.views.switch('home', false);
+                                setTimeout(() => app.qrLogin.initClient(pendingQr, pendingClient), 500);
+                                return;
                             }
                             const hash = window.INITIAL_HASH || window.location.hash;
                             const searchType = new URLSearchParams(window.INITIAL_SEARCH || window.location.search).get('type');
@@ -5148,7 +3100,6 @@ Object.assign(window.app, {
 
 
 /* --- MODULE: 02_settings.js --- */
-
 Object.assign(window.app, {
     notifications: { init: ()=>{}, add: async ()=>{} },
 
@@ -5236,6 +3187,7 @@ Object.assign(window.app, {
                     app.ui.toggleUserMenu(false);
                     app.settings.closeAccountMenu(true);
                     if (targetParent === 'account') app.settings.openAccountMenu();
+
                     if (app.user) {
                         document.querySelectorAll('.account-only-btn').forEach(el => el.style.display = '');
                         if (app.user.email) {
@@ -5284,7 +3236,7 @@ Object.assign(window.app, {
                     }, 200);
                 },
                 switchTab: (tab) => {
-                    const tabs = ['blank', 'profile', 'security', 'links', 'badges', 'preference'];
+                    const tabs = ['blank', 'profile', 'security', 'links', 'badges', 'preference', 'app'];
                     const activeClasses = ['bg-black', 'text-white', 'border-black', 'shadow-sm'];
                     const inactiveClasses = ['bg-white', 'text-gray-600', 'hover:bg-gray-50', 'border-gray-200'];
                     tabs.forEach(t => {
@@ -5696,7 +3648,7 @@ grid.innerHTML = tiers.map(tier => {
 
 Object.assign(window.app, {
     auth: {
-                mode: 'login',
+        mode: 'login',
                 uuidTimeout: null,
                 unverifiedEmail: null,
                 showVerificationModal: (email) => {
@@ -6585,14 +4537,18 @@ changePassword: async () => {
                 document.getElementById('qr-login-host-modal').classList.add('hidden');
                 app.ui.unlockScroll();
             },
-            initClient: async (hostId) => {
+            initClient: async (hostId, clientType = '') => {
                 app.qrLogin.isSuccess = false;
+                const searchClient = new URLSearchParams(window.location.search).get('client') || clientType || '';
                 if (!app.user) {
-                    app.ui.showAlert("Bạn chưa đăng nhập! Vui lòng đăng nhập trên điện thoại này trước khi quét mã QR.", () => {
+                    sessionStorage.setItem('pending_qr_login', hostId);
+                    if (searchClient) sessionStorage.setItem('pending_qr_client', searchClient);
+                    app.ui.showAlert("Bạn cần đăng nhập vào tài khoản trên trình duyệt trước khi cấp quyền cho ứng dụng.", () => {
                         app.utils.navigate('/auth');
                     });
                     return;
                 }
+                app.qrLogin.currentClientType = searchClient;
                 try {
                     window.history.replaceState(null, null, '/');
                 } catch(e){}
@@ -6601,23 +4557,6 @@ changePassword: async () => {
                 const btnConfirm = document.getElementById('qr-confirm-btn');
                 const avatarImg = document.getElementById('qr-confirm-avatar');
                 const deviceText = document.getElementById('qr-confirm-device');
-                btnConfirm.disabled = true;
-                btnConfirm.classList.add('opacity-50', 'cursor-not-allowed');
-                let timeLeft = 3;
-                btnConfirm.innerText = 'Đăng nhập (' + timeLeft + ')';
-                document.getElementById('qr-confirm-name').innerText = app.username;
-                try {
-                    const { data: profile } = await window.sb.from('profiles').select('avatar_url').eq('id', app.user.id).single();
-                    if (profile && profile.avatar_url) {
-                        avatarImg.src = app.utils.getProxiedUrl(profile.avatar_url.replace(/"/g, ''), 'avatar.jpg', 'avatar');
-                    } else if (app.user.user_metadata?.avatar_url) {
-                        avatarImg.src = app.utils.getProxiedUrl(app.user.user_metadata.avatar_url, 'avatar.jpg', 'avatar');
-                    } else {
-                        avatarImg.src = 'https://files.catbox.moe/zzh1q1.png';
-                    }
-                } catch(e) {
-                    avatarImg.src = 'https://files.catbox.moe/zzh1q1.png';
-                }
                 deviceText.innerText = "Đang kết nối để lấy thông tin thiết bị...";
                 app.qrLogin.getIP();
                 modal.classList.remove('hidden');
@@ -7117,6 +5056,9 @@ Object.assign(window.app, {
                     if (id === 'auth') {
                         window.dispatchEvent(new CustomEvent('auth-opened'));
                         app.utils.resetTurnstile('#auth .cf-turnstile');
+                        if (app.auth && app.auth.updateNativeAppAuthUI) {
+                            app.auth.updateNativeAppAuthUI();
+                        }
                     }
                     const searchBox = document.getElementById('header-search-box');
                     const headerSpacer = document.getElementById('header-spacer');
@@ -7126,7 +5068,7 @@ Object.assign(window.app, {
                         if (mainHeader) mainHeader.style.display = 'none';
                         if (headerSpacer) headerSpacer.style.display = 'none';
                     } else {
-                        if (mainHeader) { mainHeader.style.display = ''; mainHeader.style.transform = 'translateY(0)'; mainHeader.classList.remove('header-droplet-hidden', 'header-droplet-visible'); }
+                        if (mainHeader) { mainHeader.style.display = ''; mainHeader.style.transform = 'translateY(0)'; }
                         if (headerSpacer) headerSpacer.style.display = '';
                         
                         const footer = document.querySelector('footer');
@@ -7134,9 +5076,15 @@ Object.assign(window.app, {
                             if (id === 'map') {
                                 footer.parentElement.style.display = 'none';
                                 document.body.style.overflow = 'hidden';
+                                if (app.map && typeof app.map.startLocation === 'function') {
+                                    app.map.startLocation();
+                                }
                             } else {
                                 footer.parentElement.style.display = '';
                                 document.body.style.overflow = '';
+                                if (app.map && typeof app.map.stopLocation === 'function') {
+                                    app.map.stopLocation();
+                                }
                             }
                         }
                         
@@ -7181,27 +5129,28 @@ Object.assign(window.app, {
                     } else if (targetDepth === currentDepth) {
                         animationClass = 'fade-zoom-in-page'; 
                     }
+                    const targetEl = document.getElementById(id);
+                    if (targetEl) {
+                        targetEl.classList.add('active');
+                        if (animationClass && app._initialLoadingDismissed) {
+                            targetEl.classList.add(animationClass);
+                            targetEl.onanimationend = () => {
+                                targetEl.classList.remove(animationClass);
+                                targetEl.onanimationend = null;
+                            };
+                        }
+                        if (app.transitionHeaderLogo) app.transitionHeaderLogo();
+                    }
                     document.querySelectorAll('.view-section').forEach(el => {
-                        el.classList.remove('active', 'slide-in-right', 'slide-in-left', 'fade-zoom-in-page');
+                        if (el !== targetEl) {
+                            el.classList.remove('active', 'slide-in-right', 'slide-in-left', 'fade-zoom-in-page');
+                        }
                     });
                     const targetPath = window.location.pathname + window.location.search;
                     if (app.scrollPositions && app.scrollPositions[targetPath] !== undefined) {
                         window.scrollTo(0, app.scrollPositions[targetPath]);
                     } else {
                         window.scrollTo(0, 0);
-                    }
-                    const targetEl = document.getElementById(id);
-                    if (targetEl) {
-                        if (!app._initialLoadingDismissed) {
-                            targetEl.classList.add('active');
-                        } else {
-                            targetEl.classList.add('active', animationClass);
-                            targetEl.onanimationend = () => {
-                                targetEl.classList.remove(animationClass);
-                                targetEl.onanimationend = null;
-                            };
-                            if (app.transitionHeaderLogo) app.transitionHeaderLogo();
-                        }
                     }
                     if (app.utils && app.utils.updateCanonical) app.utils.updateCanonical();
                     if (app.dismissInitialLoadingScreen) app.dismissInitialLoadingScreen();
@@ -7641,11 +5590,36 @@ Object.assign(window.app, {
                         </div>
                     `;
                 },
+                
+                renderGuestProfile: () => {
+                    app.views.switch('account', false);
+                    document.title = 'Tài khoản | VNBUSARCHIVE';
+                    const nameEl = document.getElementById('acc-name');
+                    if (nameEl) nameEl.innerText = 'Chưa đăng nhập';
+                    const avatarImg = document.getElementById('acc-avatar-img');
+                    const avatarIcon = document.getElementById('acc-avatar-icon');
+                    if (avatarImg) avatarImg.classList.add('hidden');
+                    if (avatarIcon) avatarIcon.classList.remove('hidden');
+
+                    document.getElementById('btn-edit-profile')?.classList.add('hidden');
+                    document.getElementById('btn-contact-profile')?.classList.add('hidden');
+                    document.getElementById('btn-share-profile')?.classList.add('hidden');
+                    document.getElementById('btn-report-profile')?.classList.add('hidden');
+                    document.getElementById('btn-guest-login-wrapper')?.classList.remove('hidden');
+
+                    document.getElementById('profile-auth-only-content')?.classList.add('hidden');
+                    document.getElementById('btn-profile-logout')?.classList.add('hidden');
+                    document.getElementById('btn-profile-admin')?.classList.add('hidden');
+                                        if (app.loadingBar && app.loadingBar.finish) app.loadingBar.finish();
+                },
                 loadAccount: async (usernameStr = null, forceRefresh = false) => {
                     let targetUsername = usernameStr;
                     let isOwnProfile = false;
                     if (!targetUsername) {
-                        if (!app.user) return app.utils.navigate('/auth');
+                        if (!app.user) {
+                            app.views.renderGuestProfile();
+                            return;
+                        }
                         targetUsername = app.username;
                         isOwnProfile = true;
                         if (window.location.pathname !== '/profile') return app.utils.navigate('/profile');
@@ -7668,6 +5642,16 @@ Object.assign(window.app, {
                     document.getElementById('acc-avatar-icon').classList.remove('hidden');
                     document.getElementById('profile-bio-content').innerHTML = '<i class="fa-solid fa-spinner fa-spin text-gray-400"></i>';
                     document.getElementById('profile-fav-photo-container').innerHTML = '';
+                    if (app.role === 'admin' || app.role === 'manager') {
+                        document.getElementById('btn-profile-admin')?.classList.remove('hidden');
+                    } else {
+                        document.getElementById('btn-profile-admin')?.classList.add('hidden');
+                    }
+                    if (isOwnProfile) {
+                                                document.getElementById('btn-profile-logout')?.classList.remove('hidden');
+                    } else {
+                                                document.getElementById('btn-profile-logout')?.classList.add('hidden');
+                    }
                     document.getElementById('my-stat-photos').innerHTML = '<i class="fa-solid fa-spinner fa-spin text-gray-400"></i>';
                     document.getElementById('my-stat-views').innerHTML = '<i class="fa-solid fa-spinner fa-spin text-gray-400"></i>';
                     document.getElementById('my-stat-likes').innerHTML = '<i class="fa-solid fa-spinner fa-spin text-gray-400"></i>';
@@ -7698,6 +5682,13 @@ Object.assign(window.app, {
                     document.getElementById('acc-name').innerHTML = isBannedUser 
                         ? '<span class="text-black font-bold">Người dùng bị cấm</span>' 
                         : `${profile.username} ${badges}`;
+                    document.getElementById('btn-guest-login-wrapper')?.classList.add('hidden');
+                    document.getElementById('profile-auth-only-content')?.classList.remove('hidden');
+                    if (isOwnProfile) {
+                        document.getElementById('btn-profile-logout')?.classList.remove('hidden');
+                    } else {
+                        document.getElementById('btn-profile-logout')?.classList.add('hidden');
+                    }
                     const avatarIcon = document.getElementById('acc-avatar-icon');
                     const avatarImg = document.getElementById('acc-avatar-img');
                     const safeAvatar = isBannedUser 
@@ -14586,6 +12577,25 @@ if (!decodedProvince || decodedProvince.trim() === '') {
                     app.route.filterSelector();
                 },
 
+                resetSelectorState: () => {
+                    app.route.selectorCurrentSelected = '';
+                    app.route.pendingSelectedRoute = null;
+                    app.route.selectorCallback = null;
+                    app.route.selectorTargetInputId = null;
+                    app.route.selectorExcludeRoute = null;
+                    app.route.selectorIsHistory = false;
+                    app.route.selectorContextProvince = '';
+                    app.route.selectorDisplayLimit = 40;
+                    const searchInput = document.getElementById('route-selector-search');
+                    if (searchInput) searchInput.value = '';
+                    const provFilter = document.getElementById('route-selector-prov-filter');
+                    if (provFilter) provFilter.value = '';
+                    const provLabel = document.getElementById('route-selector-prov-label');
+                    if (provLabel) provLabel.innerText = 'Tất cả tỉnh thành';
+                    const provSearch = document.getElementById('route-selector-prov-search');
+                    if (provSearch) provSearch.value = '';
+                },
+
                 closeSelector: () => {
                     const modal = document.getElementById('route-selector-modal');
                     const content = document.getElementById('route-selector-content');
@@ -17241,6 +15251,16 @@ Object.assign(window.app, {
                     input.value = next;
                     app.upload.updateFilters();
                 },
+                updateHoyuShotNotice: (software) => {
+                    const noticeEl = document.getElementById('up-hoyushot-thanks');
+                    if (!noticeEl) return;
+                    const clean = typeof software === 'string' ? software.replace(/\0/g, '').trim() : '';
+                    if (clean === 'Hoyuuna HoyuShot') {
+                        noticeEl.classList.remove('hidden');
+                    } else {
+                        noticeEl.classList.add('hidden');
+                    }
+                },
                 removeImage: () => {
                     const upFile = document.getElementById('up-file');
                     if (upFile) upFile.value = '';
@@ -17289,7 +15309,8 @@ Object.assign(window.app, {
                     app.crop.savedCropData = null;
                     app.crop.savedRatio = 4/3;
                     app.crop.savedState = null;
-                    app.currentExif = { camera: 'N/A', params: 'N/A' };
+                    app.currentExif = { camera: 'N/A', params: 'N/A', software: '' };
+                    if (app.upload.updateHoyuShotNotice) app.upload.updateHoyuShotNotice('');
                     const upCamera = document.getElementById('up-camera');
                     if (upCamera) upCamera.value = 'N/A';
                     const upExif = document.getElementById('up-exif-params');
@@ -17308,6 +15329,8 @@ Object.assign(window.app, {
                     if (fileInput && fileInput.disabled) return;
                     const file = e.target.files[0];
                     if (!file) return;
+                    app.currentExif = { camera: 'N/A', params: 'N/A', software: '' };
+                    if (app.upload.updateHoyuShotNotice) app.upload.updateHoyuShotNotice('');
                     app.upload._faceAutoRun = false;
                     app.crop.sourceImage = null;
                     app.crop.originalFile = null;
@@ -17436,7 +15459,8 @@ Object.assign(window.app, {
                             let model = tags.Model;
                             const make = tags.Make;
                             const lens = tags.LensModel || tags.LensInfo;
-                            const software = tags.Software;
+                            const softwareRaw = tags.Software || tags.software || (tags.ifd0 && tags.ifd0.Software) || '';
+                            const software = typeof softwareRaw === 'string' ? softwareRaw.replace(/\0/g, '').trim() : '';
                             const fNumber = tags.FNumber || tags.fNumber;
                             const exposureTime = tags.ExposureTime || tags.exposureTime;
                             const iso = tags.ISO || tags.ISOSpeedRatings || tags.iso || tags.PhotographicSensitivity;
@@ -17470,6 +15494,7 @@ Object.assign(window.app, {
                                     camera: model,
                                     params: fNumber ? `f/${fNumber} | ${shutter}s | ISO ${iso}` : `${shutter}s | ISO ${iso}`,
                                     date: dateStr,
+                                    software: software,
                                     gps: {
                                         latDec: tags.latitude,
                                         lonDec: tags.longitude,
@@ -17488,10 +15513,11 @@ Object.assign(window.app, {
                     });
                     try {
                         const exifData = await checkExif;
-                        app.currentExif = { camera: exifData.camera, params: exifData.params };
+                        app.currentExif = { camera: exifData.camera, params: exifData.params, software: exifData.software || '' };
                         document.getElementById('up-camera').value = app.currentExif.camera;
                         document.getElementById('up-exif-params').value = app.currentExif.params;
                         document.getElementById('up-date').value = exifData.date;
+                        if (app.upload.updateHoyuShotNotice) app.upload.updateHoyuShotNotice(app.currentExif.software);
                         app.upload.checkDuplicateRealtime();
                         app.currentGps = null;
                         if ((exifData.gps.latDec !== undefined && exifData.gps.lonDec !== undefined) || (exifData.gps.lat && exifData.gps.lon && exifData.gps.latRef && exifData.gps.lonRef)) {
@@ -17654,6 +15680,8 @@ Object.assign(window.app, {
                                 newImg.onload = () => {
                                     const w = newImg.width; const h = newImg.height;
                                     if (!isRawFile && !isRawExtracted && h < 1080 && w < 1080) {
+                                        app.currentExif = { camera: 'N/A', params: 'N/A', software: '' };
+                                        if (app.upload.updateHoyuShotNotice) app.upload.updateHoyuShotNotice('');
                                         app.ui.showAlert(`Độ phân giải ảnh quá thấp (${w}x${h}). Yêu cầu chiều cao tối thiểu 1080px.`);
                                         const fileInput = document.getElementById('up-file');
                                         if (fileInput) fileInput.value = ''; URL.revokeObjectURL(newUrl); URL.revokeObjectURL(url);
@@ -17695,6 +15723,8 @@ Object.assign(window.app, {
                         };
                         img.src = url;
                     } catch (errorMsg) {
+                        app.currentExif = { camera: 'N/A', params: 'N/A', software: '' };
+                        if (app.upload.updateHoyuShotNotice) app.upload.updateHoyuShotNotice('');
                         app.ui.showAlert(errorMsg);
                         const fileInput = document.getElementById('up-file');
                         if (fileInput) fileInput.value = ''; 
@@ -26490,6 +24520,7 @@ app.map = {
         } else {
             setTimeout(() => this.instance.invalidateSize(), 150);
         }
+        this.startLocation();
         await this.checkPermission();
         await this.loadZones();
         this.updateTheme();
@@ -26827,8 +24858,7 @@ app.map = {
             iconAnchor: [7, 7]
         });
 
-        // Bật theo dõi vị trí liên tục
-        this.instance.locate({ watch: true, setView: false, enableHighAccuracy: true, timeout: 60000, maximumAge: 10000 });
+        // Vị trí người dùng sẽ được kích hoạt khi mở trang Bản đồ (startLocation)
 
         this.instance.on('locationfound', (e) => {
             this.userLocation = e.latlng;
@@ -26916,7 +24946,34 @@ app.map = {
             this.isLocatingUser = true;
             locateBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin text-lg"></i>';
             locateBtn.disabled = true;
+            this.startLocation(true);
         });
+    },
+
+    startLocation(centerOnUser = false) {
+        if (!this.instance) return;
+        this.isWatchingLocation = true;
+        try {
+            this.instance.locate({
+                watch: true,
+                setView: centerOnUser,
+                enableHighAccuracy: true,
+                timeout: 30000,
+                maximumAge: 10000
+            });
+        } catch (e) {
+            console.warn("Lỗi khởi chạy định vị:", e);
+        }
+    },
+
+    stopLocation() {
+        if (!this.instance) return;
+        this.isWatchingLocation = false;
+        try {
+            this.instance.stopLocate();
+        } catch (e) {
+            console.warn("Lỗi dừng định vị:", e);
+        }
     },
 
     clearDrafts() {
