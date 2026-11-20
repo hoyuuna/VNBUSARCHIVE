@@ -4068,7 +4068,7 @@ cleanupState: () => {
                                         const avatarSrc = uDisplay.avatar;
                                         const userBadges = app.utils.getBadgesHTML(user.id, user.role, user.subroles);
                                         uploaderCards.push(`
-                                            <div class="bg-white border border-gray-200 rounded-md p-4 flex items-center gap-4 cursor-pointer hover:shadow-md transition" onclick="app.views.loadUserProfile('${uDisplay.linkId}')">
+                                            <div class="bg-white border border-[#e2e0da] dark:border-[#2e3135] rounded-2xl p-4 flex items-center gap-4 cursor-pointer hover:shadow-md transition" onclick="app.views.loadUserProfile('${uDisplay.linkId}')">
                                                 <img src="${avatarSrc}" onerror="this.onerror=null;this.src='${DEFAULT_AVATAR}';" class="w-12 h-12 rounded-full object-cover bg-gray-100 shrink-0">
                                                 <div class="overflow-hidden">
                                                     <div class="font-bold text-black text-sm flex items-center truncate">${uDisplay.username} ${userBadges}</div>
@@ -4142,7 +4142,7 @@ cleanupState: () => {
                                         ? `<img src="${logo}" class="w-12 h-12 object-contain shrink-0 rounded-lg border border-gray-200" onerror="this.outerHTML='<div class=&quot;w-12 h-12 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center font-bold text-xl shrink-0 border border-gray-200&quot;><i class=&quot;fa-solid fa-building&quot;></i></div>';">` 
                                         : `<div class="w-12 h-12 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center font-bold text-xl shrink-0 border border-gray-200"><i class="fa-solid fa-building"></i></div>`;
                                     operatorCards.push(`
-                                        <div class="bg-white border border-gray-200 rounded-md p-4 flex items-center gap-4 cursor-pointer hover:shadow-md transition" onclick="app.views.loadOperatorPage('${app.utils.escapeAttr(op)}')">
+                                        <div class="bg-white border border-[#e2e0da] dark:border-[#2e3135] rounded-2xl p-4 flex items-center gap-4 cursor-pointer hover:shadow-md transition" onclick="app.views.loadOperatorPage('${app.utils.escapeAttr(op)}')">
                                             ${iconHtml}
                                             <div class="overflow-hidden min-w-0 flex-1 flex flex-col justify-center">
                                                 <div class="font-bold text-black text-sm truncate leading-tight">${app.utils.cleanText(op)}</div>
@@ -4215,7 +4215,7 @@ cleanupState: () => {
                                         ? `<img src="${logo}" class="w-12 h-12 object-contain shrink-0 rounded-lg border border-gray-200" onerror="this.outerHTML='<div class=&quot;w-12 h-12 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center font-bold text-xl shrink-0 border border-gray-200&quot;><i class=&quot;fa-solid fa-layer-group&quot;></i></div>';">` 
                                         : `<div class="w-12 h-12 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center font-bold text-xl shrink-0 border border-gray-200"><i class="fa-solid fa-layer-group"></i></div>`;
                                     modelCards.push(`
-                                        <div class="bg-white border border-gray-200 rounded-md p-4 flex items-center gap-4 cursor-pointer hover:shadow-md transition" onclick="app.model.loadModelPage('${app.utils.escapeAttr(m)}')">
+                                        <div class="bg-white border border-[#e2e0da] dark:border-[#2e3135] rounded-2xl p-4 flex items-center gap-4 cursor-pointer hover:shadow-md transition" onclick="app.model.loadModelPage('${app.utils.escapeAttr(m)}')">
                                             ${iconHtml}
                                             <div class="overflow-hidden min-w-0 flex-1 flex flex-col justify-center">
                                                 <div class="font-bold text-black text-sm truncate leading-tight">${app.utils.cleanText(m)}</div>
@@ -4287,7 +4287,7 @@ cleanupState: () => {
                                         
                                         const routeUrl = info.p ? `/route/${encodeURIComponent(info.p)}/${encodeURIComponent(info.r)}` : `/route/${encodeURIComponent(info.r)}`;
                                         routeCards.push(`
-                                            <div class="bg-white border border-gray-200 rounded-md p-4 flex items-center gap-4 cursor-pointer hover:shadow-md transition" onclick="app.utils.navigate('${routeUrl.replace(/'/g, "\\'")}')">
+                                            <div class="bg-white border border-[#e2e0da] dark:border-[#2e3135] rounded-2xl p-4 flex items-center gap-4 cursor-pointer hover:shadow-md transition" onclick="app.utils.navigate('${routeUrl.replace(/'/g, "\\'")}')">
                                                 <div class="${iconClass}">${iconHtml}</div>
                                                 <div class="overflow-hidden min-w-0 flex-1">
                                                     <div class="font-bold text-black text-sm">${displayR}</div>
@@ -4323,7 +4323,7 @@ cleanupState: () => {
                                     vData.forEach(v => {
                                         const iconClass = (app.preference.current === 'coach') ? 'fa-van-shuttle' : 'fa-bus';
                                         plateCards.push(`
-                                            <div class="bg-white border border-gray-200 rounded-md p-4 flex items-center gap-4 cursor-pointer hover:shadow-md transition" onclick="app.views.loadVehiclePage('${app.utils.cleanText(v.license_plate)}')">
+                                            <div class="bg-white border border-[#e2e0da] dark:border-[#2e3135] rounded-2xl p-4 flex items-center gap-4 cursor-pointer hover:shadow-md transition" onclick="app.views.loadVehiclePage('${app.utils.cleanText(v.license_plate)}')">
                                                 <div class="w-12 h-12 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center font-bold text-xl shrink-0"><i class="fa-solid ${iconClass}"></i></div>
                                                 <div class="overflow-hidden">
                                                     <div class="font-bold text-black text-sm truncate">${app.utils.displayPlate(app.utils.cleanText(v.license_plate))}</div>

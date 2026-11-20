@@ -115,7 +115,7 @@ body, body.theme-dark, html.theme-dark {
     background-color: #ffffff !important;
     color: #121416 !important;
     border: none !important;
-    border-radius: 9999px !important;
+    border-radius: 12px !important;
     font-weight: 600 !important;
     transition: all 0.2s cubic-bezier(0.2, 0, 0, 1) !important;
 }
@@ -136,7 +136,7 @@ body, body.theme-dark, html.theme-dark {
 button.border-black, a.border-black {
     border-color: #44474e !important;
     color: #e2e2e5 !important;
-    border-radius: 9999px !important;
+    border-radius: 12px !important;
 }
 
 /* 7. Inputs & Textfields */
@@ -221,4 +221,51 @@ input[type="text"]:focus, input[type="email"]:focus, input[type="password"]:focu
 /* 10. Chips & Badges */
 .badge-xe-moi, .badge-beta, .badge-admin, .badge-manager {
     border-radius: 8px !important;
+}
+
+/* Anti-Double-Border for all table wrappers */
+div:has(> .info-table),
+div:has(> .data-table),
+div:has(> .history-table),
+div:has(> .history-table-wrapper),
+.border:has(> .info-table),
+.border:has(> .data-table),
+.border:has(> .history-table),
+.border:has(> .history-table-wrapper),
+.border-zinc-800:has(> .info-table),
+.border-zinc-800:has(> .data-table),
+.border-zinc-800:has(> .history-table),
+.border-zinc-800:has(> .history-table-wrapper) {
+    border: none !important;
+    background: transparent !important;
+    box-shadow: none !important;
+}
+
+/* Fix info-input & spec inputs trong Dark Mode */
+.info-input, .info-input:read-only, select.info-input, #info-note-display {
+    background-color: transparent !important;
+    color: #ffffff !important;
+    border-color: transparent !important;
+}
+.info-input option {
+    background-color: #1e2023 !important;
+    color: #ffffff !important;
+}
+
+/* Fix docs markdown text trong Dark Mode */
+.markdown-body, .markdown-body * { 
+    color: #e2e2e5 !important; 
+}
+.markdown-body pre, .markdown-body code { 
+    background-color: #282a2d !important;
+    border: 1px solid #44474e !important;
+    color: #f0f2f5 !important;
+    border-radius: 8px !important;
+}
+.markdown-body pre *, .markdown-body code * {
+    color: #f0f2f5 !important;
+}
+.markdown-body blockquote {
+    border-left: 4px solid #44474e !important;
+    color: #c4c7cf !important;
 }

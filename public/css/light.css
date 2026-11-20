@@ -102,7 +102,7 @@ body, body.theme-light {
     background-color: #191c1e !important;
     color: #ffffff !important;
     border: none !important;
-    border-radius: 9999px !important;
+    border-radius: 12px !important;
     transition: all 0.2s cubic-bezier(0.2, 0, 0, 1) !important;
 }
 .bg-black:hover {
@@ -121,7 +121,7 @@ body, body.theme-light {
 /* Tonal / Outlined Buttons */
 button.border-black, a.border-black {
     border-color: #191c1e !important;
-    border-radius: 9999px !important;
+    border-radius: 12px !important;
 }
 
 /* 7. Inputs & Textfields (M3 Filled / Outlined Fields) */
@@ -203,4 +203,22 @@ input[type="text"]:focus, input[type="email"]:focus, input[type="password"]:focu
 /* 10. Chips & Badges */
 .badge-xe-moi, .badge-beta, .badge-admin, .badge-manager {
     border-radius: 8px !important;
+}
+
+/* Anti-Double-Border for all table wrappers */
+div:has(> .info-table),
+div:has(> .data-table),
+div:has(> .history-table),
+div:has(> .history-table-wrapper),
+.border:has(> .info-table),
+.border:has(> .data-table),
+.border:has(> .history-table),
+.border:has(> .history-table-wrapper),
+.border-zinc-800:has(> .info-table),
+.border-zinc-800:has(> .data-table),
+.border-zinc-800:has(> .history-table),
+.border-zinc-800:has(> .history-table-wrapper) {
+    border: none !important;
+    background: transparent !important;
+    box-shadow: none !important;
 }
