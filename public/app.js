@@ -15882,11 +15882,11 @@ window.app.routePath = {
         const btnRet = document.getElementById('btn-route-dir-return');
         if (btnFwd && btnRet) {
             if (dir === 'forward') {
-                btnFwd.className = 'px-2.5 py-1 rounded bg-blue-600 text-white transition flex items-center gap-1.5';
-                btnRet.className = 'px-2.5 py-1 rounded text-zinc-600 dark:text-zinc-300 hover:text-black dark:hover:text-white transition flex items-center gap-1.5';
+                btnFwd.className = 'px-2.5 py-1 rounded bg-black text-white dark:bg-white dark:text-black transition';
+                btnRet.className = 'px-2.5 py-1 rounded text-zinc-600 dark:text-zinc-300 hover:text-black dark:hover:text-white transition';
             } else {
-                btnRet.className = 'px-2.5 py-1 rounded bg-red-600 text-white transition flex items-center gap-1.5';
-                btnFwd.className = 'px-2.5 py-1 rounded text-zinc-600 dark:text-zinc-300 hover:text-black dark:hover:text-white transition flex items-center gap-1.5';
+                btnRet.className = 'px-2.5 py-1 rounded bg-black text-white dark:bg-white dark:text-black transition';
+                btnFwd.className = 'px-2.5 py-1 rounded text-zinc-600 dark:text-zinc-300 hover:text-black dark:hover:text-white transition';
             }
         }
         app.routePath.drawViewRoute();
@@ -15905,7 +15905,7 @@ window.app.routePath = {
         const stops = dirData?.stops || [];
         const geometry = dirData?.geometry;
 
-        const routeColor = isFwd ? '#2563eb' : '#dc2626'; // Chiều đi: Xanh dương, Chiều về: Đỏ
+        const routeColor = isFwd ? '#3b82f6' : '#e11d48'; // Chiều đi: Xanh dịu (Blue-500/600), Chiều về: Đỏ dịu (Rose-600)
 
         // Vẽ polyline uốn lượn
         if (geometry && geometry.coordinates && geometry.coordinates.length > 0) {
@@ -16122,12 +16122,12 @@ window.app.routePath = {
 
         if (tabFwd && tabRet) {
             if (dir === 'forward') {
-                tabFwd.className = 'px-3.5 py-1.5 rounded bg-blue-600 text-white transition flex items-center gap-1.5';
-                tabRet.className = 'px-3.5 py-1.5 rounded text-zinc-600 dark:text-zinc-400 hover:text-black dark:hover:text-white transition flex items-center gap-1.5';
+                tabFwd.className = 'px-3.5 py-1.5 rounded bg-black text-white dark:bg-white dark:text-black transition';
+                tabRet.className = 'px-3.5 py-1.5 rounded text-zinc-600 dark:text-zinc-400 hover:text-black dark:hover:text-white transition';
                 if (btnCopyReverse) btnCopyReverse.classList.add('hidden');
             } else {
-                tabRet.className = 'px-3.5 py-1.5 rounded bg-red-600 text-white transition flex items-center gap-1.5';
-                tabFwd.className = 'px-3.5 py-1.5 rounded text-zinc-600 dark:text-zinc-400 hover:text-black dark:hover:text-white transition flex items-center gap-1.5';
+                tabRet.className = 'px-3.5 py-1.5 rounded bg-black text-white dark:bg-white dark:text-black transition';
+                tabFwd.className = 'px-3.5 py-1.5 rounded text-zinc-600 dark:text-zinc-400 hover:text-black dark:hover:text-white transition';
                 // Hiện nút Copy đảo chiều nếu Chiều đi đã có ít nhất 2 trạm
                 if (btnCopyReverse) {
                     const fwdStops = app.routePath.editorStops.forward || [];
@@ -16181,7 +16181,7 @@ window.app.routePath = {
         if (!listEl) return;
 
         const isFwd = app.routePath.editorDirection === 'forward';
-        const routeColor = isFwd ? '#2563eb' : '#dc2626'; // Xanh dương / Đỏ
+        const routeColor = isFwd ? '#3b82f6' : '#e11d48'; // Xanh dịu / Đỏ dịu
 
         const stops = app.routePath.editorStops[app.routePath.editorDirection] || [];
         if (countEl) countEl.innerText = `Điểm dừng (${stops.length}) · ${isFwd ? 'Chiều đi' : 'Chiều về'}`;
@@ -16449,7 +16449,7 @@ window.app.routePath = {
         app.routePath.editorLayers.clearLayers();
 
         const isFwd = app.routePath.editorDirection === 'forward';
-        const routeColor = isFwd ? '#2563eb' : '#dc2626'; // Chiều đi: Xanh dương, Chiều về: Đỏ
+        const routeColor = isFwd ? '#3b82f6' : '#e11d48'; // Chiều đi: Xanh dịu, Chiều về: Đỏ dịu
         const stops = app.routePath.editorStops[app.routePath.editorDirection] || [];
         const geometry = app.routePath.editorGeoJSON[app.routePath.editorDirection];
 

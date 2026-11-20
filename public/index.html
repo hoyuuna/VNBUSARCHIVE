@@ -2245,7 +2245,7 @@ html.theme-dark .ct-icon {
             if (stored === 'system') {
                 theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
             }
-            document.write('<link rel="stylesheet" href="/css/' + theme + '.css?v=1795167510977" id="theme-css">');
+            document.write('<link rel="stylesheet" href="/css/' + theme + '.css?v=1795168559709" id="theme-css">');
             document.documentElement.classList.add('theme-' + theme);
             document.documentElement.style.backgroundColor = theme === 'dark' ? '#18181b' : '#fdfcf8';
 
@@ -6204,11 +6204,11 @@ html.theme-dark .ct-icon {
                                 <div class="flex items-center gap-2">
                                     <!-- Nút đổi chiều đi / về -->
                                     <div class="inline-flex rounded-md border border-black dark:border-white p-0.5 bg-zinc-100 dark:bg-zinc-800 text-xs font-bold">
-                                        <button type="button" id="btn-route-dir-forward" onclick="app.routePath.switchDirection('forward')" class="px-2.5 py-1 rounded bg-blue-600 text-white transition flex items-center gap-1.5">
-                                            <span class="w-2 h-2 rounded-full bg-white inline-block"></span> Chiều đi
+                                        <button type="button" id="btn-route-dir-forward" onclick="app.routePath.switchDirection('forward')" class="px-2.5 py-1 rounded bg-black text-white dark:bg-white dark:text-black transition">
+                                            Chiều đi
                                         </button>
-                                        <button type="button" id="btn-route-dir-return" onclick="app.routePath.switchDirection('return')" class="px-2.5 py-1 rounded text-zinc-600 dark:text-zinc-300 hover:text-black dark:hover:text-white transition flex items-center gap-1.5">
-                                            <span class="w-2 h-2 rounded-full bg-red-500 inline-block"></span> Chiều về
+                                        <button type="button" id="btn-route-dir-return" onclick="app.routePath.switchDirection('return')" class="px-2.5 py-1 rounded text-zinc-600 dark:text-zinc-300 hover:text-black dark:hover:text-white transition">
+                                            Chiều về
                                         </button>
                                     </div>
                                     <button type="button" onclick="app.routePath.openEditor()" class="px-3 py-1.5 bg-white dark:bg-black border border-black dark:border-white text-black dark:text-white text-xs font-bold rounded-md hover:bg-gray-100 dark:hover:bg-zinc-900 transition flex items-center gap-1">
@@ -7792,17 +7792,17 @@ html.theme-dark .ct-icon {
             <div class="p-3 sm:p-4 bg-zinc-50 dark:bg-zinc-900 border-b border-black dark:border-white flex flex-wrap items-center justify-between gap-3 shrink-0 relative z-30">
                 <div class="flex items-center gap-2">
                     <div class="inline-flex rounded-md border border-black dark:border-white p-0.5 bg-white dark:bg-black text-xs font-bold">
-                        <button type="button" id="rpe-tab-forward" onclick="app.routePath.switchEditorDirection('forward')" class="px-3.5 py-1.5 rounded bg-blue-600 text-white transition flex items-center gap-1.5">
-                            <span class="w-2 h-2 rounded-full bg-white inline-block"></span> Chiều đi
+                        <button type="button" id="rpe-tab-forward" onclick="app.routePath.switchEditorDirection('forward')" class="px-3.5 py-1.5 rounded bg-black text-white dark:bg-white dark:text-black transition">
+                            Chiều đi
                         </button>
-                        <button type="button" id="rpe-tab-return" onclick="app.routePath.switchEditorDirection('return')" class="px-3.5 py-1.5 rounded text-zinc-600 dark:text-zinc-400 hover:text-black dark:hover:text-white transition flex items-center gap-1.5">
-                            <span class="w-2 h-2 rounded-full bg-red-500 inline-block"></span> Chiều về
+                        <button type="button" id="rpe-tab-return" onclick="app.routePath.switchEditorDirection('return')" class="px-3.5 py-1.5 rounded text-zinc-600 dark:text-zinc-400 hover:text-black dark:hover:text-white transition">
+                            Chiều về
                         </button>
                     </div>
 
                     <!-- Nút Copy đảo ngược từ Chiều đi sang Chiều về -->
                     <button type="button" id="btn-copy-reverse-route" onclick="app.routePath.copyReverseFromForward()" class="hidden px-2.5 py-1.5 text-xs font-bold bg-white dark:bg-black border border-black dark:border-white rounded-md hover:bg-zinc-100 dark:hover:bg-zinc-800 text-black dark:text-white transition flex items-center gap-1.5" title="Sao chép các trạm từ Chiều đi theo thứ tự đảo ngược">
-                        <i class="fa-solid fa-arrows-rotate text-blue-600"></i> <span class="hidden sm:inline">Sao chép đảo chiều từ Chiều đi</span><span class="sm:hidden">Đảo chiều</span>
+                        <i class="fa-solid fa-arrows-rotate text-zinc-500"></i> <span class="hidden sm:inline">Sao chép đảo chiều từ Chiều đi</span><span class="sm:hidden">Đảo chiều</span>
                     </button>
                 </div>
 
@@ -8082,7 +8082,7 @@ html.theme-dark .ct-icon {
 
     <!-- KHAY CHỨA TOAST Z-INDEX CAO NHẤT -->
     <div id="toast-container" class="fixed left-0 w-full flex flex-col items-center gap-2 pointer-events-none z-[99999]" style="z-index: 99999 !important;"></div>
-<script src="/app.f7f42e40b1f8.js" onerror="if(!window.__app_fallback_loaded){window.__app_fallback_loaded=true;var s=document.createElement('script');s.src='/app.js?v=' + Date.now();document.head.appendChild(s);}"></script>
+<script src="/app.3d95aeeae585.js" onerror="if(!window.__app_fallback_loaded){window.__app_fallback_loaded=true;var s=document.createElement('script');s.src='/app.js?v=' + Date.now();document.head.appendChild(s);}"></script>
 </body>
 </html>
 
