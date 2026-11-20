@@ -2619,9 +2619,8 @@ window.app.routePath = {
             scrollWheelZoom: false
         });
 
-        const savedType = localStorage.getItem('vnbus_map_type') || 'roadmap';
-        let lyrs = (savedType === 'satellite') ? 'y' : 'm';
-        L.tileLayer(`https://mt1.google.com/vt/lyrs=${lyrs}&x={x}&y={y}&z={z}`, {
+        // Luôn sử dụng lớp bản đồ roadmap mặc định tiêu chuẩn (không dùng ảnh vệ tinh cho bản đồ tuyến)
+        L.tileLayer(`https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}`, {
             attribution: '&copy; Google Maps',
             maxZoom: 20
         }).addTo(app.routePath.viewMap);
@@ -2649,11 +2648,11 @@ window.app.routePath = {
         const btnRet = document.getElementById('btn-route-dir-return');
         if (btnFwd && btnRet) {
             if (dir === 'forward') {
-                btnFwd.className = 'px-3.5 py-1.5 rounded bg-white text-black dark:bg-white dark:text-black transition';
-                btnRet.className = 'px-3.5 py-1.5 rounded text-zinc-400 hover:text-white transition';
+                btnFwd.className = 'px-3.5 py-1.5 rounded bg-black text-white dark:bg-white dark:text-black transition';
+                btnRet.className = 'px-3.5 py-1.5 rounded text-zinc-600 dark:text-zinc-400 hover:text-black dark:hover:text-white transition';
             } else {
-                btnRet.className = 'px-3.5 py-1.5 rounded bg-white text-black dark:bg-white dark:text-black transition';
-                btnFwd.className = 'px-3.5 py-1.5 rounded text-zinc-400 hover:text-white transition';
+                btnRet.className = 'px-3.5 py-1.5 rounded bg-black text-white dark:bg-white dark:text-black transition';
+                btnFwd.className = 'px-3.5 py-1.5 rounded text-zinc-600 dark:text-zinc-400 hover:text-black dark:hover:text-white transition';
             }
         }
         app.routePath.drawViewRoute();
@@ -2848,9 +2847,8 @@ window.app.routePath = {
             zoomControl: true
         });
 
-        const savedType = localStorage.getItem('vnbus_map_type') || 'roadmap';
-        let lyrs = (savedType === 'satellite') ? 'y' : 'm';
-        L.tileLayer(`https://mt1.google.com/vt/lyrs=${lyrs}&x={x}&y={y}&z={z}`, {
+        // Luôn sử dụng lớp bản đồ roadmap mặc định tiêu chuẩn (không dùng ảnh vệ tinh cho trình soạn thảo tuyến)
+        L.tileLayer(`https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}`, {
             attribution: '&copy; Google Maps',
             maxZoom: 20
         }).addTo(app.routePath.editorMap);
