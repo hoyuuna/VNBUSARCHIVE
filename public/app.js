@@ -7618,8 +7618,8 @@ Object.assign(window.app, {
                     const proxyUrl = app.utils.getProxiedUrl(p.url, `${safePlate}.jpg`, 'thumb');
                     const dateHtml = p.taken_at ? `<span class="shrink-0"><i class="fa-regular fa-calendar mr-1"></i>${p.taken_at.split('T')[0].split('-').reverse().join('/')}</span>` : '';
                     return `
-                        <div data-id="${p.id}" class="bg-white border border-gray-200 hover:border-gray-300 hover:shadow-lg hover:-translate-y-1 cursor-pointer rounded-xl p-2 transition-all duration-300 flex flex-col fade-zoom-in-page" onclick="app.views.loadDetail(${p.id})">
-                            <div class="img-wrapper relative w-full aspect-[4/3] bg-gray-100 rounded-lg overflow-hidden shrink-0 border border-gray-100">
+                        <div data-id="${p.id}" class="m3-photo-card bg-white dark:bg-[#1e2023] border border-[#e2e0da] dark:border-[#2e3135] hover:border-black dark:hover:border-white hover:shadow-xl hover:-translate-y-1 cursor-pointer rounded-2xl p-2.5 transition-all duration-300 flex flex-col fade-zoom-in-page" onclick="app.views.loadDetail(${p.id})">
+                            <div class="img-wrapper relative w-full aspect-[4/3] bg-gray-100 dark:bg-zinc-800 rounded-xl overflow-hidden shrink-0 border border-black/5 dark:border-white/5">
                                 <div class="img-spinner absolute inset-0 flex items-center justify-center text-gray-400">
                                     <i class="fa-solid fa-circle-notch fa-spin text-2xl"></i>
                                 </div>
@@ -7628,18 +7628,18 @@ Object.assign(window.app, {
                                      onerror="app.utils.handleImgError(this)"
                                      alt="Xe buýt ${safePlate}"
                                      class="absolute inset-0 w-full h-full object-cover opacity-0 transition-all duration-500">
-                                <div class="img-error absolute inset-0 hidden flex-col items-center justify-center p-4 text-center bg-red-50/50">
+                                <div class="img-error absolute inset-0 hidden flex-col items-center justify-center p-4 text-center bg-red-50/50 dark:bg-red-950/40">
                                     <i class="fa-solid fa-image-slash text-red-400 text-2xl mb-1"></i>
                                     <span class="text-[10px] font-bold text-red-500 leading-tight">Ảnh hiện không thể<br>được tải</span>
                                 </div>
                             </div>
                             <div class="pt-3 px-1.5 pb-1 flex-1 flex flex-col justify-between">
                                 <div>
-                                    <div class="font-bold text-sm text-black">${safePlate}</div>
-                                    <div class="text-xs text-gray-600 font-semibold truncate">${safeOp}</div>
+                                    <div class="font-bold text-sm text-black dark:text-white tracking-tight">${safePlate}</div>
+                                    <div class="text-xs text-gray-600 dark:text-gray-300 font-medium truncate mt-0.5">${safeOp}</div>
                                 </div>
-                                <div class="text-[10px] text-gray-400 mt-2 flex justify-between">
-                                    <span class="truncate pr-2">${safeUser}</span>
+                                <div class="text-[11px] text-gray-400 dark:text-gray-400 mt-2.5 flex justify-between items-center">
+                                    <span class="truncate pr-2 font-medium">${safeUser}</span>
                                     ${dateHtml}
                                 </div>
                             </div>
