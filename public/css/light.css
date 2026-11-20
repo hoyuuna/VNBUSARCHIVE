@@ -847,16 +847,17 @@ input:disabled, select:disabled, textarea:disabled {
 
 /* ===== LEAFLET FLAT UI POPUP (LIGHT MODE) ===== */
 .leaflet-popup-content-wrapper {
-    background: #ffffff !important;
-    color: #18181b !important;
-    border: 1px solid #18181b !important;
-    border-radius: 6px !important;
+    background: transparent !important;
+    border: none !important;
     box-shadow: none !important;
+    padding: 0 !important;
+    border-radius: 0 !important;
 }
 .leaflet-popup-tip-container,
 .leaflet-popup-tip {
     display: none !important;
 }
 .leaflet-popup-content {
-    color: #18181b !important;
+    margin: 0 !important;
+    line-height: normal !important;
 }

@@ -1043,11 +1043,11 @@ body.theme-dark .vehicle-hero-badge:hover {
 /* ===== LEAFLET FLAT UI POPUP (DARK MODE) ===== */
 html.theme-dark .leaflet-popup-content-wrapper,
 body.theme-dark .leaflet-popup-content-wrapper {
-    background: #000000 !important;
-    color: #ffffff !important;
-    border: 1px solid #ffffff !important;
-    border-radius: 6px !important;
+    background: transparent !important;
+    border: none !important;
     box-shadow: none !important;
+    padding: 0 !important;
+    border-radius: 0 !important;
 }
 html.theme-dark .leaflet-popup-tip,
 body.theme-dark .leaflet-popup-tip {
@@ -1055,5 +1055,6 @@ body.theme-dark .leaflet-popup-tip {
 }
 html.theme-dark .leaflet-popup-content,
 body.theme-dark .leaflet-popup-content {
-    color: #ffffff !important;
+    margin: 0 !important;
+    line-height: normal !important;
 }

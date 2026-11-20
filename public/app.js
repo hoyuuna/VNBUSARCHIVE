@@ -16518,14 +16518,38 @@ window.app.routePath = {
                 draggable: true // Cho phép kéo di chuyển trực tiếp trên bản đồ
             }).addTo(app.routePath.editorLayers);
 
-            // Kéo thả marker trên map để chỉnh tọa độ trạm dừng
+            // Kéo thả marker trên map để chỉnh tọa độ trạm dừng (có popup xác nhận tránh lỡ tay)
+            const origLat = stop.lat;
+            const origLng = stop.lng;
             marker.on('dragend', (e) => {
                 const newPos = e.target.getLatLng();
-                stop.lat = newPos.lat;
-                stop.lng = newPos.lng;
-                app.routePath.renderEditorStopsList();
-                app.routePath.calculateRealRoute();
-                app.toast.show('success', 'Đã chuyển vị trí', `Đã dời trạm "${stop.name}" đến tọa độ mới!`);
+                const proceedMove = () => {
+                    stop.lat = newPos.lat;
+                    stop.lng = newPos.lng;
+                    app.routePath.renderEditorStopsList();
+                    app.routePath.calculateRealRoute();
+                    app.toast.show('success', 'Đã chuyển vị trí', `Đã dời trạm "${stop.name}" đến tọa độ mới!`);
+                };
+
+                const cancelMove = () => {
+                    // Hoàn tác vị trí marker về tọa độ cũ
+                    marker.setLatLng([origLat, origLng]);
+                };
+
+                if (app.ui && app.ui.showAlert) {
+                    app.ui.showAlert(
+                        `Bạn có chắc chắn muốn dời trạm "<b>${app.utils.escapeHtml(stop.name)}</b>" đến vị trí mới này không?`,
+                        proceedMove,
+                        cancelMove,
+                        {
+                            title: "Xác nhận chuyển vị trí trạm",
+                            btnOkText: "Xác nhận",
+                            btnCancelText: "Hoàn tác"
+                        }
+                    );
+                } else {
+                    proceedMove();
+                }
             });
 
             const termLabel = idx === 0 ? ' (Bến đầu)' : (idx === stops.length - 1 ? ' (Bến cuối)' : '');
