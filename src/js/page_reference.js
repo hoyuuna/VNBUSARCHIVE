@@ -2715,6 +2715,7 @@ window.app.routePath = {
         let stopNumber = 0;
         stops.forEach((stop, idx) => {
             if (stop.is_waypoint) return; // Điểm dẫn đường không hiển thị trên map người xem
+            const currentStopIdx = stopNumber;
             stopNumber++;
             const isTerminal = (idx === 0 || idx === stops.length - 1);
             const iconHtml = `
