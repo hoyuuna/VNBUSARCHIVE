@@ -1053,9 +1053,17 @@ if (!decodedProvince || decodedProvince.trim() === '') {
                         
                         // Xác định danh sách đơn vị vận hành và dòng xe hiển thị
                         let dominantOps = Object.keys(activeOpCounts).sort((a, b) => activeOpCounts[b] - activeOpCounts[a]);
-                        let dominantModels = Object.keys(activeModelCounts).sort((a, b) => activeModelCounts[b] - activeModelCounts[a]);
                         
-                        // Nếu không có xe nào đang hoạt động (ví dụ tuyến đã ngừng hoặc thiếu lịch sử), lấy theo dữ liệu ảnh của tuyến làm dự phòng
+                        // Dòng xe trong route: Chỉ lấy dòng xe của ảnh mới nhất trên tuyến
+                        let dominantModels = [];
+                        if (app.route.routePhotos && app.route.routePhotos.length > 0) {
+                            const latestPhotoWithModel = app.route.routePhotos.find(p => p.vehicles?.model && p.vehicles.model.trim() !== '' && p.vehicles.model.trim() !== '---');
+                            if (latestPhotoWithModel) {
+                                dominantModels = [latestPhotoWithModel.vehicles.model.trim()];
+                            }
+                        }
+                        
+                        // Nếu không có xe nào đang hoạt động (ví dụ tuyến đã ngừng hoặc thiếu lịch sử), lấy đơn vị vận hành theo dữ liệu ảnh của tuyến làm dự phòng
                         if (dominantOps.length === 0 && app.route.routePhotos.length > 0) {
                             const fallbackOpCounts = {};
                             app.route.routePhotos.forEach(p => {
@@ -1065,17 +1073,6 @@ if (!decodedProvince || decodedProvince.trim() === '') {
                                 }
                             });
                             dominantOps = Object.keys(fallbackOpCounts).sort((a, b) => fallbackOpCounts[b] - fallbackOpCounts[a]);
-                        }
-                        
-                        if (dominantModels.length === 0 && app.route.routePhotos.length > 0) {
-                            const fallbackModelCounts = {};
-                            app.route.routePhotos.forEach(p => {
-                                const mdl = p.vehicles?.model?.trim();
-                                if (mdl && mdl !== '---') {
-                                    fallbackModelCounts[mdl] = (fallbackModelCounts[mdl] || 0) + 1;
-                                }
-                            });
-                            dominantModels = Object.keys(fallbackModelCounts).sort((a, b) => fallbackModelCounts[b] - fallbackModelCounts[a]);
                         }
                         
                         renderInfoValue(opEl, dominantOps, op => app.utils.navigate('/operator/' + encodeURIComponent(op)));
