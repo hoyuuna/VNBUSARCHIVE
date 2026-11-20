@@ -291,7 +291,17 @@ Object.assign(window.app, {
                     document.getElementById('crumb-model-profile').innerText = modelName;
                     document.getElementById('model-profile-title').innerText = modelName;
                     document.getElementById('model-logo').classList.add('hidden');
-                    document.getElementById('model-logo-fallback').classList.remove('hidden');
+                    const mdlBanner = document.getElementById('model-hero-banner');
+                    if (mdlBanner) mdlBanner.classList.add('hidden');
+                    const mdlHeroImg = document.getElementById('model-hero-img');
+                    if (mdlHeroImg) mdlHeroImg.classList.add('hidden');
+                    const mdlPlaceholder = document.getElementById('model-hero-placeholder');
+                    if (mdlPlaceholder) mdlPlaceholder.classList.remove('hidden');
+                    const mdlUploaderRow = document.getElementById('model-uploader-row');
+                    if (mdlUploaderRow) {
+                        mdlUploaderRow.innerHTML = '';
+                        mdlUploaderRow.classList.add('hidden');
+                    }
                     document.getElementById('model-desc').classList.add('hidden');
                     document.getElementById('mdl-stat-photos').innerText = '...';
                     document.getElementById('mdl-stat-vehicles').innerText = '...';
@@ -313,15 +323,12 @@ Object.assign(window.app, {
                             .limit(1)
                             .maybeSingle();
                         const logoEl = document.getElementById('model-logo');
-                        const fallbackEl = document.getElementById('model-logo-fallback');
                         const descEl = document.getElementById('model-desc');
                         if (brandLogoData && brandLogoData.logo_url) {
                             logoEl.src = brandLogoData.logo_url.includes('wsrv.nl') ? brandLogoData.logo_url : 'https://wsrv.nl/?url=' + encodeURIComponent(brandLogoData.logo_url);
                             logoEl.classList.remove('hidden');
-                            fallbackEl.classList.add('hidden');
                         } else {
                             logoEl.classList.add('hidden');
-                            fallbackEl.classList.remove('hidden');
                         }
                         if (exactInfo && exactInfo.description) {
                             descEl.innerHTML = app.utils.cleanText(exactInfo.description).replace(/\n/g, '<br>');
@@ -370,7 +377,7 @@ Object.assign(window.app, {
                         document.getElementById('mdl-stat-views').innerText = app.utils.formatCompact(totalViews);
                         app.views.modelCurrentPage = 1;
                         const mdlSize = app.views.MODEL_PAGE_SIZE || 12;
-                        let pQuery = window.sb.from('photos').select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, borrowed_route, camera_model, location, status, denial_reason, is_documentary, views, profiles(id, username, role, subroles, ban_status), vehicles!inner(model)`, { count: 'exact' })
+                        let pQuery = window.sb.from('photos').select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, borrowed_route, camera_model, location, status, denial_reason, is_documentary, views, profiles(id, username, avatar_url, role, subroles, ban_status), vehicles!inner(model)`, { count: 'exact' })
                             .eq('status', 'approved')
                             .eq('vehicles.model', modelName)
                             .order('taken_at', { ascending: false, nullsFirst: false })
@@ -381,6 +388,42 @@ Object.assign(window.app, {
                         app.model.modelPhotos = photos || [];
                         app.model.totalCount = count || (photos ? photos.length : 0);
                         app.model.totalPages = Math.ceil(app.model.totalCount / mdlSize);
+
+                        // Xử lý Hero Banner & Uploader cho Dòng xe
+                        const mdlTopPhoto = app.model.modelPhotos.find(p => (p.location || '').trim() !== 'Chụp trong xe') || app.model.modelPhotos[0] || null;
+                        const mdlBanner = document.getElementById('model-hero-banner');
+                        const mdlHeroImg = document.getElementById('model-hero-img');
+                        const mdlPlaceholder = document.getElementById('model-hero-placeholder');
+                        const mdlUploaderRow = document.getElementById('model-uploader-row');
+
+                        if (mdlBanner) {
+                            mdlBanner.classList.remove('hidden');
+                            if (mdlTopPhoto) {
+                                mdlHeroImg.src = app.utils.getProxiedUrl(mdlTopPhoto.url, 'model-top.jpg', 'full');
+                                mdlHeroImg.classList.remove('hidden');
+                                mdlHeroImg.onclick = () => app.views.loadDetail(mdlTopPhoto.id);
+                                if (mdlPlaceholder) mdlPlaceholder.classList.add('hidden');
+
+                                const uploader = app.utils.formatProfileDisplay(mdlTopPhoto.profiles);
+                                if (mdlUploaderRow && uploader) {
+                                    mdlUploaderRow.innerHTML = `
+                                        <span>Ảnh mới nhất bởi</span>
+                                        <span class="font-bold text-black dark:text-white cursor-pointer hover:underline inline-flex items-center gap-1" onclick="app.views.loadUserProfile('${uploader.linkId}')">
+                                            <img loading="lazy" decoding="async" src="${uploader.avatar}" onerror="this.onerror=null;this.src='${DEFAULT_AVATAR}';" class="w-4 h-4 rounded-full object-cover inline-block border border-gray-300 dark:border-zinc-700">
+                                            ${app.utils.escapeHtml(uploader.username)}
+                                        </span>
+                                    `;
+                                    mdlUploaderRow.classList.remove('hidden');
+                                }
+                            } else {
+                                mdlHeroImg.classList.add('hidden');
+                                if (mdlPlaceholder) mdlPlaceholder.classList.remove('hidden');
+                                if (mdlUploaderRow) {
+                                    mdlUploaderRow.innerHTML = '';
+                                    mdlUploaderRow.classList.add('hidden');
+                                }
+                            }
+                        }
                         if (photos && photos.length > 0) {
                             grid.innerHTML = photos.map(p => app.views.renderPhotoCard(p)).join('');
                         } else {
@@ -501,15 +544,12 @@ Object.assign(window.app, {
                                     }
                                 }
                                 const logoEl = document.getElementById('model-logo');
-                                const fallbackEl = document.getElementById('model-logo-fallback');
-                                if (logoEl && fallbackEl) {
+                                if (logoEl) {
                                     if (logo) {
                                         logoEl.src = logo.includes('wsrv.nl') ? logo : 'https://wsrv.nl/?url=' + encodeURIComponent(logo);
                                         logoEl.classList.remove('hidden');
-                                        fallbackEl.classList.add('hidden');
                                     } else {
                                         logoEl.classList.add('hidden');
-                                        fallbackEl.classList.remove('hidden');
                                     }
                                 }
                                 app.model.loadModelPage(app.model.currentModel, true);
@@ -609,6 +649,23 @@ if (!decodedProvince || decodedProvince.trim() === '') {
                     document.getElementById('crumb-route-profile').innerText = titleText;
                     document.getElementById('route-profile-title').innerText = decodedRoute;
                     document.getElementById('route-province-label').innerText = decodedProvince ? `Tuyến buýt ${decodedProvince}` : 'Tuyến buýt';
+                    document.getElementById('route-badge').innerHTML = '';
+                    const rteBanner = document.getElementById('route-hero-banner');
+                    if (rteBanner) rteBanner.classList.add('hidden');
+                    const rteHeroImg = document.getElementById('route-hero-img');
+                    if (rteHeroImg) rteHeroImg.classList.add('hidden');
+                    const rtePlaceholder = document.getElementById('route-hero-placeholder');
+                    if (rtePlaceholder) rtePlaceholder.classList.remove('hidden');
+                    const rteFallback = document.getElementById('route-logo-fallback');
+                    if (rteFallback) {
+                        rteFallback.innerHTML = '';
+                        rteFallback.className = 'hidden shrink-0';
+                    }
+                    const rteUploaderRow = document.getElementById('route-uploader-row');
+                    if (rteUploaderRow) {
+                        rteUploaderRow.innerHTML = '';
+                        rteUploaderRow.classList.add('hidden');
+                    }
                     
                     
                     
@@ -631,8 +688,8 @@ if (!decodedProvince || decodedProvince.trim() === '') {
                         exactInfo = data;
                         let titleText = decodedRoute;
                         let inactiveBadge = '';
-                        let iconHtml = '<i class="fa-solid fa-route"></i>';
-                        let iconClass = "w-16 h-16 md:w-20 md:h-20 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center font-bold text-3xl shrink-0";
+                        let iconHtml = '';
+                        let iconClass = "hidden shrink-0";
 
                         if (exactInfo) {
                             if (exactInfo.is_inactive) {
@@ -650,8 +707,14 @@ if (!decodedProvince || decodedProvince.trim() === '') {
                             }
                             
                             
-                            const builtIcon = await app.utils.buildRouteIcon(decodedRoute, exactInfo.metadata && exactInfo.metadata.icon_type, 'w-16 h-16 md:w-20 md:h-20');
-                            if (builtIcon) { iconClass = builtIcon.iconClass; iconHtml = builtIcon.iconHtml; }
+                            const builtIcon = await app.utils.buildRouteIcon(decodedRoute, exactInfo.metadata && exactInfo.metadata.icon_type, 'w-12 h-12 sm:w-16 sm:h-16 md:w-20 md:h-20');
+                            if (builtIcon) {
+                                iconClass = builtIcon.iconClass;
+                                iconHtml = builtIcon.iconHtml;
+                            } else {
+                                iconHtml = '';
+                                iconClass = 'hidden shrink-0';
+                            }
                             
                             const extraInfoContainer = document.getElementById('route-extra-info');
                             if (extraInfoContainer) {
@@ -718,7 +781,7 @@ if (!decodedProvince || decodedProvince.trim() === '') {
                     }
                     
                     try {
-                        let pQuery = window.sb.from('photos').select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, borrowed_route, camera_model, location, status, denial_reason, is_documentary, views, profiles(id, username, role, subroles, ban_status), vehicles(model)`)
+                        let pQuery = window.sb.from('photos').select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, borrowed_route, camera_model, location, status, denial_reason, is_documentary, views, profiles(id, username, avatar_url, role, subroles, ban_status), vehicles(model)`)
                             .eq('status', 'approved')
                             .eq('route_no', decodedRoute);
                             
@@ -792,6 +855,42 @@ if (!decodedProvince || decodedProvince.trim() === '') {
                         
                         app.route.totalCount = app.route.routePhotos.length;
                         app.route.totalPages = Math.ceil(app.route.totalCount / app.route.ROUTE_PAGE_SIZE);
+
+                        // Xử lý Hero Banner & Uploader cho Tuyến xe
+                        const rteTopPhoto = app.route.routePhotos.find(p => (p.location || '').trim() !== 'Chụp trong xe') || app.route.routePhotos[0] || null;
+                        const rteBanner = document.getElementById('route-hero-banner');
+                        const rteHeroImg = document.getElementById('route-hero-img');
+                        const rtePlaceholder = document.getElementById('route-hero-placeholder');
+                        const rteUploaderRow = document.getElementById('route-uploader-row');
+
+                        if (rteBanner) {
+                            rteBanner.classList.remove('hidden');
+                            if (rteTopPhoto) {
+                                rteHeroImg.src = app.utils.getProxiedUrl(rteTopPhoto.url, 'route-top.jpg', 'full');
+                                rteHeroImg.classList.remove('hidden');
+                                rteHeroImg.onclick = () => app.views.loadDetail(rteTopPhoto.id);
+                                if (rtePlaceholder) rtePlaceholder.classList.add('hidden');
+
+                                const uploader = app.utils.formatProfileDisplay(rteTopPhoto.profiles);
+                                if (rteUploaderRow && uploader) {
+                                    rteUploaderRow.innerHTML = `
+                                        <span>Ảnh mới nhất bởi</span>
+                                        <span class="font-bold text-black dark:text-white cursor-pointer hover:underline inline-flex items-center gap-1" onclick="app.views.loadUserProfile('${uploader.linkId}')">
+                                            <img loading="lazy" decoding="async" src="${uploader.avatar}" onerror="this.onerror=null;this.src='${DEFAULT_AVATAR}';" class="w-4 h-4 rounded-full object-cover inline-block border border-gray-300 dark:border-zinc-700">
+                                            ${app.utils.escapeHtml(uploader.username)}
+                                        </span>
+                                    `;
+                                    rteUploaderRow.classList.remove('hidden');
+                                }
+                            } else {
+                                rteHeroImg.classList.add('hidden');
+                                if (rtePlaceholder) rtePlaceholder.classList.remove('hidden');
+                                if (rteUploaderRow) {
+                                    rteUploaderRow.innerHTML = '';
+                                    rteUploaderRow.classList.add('hidden');
+                                }
+                            }
+                        }
                         
                         document.getElementById('rte-stat-photos').innerText = app.utils.formatCompact(app.route.totalCount);
                         

@@ -3,6 +3,10 @@
    HIGH CONTRAST: DARK GRAY BG, PURE BLACK COMPONENTS, PURE BLACK BORDERS
 ========================================== */
 
+:root, html.theme-dark, body.theme-dark {
+    --bg-body-color: #121212;
+}
+
 /* 1. XỬ LÝ NỀN VÀ MÀU CHỮ CƠ BẢN (KHÔNG DÙNG LỆNH CÀN QUÉT GÂY LỖI) */
 body, body.theme-dark, body.theme-light {
     background-color: #121212 !important; 
@@ -41,6 +45,16 @@ body, body.theme-dark, body.theme-light {
 
 polygon[stroke="black"] {
     stroke: #ffffff !important;
+}
+
+circle[stroke="#dc2626"],
+polygon[stroke="#dc2626"] {
+    stroke: #dc2626 !important;
+}
+
+circle[fill="var(--bg-body-color, #fdfcf8)"],
+polygon[fill="var(--bg-body-color, #fdfcf8)"] {
+    fill: #121212 !important;
 }
 
 circle[fill="white"] {

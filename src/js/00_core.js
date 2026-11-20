@@ -2526,7 +2526,7 @@ cleanupState: () => {
                             iconClass,
                             iconHtml: `
                             <svg viewBox="0 0 100 100" class="absolute inset-0 w-full h-full overflow-visible drop-shadow-sm" preserveAspectRatio="none">
-                                <circle cx="50" cy="50" r="48" fill="white" stroke="black" stroke-width="4"/>
+                                <circle cx="50" cy="50" r="48" fill="var(--bg-body-color, #fdfcf8)" stroke="#dc2626" stroke-width="4"/>
                                 <text x="50" y="${y.toFixed(2)}" text-anchor="middle" font-family="Anton, sans-serif" font-weight="400" fill="#dc2626" font-size="${fSize.toFixed(2)}">${safeText}</text>
                             </svg>`
                         };
@@ -2541,7 +2541,7 @@ cleanupState: () => {
                             iconClass,
                             iconHtml: `
                             <svg viewBox="0 0 100 100" class="absolute inset-0 w-full h-full overflow-visible drop-shadow-sm" preserveAspectRatio="none">
-                                <polygon points="15,15 85,15 100,85 0,85" fill="white" stroke="black" stroke-width="4" stroke-linejoin="round"/>
+                                <polygon points="15,15 85,15 100,85 0,85" fill="var(--bg-body-color, #fdfcf8)" stroke="#dc2626" stroke-width="4" stroke-linejoin="round"/>
                                 <text x="50" y="${y.toFixed(2)}" text-anchor="middle" font-family="Anton, sans-serif" font-weight="400" fill="#dc2626" font-size="${fSize.toFixed(2)}">${safeText}</text>
                             </svg>`
                         };

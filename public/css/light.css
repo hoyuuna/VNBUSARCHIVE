@@ -2,6 +2,10 @@
    VNBUSARCHIVE - FLAT LIGHT THEME (OVERRIDE LAYER)
 ========================================== */
 
+:root {
+    --bg-body-color: #fdfcf8;
+}
+
 /* 1. Nền cố định như quyển vở */
 body, body.theme-light {
     background-color: #fdfcf8 !important; 

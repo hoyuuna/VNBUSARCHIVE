@@ -2557,7 +2557,18 @@ let currentRouteProvName = null;
                     document.getElementById('crumb-operator').innerText = operatorName;
                     document.getElementById('operator-title').innerText = operatorName;
                     document.getElementById('operator-logo').classList.add('hidden');
-                    document.getElementById('operator-logo-fallback').classList.remove('hidden');
+                    document.getElementById('operator-badge').innerHTML = '';
+                    const opBanner = document.getElementById('operator-hero-banner');
+                    if (opBanner) opBanner.classList.add('hidden');
+                    const opHeroImg = document.getElementById('operator-hero-img');
+                    if (opHeroImg) opHeroImg.classList.add('hidden');
+                    const opPlaceholder = document.getElementById('operator-hero-placeholder');
+                    if (opPlaceholder) opPlaceholder.classList.remove('hidden');
+                    const opUploaderRow = document.getElementById('operator-uploader-row');
+                    if (opUploaderRow) {
+                        opUploaderRow.innerHTML = '';
+                        opUploaderRow.classList.add('hidden');
+                    }
                     document.getElementById('operator-desc').classList.add('hidden');
                     const parentChildEl = document.getElementById('operator-parent-child');
                     if (parentChildEl) {
@@ -2601,15 +2612,12 @@ let currentRouteProvName = null;
                             return parents.includes(targetNorm);
                         }).sort((a, b) => a.operator_name.localeCompare(b.operator_name, 'vi'));
                         const logoEl = document.getElementById('operator-logo');
-                        const fallbackEl = document.getElementById('operator-logo-fallback');
                         const descEl = document.getElementById('operator-desc');
                         if (opInfo && opInfo.logo_url) {
                             logoEl.src = opInfo.logo_url.includes('wsrv.nl') ? opInfo.logo_url : 'https://wsrv.nl/?url=' + encodeURIComponent(opInfo.logo_url);
                             logoEl.classList.remove('hidden');
-                            fallbackEl.classList.add('hidden');
                         } else {
                             logoEl.classList.add('hidden');
-                            fallbackEl.classList.remove('hidden');
                         }
                         if (opInfo && opInfo.description) {
                             let desc = opInfo.description;
@@ -2866,7 +2874,7 @@ let currentRouteProvName = null;
                         app.currentOperatorResolved = resolvedOperator;
                         app.views.operatorCurrentPage = 1;
                         const opSize = app.views.OPERATOR_PAGE_SIZE || 12;
-                        let pQuery = window.sb.from('photos').select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, borrowed_route, camera_model, location, status, denial_reason, is_documentary, views, profiles(id, username, role, subroles, ban_status), vehicles(model)`, { count: 'exact' })
+                        let pQuery = window.sb.from('photos').select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, borrowed_route, camera_model, location, status, denial_reason, is_documentary, views, profiles(id, username, avatar_url, role, subroles, ban_status), vehicles(model)`, { count: 'exact' })
                             .eq('status', 'approved')
                             .ilike('operator', resolvedOperator)
                             .or('route_no.neq."Dừng hoạt động",route_no.is.null')
@@ -2878,6 +2886,63 @@ let currentRouteProvName = null;
                         app.operatorPhotos = photos || [];
                         app.operator.totalCount = count || (photos ? photos.length : 0);
                         app.operator.totalPages = Math.ceil(app.operator.totalCount / opSize);
+
+                        // Xử lý Hero Banner & Uploader cho ĐVVH
+                        let opTopPhoto = app.operatorPhotos.find(p => (p.location || '').trim() !== 'Chụp trong xe') || app.operatorPhotos[0] || null;
+                        if (!opTopPhoto && childOps && childOps.length > 0) {
+                            try {
+                                const childNames = childOps.map(c => c.operator_name).filter(Boolean);
+                                if (childNames.length > 0) {
+                                    let cq = window.sb.from('photos').select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, borrowed_route, camera_model, location, status, denial_reason, is_documentary, views, profiles(id, username, avatar_url, role, subroles, ban_status), vehicles(model)`)
+                                        .eq('status', 'approved')
+                                        .in('operator', childNames)
+                                        .or('route_no.neq."Dừng hoạt động",route_no.is.null')
+                                        .order('taken_at', { ascending: false, nullsFirst: false })
+                                        .order('created_at', { ascending: false })
+                                        .limit(5);
+                                    cq = app.preference.applyFilter(cq);
+                                    const { data: cData } = await cq;
+                                    if (cData && cData.length > 0) {
+                                        opTopPhoto = cData.find(p => (p.location || '').trim() !== 'Chụp trong xe') || cData[0];
+                                    }
+                                }
+                            } catch (e) { console.warn("Lỗi tìm ảnh mới nhất từ ĐVVH con:", e); }
+                        }
+
+                        const opBanner = document.getElementById('operator-hero-banner');
+                        const opHeroImg = document.getElementById('operator-hero-img');
+                        const opPlaceholder = document.getElementById('operator-hero-placeholder');
+                        const opUploaderRow = document.getElementById('operator-uploader-row');
+
+                        if (opBanner) {
+                            opBanner.classList.remove('hidden');
+                            if (opTopPhoto) {
+                                opHeroImg.src = app.utils.getProxiedUrl(opTopPhoto.url, 'operator-top.jpg', 'full');
+                                opHeroImg.classList.remove('hidden');
+                                opHeroImg.onclick = () => app.views.loadDetail(opTopPhoto.id);
+                                if (opPlaceholder) opPlaceholder.classList.add('hidden');
+
+                                const uploader = app.utils.formatProfileDisplay(opTopPhoto.profiles);
+                                if (opUploaderRow && uploader) {
+                                    opUploaderRow.innerHTML = `
+                                        <span>Ảnh mới nhất bởi</span>
+                                        <span class="font-bold text-black dark:text-white cursor-pointer hover:underline inline-flex items-center gap-1" onclick="app.views.loadUserProfile('${uploader.linkId}')">
+                                            <img loading="lazy" decoding="async" src="${uploader.avatar}" onerror="this.onerror=null;this.src='${DEFAULT_AVATAR}';" class="w-4 h-4 rounded-full object-cover inline-block border border-gray-300 dark:border-zinc-700">
+                                            ${app.utils.escapeHtml(uploader.username)}
+                                        </span>
+                                    `;
+                                    opUploaderRow.classList.remove('hidden');
+                                }
+                            } else {
+                                opHeroImg.classList.add('hidden');
+                                if (opPlaceholder) opPlaceholder.classList.remove('hidden');
+                                if (opUploaderRow) {
+                                    opUploaderRow.innerHTML = '';
+                                    opUploaderRow.classList.add('hidden');
+                                }
+                            }
+                        }
+
                         if (photos && photos.length > 0) {
                             grid.innerHTML = photos.map(p => app.views.renderPhotoCard(p)).join('');
                             document.getElementById('op-main-photos-wrapper').classList.remove('hidden');
@@ -2920,7 +2985,7 @@ let currentRouteProvName = null;
                     try {
                         const childPhotosHtml = [];
                         for (const child of pageChildOps) {
-                            let cQuery = window.sb.from('photos').select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, borrowed_route, camera_model, location, status, denial_reason, is_documentary, views, profiles(id, username, role, subroles, ban_status), vehicles(model)`)
+                            let cQuery = window.sb.from('photos').select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, borrowed_route, camera_model, location, status, denial_reason, is_documentary, views, profiles(id, username, avatar_url, role, subroles, ban_status), vehicles(model)`)
                                 .eq('status', 'approved')
                                 .ilike('operator', child.operator_name)
                                 .or('route_no.neq."Dừng hoạt động",route_no.is.null')
