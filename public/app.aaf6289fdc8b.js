@@ -579,6 +579,41 @@ Object.assign(window.app, {
                 }
             },
 
+            // Tự động kích hoạt thanh tải trên cùng hoặc pill làm mới khi trang được reload/refresh trong phiên
+            _sessionAutoLoadStarted: (() => {
+                try {
+                    const isAppLoaded = sessionStorage.getItem('vnbus_app_loaded') === '1';
+                    const isRefreshing = sessionStorage.getItem('vnbus_is_refreshing') === '1';
+                    if (isAppLoaded || isRefreshing) {
+                        setTimeout(() => {
+                            if (window.app && app.loadingBar && app.loadingBar.start) {
+                                app.loadingBar.start();
+                            }
+                        }, 10);
+                        if (isRefreshing) {
+                            const setRefreshingPill = () => {
+                                const badge = document.getElementById('app-pull-refresh-badge');
+                                const icon = document.getElementById('app-pull-refresh-icon');
+                                const text = document.getElementById('app-pull-refresh-text');
+                                const inner = document.getElementById('app-pull-refresh-inner');
+                                if (badge) badge.classList.remove('opacity-0');
+                                if (text) text.innerText = 'Đang làm mới...';
+                                if (icon) icon.className = 'fa-solid fa-circle-notch fa-spin text-xs';
+                                if (inner) {
+                                    inner.classList.add('bg-black', 'text-white', 'dark:bg-white', 'dark:text-black');
+                                    inner.classList.remove('bg-white', 'text-black', 'dark:bg-black', 'dark:text-white');
+                                }
+                            };
+                            if (document.readyState === 'loading') {
+                                document.addEventListener('DOMContentLoaded', setRefreshingPill);
+                            } else {
+                                setRefreshingPill();
+                            }
+                        }
+                    }
+                } catch (e) {}
+                return true;
+            })(),
             _initialLoadingDismissed: false,
             _headerLogoTimer: null,
             _headerLogoTransitioned: false,
@@ -616,6 +651,33 @@ Object.assign(window.app, {
                 }, 520);
             },
             dismissInitialLoadingScreen: () => {
+                try {
+                    sessionStorage.setItem('vnbus_app_loaded', '1');
+                } catch (e) {}
+
+                const wasRefreshing = (function() {
+                    try {
+                        return sessionStorage.getItem('vnbus_is_refreshing') === '1';
+                    } catch (e) { return false; }
+                })();
+                try {
+                    sessionStorage.removeItem('vnbus_is_refreshing');
+                } catch (e) {}
+
+                if (app.loadingBar && app.loadingBar.finish) {
+                    app.loadingBar.finish();
+                }
+
+                if (wasRefreshing) {
+                    const badge = document.getElementById('app-pull-refresh-badge');
+                    if (badge) {
+                        setTimeout(() => {
+                            badge.classList.add('opacity-0');
+                            document.documentElement.classList.remove('app-is-refreshing');
+                        }, 300);
+                    }
+                }
+
                 if (app._initialLoadingDismissed) return;
                 app._initialLoadingDismissed = true;
                 const loadingScreen = document.getElementById('loading-screen');
@@ -1382,10 +1444,13 @@ closeCustomRolePrompt: () => {
                 lockScroll: () => {
                     document.documentElement.classList.add('no-scroll');
                     document.body.classList.add('no-scroll');
+                    
                 },
                 unlockScroll: () => {
                     document.documentElement.classList.remove('no-scroll');
                     document.body.classList.remove('no-scroll');
+                    
+                    
                 },
                 toggleUserMenu: (forceOpen = null) => {
                     const menu = document.getElementById('user-dropdown');
@@ -1563,6 +1628,7 @@ closeCustomRolePrompt: () => {
                     if (!file) return null;
                     const isHeic = /\.(heic|heif)$/i.test(file.name) || file.type === 'image/heic' || file.type === 'image/heif';
                     if (!isHeic) return file;
+
                     let heicBlob = null;
                     if (window.heic2any) {
                         const result = await window.heic2any({ blob: file, toType: 'image/png' });
@@ -2048,6 +2114,15 @@ cleanupState: () => {
                         if (plateMsg) {
                             plateMsg.innerHTML = '';
                             plateMsg.className = 'text-xs mt-1';
+                        }
+                        const upRouteEl = document.getElementById('up-route');
+                        if (upRouteEl) {
+                            upRouteEl.value = '';
+                            delete upRouteEl.dataset.routeName;
+                            delete upRouteEl.dataset.routeNo;
+                        }
+                        if (app.route && app.route.resetSelectorState) {
+                            app.route.resetSelectorState();
                         }
                         ['up-plate', 'up-route', 'up-operator', 'up-model', 'up-location'].forEach(id => {
                             const el = document.getElementById(id);
@@ -3510,9 +3585,11 @@ cleanupState: () => {
                 const path = window.location.pathname;
                 const searchParams = new URLSearchParams(window.location.search);
                 app.currentPathForScroll = path + window.location.search;
+                
                 if (path === '/login' && searchParams.get('qr')) {
+                    const qrClient = searchParams.get('client') || '';
                     app.views.switch('home', false);
-                    setTimeout(() => app.qrLogin.initClient(searchParams.get('qr')), 500);
+                    setTimeout(() => app.qrLogin.initClient(searchParams.get('qr'), qrClient), 500);
                 } else if (path === '/auth') {
                     document.title = 'Xác thực | VNBUSARCHIVE';
                     const isRecovery = window.location.hash.includes('type=recovery') || app.auth.mode === 'recovery';
@@ -3651,7 +3728,21 @@ cleanupState: () => {
                         }
                         app.handleSearch(false);
                     } else {
-                        app.views.loadHome();
+                        app.views.switch('search', false);
+                        const headerInp = document.getElementById('search-input');
+                        const pageInp = document.getElementById('page-search-input');
+                        if (headerInp) headerInp.value = '';
+                        if (pageInp) pageInp.value = '';
+                        app.currentViewMode = 'search';
+                        document.title = 'Tìm kiếm | VNBUSARCHIVE';
+                        const grid = document.getElementById('search-grid');
+                        if (grid) grid.innerHTML = '';
+                        document.getElementById('search-count-container')?.classList.add('hidden');
+                        document.getElementById('search-load-more-container')?.classList.add('hidden');
+                        setTimeout(() => {
+                            const pInp = document.getElementById('page-search-input');
+                            if (pInp) pInp.focus();
+                        }, 200);
                     }
                 } else {
                     app.views.switch('home', false);
@@ -3697,7 +3788,7 @@ cleanupState: () => {
 
     detailMarker: null,
 
-    currentExif: { camera: 'N/A', params: 'N/A' },
+    currentExif: { camera: 'N/A', params: 'N/A', software: '' },
 
     searchTimeout: null,
 
@@ -4507,6 +4598,7 @@ dropdown.innerHTML = `
                     app.auth.close();
                     if (app.role === 'admin' || app.role === 'manager') {
                         document.getElementById('nav-admin').classList.remove('hidden');
+                        document.getElementById('btn-profile-admin')?.classList.remove('hidden');
                         app.admin.checkNotification();
                         if (app.role === 'manager') {
                             document.getElementById('adm-tab-manager').classList.remove('hidden');
@@ -4514,6 +4606,7 @@ dropdown.innerHTML = `
                         if (typeof app.initRealtimeChannel === 'function') app.initRealtimeChannel();
                     } else {
                         document.getElementById('nav-admin').classList.add('hidden');
+                        document.getElementById('btn-profile-admin')?.classList.add('hidden');
                         if (typeof app.initRealtimeChannel === 'function') app.initRealtimeChannel();
                     }
                 } else {
@@ -4535,6 +4628,7 @@ dropdown.innerHTML = `
                      `;
                 }
                 if (app.auth && app.auth.updateUUIDBox) app.auth.updateUUIDBox();
+                
             }
 });
 // UPTIME TIMER
@@ -4582,13 +4676,36 @@ if (window.app && window.app.ui && window.app.ui.initSliderEditableBadges) {
     window.app.ui.initSliderEditableBadges();
 }
 
-
 /* --- MODULE: 01_router.js --- */
 // Capture URL params BEFORE Supabase SDK clears them (PKCE flow removes token_hash after exchange)
 window.INITIAL_SEARCH = window.location.search;
 window.INITIAL_HASH = window.location.hash;
 Object.assign(window.app, {
     init: async () => {
+        const isApp = window.__isAppDiscontinued || (window.AndroidBridge && typeof window.AndroidBridge.isNativeApp === 'function' && window.AndroidBridge.isNativeApp()) || window.location.search.includes('app_preview=1');
+        if (isApp) {
+            document.documentElement.classList.add('app-discontinued-mode');
+            const discScreen = document.getElementById('app-discontinued-screen');
+            if (discScreen) discScreen.style.display = 'flex';
+            const loadScreen = document.getElementById('loading-screen');
+            if (loadScreen) loadScreen.style.display = 'none';
+            const appContainer = document.getElementById('app-container');
+            if (appContainer) appContainer.style.display = 'none';
+
+            const openBrowserBtn = document.getElementById('btn-open-in-browser');
+            if (openBrowserBtn) {
+                openBrowserBtn.onclick = (e) => {
+                    e.preventDefault();
+                    if (window.AndroidBridge && typeof window.AndroidBridge.openExternalBrowser === 'function') {
+                        window.AndroidBridge.openExternalBrowser('https://www.vnbusarchive.io.vn/');
+                    } else {
+                        window.open('https://www.vnbusarchive.io.vn/', '_blank');
+                    }
+                };
+            }
+            return;
+        }
+
         window.onpopstate = () => {
             if (app.transitionHeaderLogo) app.transitionHeaderLogo();
             app.handleRoute();
@@ -4681,6 +4798,15 @@ Object.assign(window.app, {
                         else if (event === 'SIGNED_IN') {
                             if (session && session.user) {
                                 await app.setUser(session.user);
+                            }
+                            const pendingQr = sessionStorage.getItem('pending_qr_login');
+                            const pendingClient = sessionStorage.getItem('pending_qr_client') || '';
+                            if (pendingQr) {
+                                sessionStorage.removeItem('pending_qr_login');
+                                sessionStorage.removeItem('pending_qr_client');
+                                app.views.switch('home', false);
+                                setTimeout(() => app.qrLogin.initClient(pendingQr, pendingClient), 500);
+                                return;
                             }
                             const hash = window.INITIAL_HASH || window.location.hash;
                             const searchType = new URLSearchParams(window.INITIAL_SEARCH || window.location.search).get('type');
@@ -5118,14 +5244,6 @@ Object.assign(window.app, {
                     app.settings.closeAccountMenu(true);
                     if (targetParent === 'account') app.settings.openAccountMenu();
 
-                    // Kích hoạt các nút chỉ dành riêng cho app Android
-                    if (window.AndroidBridge && typeof window.AndroidBridge.isNativeApp === 'function' && window.AndroidBridge.isNativeApp()) {
-                        document.querySelectorAll('.app-only-btn').forEach(el => el.classList.remove('hidden'));
-                        const pendingTab = window.AndroidBridge.getPendingOpenTab ? window.AndroidBridge.getPendingOpenTab() : '';
-                        if (pendingTab === 'app' && !targetTab) {
-                            targetTab = 'app';
-                        }
-                    }
                     if (app.user) {
                         document.querySelectorAll('.account-only-btn').forEach(el => el.style.display = '');
                         if (app.user.email) {
@@ -5582,124 +5700,11 @@ grid.innerHTML = tiers.map(tier => {
 
 });
 
-// Quản lý cập nhật và thiết lập ứng dụng Android
-Object.assign(window.app, {
-    androidUpdate: {
-        loadUI: () => {
-            if (!window.AndroidBridge || typeof window.AndroidBridge.isNativeApp !== 'function' || !window.AndroidBridge.isNativeApp()) return;
-            const verEl = document.getElementById('app-current-version');
-            if (verEl && window.AndroidBridge.getAppVersion) {
-                verEl.innerText = 'v' + window.AndroidBridge.getAppVersion();
-            }
-            try {
-                if (window.AndroidBridge.getUpdatePreferences) {
-                    const prefs = JSON.parse(window.AndroidBridge.getUpdatePreferences());
-                    const autoCheck = document.getElementById('app-toggle-auto-check');
-                    const prerelease = document.getElementById('app-toggle-prerelease');
-                    if (autoCheck) autoCheck.checked = prefs.autoCheck !== false;
-                    if (prerelease) prerelease.checked = prefs.includePrerelease === true;
-                }
-            } catch (e) {
-                console.warn('Lỗi đọc cấu hình cập nhật Android:', e);
-            }
-        },
-        savePrefs: () => {
-            if (!window.AndroidBridge || !window.AndroidBridge.setUpdatePreferences) return;
-            const autoCheck = document.getElementById('app-toggle-auto-check')?.checked !== false;
-            const prerelease = document.getElementById('app-toggle-prerelease')?.checked === true;
-            window.AndroidBridge.setUpdatePreferences(prerelease, autoCheck);
-        },
-        check: (manual = false) => {
-            if (!window.AndroidBridge || !window.AndroidBridge.checkUpdate) {
-                return app.ui.showAlert('Chức năng này chỉ khả dụng trên ứng dụng VNBUSARCHIVE Android.');
-            }
-            const btn = document.getElementById('app-check-update-btn');
-            const box = document.getElementById('app-update-result-box');
-            if (btn) {
-                btn.disabled = true;
-                btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1"></i> Đang kiểm tra...';
-            }
-            if (box) {
-                box.classList.remove('hidden');
-                box.innerHTML = '<div class="flex items-center gap-2 text-gray-500"><i class="fa-solid fa-circle-notch fa-spin"></i> Đang kết nối tới máy chủ GitHub...</div>';
-            }
-
-            window._onAndroidUpdateResult = (rawJson) => {
-                if (btn) {
-                    btn.disabled = false;
-                    btn.innerHTML = '<i class="fa-solid fa-rotate mr-1"></i> Kiểm tra cập nhật';
-                }
-                try {
-                    const data = typeof rawJson === 'string' ? JSON.parse(rawJson) : rawJson;
-                    if (data.hasUpdate) {
-                        const tag = app.utils.escapeHtml(data.latestVersion);
-                        const isPre = data.isPrerelease ? '<span class="ml-2 text-[10px] font-bold px-1.5 py-0.5 rounded bg-yellow-100 text-yellow-800 border border-yellow-300">THỬ NGHIỆM</span>' : '';
-                        box.innerHTML = `
-                            <div class="space-y-2">
-                                <div class="flex items-center justify-between">
-                                    <span class="font-bold text-black flex items-center">
-                                        <i class="fa-solid fa-sparkles text-yellow-500 mr-1.5"></i> Có bản cập nhật mới: v${tag}${isPre}
-                                    </span>
-                                </div>
-                                <div class="text-[11px] text-gray-600 leading-relaxed max-h-32 overflow-y-auto whitespace-pre-wrap font-mono p-2 bg-white rounded border border-gray-200">
-${app.utils.escapeHtml(data.notes || 'Không có mô tả cập nhật.')}
-                                </div>
-                                <div class="pt-1">
-                                    <button onclick="app.androidUpdate.startDownload('${data.downloadUrl}')" class="bg-black text-white px-4 py-2 text-xs font-bold rounded-md hover:bg-gray-800 transition shadow-sm flex items-center gap-1.5">
-                                        <i class="fa-solid fa-download"></i> Tải về & Cập nhật ngay
-                                    </button>
-                                </div>
-                            </div>
-                        `;
-                    } else {
-                        box.innerHTML = `
-                            <div class="flex items-center gap-2 text-green-700 font-bold">
-                                <i class="fa-solid fa-circle-check text-green-600"></i> Bạn đang sử dụng phiên bản mới nhất (v${app.utils.escapeHtml(data.latestVersion)}).
-                            </div>
-                        `;
-                    }
-                } catch (err) {
-                    box.innerHTML = `<div class="text-red-500">Lỗi xử lý dữ liệu cập nhật: ${app.utils.escapeHtml(err.message)}</div>`;
-                }
-            };
-
-            window.AndroidBridge.checkUpdate('window._onAndroidUpdateResult');
-        },
-        startDownload: (url) => {
-            if (!url) return app.ui.showAlert('Không tìm thấy link tải file APK cho phiên bản này.');
-            const box = document.getElementById('app-update-result-box');
-            if (box) {
-                box.innerHTML = `
-                    <div class="space-y-2">
-                        <div class="flex items-center justify-between font-bold text-xs text-black">
-                            <span><i class="fa-solid fa-spinner fa-spin mr-1"></i> Đang tải bản cập nhật...</span>
-                            <span id="app-update-percent">0%</span>
-                        </div>
-                        <div class="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
-                            <div id="app-update-bar" class="bg-black h-2 transition-all duration-200" style="width: 0%"></div>
-                        </div>
-                        <p class="text-[10px] text-gray-500">File APK sau khi tải xong sẽ tự động mở màn hình xác nhận cài đặt đè.</p>
-                    </div>
-                `;
-            }
-
-            window._onAndroidDownloadProgress = (percent) => {
-                const pEl = document.getElementById('app-update-percent');
-                const bEl = document.getElementById('app-update-bar');
-                if (pEl) pEl.innerText = percent + '%';
-                if (bEl) bEl.style.width = percent + '%';
-            };
-
-            window.AndroidBridge.startUpdateDownload(url, 'window._onAndroidDownloadProgress');
-        }
-    }
-});
-
 /* --- MODULE: 03_auth.js --- */
 
 Object.assign(window.app, {
     auth: {
-                mode: 'login',
+        mode: 'login',
                 uuidTimeout: null,
                 unverifiedEmail: null,
                 showVerificationModal: (email) => {
@@ -6588,14 +6593,18 @@ changePassword: async () => {
                 document.getElementById('qr-login-host-modal').classList.add('hidden');
                 app.ui.unlockScroll();
             },
-            initClient: async (hostId) => {
+            initClient: async (hostId, clientType = '') => {
                 app.qrLogin.isSuccess = false;
+                const searchClient = new URLSearchParams(window.location.search).get('client') || clientType || '';
                 if (!app.user) {
-                    app.ui.showAlert("Bạn chưa đăng nhập! Vui lòng đăng nhập trên điện thoại này trước khi quét mã QR.", () => {
+                    sessionStorage.setItem('pending_qr_login', hostId);
+                    if (searchClient) sessionStorage.setItem('pending_qr_client', searchClient);
+                    app.ui.showAlert("Bạn cần đăng nhập vào tài khoản trên trình duyệt trước khi cấp quyền cho ứng dụng.", () => {
                         app.utils.navigate('/auth');
                     });
                     return;
                 }
+                app.qrLogin.currentClientType = searchClient;
                 try {
                     window.history.replaceState(null, null, '/');
                 } catch(e){}
@@ -6604,23 +6613,6 @@ changePassword: async () => {
                 const btnConfirm = document.getElementById('qr-confirm-btn');
                 const avatarImg = document.getElementById('qr-confirm-avatar');
                 const deviceText = document.getElementById('qr-confirm-device');
-                btnConfirm.disabled = true;
-                btnConfirm.classList.add('opacity-50', 'cursor-not-allowed');
-                let timeLeft = 3;
-                btnConfirm.innerText = 'Đăng nhập (' + timeLeft + ')';
-                document.getElementById('qr-confirm-name').innerText = app.username;
-                try {
-                    const { data: profile } = await window.sb.from('profiles').select('avatar_url').eq('id', app.user.id).single();
-                    if (profile && profile.avatar_url) {
-                        avatarImg.src = app.utils.getProxiedUrl(profile.avatar_url.replace(/"/g, ''), 'avatar.jpg', 'avatar');
-                    } else if (app.user.user_metadata?.avatar_url) {
-                        avatarImg.src = app.utils.getProxiedUrl(app.user.user_metadata.avatar_url, 'avatar.jpg', 'avatar');
-                    } else {
-                        avatarImg.src = 'https://files.catbox.moe/zzh1q1.png';
-                    }
-                } catch(e) {
-                    avatarImg.src = 'https://files.catbox.moe/zzh1q1.png';
-                }
                 deviceText.innerText = "Đang kết nối để lấy thông tin thiết bị...";
                 app.qrLogin.getIP();
                 modal.classList.remove('hidden');
@@ -7120,6 +7112,9 @@ Object.assign(window.app, {
                     if (id === 'auth') {
                         window.dispatchEvent(new CustomEvent('auth-opened'));
                         app.utils.resetTurnstile('#auth .cf-turnstile');
+                        if (app.auth && app.auth.updateNativeAppAuthUI) {
+                            app.auth.updateNativeAppAuthUI();
+                        }
                     }
                     const searchBox = document.getElementById('header-search-box');
                     const headerSpacer = document.getElementById('header-spacer');
@@ -7137,9 +7132,15 @@ Object.assign(window.app, {
                             if (id === 'map') {
                                 footer.parentElement.style.display = 'none';
                                 document.body.style.overflow = 'hidden';
+                                if (app.map && typeof app.map.startLocation === 'function') {
+                                    app.map.startLocation();
+                                }
                             } else {
                                 footer.parentElement.style.display = '';
                                 document.body.style.overflow = '';
+                                if (app.map && typeof app.map.stopLocation === 'function') {
+                                    app.map.stopLocation();
+                                }
                             }
                         }
                         
@@ -7184,27 +7185,28 @@ Object.assign(window.app, {
                     } else if (targetDepth === currentDepth) {
                         animationClass = 'fade-zoom-in-page'; 
                     }
+                    const targetEl = document.getElementById(id);
+                    if (targetEl) {
+                        targetEl.classList.add('active');
+                        if (animationClass && app._initialLoadingDismissed) {
+                            targetEl.classList.add(animationClass);
+                            targetEl.onanimationend = () => {
+                                targetEl.classList.remove(animationClass);
+                                targetEl.onanimationend = null;
+                            };
+                        }
+                        if (app.transitionHeaderLogo) app.transitionHeaderLogo();
+                    }
                     document.querySelectorAll('.view-section').forEach(el => {
-                        el.classList.remove('active', 'slide-in-right', 'slide-in-left', 'fade-zoom-in-page');
+                        if (el !== targetEl) {
+                            el.classList.remove('active', 'slide-in-right', 'slide-in-left', 'fade-zoom-in-page');
+                        }
                     });
                     const targetPath = window.location.pathname + window.location.search;
                     if (app.scrollPositions && app.scrollPositions[targetPath] !== undefined) {
                         window.scrollTo(0, app.scrollPositions[targetPath]);
                     } else {
                         window.scrollTo(0, 0);
-                    }
-                    const targetEl = document.getElementById(id);
-                    if (targetEl) {
-                        if (!app._initialLoadingDismissed) {
-                            targetEl.classList.add('active');
-                        } else {
-                            targetEl.classList.add('active', animationClass);
-                            targetEl.onanimationend = () => {
-                                targetEl.classList.remove(animationClass);
-                                targetEl.onanimationend = null;
-                            };
-                            if (app.transitionHeaderLogo) app.transitionHeaderLogo();
-                        }
                     }
                     if (app.utils && app.utils.updateCanonical) app.utils.updateCanonical();
                     if (app.dismissInitialLoadingScreen) app.dismissInitialLoadingScreen();
@@ -7644,11 +7646,36 @@ Object.assign(window.app, {
                         </div>
                     `;
                 },
+                
+                renderGuestProfile: () => {
+                    app.views.switch('account', false);
+                    document.title = 'Tài khoản | VNBUSARCHIVE';
+                    const nameEl = document.getElementById('acc-name');
+                    if (nameEl) nameEl.innerText = 'Chưa đăng nhập';
+                    const avatarImg = document.getElementById('acc-avatar-img');
+                    const avatarIcon = document.getElementById('acc-avatar-icon');
+                    if (avatarImg) avatarImg.classList.add('hidden');
+                    if (avatarIcon) avatarIcon.classList.remove('hidden');
+
+                    document.getElementById('btn-edit-profile')?.classList.add('hidden');
+                    document.getElementById('btn-contact-profile')?.classList.add('hidden');
+                    document.getElementById('btn-share-profile')?.classList.add('hidden');
+                    document.getElementById('btn-report-profile')?.classList.add('hidden');
+                    document.getElementById('btn-guest-login-wrapper')?.classList.remove('hidden');
+
+                    document.getElementById('profile-auth-only-content')?.classList.add('hidden');
+                    document.getElementById('btn-profile-logout')?.classList.add('hidden');
+                    document.getElementById('btn-profile-admin')?.classList.add('hidden');
+                                        if (app.loadingBar && app.loadingBar.finish) app.loadingBar.finish();
+                },
                 loadAccount: async (usernameStr = null, forceRefresh = false) => {
                     let targetUsername = usernameStr;
                     let isOwnProfile = false;
                     if (!targetUsername) {
-                        if (!app.user) return app.utils.navigate('/auth');
+                        if (!app.user) {
+                            app.views.renderGuestProfile();
+                            return;
+                        }
                         targetUsername = app.username;
                         isOwnProfile = true;
                         if (window.location.pathname !== '/profile') return app.utils.navigate('/profile');
@@ -7671,6 +7698,16 @@ Object.assign(window.app, {
                     document.getElementById('acc-avatar-icon').classList.remove('hidden');
                     document.getElementById('profile-bio-content').innerHTML = '<i class="fa-solid fa-spinner fa-spin text-gray-400"></i>';
                     document.getElementById('profile-fav-photo-container').innerHTML = '';
+                    if (app.role === 'admin' || app.role === 'manager') {
+                        document.getElementById('btn-profile-admin')?.classList.remove('hidden');
+                    } else {
+                        document.getElementById('btn-profile-admin')?.classList.add('hidden');
+                    }
+                    if (isOwnProfile) {
+                                                document.getElementById('btn-profile-logout')?.classList.remove('hidden');
+                    } else {
+                                                document.getElementById('btn-profile-logout')?.classList.add('hidden');
+                    }
                     document.getElementById('my-stat-photos').innerHTML = '<i class="fa-solid fa-spinner fa-spin text-gray-400"></i>';
                     document.getElementById('my-stat-views').innerHTML = '<i class="fa-solid fa-spinner fa-spin text-gray-400"></i>';
                     document.getElementById('my-stat-likes').innerHTML = '<i class="fa-solid fa-spinner fa-spin text-gray-400"></i>';
@@ -7701,6 +7738,13 @@ Object.assign(window.app, {
                     document.getElementById('acc-name').innerHTML = isBannedUser 
                         ? '<span class="text-black font-bold">Người dùng bị cấm</span>' 
                         : `${profile.username} ${badges}`;
+                    document.getElementById('btn-guest-login-wrapper')?.classList.add('hidden');
+                    document.getElementById('profile-auth-only-content')?.classList.remove('hidden');
+                    if (isOwnProfile) {
+                        document.getElementById('btn-profile-logout')?.classList.remove('hidden');
+                    } else {
+                        document.getElementById('btn-profile-logout')?.classList.add('hidden');
+                    }
                     const avatarIcon = document.getElementById('acc-avatar-icon');
                     const avatarImg = document.getElementById('acc-avatar-img');
                     const safeAvatar = isBannedUser 
@@ -14589,6 +14633,25 @@ if (!decodedProvince || decodedProvince.trim() === '') {
                     app.route.filterSelector();
                 },
 
+                resetSelectorState: () => {
+                    app.route.selectorCurrentSelected = '';
+                    app.route.pendingSelectedRoute = null;
+                    app.route.selectorCallback = null;
+                    app.route.selectorTargetInputId = null;
+                    app.route.selectorExcludeRoute = null;
+                    app.route.selectorIsHistory = false;
+                    app.route.selectorContextProvince = '';
+                    app.route.selectorDisplayLimit = 40;
+                    const searchInput = document.getElementById('route-selector-search');
+                    if (searchInput) searchInput.value = '';
+                    const provFilter = document.getElementById('route-selector-prov-filter');
+                    if (provFilter) provFilter.value = '';
+                    const provLabel = document.getElementById('route-selector-prov-label');
+                    if (provLabel) provLabel.innerText = 'Tất cả tỉnh thành';
+                    const provSearch = document.getElementById('route-selector-prov-search');
+                    if (provSearch) provSearch.value = '';
+                },
+
                 closeSelector: () => {
                     const modal = document.getElementById('route-selector-modal');
                     const content = document.getElementById('route-selector-content');
@@ -17244,6 +17307,16 @@ Object.assign(window.app, {
                     input.value = next;
                     app.upload.updateFilters();
                 },
+                updateHoyuShotNotice: (software) => {
+                    const noticeEl = document.getElementById('up-hoyushot-thanks');
+                    if (!noticeEl) return;
+                    const clean = typeof software === 'string' ? software.replace(/\0/g, '').trim() : '';
+                    if (clean === 'Hoyuuna HoyuShot') {
+                        noticeEl.classList.remove('hidden');
+                    } else {
+                        noticeEl.classList.add('hidden');
+                    }
+                },
                 removeImage: () => {
                     const upFile = document.getElementById('up-file');
                     if (upFile) upFile.value = '';
@@ -17292,7 +17365,8 @@ Object.assign(window.app, {
                     app.crop.savedCropData = null;
                     app.crop.savedRatio = 4/3;
                     app.crop.savedState = null;
-                    app.currentExif = { camera: 'N/A', params: 'N/A' };
+                    app.currentExif = { camera: 'N/A', params: 'N/A', software: '' };
+                    if (app.upload.updateHoyuShotNotice) app.upload.updateHoyuShotNotice('');
                     const upCamera = document.getElementById('up-camera');
                     if (upCamera) upCamera.value = 'N/A';
                     const upExif = document.getElementById('up-exif-params');
@@ -17311,6 +17385,8 @@ Object.assign(window.app, {
                     if (fileInput && fileInput.disabled) return;
                     const file = e.target.files[0];
                     if (!file) return;
+                    app.currentExif = { camera: 'N/A', params: 'N/A', software: '' };
+                    if (app.upload.updateHoyuShotNotice) app.upload.updateHoyuShotNotice('');
                     app.upload._faceAutoRun = false;
                     app.crop.sourceImage = null;
                     app.crop.originalFile = null;
@@ -17439,7 +17515,8 @@ Object.assign(window.app, {
                             let model = tags.Model;
                             const make = tags.Make;
                             const lens = tags.LensModel || tags.LensInfo;
-                            const software = tags.Software;
+                            const softwareRaw = tags.Software || tags.software || (tags.ifd0 && tags.ifd0.Software) || '';
+                            const software = typeof softwareRaw === 'string' ? softwareRaw.replace(/\0/g, '').trim() : '';
                             const fNumber = tags.FNumber || tags.fNumber;
                             const exposureTime = tags.ExposureTime || tags.exposureTime;
                             const iso = tags.ISO || tags.ISOSpeedRatings || tags.iso || tags.PhotographicSensitivity;
@@ -17473,6 +17550,7 @@ Object.assign(window.app, {
                                     camera: model,
                                     params: fNumber ? `f/${fNumber} | ${shutter}s | ISO ${iso}` : `${shutter}s | ISO ${iso}`,
                                     date: dateStr,
+                                    software: software,
                                     gps: {
                                         latDec: tags.latitude,
                                         lonDec: tags.longitude,
@@ -17491,10 +17569,11 @@ Object.assign(window.app, {
                     });
                     try {
                         const exifData = await checkExif;
-                        app.currentExif = { camera: exifData.camera, params: exifData.params };
+                        app.currentExif = { camera: exifData.camera, params: exifData.params, software: exifData.software || '' };
                         document.getElementById('up-camera').value = app.currentExif.camera;
                         document.getElementById('up-exif-params').value = app.currentExif.params;
                         document.getElementById('up-date').value = exifData.date;
+                        if (app.upload.updateHoyuShotNotice) app.upload.updateHoyuShotNotice(app.currentExif.software);
                         app.upload.checkDuplicateRealtime();
                         app.currentGps = null;
                         if ((exifData.gps.latDec !== undefined && exifData.gps.lonDec !== undefined) || (exifData.gps.lat && exifData.gps.lon && exifData.gps.latRef && exifData.gps.lonRef)) {
@@ -17657,6 +17736,8 @@ Object.assign(window.app, {
                                 newImg.onload = () => {
                                     const w = newImg.width; const h = newImg.height;
                                     if (!isRawFile && !isRawExtracted && h < 1080 && w < 1080) {
+                                        app.currentExif = { camera: 'N/A', params: 'N/A', software: '' };
+                                        if (app.upload.updateHoyuShotNotice) app.upload.updateHoyuShotNotice('');
                                         app.ui.showAlert(`Độ phân giải ảnh quá thấp (${w}x${h}). Yêu cầu chiều cao tối thiểu 1080px.`);
                                         const fileInput = document.getElementById('up-file');
                                         if (fileInput) fileInput.value = ''; URL.revokeObjectURL(newUrl); URL.revokeObjectURL(url);
@@ -17698,6 +17779,8 @@ Object.assign(window.app, {
                         };
                         img.src = url;
                     } catch (errorMsg) {
+                        app.currentExif = { camera: 'N/A', params: 'N/A', software: '' };
+                        if (app.upload.updateHoyuShotNotice) app.upload.updateHoyuShotNotice('');
                         app.ui.showAlert(errorMsg);
                         const fileInput = document.getElementById('up-file');
                         if (fileInput) fileInput.value = ''; 
@@ -19902,10 +19985,6 @@ Object.assign(window.app, {
                         btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1"></i> Đang tải...';
                         try {
                             const plateName = app.utils.displayPlate(app.currentPhoto.license_plate) || 'VNBUSARCHIVE';
-                            if (window.AndroidBridge && typeof window.AndroidBridge.downloadImage === 'function') {
-                                window.AndroidBridge.downloadImage(app.currentPhoto.url, plateName + '.jpg');
-                                return;
-                            }
                             let proxyUrl = app.utils.getProxiedUrl(app.currentPhoto.url, `${plateName}.jpg`);
                             const response = await fetch(proxyUrl);
                             const blob = await response.blob();
@@ -26497,6 +26576,7 @@ app.map = {
         } else {
             setTimeout(() => this.instance.invalidateSize(), 150);
         }
+        this.startLocation();
         await this.checkPermission();
         await this.loadZones();
         this.updateTheme();
@@ -26834,8 +26914,7 @@ app.map = {
             iconAnchor: [7, 7]
         });
 
-        // Bật theo dõi vị trí liên tục
-        this.instance.locate({ watch: true, setView: false, enableHighAccuracy: true, timeout: 60000, maximumAge: 10000 });
+        // Vị trí người dùng sẽ được kích hoạt khi mở trang Bản đồ (startLocation)
 
         this.instance.on('locationfound', (e) => {
             this.userLocation = e.latlng;
@@ -26923,7 +27002,34 @@ app.map = {
             this.isLocatingUser = true;
             locateBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin text-lg"></i>';
             locateBtn.disabled = true;
+            this.startLocation(true);
         });
+    },
+
+    startLocation(centerOnUser = false) {
+        if (!this.instance) return;
+        this.isWatchingLocation = true;
+        try {
+            this.instance.locate({
+                watch: true,
+                setView: centerOnUser,
+                enableHighAccuracy: true,
+                timeout: 30000,
+                maximumAge: 10000
+            });
+        } catch (e) {
+            console.warn("Lỗi khởi chạy định vị:", e);
+        }
+    },
+
+    stopLocation() {
+        if (!this.instance) return;
+        this.isWatchingLocation = false;
+        try {
+            this.instance.stopLocate();
+        } catch (e) {
+            console.warn("Lỗi dừng định vị:", e);
+        }
     },
 
     clearDrafts() {
