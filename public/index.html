@@ -2255,7 +2255,7 @@ html.theme-dark .ct-icon {
             if (stored === 'system') {
                 theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
             }
-            document.write('<link rel="stylesheet" href="/css/' + theme + '.css?v=1795253967560" id="theme-css">');
+            document.write('<link rel="stylesheet" href="/css/' + theme + '.css?v=1795254983583" id="theme-css">');
             document.documentElement.classList.add('theme-' + theme);
             document.documentElement.style.backgroundColor = theme === 'dark' ? '#18181b' : '#fdfcf8';
 
@@ -6233,6 +6233,9 @@ html.theme-dark .ct-icon {
                             <!-- Khung chứa Leaflet Map -->
                             <div class="w-full h-64 sm:h-80 md:h-96 rounded-lg border border-black dark:border-white overflow-hidden relative mb-3 bg-zinc-100 dark:bg-zinc-900">
                                 <div id="route-leaflet-map" class="w-full h-full z-0"></div>
+                                <button type="button" onclick="app.routePath.openExpandedView()" class="absolute top-2.5 right-2.5 bg-black/60 hover:bg-black dark:bg-white/70 dark:hover:bg-white text-white dark:text-black w-8 h-8 rounded-md flex items-center justify-center transition z-[400] shadow-sm" title="Phóng to bản đồ xem chi tiết">
+                                    <i class="fa-solid fa-expand text-xs"></i>
+                                </button>
                             </div>
                             <!-- Danh sách điểm dừng (Collapsible) -->
                             <div class="border border-black dark:border-white rounded-lg p-3 bg-white dark:bg-[#18181b] mb-3">
@@ -7793,6 +7796,58 @@ html.theme-dark .ct-icon {
         </div>
     </div>
 
+    <!-- MODAL PHÓNG TO XEM CHI TIẾT LỘ TRÌNH (EXPANDED ROUTE VIEW) -->
+    <div id="route-path-expanded-modal" class="hidden fixed inset-0 z-[3350] flex items-center justify-center p-2 sm:p-4 md:p-6 backdrop-blur-md overflow-hidden">
+        <div id="route-path-expanded-content" class="rounded-2xl w-full max-w-6xl h-[94vh] flex flex-col bg-white dark:bg-[#18181b] border border-black dark:border-white transform transition-all opacity-0 scale-95 overflow-hidden">
+            <!-- Modal Header -->
+            <div class="p-4 sm:p-5 flex justify-between items-center shrink-0 border-b border-black dark:border-white">
+                <div class="min-w-0 pr-3">
+                    <h3 class="text-base sm:text-lg font-black text-black dark:text-white uppercase tracking-tight truncate flex items-center gap-2">
+                        <i class="fa-solid fa-map-location-dot"></i> <span id="rpx-modal-title">Lộ trình Tuyến</span>
+                    </h3>
+                    <p id="rpx-modal-subtitle" class="text-xs text-zinc-500 dark:text-zinc-400 font-medium truncate mt-0.5">Bản đồ chi tiết lộ trình và danh sách điểm dừng</p>
+                </div>
+                <button type="button" onclick="app.routePath.closeExpandedView()" class="text-zinc-400 hover:text-black dark:hover:text-white text-xl p-1.5 transition">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <!-- Modal Subheader: Chọn Chiều Đi / Chiều Về -->
+            <div class="p-3 sm:p-4 bg-zinc-50 dark:bg-zinc-900 border-b border-black dark:border-white flex items-center justify-between gap-3 shrink-0 relative z-30">
+                <div class="relative inline-flex rounded-md border border-black dark:border-white p-0.5 bg-white dark:bg-black text-xs font-bold select-none overflow-hidden">
+                    <div id="rpx-dir-indicator" class="absolute top-0.5 bottom-0.5 left-0.5 w-[calc(50%-2px)] rounded bg-black dark:bg-white transition-transform duration-250 ease-out pointer-events-none"></div>
+                    <button type="button" id="rpx-tab-forward" onclick="app.routePath.switchExpandedDirection('forward')" class="relative z-10 px-4 py-1.5 rounded text-white dark:text-black transition-colors duration-200 font-bold text-center">
+                        Chiều đi
+                    </button>
+                    <button type="button" id="rpx-tab-return" onclick="app.routePath.switchExpandedDirection('return')" class="relative z-10 px-4 py-1.5 rounded text-zinc-600 dark:text-zinc-400 hover:text-black dark:hover:text-white transition-colors duration-200 font-bold text-center">
+                        Chiều về
+                    </button>
+                </div>
+                <div class="text-xs text-zinc-500 dark:text-zinc-400 font-medium hidden sm:block">
+                    Click vào trạm để định vị và xem thông tin
+                </div>
+            </div>
+
+            <!-- Modal Body: Map 65% + Stop List 35% -->
+            <div class="flex-1 flex flex-col md:flex-row min-h-0 overflow-hidden relative">
+                <!-- Khung Bản đồ Leaflet phóng to -->
+                <div class="flex-1 min-h-[300px] md:min-h-0 relative bg-zinc-100 dark:bg-zinc-900">
+                    <div id="rpx-leaflet-map" class="w-full h-full z-0"></div>
+                </div>
+
+                <!-- Cột Danh sách điểm dừng bên cạnh -->
+                <div class="w-full md:w-96 border-t md:border-t-0 md:border-l border-black dark:border-white flex flex-col bg-white dark:bg-[#18181b] min-h-0 max-h-[45vh] md:max-h-none">
+                    <div class="p-3.5 border-b border-black dark:border-white bg-zinc-50 dark:bg-zinc-900 flex items-center justify-between shrink-0">
+                        <span class="text-xs font-bold uppercase tracking-wider text-black dark:text-white" id="rpx-stop-count">Điểm dừng (0)</span>
+                    </div>
+                    <div id="rpx-stops-list" class="flex-1 overflow-y-auto p-2.5 space-y-2 custom-scrollbar min-h-[140px]">
+                        <!-- Render danh sách điểm dừng tại đây -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- MODAL CHỈNH SỬA LỘ TRÌNH & ĐIỂM DỪNG TUYẾN (MAP ROUTE EDITOR) -->
     <div id="route-path-editor-modal" class="hidden fixed inset-0 z-[3300] flex items-center justify-center p-2 sm:p-4 md:p-6 backdrop-blur-md overflow-hidden">
         <div id="route-path-editor-content" class="rounded-2xl w-full max-w-6xl h-[94vh] flex flex-col bg-white dark:bg-[#18181b] border border-black dark:border-white transform transition-all opacity-0 scale-95 overflow-hidden">
@@ -8160,7 +8215,7 @@ html.theme-dark .ct-icon {
 
     <!-- KHAY CHỨA TOAST Z-INDEX CAO NHẤT -->
     <div id="toast-container" class="fixed left-0 w-full flex flex-col items-center gap-2 pointer-events-none z-[99999]" style="z-index: 99999 !important;"></div>
-<script src="/app.0b3df443bb4e.js" onerror="if(!window.__app_fallback_loaded){window.__app_fallback_loaded=true;var s=document.createElement('script');s.src='/app.js?v=' + Date.now();document.head.appendChild(s);}"></script>
+<script src="/app.d783a96d0b74.js" onerror="if(!window.__app_fallback_loaded){window.__app_fallback_loaded=true;var s=document.createElement('script');s.src='/app.js?v=' + Date.now();document.head.appendChild(s);}"></script>
 </body>
 </html>
 

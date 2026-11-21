@@ -16110,6 +16110,258 @@ window.app.routePath = {
         }
     },
 
+    // 1.1 GIAO DIỆN PHÓNG TO XEM CHI TIẾT (EXPANDED VIEW)
+    openExpandedView: () => {
+        const modal = document.getElementById('route-path-expanded-modal');
+        const content = document.getElementById('route-path-expanded-content');
+        if (!modal || !content) return;
+
+        const titleEl = document.getElementById('rpx-modal-title');
+        if (titleEl) {
+            titleEl.innerText = `Lộ trình Tuyến ${app.routePath.currentRouteName || ''}`;
+        }
+
+        modal.classList.remove('hidden');
+        app.ui.lockScroll();
+        setTimeout(() => {
+            content.classList.remove('opacity-0', 'scale-95');
+            content.classList.add('opacity-100', 'scale-100');
+            app.routePath.initExpandedMap();
+            app.routePath.switchExpandedDirection(app.routePath.viewDirection || 'forward');
+        }, 30);
+    },
+
+    closeExpandedView: () => {
+        const modal = document.getElementById('route-path-expanded-modal');
+        const content = document.getElementById('route-path-expanded-content');
+        if (!modal || !content) return;
+
+        content.classList.remove('opacity-100', 'scale-100');
+        content.classList.add('opacity-0', 'scale-95');
+        setTimeout(() => {
+            modal.classList.add('hidden');
+            app.ui.unlockScroll();
+        }, 200);
+    },
+
+    initExpandedMap: () => {
+        const container = document.getElementById('rpx-leaflet-map');
+        if (!container || typeof L === 'undefined') return;
+
+        if (app.routePath.expandedMap) {
+            setTimeout(() => app.routePath.expandedMap.invalidateSize(), 150);
+            return;
+        }
+
+        app.routePath.expandedMap = L.map(container, {
+            center: [16.047079, 108.206230],
+            zoom: 12,
+            zoomControl: true
+        });
+
+        L.tileLayer(`https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}`, {
+            attribution: '&copy; Google Maps',
+            maxZoom: 20
+        }).addTo(app.routePath.expandedMap);
+
+        app.routePath.expandedLayers = new L.FeatureGroup().addTo(app.routePath.expandedMap);
+
+        app.routePath.expandedMap.on('zoomend', () => {
+            app.routePath.updateExpandedMarkersVisibility();
+        });
+        app.routePath.expandedMap.on('popupclose', () => {
+            app.routePath.selectedExpandedStopIdx = null;
+            app.routePath.updateExpandedMarkersVisibility();
+        });
+
+        const ro = new ResizeObserver(() => {
+            if (app.routePath.expandedMap) app.routePath.expandedMap.invalidateSize();
+        });
+        ro.observe(container);
+    },
+
+    switchExpandedDirection: (dir) => {
+        app.routePath.expandedDirection = dir;
+        const tabFwd = document.getElementById('rpx-tab-forward');
+        const tabRet = document.getElementById('rpx-tab-return');
+        const indicator = document.getElementById('rpx-dir-indicator');
+
+        if (indicator) {
+            indicator.style.transform = dir === 'forward' ? 'translateX(0%)' : 'translateX(100%)';
+        }
+
+        if (tabFwd && tabRet) {
+            if (dir === 'forward') {
+                tabFwd.className = 'relative z-10 px-4 py-1.5 rounded text-white dark:text-black transition-colors duration-200 font-bold text-center';
+                tabRet.className = 'relative z-10 px-4 py-1.5 rounded text-zinc-600 dark:text-zinc-400 hover:text-black dark:hover:text-white transition-colors duration-200 font-bold text-center';
+            } else {
+                tabRet.className = 'relative z-10 px-4 py-1.5 rounded text-white dark:text-black transition-colors duration-200 font-bold text-center';
+                tabFwd.className = 'relative z-10 px-4 py-1.5 rounded text-zinc-600 dark:text-zinc-400 hover:text-black dark:hover:text-white transition-colors duration-200 font-bold text-center';
+            }
+        }
+        app.routePath.drawExpandedRoute();
+    },
+
+    drawExpandedRoute: () => {
+        if (!app.routePath.expandedMap || !app.routePath.expandedLayers) return;
+        app.routePath.expandedLayers.clearLayers();
+
+        let paths = app.routePath.currentRouteData?.metadata?.route_paths;
+        if (typeof paths === 'string') {
+            try { paths = JSON.parse(paths); } catch(e) { paths = null; }
+        }
+
+        const isFwd = app.routePath.expandedDirection === 'forward';
+        const dirData = isFwd ? paths?.forward : paths?.return;
+        const stops = dirData?.stops || [];
+        const geometry = dirData?.geometry || null;
+        const routeColor = isFwd ? '#3b82f6' : '#e11d48';
+
+        if (geometry && geometry.coordinates && geometry.coordinates.length > 0) {
+            const latlngs = geometry.coordinates.map(c => [c[1], c[0]]);
+            L.polyline(latlngs, {
+                color: routeColor,
+                weight: 5,
+                opacity: 0.9,
+                lineJoin: 'round'
+            }).addTo(app.routePath.expandedLayers);
+        } else if (stops.length > 1) {
+            const latlngs = stops.map(s => [s.lat, s.lng]);
+            L.polyline(latlngs, {
+                color: routeColor,
+                weight: 4,
+                dashArray: '6, 8',
+                opacity: 0.7
+            }).addTo(app.routePath.expandedLayers);
+        }
+
+        app.routePath.expandedStopMarkers = [];
+        const visibleStops = stops.filter(s => !s.is_waypoint);
+        let stopNumber = 0;
+        stops.forEach((stop, idx) => {
+            if (stop.is_waypoint) return;
+            const currentStopIdx = stopNumber;
+            stopNumber++;
+            const isTerminal = (idx === 0 || idx === stops.length - 1);
+            const iconHtml = `
+                <div style="background-color: ${routeColor}; color: #ffffff; width: 24px; height: 24px; border-radius: 9999px; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 900; border: 2px solid #ffffff; box-shadow: 0 2px 4px rgba(0,0,0,0.35);">
+                    ${stopNumber}
+                </div>
+            `;
+            const customIcon = L.divIcon({
+                className: 'route-stop-div-icon',
+                html: iconHtml,
+                iconSize: [24, 24],
+                iconAnchor: [12, 12],
+                popupAnchor: [0, -12]
+            });
+
+            const marker = L.marker([stop.lat, stop.lng], { icon: customIcon });
+            marker.stopIndex = currentStopIdx;
+            marker.isTerminal = isTerminal;
+            marker.on('click', () => {
+                app.routePath.selectedExpandedStopIdx = currentStopIdx;
+                app.routePath.updateExpandedMarkersVisibility();
+            });
+
+            const termLabel = idx === 0 ? ' (Bến đầu)' : (idx === stops.length - 1 ? ' (Bến cuối)' : '');
+            marker.bindPopup(`
+                <div class="route-custom-popup p-3 font-sans bg-white dark:bg-[#18181b] text-black dark:text-white rounded border border-black dark:border-white">
+                    <div class="text-[10px] font-bold uppercase tracking-wider" style="color: ${routeColor};">Điểm dừng #${stopNumber}${termLabel} · ${isFwd ? 'Chiều đi' : 'Chiều về'}</div>
+                    <div class="text-sm font-bold mt-1 text-black dark:text-white">${app.utils.escapeHtml(stop.name || 'Điểm dừng')}</div>
+                    <div class="text-[10px] text-zinc-500 dark:text-zinc-400 mt-1">${stop.lat.toFixed(5)}, ${stop.lng.toFixed(5)}</div>
+                </div>
+            `, { closeButton: false });
+
+            app.routePath.expandedStopMarkers[currentStopIdx] = marker;
+        });
+
+        app.routePath.updateExpandedMarkersVisibility();
+
+        const bounds = app.routePath.expandedLayers.getBounds();
+        if (bounds.isValid() && stops.length > 0) {
+            app.routePath.expandedMap.fitBounds(bounds, { padding: [30, 30], maxZoom: 16 });
+        }
+
+        // Tính cự ly
+        let totalDistanceKm = 0;
+        if (geometry && geometry.coordinates && geometry.coordinates.length > 1) {
+            let meters = 0;
+            const coords = geometry.coordinates;
+            for (let i = 0; i < coords.length - 1; i++) {
+                meters += app.routePath.calculateDistanceMeters(coords[i][1], coords[i][0], coords[i + 1][1], coords[i + 1][0]);
+            }
+            totalDistanceKm = meters / 1000;
+        } else if (stops.length > 1) {
+            let meters = 0;
+            for (let i = 0; i < stops.length - 1; i++) {
+                meters += app.routePath.calculateDistanceMeters(stops[i].lat, stops[i].lng, stops[i + 1].lat, stops[i + 1].lng);
+            }
+            totalDistanceKm = meters / 1000;
+        }
+        const distText = totalDistanceKm > 0 ? ` · ${totalDistanceKm.toFixed(1)} km` : '';
+
+        const countEl = document.getElementById('rpx-stop-count');
+        const listEl = document.getElementById('rpx-stops-list');
+        if (countEl) {
+            countEl.innerText = `Điểm dừng (${visibleStops.length} điểm) · ${isFwd ? 'Chiều đi' : 'Chiều về'}${distText}`;
+        }
+        if (listEl) {
+            if (visibleStops.length === 0) {
+                listEl.innerHTML = '<div class="text-xs text-zinc-400 italic py-8 text-center">Chưa có điểm dừng cho chiều này.</div>';
+            } else {
+                let vIdx = 0;
+                listEl.innerHTML = stops.map((s) => {
+                    if (s.is_waypoint) return '';
+                    const stopIdx = vIdx;
+                    vIdx++;
+                    return `
+                        <div class="flex items-center gap-2.5 p-2.5 rounded bg-white dark:bg-black border border-zinc-200 dark:border-zinc-800 text-xs cursor-pointer hover:border-black dark:hover:border-white transition" onclick="app.routePath.panToExpandedStop(${s.lat}, ${s.lng}, ${stopIdx})">
+                            <span class="w-6 h-6 rounded-full flex items-center justify-center font-bold text-[11px] text-white shrink-0" style="background-color: ${routeColor};">${vIdx}</span>
+                            <div class="flex-1 min-w-0 pr-1">
+                                <span class="font-bold text-black dark:text-white truncate block text-xs">${app.utils.escapeHtml(s.name)}</span>
+                                <span class="text-[10px] text-zinc-500 dark:text-zinc-400 block truncate mt-0.5">${s.lat.toFixed(5)}, ${s.lng.toFixed(5)}</span>
+                            </div>
+                            <i class="fa-solid fa-chevron-right text-zinc-300 dark:text-zinc-700 text-[10px] shrink-0"></i>
+                        </div>
+                    `;
+                }).join('');
+            }
+        }
+    },
+
+    updateExpandedMarkersVisibility: () => {
+        if (!app.routePath.expandedMap || !app.routePath.expandedStopMarkers || !app.routePath.expandedLayers) return;
+        const currentZoom = app.routePath.expandedMap.getZoom();
+        const isFarZoom = currentZoom < 14;
+
+        app.routePath.expandedStopMarkers.forEach((m) => {
+            if (!m) return;
+            const isSelected = (m.stopIndex === app.routePath.selectedExpandedStopIdx);
+            const shouldShow = !isFarZoom || m.isTerminal || isSelected;
+
+            if (shouldShow) {
+                if (!app.routePath.expandedLayers.hasLayer(m)) {
+                    app.routePath.expandedLayers.addLayer(m);
+                }
+            } else {
+                if (app.routePath.expandedLayers.hasLayer(m)) {
+                    app.routePath.expandedLayers.removeLayer(m);
+                }
+            }
+        });
+    },
+
+    panToExpandedStop: (lat, lng, stopIdx = null) => {
+        if (!app.routePath.expandedMap) return;
+        app.routePath.selectedExpandedStopIdx = stopIdx;
+        app.routePath.updateExpandedMarkersVisibility();
+        app.routePath.expandedMap.setView([lat, lng], 16, { animate: true });
+        if (stopIdx !== null && app.routePath.expandedStopMarkers && app.routePath.expandedStopMarkers[stopIdx]) {
+            app.routePath.expandedStopMarkers[stopIdx].openPopup();
+        }
+    },
+
     // 2. GIAO DIỆN CHỈNH SỬA (MAP EDITOR)
     openEditor: () => {
         if (!app.user) return app.auth.check();
