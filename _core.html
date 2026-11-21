@@ -6230,12 +6230,14 @@ html.theme-dark .ct-icon {
                                 </div>
                             </div>
 
-                            <!-- Khung chứa Leaflet Map -->
-                            <div class="w-full h-64 sm:h-80 md:h-96 rounded-lg border border-black dark:border-white overflow-hidden relative mb-3 bg-zinc-100 dark:bg-zinc-900">
-                                <div id="route-leaflet-map" class="w-full h-full z-0"></div>
-                                <button type="button" onclick="app.routePath.openExpandedView()" class="absolute top-2.5 right-2.5 bg-black/60 hover:bg-black dark:bg-white/70 dark:hover:bg-white text-white dark:text-black w-8 h-8 rounded-md flex items-center justify-center transition z-[400] shadow-sm" title="Phóng to bản đồ xem chi tiết">
-                                    <i class="fa-solid fa-expand text-xs"></i>
-                                </button>
+                            <!-- Khung chứa Leaflet Map (Thumbnail cố định: chỉ hiện overview, bấm vào để mở bản đồ chi tiết) -->
+                            <div class="w-full h-64 sm:h-80 md:h-96 rounded-lg border border-black dark:border-white overflow-hidden relative mb-3 bg-zinc-100 dark:bg-zinc-900 group cursor-pointer" onclick="app.routePath.openExpandedView()">
+                                <div id="route-leaflet-map" class="w-full h-full z-0 pointer-events-none"></div>
+                                <div class="absolute inset-0 bg-transparent group-hover:bg-black/5 dark:group-hover:bg-white/5 transition flex items-end justify-end p-2.5 z-10">
+                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-md bg-black text-white dark:bg-white dark:text-black text-[11px] font-bold shadow-md">
+                                        <i class="fa-solid fa-expand"></i> Phóng to xem chi tiết
+                                    </span>
+                                </div>
                             </div>
                             <!-- Danh sách điểm dừng (Collapsible) -->
                             <div class="border border-black dark:border-white rounded-lg p-3 bg-white dark:bg-[#18181b] mb-3">
@@ -7813,18 +7815,15 @@ html.theme-dark .ct-icon {
             </div>
 
             <!-- Modal Subheader: Chọn Chiều Đi / Chiều Về -->
-            <div class="p-3 sm:p-4 bg-zinc-50 dark:bg-zinc-900 border-b border-black dark:border-white flex items-center justify-between gap-3 shrink-0 relative z-30">
-                <div class="relative inline-flex rounded-md border border-black dark:border-white p-0.5 bg-white dark:bg-black text-xs font-bold select-none overflow-hidden">
+            <div class="p-3 sm:p-4 bg-zinc-50 dark:bg-zinc-900 border-b border-black dark:border-white flex flex-col sm:flex-row items-center justify-center gap-3 shrink-0 relative z-30">
+                <div class="relative w-full sm:w-80 md:w-96 flex rounded-md border border-black dark:border-white p-0.5 bg-white dark:bg-black text-xs font-bold select-none overflow-hidden">
                     <div id="rpx-dir-indicator" class="absolute top-0.5 bottom-0.5 left-0.5 w-[calc(50%-2px)] rounded bg-black dark:bg-white transition-transform duration-250 ease-out pointer-events-none"></div>
-                    <button type="button" id="rpx-tab-forward" onclick="app.routePath.switchExpandedDirection('forward')" class="relative z-10 px-4 py-1.5 rounded text-white dark:text-black transition-colors duration-200 font-bold text-center">
+                    <button type="button" id="rpx-tab-forward" onclick="app.routePath.switchExpandedDirection('forward')" class="relative z-10 flex-1 py-1.5 rounded text-white dark:text-black transition-colors duration-200 font-bold text-center">
                         Chiều đi
                     </button>
-                    <button type="button" id="rpx-tab-return" onclick="app.routePath.switchExpandedDirection('return')" class="relative z-10 px-4 py-1.5 rounded text-zinc-600 dark:text-zinc-400 hover:text-black dark:hover:text-white transition-colors duration-200 font-bold text-center">
+                    <button type="button" id="rpx-tab-return" onclick="app.routePath.switchExpandedDirection('return')" class="relative z-10 flex-1 py-1.5 rounded text-zinc-600 dark:text-zinc-400 hover:text-black dark:hover:text-white transition-colors duration-200 font-bold text-center">
                         Chiều về
                     </button>
-                </div>
-                <div class="text-xs text-zinc-500 dark:text-zinc-400 font-medium hidden sm:block">
-                    Click vào trạm để định vị và xem thông tin
                 </div>
             </div>
 

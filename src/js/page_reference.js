@@ -2621,32 +2621,26 @@ window.app.routePath = {
             return;
         }
 
-        const isDark = document.documentElement.classList.contains('theme-dark');
+        // Cấu hình bản đồ thumbnail xem nhanh: cố định như ảnh tĩnh, không zoom/pan để tránh vô tình kéo nhầm
         app.routePath.viewMap = L.map(container, {
             center: [16.047079, 108.206230],
             zoom: 12,
-            zoomControl: true,
-            scrollWheelZoom: false
+            zoomControl: false,
+            dragging: false,
+            touchZoom: false,
+            scrollWheelZoom: false,
+            doubleClickZoom: false,
+            boxZoom: false,
+            keyboard: false,
+            attributionControl: false
         });
 
         // Luôn sử dụng lớp bản đồ roadmap mặc định tiêu chuẩn (không dùng ảnh vệ tinh cho bản đồ tuyến)
         L.tileLayer(`https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}`, {
-            attribution: '&copy; Google Maps',
             maxZoom: 20
         }).addTo(app.routePath.viewMap);
 
         app.routePath.viewLayers = new L.FeatureGroup().addTo(app.routePath.viewMap);
-
-        // Lắng nghe zoomend để tự động ẩn/hiện các trạm giữa khi zoom xa
-        app.routePath.viewMap.on('zoomend', () => {
-            app.routePath.updateViewMarkersVisibility();
-        });
-
-        // Bắt sự kiện đóng popup để reset trạng thái trạm đang chọn
-        app.routePath.viewMap.on('popupclose', () => {
-            app.routePath.selectedViewStopIdx = null;
-            app.routePath.updateViewMarkersVisibility();
-        });
 
         const ro = new ResizeObserver(() => {
             if (app.routePath.viewMap) app.routePath.viewMap.invalidateSize();
@@ -2719,15 +2713,17 @@ window.app.routePath = {
             }).addTo(app.routePath.viewLayers);
         }
 
-        // Vẽ marker điểm dừng mang màu của đường kẻ (chỉ vẽ trạm dừng thật, ẩn các điểm dẫn đường waypoint)
+        // Vẽ marker điểm dừng trên thumbnail ngoài: CHỈ VẼ BẾN ĐẦU VÀ BẾN CUỐI
         app.routePath.viewStopMarkers = [];
         const visibleStops = stops.filter(s => !s.is_waypoint);
         let stopNumber = 0;
         stops.forEach((stop, idx) => {
-            if (stop.is_waypoint) return; // Điểm dẫn đường không hiển thị trên map người xem
+            if (stop.is_waypoint) return;
             const currentStopIdx = stopNumber;
             stopNumber++;
             const isTerminal = (idx === 0 || idx === stops.length - 1);
+            if (!isTerminal) return; // Chỉ hiện 2 điểm đầu - cuối ở thumbnail ngoài
+
             const iconHtml = `
                 <div style="background-color: ${routeColor}; color: #ffffff; width: 22px; height: 22px; border-radius: 9999px; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 900; border: 2px solid #ffffff; box-shadow: 0 2px 4px rgba(0,0,0,0.35);">
                     ${stopNumber}
@@ -2741,15 +2737,8 @@ window.app.routePath = {
                 popupAnchor: [0, -11]
             });
 
-            const marker = L.marker([stop.lat, stop.lng], { icon: customIcon });
-            marker.stopIndex = currentStopIdx;
-            marker.isTerminal = isTerminal;
-            marker.on('click', () => {
-                app.routePath.selectedViewStopIdx = currentStopIdx;
-                app.routePath.updateViewMarkersVisibility();
-            });
-
-            const termLabel = idx === 0 ? ' (Bến đầu)' : (idx === stops.length - 1 ? ' (Bến cuối)' : '');
+            const marker = L.marker([stop.lat, stop.lng], { icon: customIcon }).addTo(app.routePath.viewLayers);
+            const termLabel = idx === 0 ? ' (Bến đầu)' : ' (Bến cuối)';
             marker.bindPopup(`
                 <div class="route-custom-popup p-2.5 font-sans bg-white dark:bg-[#18181b] text-black dark:text-white rounded border border-black dark:border-white">
                     <div class="text-[10px] font-bold uppercase tracking-wider" style="color: ${routeColor};">Điểm dừng #${stopNumber}${termLabel} · ${isFwd ? 'Chiều đi' : 'Chiều về'}</div>
@@ -2760,10 +2749,7 @@ window.app.routePath = {
             app.routePath.viewStopMarkers[currentStopIdx] = marker;
         });
 
-        // Cập nhật ẩn/hiện marker theo mức zoom hiện tại
-        app.routePath.updateViewMarkersVisibility();
-
-        // Fit bounds
+        // Fit bounds luôn cố định ở overview
         const bounds = app.routePath.viewLayers.getBounds();
         if (bounds.isValid()) {
             app.routePath.viewMap.fitBounds(bounds, { padding: [30, 30], maxZoom: 16 });
@@ -2803,7 +2789,7 @@ window.app.routePath = {
                     const stopIdx = vIdx;
                     vIdx++;
                     return `
-                        <div class="flex items-center gap-2 p-2 rounded bg-white dark:bg-black border border-zinc-200 dark:border-zinc-800 text-xs cursor-pointer hover:border-black dark:hover:border-white transition" onclick="app.routePath.panToStop(${s.lat}, ${s.lng}, '${app.utils.escapeAttr(s.name)}', ${stopIdx})">
+                        <div class="flex items-center gap-2 p-2 rounded bg-white dark:bg-black border border-zinc-200 dark:border-zinc-800 text-xs cursor-pointer hover:border-black dark:hover:border-white transition" onclick="app.routePath.openExpandedViewAndFocus(${s.lat}, ${s.lng}, ${stopIdx})">
                             <span class="w-5 h-5 rounded-full flex items-center justify-center font-bold text-[10px] text-white shrink-0" style="background-color: ${routeColor};">${vIdx}</span>
                             <span class="font-bold text-black dark:text-white truncate flex-1">${app.utils.escapeHtml(s.name)}</span>
                         </div>
@@ -2861,7 +2847,7 @@ window.app.routePath = {
     },
 
     // 1.1 GIAO DIỆN PHÓNG TO XEM CHI TIẾT (EXPANDED VIEW)
-    openExpandedView: () => {
+    openExpandedView: (initialFocus = null) => {
         const modal = document.getElementById('route-path-expanded-modal');
         const content = document.getElementById('route-path-expanded-content');
         if (!modal || !content) return;
@@ -2878,7 +2864,16 @@ window.app.routePath = {
             content.classList.add('opacity-100', 'scale-100');
             app.routePath.initExpandedMap();
             app.routePath.switchExpandedDirection(app.routePath.viewDirection || 'forward');
+            if (initialFocus && typeof initialFocus.lat === 'number') {
+                setTimeout(() => {
+                    app.routePath.panToExpandedStop(initialFocus.lat, initialFocus.lng, initialFocus.stopIdx);
+                }, 200);
+            }
         }, 30);
+    },
+
+    openExpandedViewAndFocus: (lat, lng, stopIdx) => {
+        app.routePath.openExpandedView({ lat, lng, stopIdx });
     },
 
     closeExpandedView: () => {
