@@ -20798,7 +20798,7 @@ Object.assign(window.app, {
                 { pos: 91.6667, label: '5' }
             ];
             const subPositions = [4.1667, 12.5, 20.8333, 29.1667, 37.5, 45.8333, 54.1667, 62.5, 70.8333, 79.1667, 87.5, 95.8333];
-            let linesHtml = '';
+            let linesHtml = '<div class="ruler-line-h" style="top: 33.3333%;"></div><div class="ruler-line-h" style="top: 66.6666%;"></div>';
             levels.forEach(item => {
                 const lineClass = item.isCenter ? 'ruler-line-center' : 'ruler-line-v';
                 const badgeClass = item.isCenter ? 'ruler-badge-center' : 'ruler-badge';
@@ -20825,7 +20825,7 @@ Object.assign(window.app, {
             const overlayBox = document.getElementById('crop-overlay-box');
             if (!overlayBox) return;
             let overlay = overlayBox.querySelector('.crop-ruler-overlay');
-            if (!overlay || !overlay.querySelector('.ruler-line-sub')) {
+            if (!overlay || !overlay.querySelector('.ruler-line-sub') || !overlay.querySelector('.ruler-line-h')) {
                 if (overlay) overlay.remove();
                 overlayBox.insertAdjacentHTML('beforeend', app.crop.getRulerHTML());
                 overlay = overlayBox.querySelector('.crop-ruler-overlay');
@@ -23672,6 +23672,9 @@ Object.assign(window.app, {
                     }
                     const subPositions = [4.1667, 12.5, 20.8333, 29.1667, 37.5, 45.8333, 54.1667, 62.5, 70.8333, 79.1667, 87.5, 95.8333];
                     document.querySelectorAll('.admin-photo-ruler-overlay').forEach(el => {
+                        if (!el.querySelector('.ruler-line-h')) {
+                            el.insertAdjacentHTML('afterbegin', '<div class="ruler-line-h" style="top: 33.3333%;"></div><div class="ruler-line-h" style="top: 66.6666%;"></div>');
+                        }
                         if (!el.querySelector('.ruler-line-sub')) {
                             let subHtml = '';
                             subPositions.forEach(pos => {
@@ -23747,7 +23750,7 @@ Object.assign(window.app, {
                         { pos: 91.6667, label: '5' }
                     ];
                     const subPositions = [4.1667, 12.5, 20.8333, 29.1667, 37.5, 45.8333, 54.1667, 62.5, 70.8333, 79.1667, 87.5, 95.8333];
-                    let linesHtml = '';
+                    let linesHtml = '<div class="ruler-line-h" style="top: 33.3333%;"></div><div class="ruler-line-h" style="top: 66.6666%;"></div>';
                     levels.forEach(item => {
                         const lineClass = item.isCenter ? 'ruler-line-center' : 'ruler-line-v';
                         const badgeClass = item.isCenter ? 'ruler-badge-center' : 'ruler-badge';

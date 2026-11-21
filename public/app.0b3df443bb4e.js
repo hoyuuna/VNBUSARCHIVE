@@ -2528,7 +2528,7 @@ cleanupState: () => {
                             iconClass,
                             iconHtml: `
                             <svg viewBox="0 0 100 100" class="absolute inset-0 w-full h-full overflow-visible drop-shadow-sm" preserveAspectRatio="none">
-                                <circle cx="50" cy="50" r="48" fill="white" stroke="black" stroke-width="4"/>
+                                <circle cx="50" cy="50" r="48" fill="var(--bg-body-color, #fdfcf8)" stroke="#dc2626" stroke-width="4"/>
                                 <text x="50" y="${y.toFixed(2)}" text-anchor="middle" font-family="Anton, sans-serif" font-weight="400" fill="#dc2626" font-size="${fSize.toFixed(2)}">${safeText}</text>
                             </svg>`
                         };
@@ -2543,7 +2543,7 @@ cleanupState: () => {
                             iconClass,
                             iconHtml: `
                             <svg viewBox="0 0 100 100" class="absolute inset-0 w-full h-full overflow-visible drop-shadow-sm" preserveAspectRatio="none">
-                                <polygon points="15,15 85,15 100,85 0,85" fill="white" stroke="black" stroke-width="4" stroke-linejoin="round"/>
+                                <polygon points="15,15 85,15 100,85 0,85" fill="var(--bg-body-color, #fdfcf8)" stroke="#dc2626" stroke-width="4" stroke-linejoin="round"/>
                                 <text x="50" y="${y.toFixed(2)}" text-anchor="middle" font-family="Anton, sans-serif" font-weight="400" fill="#dc2626" font-size="${fSize.toFixed(2)}">${safeText}</text>
                             </svg>`
                         };
@@ -7618,8 +7618,8 @@ Object.assign(window.app, {
                     const proxyUrl = app.utils.getProxiedUrl(p.url, `${safePlate}.jpg`, 'thumb');
                     const dateHtml = p.taken_at ? `<span class="shrink-0"><i class="fa-regular fa-calendar mr-1"></i>${p.taken_at.split('T')[0].split('-').reverse().join('/')}</span>` : '';
                     return `
-                        <div data-id="${p.id}" class="m3-photo-card bg-white dark:bg-[#1e2023] border border-[#e2e0da] dark:border-[#2e3135] hover:border-black dark:hover:border-white hover:shadow-xl hover:-translate-y-1 cursor-pointer rounded-2xl p-2.5 transition-all duration-300 flex flex-col fade-zoom-in-page" onclick="app.views.loadDetail(${p.id})">
-                            <div class="img-wrapper relative w-full aspect-[4/3] bg-gray-100 dark:bg-zinc-800 rounded-xl overflow-hidden shrink-0 border border-black/5 dark:border-white/5">
+                        <div data-id="${p.id}" class="bg-white border border-gray-200 hover:border-gray-300 hover:shadow-lg hover:-translate-y-1 cursor-pointer rounded-xl p-2 transition-all duration-300 flex flex-col fade-zoom-in-page" onclick="app.views.loadDetail(${p.id})">
+                            <div class="img-wrapper relative w-full aspect-[4/3] bg-gray-100 rounded-lg overflow-hidden shrink-0 border border-gray-100">
                                 <div class="img-spinner absolute inset-0 flex items-center justify-center text-gray-400">
                                     <i class="fa-solid fa-circle-notch fa-spin text-2xl"></i>
                                 </div>
@@ -7628,18 +7628,18 @@ Object.assign(window.app, {
                                      onerror="app.utils.handleImgError(this)"
                                      alt="Xe buýt ${safePlate}"
                                      class="absolute inset-0 w-full h-full object-cover opacity-0 transition-all duration-500">
-                                <div class="img-error absolute inset-0 hidden flex-col items-center justify-center p-4 text-center bg-red-50/50 dark:bg-red-950/40">
+                                <div class="img-error absolute inset-0 hidden flex-col items-center justify-center p-4 text-center bg-red-50/50">
                                     <i class="fa-solid fa-image-slash text-red-400 text-2xl mb-1"></i>
                                     <span class="text-[10px] font-bold text-red-500 leading-tight">Ảnh hiện không thể<br>được tải</span>
                                 </div>
                             </div>
                             <div class="pt-3 px-1.5 pb-1 flex-1 flex flex-col justify-between">
                                 <div>
-                                    <div class="font-bold text-sm text-black dark:text-white tracking-tight">${safePlate}</div>
-                                    <div class="text-xs text-gray-600 dark:text-gray-300 font-medium truncate mt-0.5">${safeOp}</div>
+                                    <div class="font-bold text-sm text-black">${safePlate}</div>
+                                    <div class="text-xs text-gray-600 font-semibold truncate">${safeOp}</div>
                                 </div>
-                                <div class="text-[11px] text-gray-400 dark:text-gray-400 mt-2.5 flex justify-between items-center">
-                                    <span class="truncate pr-2 font-medium">${safeUser}</span>
+                                <div class="text-[10px] text-gray-400 mt-2 flex justify-between">
+                                    <span class="truncate pr-2">${safeUser}</span>
                                     ${dateHtml}
                                 </div>
                             </div>
@@ -8238,6 +8238,7 @@ Object.assign(window.app, {
                         'update_model_info': 'sửa thông tin dòng xe',
                         'create_route_info': 'tạo tuyến mới',
                         'update_route_info': 'sửa thông tin tuyến',
+                        'update_route_path': 'sửa lộ trình tuyến',
                         'delete_route': 'xóa tuyến',
                         'unmerge_vehicle': 'tách xe'
                     };
@@ -8304,6 +8305,7 @@ Object.assign(window.app, {
                         'update_model_info': 'Sửa thông tin dòng xe',
                         'create_route_info': 'Tạo tuyến mới',
                         'update_route_info': 'Sửa thông tin tuyến',
+                        'update_route_path': 'Sửa lộ trình tuyến',
                         'delete_route': 'Xóa tuyến',
                         'unmerge_vehicle': 'Tách xe'
                     };
@@ -9217,7 +9219,7 @@ Object.assign(window.app, {
                         }
                         const historyPlates = historyRes.data ? historyRes.data.map(h => h.plate).filter(Boolean) : [];
                         const allPlatesToFetch = [...new Set([plate, ...historyPlates])];
-                        let pQuery = window.sb.from('photos').select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, borrowed_route, camera_model, location, status, denial_reason, is_documentary, views, profiles(id, username, role, subroles, ban_status), vehicles(model)`)
+                        let pQuery = window.sb.from('photos').select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, borrowed_route, camera_model, location, status, denial_reason, is_documentary, views, profiles(id, username, avatar_url, role, subroles, ban_status), vehicles(model)`)
                                 .in('license_plate', allPlatesToFetch)
                                 .eq('status', 'approved');
                         pQuery = app.preference.applyFilter(pQuery);
@@ -9261,6 +9263,13 @@ Object.assign(window.app, {
                             topPhoto = allPhotos.find(p => (p.location || '').trim() !== 'Chụp trong xe') || allPhotos[0];
                         }
                         const isCoach = topPhoto && topPhoto.type === 'coach';
+                        const topUploader = topPhoto ? app.utils.formatProfileDisplay(topPhoto.profiles) : null;
+                        if (topUploader && Object.keys(app.topUploaders).length === 0) {
+                            await app.utils.fetchTopUploaders();
+                        }
+                        const topUploaderBadges = (topPhoto && topUploader && !topUploader.isBanned)
+                            ? app.utils.getBadgesHTML(topPhoto.profiles?.id, topPhoto.profiles?.role, topPhoto.profiles?.subroles)
+                            : '';
                         let rawHistory = historyRes.data || [];
                         let historyData = rawHistory.map(h => {
                             if (!h.effective_date && h.note) {
@@ -9432,20 +9441,33 @@ let currentRouteProvName = null;
                                 <i class="fa-solid fa-chevron-right text-[8px] sm:text-[10px] shrink-0 text-gray-400"></i>
                                 <span id="crumb-vehicle-profile" class="font-bold text-black shrink min-w-0 block">${app.utils.displayPlate(vehicle.license_plate)}</span>
                             </div>
-                            <div class="bg-white border border-vbs-border shadow-sm rounded-lg p-6 md:p-8 mb-6 relative overflow-hidden">
-                                <div class="flex items-center gap-4 sm:gap-6 w-full min-w-0 max-w-full mb-6">
+                            <div class="vehicle-hero-banner rounded-lg border border-black dark:border-white bg-black text-white relative overflow-hidden mb-3 shadow-sm">
+                                <div class="relative w-full min-h-[180px] sm:min-h-[220px] md:min-h-[260px] bg-black overflow-hidden flex items-center justify-center">
                                     ${topPhoto ? `
-                                    <img loading="lazy" decoding="async" src="${app.utils.getProxiedUrl(topPhoto.url, 'vehicle-top.jpg', 'thumb')}" onerror="app.utils.fallbackHeroImage(this, 'vehiclePhotosCache', 0)" onclick="app.views.loadDetail(${topPhoto.id})" class="w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 rounded-xl object-cover shrink-0 border border-gray-200 shadow-sm cursor-pointer transition duration-300">
+                                    <img loading="lazy" decoding="async" src="${app.utils.getProxiedUrl(topPhoto.url, 'vehicle-top.jpg', 'full')}" onerror="app.utils.fallbackHeroImage(this, 'vehiclePhotosCache', 0)" onclick="app.views.loadDetail(${topPhoto.id})" class="absolute inset-0 w-full h-full object-cover object-center block cursor-pointer transition duration-300">
                                     ` : `
-                                    <div class="w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 rounded-xl bg-gray-100 text-gray-400 flex items-center justify-center font-bold text-3xl shrink-0 border border-gray-200">
+                                    <div class="w-full h-full min-h-[180px] flex items-center justify-center text-zinc-500 font-bold text-4xl py-12">
                                         <i class="fa-solid fa-bus"></i>
                                     </div>
                                     `}
-                                    <div class="overflow-hidden min-w-0 flex-1 text-left">
-                                        <p class="text-[10px] md:text-xs text-gray-500 uppercase tracking-widest font-bold mb-1">${isCoach ? 'Xe khách' : 'Xe buýt'}</p>
-                                        <h2 class="text-xl md:text-3xl font-black uppercase text-black tracking-tight leading-tight block w-full">${app.utils.displayPlate(vehicle.license_plate)}</h2>
+                                    <div class="vehicle-hero-fade pointer-events-none absolute inset-x-0 bottom-0 h-2/3 sm:h-1/2 z-10"></div>
+                                    <div class="relative w-full pt-20 sm:pt-24 p-4 sm:p-6 z-20 flex flex-col items-start justify-end pointer-events-none">
+                                        <div class="text-left min-w-0 max-w-full pointer-events-auto">
+                                            <p class="text-[11px] sm:text-xs text-zinc-300 uppercase tracking-widest font-bold mb-1">${isCoach ? 'Xe khách' : 'Xe buýt'}</p>
+                                            <h2 class="text-2xl sm:text-3xl md:text-4xl font-black uppercase text-white tracking-tight leading-tight drop-shadow-md break-words">${app.utils.displayPlate(vehicle.license_plate)}</h2>
+                                        </div>
                                     </div>
                                 </div>
+                            </div>
+                            ${topPhoto && topUploader ? `
+                            <div class="flex items-center gap-1.5 text-xs text-gray-500 dark:text-zinc-400 mb-6 px-1 flex-wrap">
+                                <span>Ảnh mới nhất bởi</span>
+                                <span class="font-bold text-black dark:text-white cursor-pointer hover:underline inline-flex items-center gap-1" onclick="app.views.loadUserProfile('${topUploader.linkId}')">
+                                    <img loading="lazy" decoding="async" src="${topUploader.avatar}" onerror="this.onerror=null;this.src='${DEFAULT_AVATAR}';" class="w-4 h-4 rounded-full object-cover inline-block border border-gray-300 dark:border-zinc-700">
+                                    ${app.utils.escapeHtml(topUploader.username)}
+                                </span>
+                            </div>
+                            ` : ''}
                                 <div class="mb-8">
                                     <h3 class="font-bold text-xs uppercase text-black tracking-wider mb-2.5 px-1">Thông tin chi tiết</h3>
                                     <div class="border border-gray-200 rounded-lg overflow-hidden bg-white mb-3 shadow-sm">
@@ -9566,7 +9588,18 @@ let currentRouteProvName = null;
                     document.getElementById('crumb-operator').innerText = operatorName;
                     document.getElementById('operator-title').innerText = operatorName;
                     document.getElementById('operator-logo').classList.add('hidden');
-                    document.getElementById('operator-logo-fallback').classList.remove('hidden');
+                    document.getElementById('operator-badge').innerHTML = '';
+                    const opBanner = document.getElementById('operator-hero-banner');
+                    if (opBanner) opBanner.classList.add('hidden');
+                    const opHeroImg = document.getElementById('operator-hero-img');
+                    if (opHeroImg) opHeroImg.classList.add('hidden');
+                    const opPlaceholder = document.getElementById('operator-hero-placeholder');
+                    if (opPlaceholder) opPlaceholder.classList.remove('hidden');
+                    const opUploaderRow = document.getElementById('operator-uploader-row');
+                    if (opUploaderRow) {
+                        opUploaderRow.innerHTML = '';
+                        opUploaderRow.classList.add('hidden');
+                    }
                     document.getElementById('operator-desc').classList.add('hidden');
                     const parentChildEl = document.getElementById('operator-parent-child');
                     if (parentChildEl) {
@@ -9610,15 +9643,12 @@ let currentRouteProvName = null;
                             return parents.includes(targetNorm);
                         }).sort((a, b) => a.operator_name.localeCompare(b.operator_name, 'vi'));
                         const logoEl = document.getElementById('operator-logo');
-                        const fallbackEl = document.getElementById('operator-logo-fallback');
                         const descEl = document.getElementById('operator-desc');
                         if (opInfo && opInfo.logo_url) {
                             logoEl.src = opInfo.logo_url.includes('wsrv.nl') ? opInfo.logo_url : 'https://wsrv.nl/?url=' + encodeURIComponent(opInfo.logo_url);
                             logoEl.classList.remove('hidden');
-                            fallbackEl.classList.add('hidden');
                         } else {
                             logoEl.classList.add('hidden');
-                            fallbackEl.classList.remove('hidden');
                         }
                         if (opInfo && opInfo.description) {
                             let desc = opInfo.description;
@@ -9875,7 +9905,7 @@ let currentRouteProvName = null;
                         app.currentOperatorResolved = resolvedOperator;
                         app.views.operatorCurrentPage = 1;
                         const opSize = app.views.OPERATOR_PAGE_SIZE || 12;
-                        let pQuery = window.sb.from('photos').select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, borrowed_route, camera_model, location, status, denial_reason, is_documentary, views, profiles(id, username, role, subroles, ban_status), vehicles(model)`, { count: 'exact' })
+                        let pQuery = window.sb.from('photos').select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, borrowed_route, camera_model, location, status, denial_reason, is_documentary, views, profiles(id, username, avatar_url, role, subroles, ban_status), vehicles(model)`, { count: 'exact' })
                             .eq('status', 'approved')
                             .ilike('operator', resolvedOperator)
                             .or('route_no.neq."Dừng hoạt động",route_no.is.null')
@@ -9887,6 +9917,63 @@ let currentRouteProvName = null;
                         app.operatorPhotos = photos || [];
                         app.operator.totalCount = count || (photos ? photos.length : 0);
                         app.operator.totalPages = Math.ceil(app.operator.totalCount / opSize);
+
+                        // Xử lý Hero Banner & Uploader cho ĐVVH
+                        let opTopPhoto = app.operatorPhotos.find(p => (p.location || '').trim() !== 'Chụp trong xe') || app.operatorPhotos[0] || null;
+                        if (!opTopPhoto && childOps && childOps.length > 0) {
+                            try {
+                                const childNames = childOps.map(c => c.operator_name).filter(Boolean);
+                                if (childNames.length > 0) {
+                                    let cq = window.sb.from('photos').select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, borrowed_route, camera_model, location, status, denial_reason, is_documentary, views, profiles(id, username, avatar_url, role, subroles, ban_status), vehicles(model)`)
+                                        .eq('status', 'approved')
+                                        .in('operator', childNames)
+                                        .or('route_no.neq."Dừng hoạt động",route_no.is.null')
+                                        .order('taken_at', { ascending: false, nullsFirst: false })
+                                        .order('created_at', { ascending: false })
+                                        .limit(5);
+                                    cq = app.preference.applyFilter(cq);
+                                    const { data: cData } = await cq;
+                                    if (cData && cData.length > 0) {
+                                        opTopPhoto = cData.find(p => (p.location || '').trim() !== 'Chụp trong xe') || cData[0];
+                                    }
+                                }
+                            } catch (e) { console.warn("Lỗi tìm ảnh mới nhất từ ĐVVH con:", e); }
+                        }
+
+                        const opBanner = document.getElementById('operator-hero-banner');
+                        const opHeroImg = document.getElementById('operator-hero-img');
+                        const opPlaceholder = document.getElementById('operator-hero-placeholder');
+                        const opUploaderRow = document.getElementById('operator-uploader-row');
+
+                        if (opBanner) {
+                            opBanner.classList.remove('hidden');
+                            if (opTopPhoto) {
+                                opHeroImg.src = app.utils.getProxiedUrl(opTopPhoto.url, 'operator-top.jpg', 'full');
+                                opHeroImg.classList.remove('hidden');
+                                opHeroImg.onclick = () => app.views.loadDetail(opTopPhoto.id);
+                                if (opPlaceholder) opPlaceholder.classList.add('hidden');
+
+                                const uploader = app.utils.formatProfileDisplay(opTopPhoto.profiles);
+                                if (opUploaderRow && uploader) {
+                                    opUploaderRow.innerHTML = `
+                                        <span>Ảnh mới nhất bởi</span>
+                                        <span class="font-bold text-black dark:text-white cursor-pointer hover:underline inline-flex items-center gap-1" onclick="app.views.loadUserProfile('${uploader.linkId}')">
+                                            <img loading="lazy" decoding="async" src="${uploader.avatar}" onerror="this.onerror=null;this.src='${DEFAULT_AVATAR}';" class="w-4 h-4 rounded-full object-cover inline-block border border-gray-300 dark:border-zinc-700">
+                                            ${app.utils.escapeHtml(uploader.username)}
+                                        </span>
+                                    `;
+                                    opUploaderRow.classList.remove('hidden');
+                                }
+                            } else {
+                                opHeroImg.classList.add('hidden');
+                                if (opPlaceholder) opPlaceholder.classList.remove('hidden');
+                                if (opUploaderRow) {
+                                    opUploaderRow.innerHTML = '';
+                                    opUploaderRow.classList.add('hidden');
+                                }
+                            }
+                        }
+
                         if (photos && photos.length > 0) {
                             grid.innerHTML = photos.map(p => app.views.renderPhotoCard(p)).join('');
                             document.getElementById('op-main-photos-wrapper').classList.remove('hidden');
@@ -9929,7 +10016,7 @@ let currentRouteProvName = null;
                     try {
                         const childPhotosHtml = [];
                         for (const child of pageChildOps) {
-                            let cQuery = window.sb.from('photos').select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, borrowed_route, camera_model, location, status, denial_reason, is_documentary, views, profiles(id, username, role, subroles, ban_status), vehicles(model)`)
+                            let cQuery = window.sb.from('photos').select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, borrowed_route, camera_model, location, status, denial_reason, is_documentary, views, profiles(id, username, avatar_url, role, subroles, ban_status), vehicles(model)`)
                                 .eq('status', 'approved')
                                 .ilike('operator', child.operator_name)
                                 .or('route_no.neq."Dừng hoạt động",route_no.is.null')
@@ -13454,7 +13541,17 @@ Object.assign(window.app, {
                     document.getElementById('crumb-model-profile').innerText = modelName;
                     document.getElementById('model-profile-title').innerText = modelName;
                     document.getElementById('model-logo').classList.add('hidden');
-                    document.getElementById('model-logo-fallback').classList.remove('hidden');
+                    const mdlBanner = document.getElementById('model-hero-banner');
+                    if (mdlBanner) mdlBanner.classList.add('hidden');
+                    const mdlHeroImg = document.getElementById('model-hero-img');
+                    if (mdlHeroImg) mdlHeroImg.classList.add('hidden');
+                    const mdlPlaceholder = document.getElementById('model-hero-placeholder');
+                    if (mdlPlaceholder) mdlPlaceholder.classList.remove('hidden');
+                    const mdlUploaderRow = document.getElementById('model-uploader-row');
+                    if (mdlUploaderRow) {
+                        mdlUploaderRow.innerHTML = '';
+                        mdlUploaderRow.classList.add('hidden');
+                    }
                     document.getElementById('model-desc').classList.add('hidden');
                     document.getElementById('mdl-stat-photos').innerText = '...';
                     document.getElementById('mdl-stat-vehicles').innerText = '...';
@@ -13476,15 +13573,12 @@ Object.assign(window.app, {
                             .limit(1)
                             .maybeSingle();
                         const logoEl = document.getElementById('model-logo');
-                        const fallbackEl = document.getElementById('model-logo-fallback');
                         const descEl = document.getElementById('model-desc');
                         if (brandLogoData && brandLogoData.logo_url) {
                             logoEl.src = brandLogoData.logo_url.includes('wsrv.nl') ? brandLogoData.logo_url : 'https://wsrv.nl/?url=' + encodeURIComponent(brandLogoData.logo_url);
                             logoEl.classList.remove('hidden');
-                            fallbackEl.classList.add('hidden');
                         } else {
                             logoEl.classList.add('hidden');
-                            fallbackEl.classList.remove('hidden');
                         }
                         if (exactInfo && exactInfo.description) {
                             descEl.innerHTML = app.utils.cleanText(exactInfo.description).replace(/\n/g, '<br>');
@@ -13533,7 +13627,7 @@ Object.assign(window.app, {
                         document.getElementById('mdl-stat-views').innerText = app.utils.formatCompact(totalViews);
                         app.views.modelCurrentPage = 1;
                         const mdlSize = app.views.MODEL_PAGE_SIZE || 12;
-                        let pQuery = window.sb.from('photos').select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, borrowed_route, camera_model, location, status, denial_reason, is_documentary, views, profiles(id, username, role, subroles, ban_status), vehicles!inner(model)`, { count: 'exact' })
+                        let pQuery = window.sb.from('photos').select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, borrowed_route, camera_model, location, status, denial_reason, is_documentary, views, profiles(id, username, avatar_url, role, subroles, ban_status), vehicles!inner(model)`, { count: 'exact' })
                             .eq('status', 'approved')
                             .eq('vehicles.model', modelName)
                             .order('taken_at', { ascending: false, nullsFirst: false })
@@ -13544,6 +13638,42 @@ Object.assign(window.app, {
                         app.model.modelPhotos = photos || [];
                         app.model.totalCount = count || (photos ? photos.length : 0);
                         app.model.totalPages = Math.ceil(app.model.totalCount / mdlSize);
+
+                        // Xử lý Hero Banner & Uploader cho Dòng xe
+                        const mdlTopPhoto = app.model.modelPhotos.find(p => (p.location || '').trim() !== 'Chụp trong xe') || app.model.modelPhotos[0] || null;
+                        const mdlBanner = document.getElementById('model-hero-banner');
+                        const mdlHeroImg = document.getElementById('model-hero-img');
+                        const mdlPlaceholder = document.getElementById('model-hero-placeholder');
+                        const mdlUploaderRow = document.getElementById('model-uploader-row');
+
+                        if (mdlBanner) {
+                            mdlBanner.classList.remove('hidden');
+                            if (mdlTopPhoto) {
+                                mdlHeroImg.src = app.utils.getProxiedUrl(mdlTopPhoto.url, 'model-top.jpg', 'full');
+                                mdlHeroImg.classList.remove('hidden');
+                                mdlHeroImg.onclick = () => app.views.loadDetail(mdlTopPhoto.id);
+                                if (mdlPlaceholder) mdlPlaceholder.classList.add('hidden');
+
+                                const uploader = app.utils.formatProfileDisplay(mdlTopPhoto.profiles);
+                                if (mdlUploaderRow && uploader) {
+                                    mdlUploaderRow.innerHTML = `
+                                        <span>Ảnh mới nhất bởi</span>
+                                        <span class="font-bold text-black dark:text-white cursor-pointer hover:underline inline-flex items-center gap-1" onclick="app.views.loadUserProfile('${uploader.linkId}')">
+                                            <img loading="lazy" decoding="async" src="${uploader.avatar}" onerror="this.onerror=null;this.src='${DEFAULT_AVATAR}';" class="w-4 h-4 rounded-full object-cover inline-block border border-gray-300 dark:border-zinc-700">
+                                            ${app.utils.escapeHtml(uploader.username)}
+                                        </span>
+                                    `;
+                                    mdlUploaderRow.classList.remove('hidden');
+                                }
+                            } else {
+                                mdlHeroImg.classList.add('hidden');
+                                if (mdlPlaceholder) mdlPlaceholder.classList.remove('hidden');
+                                if (mdlUploaderRow) {
+                                    mdlUploaderRow.innerHTML = '';
+                                    mdlUploaderRow.classList.add('hidden');
+                                }
+                            }
+                        }
                         if (photos && photos.length > 0) {
                             grid.innerHTML = photos.map(p => app.views.renderPhotoCard(p)).join('');
                         } else {
@@ -13664,15 +13794,12 @@ Object.assign(window.app, {
                                     }
                                 }
                                 const logoEl = document.getElementById('model-logo');
-                                const fallbackEl = document.getElementById('model-logo-fallback');
-                                if (logoEl && fallbackEl) {
+                                if (logoEl) {
                                     if (logo) {
                                         logoEl.src = logo.includes('wsrv.nl') ? logo : 'https://wsrv.nl/?url=' + encodeURIComponent(logo);
                                         logoEl.classList.remove('hidden');
-                                        fallbackEl.classList.add('hidden');
                                     } else {
                                         logoEl.classList.add('hidden');
-                                        fallbackEl.classList.remove('hidden');
                                     }
                                 }
                                 app.model.loadModelPage(app.model.currentModel, true);
@@ -13772,6 +13899,23 @@ if (!decodedProvince || decodedProvince.trim() === '') {
                     document.getElementById('crumb-route-profile').innerText = titleText;
                     document.getElementById('route-profile-title').innerText = decodedRoute;
                     document.getElementById('route-province-label').innerText = decodedProvince ? `Tuyến buýt ${decodedProvince}` : 'Tuyến buýt';
+                    document.getElementById('route-badge').innerHTML = '';
+                    const rteBanner = document.getElementById('route-hero-banner');
+                    if (rteBanner) rteBanner.classList.add('hidden');
+                    const rteHeroImg = document.getElementById('route-hero-img');
+                    if (rteHeroImg) rteHeroImg.classList.add('hidden');
+                    const rtePlaceholder = document.getElementById('route-hero-placeholder');
+                    if (rtePlaceholder) rtePlaceholder.classList.remove('hidden');
+                    const rteFallback = document.getElementById('route-logo-fallback');
+                    if (rteFallback) {
+                        rteFallback.innerHTML = '';
+                        rteFallback.className = 'hidden shrink-0';
+                    }
+                    const rteUploaderRow = document.getElementById('route-uploader-row');
+                    if (rteUploaderRow) {
+                        rteUploaderRow.innerHTML = '';
+                        rteUploaderRow.classList.add('hidden');
+                    }
                     
                     
                     
@@ -13794,8 +13938,8 @@ if (!decodedProvince || decodedProvince.trim() === '') {
                         exactInfo = data;
                         let titleText = decodedRoute;
                         let inactiveBadge = '';
-                        let iconHtml = '<i class="fa-solid fa-route"></i>';
-                        let iconClass = "w-16 h-16 md:w-20 md:h-20 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center font-bold text-3xl shrink-0";
+                        let iconHtml = '';
+                        let iconClass = "hidden shrink-0";
 
                         if (exactInfo) {
                             if (exactInfo.is_inactive) {
@@ -13813,8 +13957,14 @@ if (!decodedProvince || decodedProvince.trim() === '') {
                             }
                             
                             
-                            const builtIcon = await app.utils.buildRouteIcon(decodedRoute, exactInfo.metadata && exactInfo.metadata.icon_type, 'w-16 h-16 md:w-20 md:h-20');
-                            if (builtIcon) { iconClass = builtIcon.iconClass; iconHtml = builtIcon.iconHtml; }
+                            const builtIcon = await app.utils.buildRouteIcon(decodedRoute, exactInfo.metadata && exactInfo.metadata.icon_type, 'w-12 h-12 sm:w-16 sm:h-16 md:w-20 md:h-20');
+                            if (builtIcon) {
+                                iconClass = builtIcon.iconClass;
+                                iconHtml = builtIcon.iconHtml;
+                            } else {
+                                iconHtml = '';
+                                iconClass = 'hidden shrink-0';
+                            }
                             
                             const extraInfoContainer = document.getElementById('route-extra-info');
                             if (extraInfoContainer) {
@@ -13876,12 +14026,17 @@ if (!decodedProvince || decodedProvince.trim() === '') {
                         
                         document.getElementById('route-profile-title').innerText = app.utils.escapeHtml(titleText);
                             document.getElementById('route-badge').innerHTML = inactiveBadge;
+
+                        // Khởi tạo hiển thị Lộ trình & Bản đồ tuyến
+                        if (app.routePath && app.routePath.renderRouteView) {
+                            app.routePath.renderRouteView(exactInfo, routeName, decodedProvince);
+                        }
                     } catch (e) {
                         console.warn("Lỗi tải thông tin Tuyến:", e);
                     }
                     
                     try {
-                        let pQuery = window.sb.from('photos').select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, borrowed_route, camera_model, location, status, denial_reason, is_documentary, views, profiles(id, username, role, subroles, ban_status), vehicles(model)`)
+                        let pQuery = window.sb.from('photos').select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, borrowed_route, camera_model, location, status, denial_reason, is_documentary, views, profiles(id, username, avatar_url, role, subroles, ban_status), vehicles(model)`)
                             .eq('status', 'approved')
                             .eq('route_no', decodedRoute);
                             
@@ -13955,6 +14110,42 @@ if (!decodedProvince || decodedProvince.trim() === '') {
                         
                         app.route.totalCount = app.route.routePhotos.length;
                         app.route.totalPages = Math.ceil(app.route.totalCount / app.route.ROUTE_PAGE_SIZE);
+
+                        // Xử lý Hero Banner & Uploader cho Tuyến xe
+                        const rteTopPhoto = app.route.routePhotos.find(p => (p.location || '').trim() !== 'Chụp trong xe') || app.route.routePhotos[0] || null;
+                        const rteBanner = document.getElementById('route-hero-banner');
+                        const rteHeroImg = document.getElementById('route-hero-img');
+                        const rtePlaceholder = document.getElementById('route-hero-placeholder');
+                        const rteUploaderRow = document.getElementById('route-uploader-row');
+
+                        if (rteBanner) {
+                            rteBanner.classList.remove('hidden');
+                            if (rteTopPhoto) {
+                                rteHeroImg.src = app.utils.getProxiedUrl(rteTopPhoto.url, 'route-top.jpg', 'full');
+                                rteHeroImg.classList.remove('hidden');
+                                rteHeroImg.onclick = () => app.views.loadDetail(rteTopPhoto.id);
+                                if (rtePlaceholder) rtePlaceholder.classList.add('hidden');
+
+                                const uploader = app.utils.formatProfileDisplay(rteTopPhoto.profiles);
+                                if (rteUploaderRow && uploader) {
+                                    rteUploaderRow.innerHTML = `
+                                        <span>Ảnh mới nhất bởi</span>
+                                        <span class="font-bold text-black dark:text-white cursor-pointer hover:underline inline-flex items-center gap-1" onclick="app.views.loadUserProfile('${uploader.linkId}')">
+                                            <img loading="lazy" decoding="async" src="${uploader.avatar}" onerror="this.onerror=null;this.src='${DEFAULT_AVATAR}';" class="w-4 h-4 rounded-full object-cover inline-block border border-gray-300 dark:border-zinc-700">
+                                            ${app.utils.escapeHtml(uploader.username)}
+                                        </span>
+                                    `;
+                                    rteUploaderRow.classList.remove('hidden');
+                                }
+                            } else {
+                                rteHeroImg.classList.add('hidden');
+                                if (rtePlaceholder) rtePlaceholder.classList.remove('hidden');
+                                if (rteUploaderRow) {
+                                    rteUploaderRow.innerHTML = '';
+                                    rteUploaderRow.classList.add('hidden');
+                                }
+                            }
+                        }
                         
                         document.getElementById('rte-stat-photos').innerText = app.utils.formatCompact(app.route.totalCount);
                         
@@ -14112,9 +14303,17 @@ if (!decodedProvince || decodedProvince.trim() === '') {
                         
                         // Xác định danh sách đơn vị vận hành và dòng xe hiển thị
                         let dominantOps = Object.keys(activeOpCounts).sort((a, b) => activeOpCounts[b] - activeOpCounts[a]);
-                        let dominantModels = Object.keys(activeModelCounts).sort((a, b) => activeModelCounts[b] - activeModelCounts[a]);
                         
-                        // Nếu không có xe nào đang hoạt động (ví dụ tuyến đã ngừng hoặc thiếu lịch sử), lấy theo dữ liệu ảnh của tuyến làm dự phòng
+                        // Dòng xe trong route: Chỉ lấy dòng xe của ảnh mới nhất trên tuyến
+                        let dominantModels = [];
+                        if (app.route.routePhotos && app.route.routePhotos.length > 0) {
+                            const latestPhotoWithModel = app.route.routePhotos.find(p => p.vehicles?.model && p.vehicles.model.trim() !== '' && p.vehicles.model.trim() !== '---');
+                            if (latestPhotoWithModel) {
+                                dominantModels = [latestPhotoWithModel.vehicles.model.trim()];
+                            }
+                        }
+                        
+                        // Nếu không có xe nào đang hoạt động (ví dụ tuyến đã ngừng hoặc thiếu lịch sử), lấy đơn vị vận hành theo dữ liệu ảnh của tuyến làm dự phòng
                         if (dominantOps.length === 0 && app.route.routePhotos.length > 0) {
                             const fallbackOpCounts = {};
                             app.route.routePhotos.forEach(p => {
@@ -14124,17 +14323,6 @@ if (!decodedProvince || decodedProvince.trim() === '') {
                                 }
                             });
                             dominantOps = Object.keys(fallbackOpCounts).sort((a, b) => fallbackOpCounts[b] - fallbackOpCounts[a]);
-                        }
-                        
-                        if (dominantModels.length === 0 && app.route.routePhotos.length > 0) {
-                            const fallbackModelCounts = {};
-                            app.route.routePhotos.forEach(p => {
-                                const mdl = p.vehicles?.model?.trim();
-                                if (mdl && mdl !== '---') {
-                                    fallbackModelCounts[mdl] = (fallbackModelCounts[mdl] || 0) + 1;
-                                }
-                            });
-                            dominantModels = Object.keys(fallbackModelCounts).sort((a, b) => fallbackModelCounts[b] - fallbackModelCounts[a]);
                         }
                         
                         renderInfoValue(opEl, dominantOps, op => app.utils.navigate('/operator/' + encodeURIComponent(op)));
@@ -15579,6 +15767,1095 @@ window.app.views.selectRouteIcon = function(val, label) {
         selectedEl.classList.add('selected');
         const icon = selectedEl.querySelector('.check-icon');
         if(icon) icon.classList.remove('opacity-0');
+    }
+};
+
+/* ==========================================================================
+   MODULE: ROUTE PATH & MAP (LỘ TRÌNH & ĐIỂM DỪNG TUYẾN)
+   ========================================================================== */
+window.app.routePath = {
+    currentRouteData: null,
+    currentRouteName: '',
+    currentProvince: '',
+    viewDirection: 'forward', // 'forward' | 'return'
+    viewMap: null,
+    viewLayers: null,
+
+    // Dành cho modal editor
+    editorDirection: 'forward',
+    editorMap: null,
+    editorLayers: null,
+    editorStops: {
+        forward: [],
+        return: []
+    },
+    editorGeoJSON: {
+        forward: null,
+        return: null
+    },
+    sortableInstance: null,
+    isCalculating: false,
+
+    // Hàm tính khoảng cách giữa 2 tọa độ (mét) theo công thức Haversine
+    calculateDistanceMeters: (lat1, lon1, lat2, lon2) => {
+        const R = 6371e3; // bán kính Trái Đất theo mét
+        const rad = Math.PI / 180;
+        const dLat = (lat2 - lat1) * rad;
+        const dLon = (lon2 - lon1) * rad;
+        const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                  Math.cos(lat1 * rad) * Math.cos(lat2 * rad) *
+                  Math.sin(dLon / 2) * Math.sin(dLon / 2);
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        return R * c;
+    },
+
+    // 1. HIỂN THỊ TRÊN PROFILE TUYẾN
+    renderRouteView: (routeInfo, routeName, province) => {
+        app.routePath.currentRouteData = routeInfo;
+        app.routePath.currentRouteName = routeName;
+        app.routePath.currentProvince = province || '';
+        app.routePath.viewDirection = 'forward';
+
+        const mapWrapper = document.getElementById('route-map-wrapper');
+        const emptyState = document.getElementById('route-map-empty-state');
+        if (!mapWrapper || !emptyState) return;
+
+        let paths = routeInfo?.metadata?.route_paths;
+        if (typeof paths === 'string') {
+            try { paths = JSON.parse(paths); } catch(e) { paths = null; }
+        }
+
+        const hasForward = paths?.forward?.stops?.length > 0 || paths?.forward?.geometry;
+        const hasReturn = paths?.return?.stops?.length > 0 || paths?.return?.geometry;
+
+        if (hasForward || hasReturn) {
+            mapWrapper.classList.remove('hidden');
+            emptyState.classList.add('hidden');
+            // Cập nhật nút Chiều đi / Chiều về trên view
+            const btnFwd = document.getElementById('btn-route-dir-forward');
+            const btnRet = document.getElementById('btn-route-dir-return');
+            if (btnFwd && btnRet) {
+                if (hasForward && !hasReturn) {
+                    btnFwd.disabled = false;
+                    btnRet.disabled = true;
+                    btnRet.classList.add('opacity-30', 'cursor-not-allowed', 'pointer-events-none');
+                    btnFwd.classList.remove('opacity-30', 'cursor-not-allowed', 'pointer-events-none');
+                    app.routePath.viewDirection = 'forward';
+                } else if (!hasForward && hasReturn) {
+                    btnRet.disabled = false;
+                    btnFwd.disabled = true;
+                    btnFwd.classList.add('opacity-30', 'cursor-not-allowed', 'pointer-events-none');
+                    btnRet.classList.remove('opacity-30', 'cursor-not-allowed', 'pointer-events-none');
+                    app.routePath.viewDirection = 'return';
+                } else {
+                    btnFwd.disabled = false;
+                    btnRet.disabled = false;
+                    btnFwd.classList.remove('opacity-30', 'cursor-not-allowed', 'pointer-events-none');
+                    btnRet.classList.remove('opacity-30', 'cursor-not-allowed', 'pointer-events-none');
+                }
+            }
+            app.routePath.initViewMap();
+            app.routePath.drawViewRoute();
+        } else {
+            mapWrapper.classList.add('hidden');
+            emptyState.classList.remove('hidden');
+        }
+    },
+
+    initViewMap: () => {
+        const container = document.getElementById('route-leaflet-map');
+        if (!container || typeof L === 'undefined') return;
+
+        if (app.routePath.viewMap) {
+            setTimeout(() => app.routePath.viewMap.invalidateSize(), 100);
+            return;
+        }
+
+        const isDark = document.documentElement.classList.contains('theme-dark');
+        app.routePath.viewMap = L.map(container, {
+            center: [16.047079, 108.206230],
+            zoom: 12,
+            zoomControl: true,
+            scrollWheelZoom: false
+        });
+
+        // Luôn sử dụng lớp bản đồ roadmap mặc định tiêu chuẩn (không dùng ảnh vệ tinh cho bản đồ tuyến)
+        L.tileLayer(`https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}`, {
+            attribution: '&copy; Google Maps',
+            maxZoom: 20
+        }).addTo(app.routePath.viewMap);
+
+        app.routePath.viewLayers = new L.FeatureGroup().addTo(app.routePath.viewMap);
+
+        // Lắng nghe zoomend để tự động ẩn/hiện các trạm giữa khi zoom xa
+        app.routePath.viewMap.on('zoomend', () => {
+            app.routePath.updateViewMarkersVisibility();
+        });
+
+        // Bắt sự kiện đóng popup để reset trạng thái trạm đang chọn
+        app.routePath.viewMap.on('popupclose', () => {
+            app.routePath.selectedViewStopIdx = null;
+            app.routePath.updateViewMarkersVisibility();
+        });
+
+        const ro = new ResizeObserver(() => {
+            if (app.routePath.viewMap) app.routePath.viewMap.invalidateSize();
+        });
+        ro.observe(container);
+    },
+
+    switchDirection: (dir) => {
+        let paths = app.routePath.currentRouteData?.metadata?.route_paths;
+        if (typeof paths === 'string') {
+            try { paths = JSON.parse(paths); } catch(e) { paths = null; }
+        }
+        const hasForward = paths?.forward?.stops?.length > 0 || paths?.forward?.geometry;
+        const hasReturn = paths?.return?.stops?.length > 0 || paths?.return?.geometry;
+        if (dir === 'forward' && !hasForward) return;
+        if (dir === 'return' && !hasReturn) return;
+
+        app.routePath.viewDirection = dir;
+        const btnFwd = document.getElementById('btn-route-dir-forward');
+        const btnRet = document.getElementById('btn-route-dir-return');
+        const indicator = document.getElementById('route-dir-indicator');
+
+        if (indicator) {
+            indicator.style.transform = dir === 'forward' ? 'translateX(0%)' : 'translateX(100%)';
+        }
+
+        if (btnFwd && btnRet) {
+            if (dir === 'forward') {
+                btnFwd.className = 'relative z-10 flex-1 py-1.5 rounded text-white dark:text-black transition-colors duration-200 text-center font-bold';
+                btnRet.className = 'relative z-10 flex-1 py-1.5 rounded text-zinc-600 dark:text-zinc-400 hover:text-black dark:hover:text-white transition-colors duration-200 text-center font-bold';
+            } else {
+                btnRet.className = 'relative z-10 flex-1 py-1.5 rounded text-white dark:text-black transition-colors duration-200 text-center font-bold';
+                btnFwd.className = 'relative z-10 flex-1 py-1.5 rounded text-zinc-600 dark:text-zinc-400 hover:text-black dark:hover:text-white transition-colors duration-200 text-center font-bold';
+            }
+        }
+        app.routePath.drawViewRoute();
+    },
+
+    drawViewRoute: () => {
+        if (!app.routePath.viewMap || !app.routePath.viewLayers) return;
+        app.routePath.viewLayers.clearLayers();
+
+        let paths = app.routePath.currentRouteData?.metadata?.route_paths;
+        if (typeof paths === 'string') {
+            try { paths = JSON.parse(paths); } catch(e) { paths = null; }
+        }
+        const isFwd = app.routePath.viewDirection === 'forward';
+        const dirData = paths?.[app.routePath.viewDirection];
+        const stops = dirData?.stops || [];
+        const geometry = dirData?.geometry;
+
+        const routeColor = isFwd ? '#3b82f6' : '#e11d48'; // Chiều đi: Xanh dịu (Blue-500/600), Chiều về: Đỏ dịu (Rose-600)
+
+        // Vẽ polyline uốn lượn
+        if (geometry && geometry.coordinates && geometry.coordinates.length > 0) {
+            const latlngs = geometry.coordinates.map(c => [c[1], c[0]]);
+            L.polyline(latlngs, {
+                color: routeColor,
+                weight: 5,
+                opacity: 0.9,
+                lineJoin: 'round'
+            }).addTo(app.routePath.viewLayers);
+        } else if (stops.length > 1) {
+            const latlngs = stops.map(s => [s.lat, s.lng]);
+            L.polyline(latlngs, {
+                color: routeColor,
+                weight: 4,
+                dashArray: '6, 8',
+                opacity: 0.7
+            }).addTo(app.routePath.viewLayers);
+        }
+
+        // Vẽ marker điểm dừng mang màu của đường kẻ (chỉ vẽ trạm dừng thật, ẩn các điểm dẫn đường waypoint)
+        app.routePath.viewStopMarkers = [];
+        const visibleStops = stops.filter(s => !s.is_waypoint);
+        let stopNumber = 0;
+        stops.forEach((stop, idx) => {
+            if (stop.is_waypoint) return; // Điểm dẫn đường không hiển thị trên map người xem
+            const currentStopIdx = stopNumber;
+            stopNumber++;
+            const isTerminal = (idx === 0 || idx === stops.length - 1);
+            const iconHtml = `
+                <div style="background-color: ${routeColor}; color: #ffffff; width: 22px; height: 22px; border-radius: 9999px; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 900; border: 2px solid #ffffff; box-shadow: 0 2px 4px rgba(0,0,0,0.35);">
+                    ${stopNumber}
+                </div>
+            `;
+            const customIcon = L.divIcon({
+                className: 'route-stop-div-icon',
+                html: iconHtml,
+                iconSize: [22, 22],
+                iconAnchor: [11, 11],
+                popupAnchor: [0, -11]
+            });
+
+            const marker = L.marker([stop.lat, stop.lng], { icon: customIcon });
+            marker.stopIndex = currentStopIdx;
+            marker.isTerminal = isTerminal;
+            marker.on('click', () => {
+                app.routePath.selectedViewStopIdx = currentStopIdx;
+                app.routePath.updateViewMarkersVisibility();
+            });
+
+            const termLabel = idx === 0 ? ' (Bến đầu)' : (idx === stops.length - 1 ? ' (Bến cuối)' : '');
+            marker.bindPopup(`
+                <div class="route-custom-popup p-2.5 font-sans bg-white dark:bg-[#18181b] text-black dark:text-white rounded border border-black dark:border-white">
+                    <div class="text-[10px] font-bold uppercase tracking-wider" style="color: ${routeColor};">Điểm dừng #${stopNumber}${termLabel} · ${isFwd ? 'Chiều đi' : 'Chiều về'}</div>
+                    <div class="text-xs font-bold mt-1 text-black dark:text-white">${app.utils.escapeHtml(stop.name || 'Điểm dừng')}</div>
+                </div>
+            `, { closeButton: false });
+
+            app.routePath.viewStopMarkers[currentStopIdx] = marker;
+        });
+
+        // Cập nhật ẩn/hiện marker theo mức zoom hiện tại
+        app.routePath.updateViewMarkersVisibility();
+
+        // Fit bounds
+        const bounds = app.routePath.viewLayers.getBounds();
+        if (bounds.isValid()) {
+            app.routePath.viewMap.fitBounds(bounds, { padding: [30, 30], maxZoom: 16 });
+        }
+
+        // Tính tổng cự ly (km) từ hình học OSRM hoặc các điểm dừng
+        let totalDistanceKm = 0;
+        if (geometry && geometry.coordinates && geometry.coordinates.length > 1) {
+            let meters = 0;
+            const coords = geometry.coordinates;
+            for (let i = 0; i < coords.length - 1; i++) {
+                meters += app.routePath.calculateDistanceMeters(coords[i][1], coords[i][0], coords[i + 1][1], coords[i + 1][0]);
+            }
+            totalDistanceKm = meters / 1000;
+        } else if (stops.length > 1) {
+            let meters = 0;
+            for (let i = 0; i < stops.length - 1; i++) {
+                meters += app.routePath.calculateDistanceMeters(stops[i].lat, stops[i].lng, stops[i + 1].lat, stops[i + 1].lng);
+            }
+            totalDistanceKm = meters / 1000;
+        }
+        const distText = totalDistanceKm > 0 ? ` · ${totalDistanceKm.toFixed(1)} km` : '';
+
+        // Cập nhật danh sách collapsible điểm dừng (chỉ hiện các trạm đón khách thực tế)
+        const summaryEl = document.getElementById('route-stops-summary');
+        const listBody = document.getElementById('route-stops-list-body');
+        if (summaryEl) {
+            summaryEl.innerText = `Danh sách điểm dừng (${visibleStops.length} điểm) · ${isFwd ? 'Chiều đi' : 'Chiều về'}${distText}`;
+        }
+        if (listBody) {
+            if (visibleStops.length === 0) {
+                listBody.innerHTML = '<div class="text-xs text-zinc-400 italic py-2 text-center">Chưa có điểm dừng cho chiều này.</div>';
+            } else {
+                let vIdx = 0;
+                listBody.innerHTML = stops.map((s) => {
+                    if (s.is_waypoint) return '';
+                    const stopIdx = vIdx;
+                    vIdx++;
+                    return `
+                        <div class="flex items-center gap-2 p-2 rounded bg-white dark:bg-black border border-zinc-200 dark:border-zinc-800 text-xs cursor-pointer hover:border-black dark:hover:border-white transition" onclick="app.routePath.panToStop(${s.lat}, ${s.lng}, '${app.utils.escapeAttr(s.name)}', ${stopIdx})">
+                            <span class="w-5 h-5 rounded-full flex items-center justify-center font-bold text-[10px] text-white shrink-0" style="background-color: ${routeColor};">${vIdx}</span>
+                            <span class="font-bold text-black dark:text-white truncate flex-1">${app.utils.escapeHtml(s.name)}</span>
+                        </div>
+                    `;
+                }).join('');
+            }
+        }
+    },
+
+    // Cập nhật ẩn/hiện marker điểm dừng theo mức zoom (khi zoom xa < 14: chỉ hiện bến đầu, bến cuối và điểm đang chọn)
+    updateViewMarkersVisibility: () => {
+        if (!app.routePath.viewMap || !app.routePath.viewStopMarkers || !app.routePath.viewLayers) return;
+        const currentZoom = app.routePath.viewMap.getZoom();
+        const isFarZoom = currentZoom < 14; // Mức 14: tầm nhìn phố/quận vừa phải, không quá sâu
+
+        app.routePath.viewStopMarkers.forEach((m) => {
+            if (!m) return;
+            const isSelected = (m.stopIndex === app.routePath.selectedViewStopIdx);
+            const shouldShow = !isFarZoom || m.isTerminal || isSelected;
+
+            if (shouldShow) {
+                if (!app.routePath.viewLayers.hasLayer(m)) {
+                    app.routePath.viewLayers.addLayer(m);
+                }
+            } else {
+                if (app.routePath.viewLayers.hasLayer(m)) {
+                    app.routePath.viewLayers.removeLayer(m);
+                }
+            }
+        });
+    },
+
+    toggleStopList: () => {
+        const body = document.getElementById('route-stops-list-body');
+        const chevron = document.getElementById('route-stops-chevron');
+        if (!body) return;
+        const isHidden = body.classList.contains('hidden');
+        if (isHidden) {
+            body.classList.remove('hidden');
+            if (chevron) chevron.style.transform = 'rotate(180deg)';
+        } else {
+            body.classList.add('hidden');
+            if (chevron) chevron.style.transform = 'rotate(0deg)';
+        }
+    },
+
+    panToStop: (lat, lng, name, stopIdx = null) => {
+        if (!app.routePath.viewMap) return;
+        app.routePath.selectedViewStopIdx = stopIdx;
+        app.routePath.updateViewMarkersVisibility();
+        app.routePath.viewMap.setView([lat, lng], 16, { animate: true });
+        if (stopIdx !== null && app.routePath.viewStopMarkers && app.routePath.viewStopMarkers[stopIdx]) {
+            app.routePath.viewStopMarkers[stopIdx].openPopup();
+        }
+    },
+
+    // 2. GIAO DIỆN CHỈNH SỬA (MAP EDITOR)
+    openEditor: () => {
+        if (!app.user) return app.auth.check();
+
+        const modal = document.getElementById('route-path-editor-modal');
+        const content = document.getElementById('route-path-editor-content');
+        if (!modal || !content) return;
+
+        const titleEl = document.getElementById('rpe-modal-title');
+        if (titleEl) {
+            titleEl.innerText = `Lộ trình Tuyến ${app.routePath.currentRouteName || ''}`;
+        }
+
+        // Sao chép dữ liệu hiện có
+        let paths = app.routePath.currentRouteData?.metadata?.route_paths;
+        if (typeof paths === 'string') {
+            try { paths = JSON.parse(paths); } catch(e) { paths = null; }
+        }
+        app.routePath.editorStops = {
+            forward: paths?.forward?.stops ? JSON.parse(JSON.stringify(paths.forward.stops)) : [],
+            return: paths?.return?.stops ? JSON.parse(JSON.stringify(paths.return.stops)) : []
+        };
+        app.routePath.editorGeoJSON = {
+            forward: paths?.forward?.geometry ? JSON.parse(JSON.stringify(paths.forward.geometry)) : null,
+            return: paths?.return?.geometry ? JSON.parse(JSON.stringify(paths.return.geometry)) : null
+        };
+        app.routePath.editorDirection = 'forward';
+
+        modal.classList.remove('hidden');
+        app.ui.lockScroll();
+        setTimeout(() => {
+            content.classList.remove('opacity-0', 'scale-95');
+            content.classList.add('opacity-100', 'scale-100');
+            app.routePath.initEditorMap();
+            app.routePath.switchEditorDirection('forward');
+            app.routePath.initSortable();
+        }, 30);
+    },
+
+    closeEditor: () => {
+        const modal = document.getElementById('route-path-editor-modal');
+        const content = document.getElementById('route-path-editor-content');
+        if (!modal || !content) return;
+
+        content.classList.remove('opacity-100', 'scale-100');
+        content.classList.add('opacity-0', 'scale-95');
+        setTimeout(() => {
+            modal.classList.add('hidden');
+            app.ui.unlockScroll();
+        }, 200);
+    },
+
+    initEditorMap: () => {
+        const container = document.getElementById('rpe-leaflet-map');
+        if (!container || typeof L === 'undefined') return;
+
+        if (app.routePath.editorMap) {
+            setTimeout(() => app.routePath.editorMap.invalidateSize(), 150);
+            return;
+        }
+
+        app.routePath.editorMap = L.map(container, {
+            center: [16.047079, 108.206230],
+            zoom: 12,
+            zoomControl: true
+        });
+
+        // Luôn sử dụng lớp bản đồ roadmap mặc định tiêu chuẩn (không dùng ảnh vệ tinh cho trình soạn thảo tuyến)
+        L.tileLayer(`https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}`, {
+            attribution: '&copy; Google Maps',
+            maxZoom: 20
+        }).addTo(app.routePath.editorMap);
+
+        app.routePath.editorLayers = new L.FeatureGroup().addTo(app.routePath.editorMap);
+
+        // Click lên bản đồ để thêm trạm dừng
+        app.routePath.editorMap.on('click', async (e) => {
+            const { lat, lng } = e.latlng;
+            app.routePath.promptAddStop(lat, lng);
+        });
+
+        const ro = new ResizeObserver(() => {
+            if (app.routePath.editorMap) app.routePath.editorMap.invalidateSize();
+        });
+        ro.observe(container);
+    },
+
+    initSortable: () => {
+        const listEl = document.getElementById('rpe-stops-sortable');
+        if (!listEl || typeof Sortable === 'undefined') return;
+
+        if (app.routePath.sortableInstance) {
+            app.routePath.sortableInstance.destroy();
+        }
+
+        app.routePath.sortableInstance = new Sortable(listEl, {
+            handle: '.stop-drag-handle',
+            animation: 150,
+            ghostClass: 'opacity-50',
+            onEnd: () => {
+                // Đọc lại thứ tự từ DOM
+                const items = listEl.querySelectorAll('.rpe-stop-item');
+                const curStops = app.routePath.editorStops[app.routePath.editorDirection];
+                const newStops = [];
+                items.forEach(it => {
+                    const idx = parseInt(it.dataset.index, 10);
+                    if (curStops[idx]) newStops.push(curStops[idx]);
+                });
+                app.routePath.editorStops[app.routePath.editorDirection] = newStops;
+                app.routePath.renderEditorStopsList();
+                app.routePath.calculateRealRoute();
+            }
+        });
+    },
+
+    switchEditorDirection: (dir) => {
+        app.routePath.editorDirection = dir;
+        const tabFwd = document.getElementById('rpe-tab-forward');
+        const tabRet = document.getElementById('rpe-tab-return');
+        const indicator = document.getElementById('rpe-dir-indicator');
+
+        if (indicator) {
+            indicator.style.transform = dir === 'forward' ? 'translateX(0%)' : 'translateX(100%)';
+        }
+
+        if (tabFwd && tabRet) {
+            if (dir === 'forward') {
+                tabFwd.className = 'relative z-10 px-3.5 py-1.5 rounded text-white dark:text-black transition-colors duration-200 font-bold text-center';
+                tabRet.className = 'relative z-10 px-3.5 py-1.5 rounded text-zinc-600 dark:text-zinc-400 hover:text-black dark:hover:text-white transition-colors duration-200 font-bold text-center';
+            } else {
+                tabRet.className = 'relative z-10 px-3.5 py-1.5 rounded text-white dark:text-black transition-colors duration-200 font-bold text-center';
+                tabFwd.className = 'relative z-10 px-3.5 py-1.5 rounded text-zinc-600 dark:text-zinc-400 hover:text-black dark:hover:text-white transition-colors duration-200 font-bold text-center';
+            }
+        }
+        app.routePath.renderEditorStopsList();
+        app.routePath.drawEditorRoute(true);
+    },
+
+    // Hoán đổi dữ liệu giữa 2 chiều (nếu người dùng lỡ điền nhầm chiều đi sang chiều về hoặc ngược lại)
+    swapDirections: () => {
+        const fwdStops = app.routePath.editorStops.forward || [];
+        const retStops = app.routePath.editorStops.return || [];
+
+        if (fwdStops.length === 0 && retStops.length === 0) {
+            app.toast.show('warning', 'Không có dữ liệu', 'Chưa có điểm dừng nào ở cả 2 chiều để đảo đổi.');
+            return;
+        }
+
+        const proceedSwap = () => {
+            // Hoán đổi stops
+            const tempStops = app.routePath.editorStops.forward;
+            app.routePath.editorStops.forward = app.routePath.editorStops.return;
+            app.routePath.editorStops.return = tempStops;
+
+            // Hoán đổi geometry
+            const tempGeo = app.routePath.editorGeoJSON.forward;
+            app.routePath.editorGeoJSON.forward = app.routePath.editorGeoJSON.return;
+            app.routePath.editorGeoJSON.return = tempGeo;
+
+            app.routePath.renderEditorStopsList();
+            app.routePath.drawEditorRoute(true);
+            app.toast.show('success', 'Đã đảo 2 chiều', 'Đã hoán đổi toàn bộ dữ liệu giữa Chiều đi và Chiều về thành công!');
+        };
+
+        if (app.ui && app.ui.showAlert) {
+            app.ui.showAlert(
+                "Bạn có muốn hoán đổi toàn bộ điểm dừng và lộ trình giữa Chiều đi và Chiều về không?",
+                proceedSwap,
+                null,
+                {
+                    title: "Xác nhận đảo chiều",
+                    btnOkText: "Đảo chiều"
+                }
+            );
+        } else {
+            proceedSwap();
+        }
+    },
+
+    renderEditorStopsList: () => {
+        const listEl = document.getElementById('rpe-stops-sortable');
+        const countEl = document.getElementById('rpe-stop-count');
+        if (!listEl) return;
+
+        const isFwd = app.routePath.editorDirection === 'forward';
+        const routeColor = isFwd ? '#3b82f6' : '#e11d48'; // Xanh dịu / Đỏ dịu
+
+        const stops = app.routePath.editorStops[app.routePath.editorDirection] || [];
+        const realStops = stops.filter(s => !s.is_waypoint);
+        const waypointCount = stops.length - realStops.length;
+
+        // Tính cự ly hiển thị trong editor
+        const geometry = app.routePath.editorGeoJSON[app.routePath.editorDirection];
+        let totalDistanceKm = 0;
+        if (geometry && geometry.coordinates && geometry.coordinates.length > 1) {
+            let meters = 0;
+            const coords = geometry.coordinates;
+            for (let i = 0; i < coords.length - 1; i++) {
+                meters += app.routePath.calculateDistanceMeters(coords[i][1], coords[i][0], coords[i + 1][1], coords[i + 1][0]);
+            }
+            totalDistanceKm = meters / 1000;
+        } else if (stops.length > 1) {
+            let meters = 0;
+            for (let i = 0; i < stops.length - 1; i++) {
+                meters += app.routePath.calculateDistanceMeters(stops[i].lat, stops[i].lng, stops[i + 1].lat, stops[i + 1].lng);
+            }
+            totalDistanceKm = meters / 1000;
+        }
+        const distText = totalDistanceKm > 0 ? ` · ${totalDistanceKm.toFixed(1)} km` : '';
+
+        if (countEl) {
+            countEl.innerText = `Điểm dừng (${realStops.length}${waypointCount > 0 ? ` + ${waypointCount} dẫn đường` : ''}) · ${isFwd ? 'Chiều đi' : 'Chiều về'}${distText}`;
+        }
+
+        if (stops.length === 0) {
+            listEl.innerHTML = `
+                <div class="text-center py-8 text-zinc-400 text-xs">
+                    <i class="fa-solid fa-map-pin text-xl mb-2 opacity-50 block"></i>
+                    Chưa có điểm dừng nào.<br>Hãy tìm kiếm hoặc click trực tiếp lên bản đồ để thêm trạm dừng.
+                </div>
+            `;
+            return;
+        }
+
+        let currentRealIdx = 0;
+        listEl.innerHTML = stops.map((s, idx) => {
+            const isWaypoint = !!s.is_waypoint;
+            if (!isWaypoint) currentRealIdx++;
+            const badgeHtml = isWaypoint
+                ? `<span class="w-5 h-5 rounded-full flex items-center justify-center font-bold text-[10px] bg-zinc-200 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400 shrink-0 border border-dashed border-zinc-400 dark:border-zinc-600" title="Điểm dẫn đường (ẩn khi xem)"><i class="fa-solid fa-diamond text-[8px]"></i></span>`
+                : `<span class="w-5 h-5 rounded-full flex items-center justify-center font-bold text-[10px] text-white shrink-0" style="background-color: ${routeColor};">${currentRealIdx}</span>`;
+
+            return `
+                <div class="rpe-stop-item flex items-center gap-2 p-2.5 rounded ${isWaypoint ? 'bg-zinc-100/70 dark:bg-zinc-900/60 opacity-85 border-dashed' : 'bg-white dark:bg-[#18181b]'} border border-black dark:border-white text-xs group transition hover:border-zinc-500" data-index="${idx}">
+                    <button type="button" class="stop-drag-handle cursor-grab active:cursor-grabbing text-zinc-400 hover:text-black dark:hover:text-white px-0.5" title="Kéo thả để sắp xếp thứ tự">
+                        <i class="fa-solid fa-grip-vertical"></i>
+                    </button>
+                    ${badgeHtml}
+                    <div class="flex-1 min-w-0 pr-1 cursor-pointer" onclick="app.routePath.openStopEditModal(${idx})" title="Click để chỉnh sửa điểm này">
+                        <div class="flex items-center gap-1.5">
+                            <span class="font-bold truncate text-xs ${isWaypoint ? 'italic text-zinc-500 dark:text-zinc-400' : 'text-black dark:text-white'}">${app.utils.escapeHtml(s.name)}</span>
+                            ${isWaypoint ? '<span class="text-[9px] px-1 py-0.2 rounded bg-zinc-200 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400 font-bold shrink-0">Ẩn</span>' : ''}
+                        </div>
+                        <span class="text-[10px] text-zinc-500 dark:text-zinc-400 block truncate mt-0.5">${s.lat.toFixed(5)}, ${s.lng.toFixed(5)}</span>
+                    </div>
+                    <div class="flex items-center gap-1 shrink-0">
+                        <button type="button" onclick="app.routePath.openStopEditModal(${idx})" class="p-1.5 rounded hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-600 dark:text-zinc-300 hover:text-black dark:hover:text-white transition" title="Chỉnh sửa tên, tọa độ, loại trạm">
+                            <i class="fa-solid fa-pen text-xs"></i>
+                        </button>
+                        <button type="button" onclick="app.routePath.removeStop(${idx})" class="p-1.5 rounded hover:bg-red-50 dark:hover:bg-red-950/40 text-zinc-400 hover:text-red-500 transition" title="Xóa điểm này">
+                            <i class="fa-solid fa-trash-can text-xs"></i>
+                        </button>
+                    </div>
+                </div>
+            `;
+        }).join('');
+    },
+
+    // Mở popup modal chỉnh sửa điểm dừng (Thay thế prompt thô)
+    openStopEditModal: (idx = -1, defaultLat = null, defaultLng = null, defaultName = '') => {
+        const modal = document.getElementById('route-stop-edit-modal');
+        const content = document.getElementById('route-stop-edit-content');
+        if (!modal || !content) return;
+
+        const stops = app.routePath.editorStops[app.routePath.editorDirection] || [];
+        const isEditing = idx >= 0 && stops[idx];
+
+        const titleEl = document.getElementById('rse-modal-title');
+        const idxInput = document.getElementById('rse-stop-idx');
+        const nameInput = document.getElementById('rse-stop-name');
+        const latInput = document.getElementById('rse-input-lat');
+        const lngInput = document.getElementById('rse-input-lng');
+        const waypointChk = document.getElementById('rse-is-waypoint');
+
+        if (isEditing) {
+            const stop = stops[idx];
+            if (titleEl) titleEl.innerText = "Chỉnh sửa điểm dừng";
+            if (idxInput) idxInput.value = idx;
+            if (nameInput) nameInput.value = stop.name || '';
+            if (latInput) latInput.value = stop.lat.toFixed(6);
+            if (lngInput) lngInput.value = stop.lng.toFixed(6);
+            if (waypointChk) waypointChk.checked = !!stop.is_waypoint;
+        } else {
+            // Tạo mới từ click trên map
+            if (titleEl) titleEl.innerText = "Thêm điểm dừng mới";
+            if (idxInput) idxInput.value = -1;
+            const count = stops.length;
+            if (nameInput) nameInput.value = defaultName || `Điểm dừng #${count + 1}`;
+            if (latInput) latInput.value = defaultLat !== null ? Number(defaultLat).toFixed(6) : '';
+            if (lngInput) lngInput.value = defaultLng !== null ? Number(defaultLng).toFixed(6) : '';
+            if (waypointChk) waypointChk.checked = false;
+        }
+
+        modal.classList.remove('hidden');
+        app.ui.lockScroll();
+        setTimeout(() => {
+            content.classList.remove('opacity-0', 'scale-95');
+            content.classList.add('opacity-100', 'scale-100');
+            if (nameInput) {
+                nameInput.focus();
+                nameInput.select();
+            }
+        }, 30);
+    },
+
+    closeStopEditModal: () => {
+        const modal = document.getElementById('route-stop-edit-modal');
+        const content = document.getElementById('route-stop-edit-content');
+        if (!modal || !content) return;
+
+        content.classList.remove('opacity-100', 'scale-100');
+        content.classList.add('opacity-0', 'scale-95');
+        setTimeout(() => {
+            modal.classList.add('hidden');
+            app.ui.unlockScroll();
+        }, 180);
+    },
+
+    saveStopEditModal: () => {
+        const idx = parseInt(document.getElementById('rse-stop-idx').value, 10);
+        const name = (document.getElementById('rse-stop-name').value || '').trim();
+        const latVal = parseFloat(document.getElementById('rse-input-lat').value);
+        const lngVal = parseFloat(document.getElementById('rse-input-lng').value);
+        const isWaypoint = !!document.getElementById('rse-is-waypoint').checked;
+
+        if (!name) {
+            app.toast.show('warning', 'Thiếu thông tin', 'Vui lòng nhập tên điểm dừng hoặc mốc dẫn đường.');
+            return;
+        }
+
+        if (isNaN(latVal) || isNaN(lngVal)) {
+            app.toast.show('error', 'Tọa độ không hợp lệ', 'Vĩ độ và Kinh độ phải là các số thập phân hợp lệ.');
+            return;
+        }
+
+        const stops = app.routePath.editorStops[app.routePath.editorDirection];
+        if (idx >= 0 && stops[idx]) {
+            // Cập nhật trạm hiện có
+            stops[idx].name = name;
+            stops[idx].lat = latVal;
+            stops[idx].lng = lngVal;
+            stops[idx].is_waypoint = isWaypoint;
+            app.toast.show('success', 'Đã lưu thay đổi', `Đã cập nhật thông tin cho "${name}".`);
+        } else {
+            // Thêm mới
+            stops.push({
+                name: name,
+                lat: latVal,
+                lng: lngVal,
+                is_waypoint: isWaypoint
+            });
+            app.toast.show('success', 'Đã thêm điểm', `Đã thêm "${name}" vào danh sách.`);
+        }
+
+        app.routePath.closeStopEditModal();
+        app.routePath.renderEditorStopsList();
+        app.routePath.calculateRealRoute();
+    },
+
+    renameStop: (idx, newName) => {
+        const stops = app.routePath.editorStops[app.routePath.editorDirection];
+        if (stops && stops[idx]) {
+            stops[idx].name = newName.trim() || `Điểm dừng #${idx + 1}`;
+            app.routePath.drawEditorRoute();
+        }
+    },
+
+    focusEditorStop: (lat, lng, idx = null) => {
+        if (!app.routePath.editorMap) return;
+        app.routePath.editorMap.setView([lat, lng], 17, { animate: true });
+        if (idx !== null && app.routePath.editorStopMarkers && app.routePath.editorStopMarkers[idx]) {
+            app.routePath.editorStopMarkers[idx].openPopup();
+        }
+    },
+
+    promptAddStop: async (lat, lng, suggestedName = '') => {
+        let name = suggestedName;
+        if (!name) {
+            try {
+                const resp = await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}&accept-language=vi`);
+                if (resp.ok) {
+                    const data = await resp.json();
+                    name = data.name || data.address?.road || data.address?.suburb || '';
+                }
+            } catch(e) {}
+        }
+        app.routePath.openStopEditModal(-1, lat, lng, name);
+    },
+
+    removeStop: (idx) => {
+        const stops = app.routePath.editorStops[app.routePath.editorDirection];
+        if (stops && stops[idx]) {
+            stops.splice(idx, 1);
+            app.routePath.renderEditorStopsList();
+            app.routePath.calculateRealRoute();
+        }
+    },
+
+    clearCurrentStops: () => {
+        if (app.ui && app.ui.showAlert) {
+            app.ui.showAlert("Bạn có chắc chắn muốn xóa toàn bộ điểm dừng của chiều này không?", () => {
+                app.routePath.editorStops[app.routePath.editorDirection] = [];
+                app.routePath.editorGeoJSON[app.routePath.editorDirection] = null;
+                app.routePath.renderEditorStopsList();
+                app.routePath.drawEditorRoute();
+            }, null, { isDestructive: true, btnOkText: "Xóa hết" });
+        } else {
+            app.routePath.editorStops[app.routePath.editorDirection] = [];
+            app.routePath.editorGeoJSON[app.routePath.editorDirection] = null;
+            app.routePath.renderEditorStopsList();
+            app.routePath.drawEditorRoute();
+        }
+    },
+
+    // 3. TÌM KIẾM ĐỊA ĐIỂM / TRẠM DỪNG (HỖ TRỢ PHOTON & NOMINATIM FALLBACK)
+    searchPlace: async (query) => {
+        query = (query || '').trim();
+        const resultsEl = document.getElementById('rpe-search-results');
+        if (!query || !resultsEl) return;
+
+        resultsEl.innerHTML = '<div class="p-3 text-center text-xs text-zinc-500"><i class="fa-solid fa-circle-notch fa-spin"></i> Đang tìm kiếm...</div>';
+        resultsEl.classList.remove('hidden');
+        resultsEl.classList.add('active');
+
+        try {
+            // 1. Thử tìm qua Photon Komoot trước (cực nhanh, không bị rate limit gắt)
+            let items = [];
+            try {
+                const photonUrl = `https://photon.komoot.io/api/?q=${encodeURIComponent(query)}&limit=7`;
+                const pResp = await fetch(photonUrl);
+                if (pResp.ok) {
+                    const pData = await pResp.json();
+                    if (pData.features && pData.features.length > 0) {
+                        items = pData.features.map(f => {
+                            const p = f.properties || {};
+                            const coords = f.geometry?.coordinates || [];
+                            const lineParts = [p.name, p.street, p.district, p.city, p.country].filter(Boolean);
+                            return {
+                                name: p.name || query,
+                                display_name: lineParts.join(', '),
+                                lat: coords[1],
+                                lon: coords[0]
+                            };
+                        }).filter(it => typeof it.lat === 'number' && typeof it.lon === 'number');
+                    }
+                }
+            } catch(pErr) {}
+
+            // 2. Nếu Photon không có kết quả, fallback sang Nominatim
+            if (items.length === 0) {
+                const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&countrycodes=vn&limit=7&accept-language=vi`;
+                const resp = await fetch(url);
+                if (resp.ok) {
+                    const data = await resp.json();
+                    if (data && data.length > 0) {
+                        items = data.map(d => ({
+                            name: d.name || d.display_name.split(',')[0],
+                            display_name: d.display_name,
+                            lat: parseFloat(d.lat),
+                            lon: parseFloat(d.lon)
+                        }));
+                    }
+                }
+            }
+
+            if (items.length === 0) {
+                resultsEl.innerHTML = '<div class="p-3 text-center text-xs text-zinc-400">Không tìm thấy địa điểm phù hợp</div>';
+                return;
+            }
+
+            resultsEl.innerHTML = items.map(item => `
+                <div class="filter-item text-xs p-2.5 hover:bg-zinc-100 dark:hover:bg-zinc-800 cursor-pointer border-b border-zinc-100 dark:border-zinc-800 last:border-none flex flex-col items-start gap-0.5 text-left" onclick="app.routePath.selectSearchResult(${item.lat}, ${item.lon}, '${app.utils.escapeAttr(item.name)}')">
+                    <p class="font-bold text-black dark:text-white truncate w-full"><i class="fa-solid fa-location-dot text-zinc-400 mr-1.5 text-[11px]"></i>${app.utils.escapeHtml(item.name)}</p>
+                    <p class="text-[10px] text-zinc-500 dark:text-zinc-400 truncate w-full">${app.utils.escapeHtml(item.display_name)}</p>
+                </div>
+            `).join('');
+        } catch(e) {
+            resultsEl.innerHTML = '<div class="p-3 text-center text-xs text-red-500">Lỗi khi tìm kiếm, vui lòng thử lại</div>';
+        }
+    },
+
+    selectSearchResult: (lat, lng, displayName) => {
+        const resultsEl = document.getElementById('rpe-search-results');
+        if (resultsEl) {
+            resultsEl.classList.remove('active');
+            resultsEl.classList.add('hidden');
+        }
+        document.getElementById('rpe-search-input').value = '';
+
+        if (app.routePath.editorMap) {
+            app.routePath.editorMap.setView([lat, lng], 17, { animate: true });
+        }
+        const shortName = displayName.split(',')[0].trim();
+        app.toast.show('info', 'Đã chuyển đến vị trí', `Đã di chuyển bản đồ đến "${shortName}". Bấm lên bản đồ để thêm điểm dừng nếu muốn.`);
+    },
+
+    // 4. TỰ ĐỘNG TÍNH TOÁN ĐƯỜNG ĐI THẬT (OSRM ROUTING)
+    calculateRealRoute: async () => {
+        const stops = app.routePath.editorStops[app.routePath.editorDirection] || [];
+        const badge = document.getElementById('rpe-calculating-badge');
+
+        if (stops.length < 2) {
+            app.routePath.editorGeoJSON[app.routePath.editorDirection] = null;
+            app.routePath.drawEditorRoute();
+            return;
+        }
+
+        if (badge) badge.classList.remove('hidden');
+        app.routePath.isCalculating = true;
+
+        try {
+            // OSRM format: lng,lat;lng,lat...
+            const coordsStr = stops.map(s => `${s.lng},${s.lat}`).join(';');
+            const osrmUrl = `https://router.project-osrm.org/route/v1/driving/${coordsStr}?overview=full&geometries=geojson`;
+
+            const resp = await fetch(osrmUrl);
+            if (!resp.ok) throw new Error("OSRM không phản hồi");
+            const data = await resp.json();
+
+            if (data.code === 'Ok' && data.routes && data.routes[0]) {
+                app.routePath.editorGeoJSON[app.routePath.editorDirection] = data.routes[0].geometry;
+            } else {
+                throw new Error("Không thể định tuyến qua các điểm đã chọn");
+            }
+        } catch (e) {
+            console.warn("OSRM routing fallback:", e);
+            // Fallback: Nếu OSRM lỗi, lưu đường nối các điểm dừng
+            app.routePath.editorGeoJSON[app.routePath.editorDirection] = {
+                type: 'LineString',
+                coordinates: stops.map(s => [s.lng, s.lat])
+            };
+        } finally {
+            app.routePath.isCalculating = false;
+            if (badge) badge.classList.add('hidden');
+            app.routePath.drawEditorRoute();
+        }
+    },
+
+    drawEditorRoute: (autoFit = false) => {
+        if (!app.routePath.editorMap || !app.routePath.editorLayers) return;
+        app.routePath.editorLayers.clearLayers();
+
+        const isFwd = app.routePath.editorDirection === 'forward';
+        const routeColor = isFwd ? '#3b82f6' : '#e11d48'; // Chiều đi: Xanh dịu, Chiều về: Đỏ dịu
+        const stops = app.routePath.editorStops[app.routePath.editorDirection] || [];
+        const geometry = app.routePath.editorGeoJSON[app.routePath.editorDirection];
+
+        // Vẽ polyline
+        if (geometry && geometry.coordinates && geometry.coordinates.length > 0) {
+            const latlngs = geometry.coordinates.map(c => [c[1], c[0]]);
+            L.polyline(latlngs, {
+                color: routeColor,
+                weight: 5,
+                opacity: 0.9,
+                lineJoin: 'round'
+            }).addTo(app.routePath.editorLayers);
+        }
+
+        // Vẽ marker điểm dừng mang màu tương ứng với đường kẻ
+        app.routePath.editorStopMarkers = [];
+        let realStopCounter = 0;
+        stops.forEach((stop, idx) => {
+            const isWaypoint = !!stop.is_waypoint;
+            if (!isWaypoint) realStopCounter++;
+            const isTerminal = (idx === 0 || idx === stops.length - 1);
+
+            // Mốc dẫn đường (waypoint) hiển thị mờ, nhỏ hơn, không có số để phân biệt với trạm thật
+            const iconHtml = isWaypoint
+                ? `
+                    <div style="background-color: #71717a; color: #ffffff; width: 16px; height: 16px; border-radius: 9999px; display: flex; align-items: center; justify-content: center; font-size: 8px; border: 2px solid #ffffff; box-shadow: 0 1px 3px rgba(0,0,0,0.3); opacity: 0.65; cursor: move;" title="Mốc dẫn đường (ẩn khi xem)">
+                        <i class="fa-solid fa-diamond text-[7px]"></i>
+                    </div>
+                  `
+                : `
+                    <div style="background-color: ${routeColor}; color: #ffffff; width: 24px; height: 24px; border-radius: 9999px; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 900; border: 2px solid #ffffff; box-shadow: 0 2px 4px rgba(0,0,0,0.35); cursor: move;">
+                        ${realStopCounter}
+                    </div>
+                  `;
+
+            const customIcon = L.divIcon({
+                className: 'route-stop-div-icon',
+                html: iconHtml,
+                iconSize: isWaypoint ? [16, 16] : [24, 24],
+                iconAnchor: isWaypoint ? [8, 8] : [12, 12],
+                popupAnchor: isWaypoint ? [0, -8] : [0, -12]
+            });
+
+            const marker = L.marker([stop.lat, stop.lng], {
+                icon: customIcon,
+                draggable: true // Cho phép kéo di chuyển trực tiếp trên bản đồ
+            }).addTo(app.routePath.editorLayers);
+
+            app.routePath.editorStopMarkers[idx] = marker;
+
+            // Kéo thả marker trên map để chỉnh tọa độ trạm dừng (có popup xác nhận tránh lỡ tay)
+            const origLat = stop.lat;
+            const origLng = stop.lng;
+            marker.on('dragend', (e) => {
+                const newPos = e.target.getLatLng();
+                const proceedMove = () => {
+                    stop.lat = newPos.lat;
+                    stop.lng = newPos.lng;
+                    app.routePath.renderEditorStopsList();
+                    app.routePath.calculateRealRoute();
+                    app.toast.show('success', 'Đã chuyển vị trí', `Đã dời ${isWaypoint ? 'mốc dẫn đường' : 'trạm'} "${stop.name}" đến tọa độ mới!`);
+                };
+
+                const cancelMove = () => {
+                    // Hoàn tác vị trí marker về tọa độ cũ
+                    marker.setLatLng([origLat, origLng]);
+                };
+
+                if (app.ui && app.ui.showAlert) {
+                    app.ui.showAlert(
+                        `Bạn có chắc chắn muốn dời ${isWaypoint ? 'mốc dẫn đường' : 'trạm'} "<b>${app.utils.escapeHtml(stop.name)}</b>" đến vị trí mới này không?`,
+                        proceedMove,
+                        cancelMove,
+                        {
+                            title: `Xác nhận chuyển vị trí ${isWaypoint ? 'mốc dẫn đường' : 'trạm'}`,
+                            btnOkText: "Xác nhận",
+                            btnCancelText: "Hoàn tác"
+                        }
+                    );
+                } else {
+                    proceedMove();
+                }
+            });
+
+            const termLabel = idx === 0 ? ' (Bến đầu)' : (idx === stops.length - 1 ? ' (Bến cuối)' : '');
+            const badgeTitle = isWaypoint
+                ? 'Mốc dẫn đường (Ẩn khi xem)'
+                : `Điểm dừng #${realStopCounter}${termLabel} · ${isFwd ? 'Chiều đi' : 'Chiều về'}`;
+
+            marker.bindPopup(`
+                <div class="route-custom-popup p-2.5 font-sans bg-white dark:bg-[#18181b] text-black dark:text-white rounded border border-black dark:border-white">
+                    <div class="text-[10px] font-bold uppercase tracking-wider" style="color: ${isWaypoint ? '#a1a1aa' : routeColor};">${badgeTitle}</div>
+                    <div class="text-xs font-bold mt-1 text-black dark:text-white">${app.utils.escapeHtml(stop.name)}</div>
+                    <div class="text-[10px] text-zinc-500 dark:text-zinc-400 mt-1"><i class="fa-solid fa-arrows-up-down-left-right mr-1"></i>Kéo thả icon trên map để đổi vị trí</div>
+                </div>
+            `, { closeButton: false });
+        });
+
+        // Fit bounds nếu có yêu cầu (ví dụ khi mới mở map hoặc chuyển chiều)
+        if (autoFit) {
+            const bounds = app.routePath.editorLayers.getBounds();
+            if (bounds.isValid() && stops.length > 0) {
+                app.routePath.editorMap.fitBounds(bounds, { padding: [30, 30], maxZoom: 16 });
+            }
+        }
+    },
+
+    // 5. LƯU LỘ TRÌNH (TỰ ĐỘNG XỬ LÝ QUY TRÌNH DUYỆT)
+    saveRoutePath: async () => {
+        if (!app.user) return app.auth.check();
+
+        const btnSave = document.getElementById('btn-save-route-path');
+        const origText = btnSave ? btnSave.innerHTML : 'Lưu';
+
+        const forwardStops = app.routePath.editorStops.forward || [];
+        const returnStops = app.routePath.editorStops.return || [];
+
+        if (forwardStops.length === 0 && returnStops.length === 0) {
+            app.toast.show('warning', 'Lộ trình trống', 'Vui lòng thêm ít nhất 1 điểm dừng trước khi lưu.');
+            return;
+        }
+
+        const payloadPaths = {
+            forward: {
+                stops: forwardStops,
+                geometry: app.routePath.editorGeoJSON.forward
+            },
+            return: {
+                stops: returnStops,
+                geometry: app.routePath.editorGeoJSON.return
+            },
+            updated_at: new Date().toISOString()
+        };
+
+        try {
+            if (btnSave) {
+                btnSave.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Đang lưu...';
+                btnSave.disabled = true;
+            }
+
+            const routeName = app.routePath.currentRouteName;
+            const isAdminOrManager = (app.role === 'admin' || app.role === 'manager');
+
+            if (isAdminOrManager) {
+                // Admin / Manager lưu trực tiếp vào bảng route_info
+                const { data: curRoute } = await window.sb.from('route_info').select('*').eq('route_name', routeName).maybeSingle();
+                let meta = curRoute?.metadata || {};
+                if (typeof meta === 'string') {
+                    try { meta = JSON.parse(meta); } catch(e) { meta = {}; }
+                }
+                meta.route_paths = payloadPaths;
+
+                const { error } = await window.sb.from('route_info').update({
+                    metadata: meta
+                }).eq('route_name', routeName);
+
+                if (error) throw error;
+
+                app.toast.show('success', 'Thành công', 'Đã lưu lộ trình tuyến thành công!');
+                app.routePath.closeEditor();
+
+                // Cập nhật lại UI profile
+                if (curRoute) {
+                    curRoute.metadata = meta;
+                    app.routePath.renderRouteView(curRoute, routeName, app.routePath.currentProvince);
+                } else if (app.route && app.route.loadRoutePage) {
+                    app.route.loadRoutePage(app.routePath.currentProvince, app.route.currentRoute, true);
+                }
+            } else {
+                // Người dùng thông thường: Gửi qua edit_requests chờ duyệt
+                const checkQuery = window.sb.from('edit_requests').select('*', { count: 'exact', head: true }).eq('status', 'pending');
+                const { count } = await checkQuery.contains('new_data', { request_type: 'update_route_path', route_name: routeName });
+                if (count > 0) throw new Error("Đã có một yêu cầu cập nhật lộ trình cho tuyến này đang chờ duyệt.");
+
+                const reqData = {
+                    requester_id: app.user.id,
+                    license_plate: 'ROUTE_INFO',
+                    new_data: {
+                        request_type: 'update_route_path',
+                        route_name: routeName,
+                        route_no: app.route?.currentRoute || routeName.split(' - ')[0],
+                        province: app.routePath.currentProvince || null,
+                        route_paths: payloadPaths
+                    },
+                    status: 'pending'
+                };
+
+                const { error } = await window.sb.from('edit_requests').insert(reqData);
+                if (error) throw error;
+
+                app.toast.show('success', 'Đã gửi yêu cầu', 'Yêu cầu cập nhật lộ trình đã được gửi đến hàng đợi và sẽ được Admin duyệt!');
+                app.routePath.closeEditor();
+            }
+        } catch (e) {
+            console.error("Lỗi lưu lộ trình:", e);
+            app.toast.show('error', 'Lỗi', e.message || 'Không thể lưu lộ trình, vui lòng thử lại.');
+        } finally {
+            if (btnSave) {
+                btnSave.innerHTML = origText;
+                btnSave.disabled = false;
+            }
+        }
     }
 };
 
@@ -19521,7 +20798,7 @@ Object.assign(window.app, {
                 { pos: 91.6667, label: '5' }
             ];
             const subPositions = [4.1667, 12.5, 20.8333, 29.1667, 37.5, 45.8333, 54.1667, 62.5, 70.8333, 79.1667, 87.5, 95.8333];
-            let linesHtml = '';
+            let linesHtml = '<div class="ruler-line-h" style="top: 33.3333%;"></div><div class="ruler-line-h" style="top: 66.6666%;"></div>';
             levels.forEach(item => {
                 const lineClass = item.isCenter ? 'ruler-line-center' : 'ruler-line-v';
                 const badgeClass = item.isCenter ? 'ruler-badge-center' : 'ruler-badge';
@@ -19548,7 +20825,7 @@ Object.assign(window.app, {
             const overlayBox = document.getElementById('crop-overlay-box');
             if (!overlayBox) return;
             let overlay = overlayBox.querySelector('.crop-ruler-overlay');
-            if (!overlay || !overlay.querySelector('.ruler-line-sub')) {
+            if (!overlay || !overlay.querySelector('.ruler-line-sub') || !overlay.querySelector('.ruler-line-h')) {
                 if (overlay) overlay.remove();
                 overlayBox.insertAdjacentHTML('beforeend', app.crop.getRulerHTML());
                 overlay = overlayBox.querySelector('.crop-ruler-overlay');
@@ -22395,6 +23672,9 @@ Object.assign(window.app, {
                     }
                     const subPositions = [4.1667, 12.5, 20.8333, 29.1667, 37.5, 45.8333, 54.1667, 62.5, 70.8333, 79.1667, 87.5, 95.8333];
                     document.querySelectorAll('.admin-photo-ruler-overlay').forEach(el => {
+                        if (!el.querySelector('.ruler-line-h')) {
+                            el.insertAdjacentHTML('afterbegin', '<div class="ruler-line-h" style="top: 33.3333%;"></div><div class="ruler-line-h" style="top: 66.6666%;"></div>');
+                        }
                         if (!el.querySelector('.ruler-line-sub')) {
                             let subHtml = '';
                             subPositions.forEach(pos => {
@@ -22470,7 +23750,7 @@ Object.assign(window.app, {
                         { pos: 91.6667, label: '5' }
                     ];
                     const subPositions = [4.1667, 12.5, 20.8333, 29.1667, 37.5, 45.8333, 54.1667, 62.5, 70.8333, 79.1667, 87.5, 95.8333];
-                    let linesHtml = '';
+                    let linesHtml = '<div class="ruler-line-h" style="top: 33.3333%;"></div><div class="ruler-line-h" style="top: 66.6666%;"></div>';
                     levels.forEach(item => {
                         const lineClass = item.isCenter ? 'ruler-line-center' : 'ruler-line-v';
                         const badgeClass = item.isCenter ? 'ruler-badge-center' : 'ruler-badge';
@@ -23434,7 +24714,7 @@ if (app.admin._activeLoadToken !== currentLoadToken || app.adminTab !== tab) ret
                                 `;
                             };
 
-                            const routeReqs = reqs.filter(r => r.new_data?.request_type === 'update_route_info').flatMap(r => [r.new_data.old_route_name, r.new_data.route_name]).filter(Boolean);
+                            const routeReqs = reqs.filter(r => r.new_data?.request_type === 'update_route_info' || r.new_data?.request_type === 'update_route_path').flatMap(r => [r.new_data.old_route_name, r.new_data.route_name]).filter(Boolean);
                             let routeMap = {};
                             if (routeReqs.length > 0) {
                                 const { data: curRoutes } = await window.sb.from('route_info').select('*').in('route_name', routeReqs);
@@ -23586,6 +24866,43 @@ if (app.admin._activeLoadToken !== currentLoadToken || app.adminTab !== tab) ret
                                             
                                             <div class="flex gap-2 mt-3">
                                                 <button onclick="app.admin.approveReq('${r.id}', this, 'route_info')" class="flex-1 bg-green-600 text-white py-1.5 font-bold rounded hover:bg-green-700">DUYỆT</button>
+                                                <button onclick="app.admin.denyReq('${r.id}', this)" class="flex-1 bg-red-600 text-white py-1.5 font-bold rounded hover:bg-red-700">TỪ CHỐI</button>
+                                            </div>
+                                        </div>
+                                    </div>`;
+                                } else if (type === 'update_route_path') {
+                                    const forwardStops = d.route_paths?.forward?.stops || [];
+                                    const returnStops = d.route_paths?.return?.stops || [];
+                                    const fwdLen = forwardStops.length;
+                                    const retLen = returnStops.length;
+                                    const fwdTerm = fwdLen > 0 ? `${forwardStops[0]?.name || ''} ➔ ${forwardStops[fwdLen - 1]?.name || ''}` : 'Chưa có điểm dừng';
+                                    const retTerm = retLen > 0 ? `${returnStops[0]?.name || ''} ➔ ${returnStops[retLen - 1]?.name || ''}` : 'Chưa có điểm dừng';
+
+                                    return `
+                                    <div class="admin-card overflow-visible">
+                                        <div class="admin-card-header bg-teal-50"><span class="font-bold text-xs uppercase text-teal-600">LỘ TRÌNH & ĐIỂM DỪNG</span><span class="text-xs text-gray-500">${username}</span></div>
+                                        <div class="admin-card-body text-xs">
+                                            <p class="font-bold text-sm mb-2 text-black"><i class="fa-solid fa-map-location-dot mr-1 text-teal-600"></i> ${app.utils.escapeAttr(d.route_name)}</p>
+                                            
+                                            <div class="space-y-2 mb-3">
+                                                <div class="p-2.5 rounded bg-zinc-50 border border-zinc-200">
+                                                    <div class="font-bold text-black flex items-center justify-between mb-1">
+                                                        <span>Chiều đi:</span>
+                                                        <span class="text-zinc-500 text-[10px] font-bold">${fwdLen} điểm dừng</span>
+                                                    </div>
+                                                    <div class="text-[11px] text-zinc-600 truncate">${app.utils.escapeHtml(fwdTerm)}</div>
+                                                </div>
+                                                <div class="p-2.5 rounded bg-zinc-50 border border-zinc-200">
+                                                    <div class="font-bold text-black flex items-center justify-between mb-1">
+                                                        <span>Chiều về:</span>
+                                                        <span class="text-zinc-500 text-[10px] font-bold">${retLen} điểm dừng</span>
+                                                    </div>
+                                                    <div class="text-[11px] text-zinc-600 truncate">${app.utils.escapeHtml(retTerm)}</div>
+                                                </div>
+                                            </div>
+
+                                            <div class="flex gap-2 mt-3">
+                                                <button onclick="app.admin.approveReq('${r.id}', this, 'update_route_path')" class="flex-1 bg-green-600 text-white py-1.5 font-bold rounded hover:bg-green-700">DUYỆT LỘ TRÌNH</button>
                                                 <button onclick="app.admin.denyReq('${r.id}', this)" class="flex-1 bg-red-600 text-white py-1.5 font-bold rounded hover:bg-red-700">TỪ CHỐI</button>
                                             </div>
                                         </div>
@@ -26082,6 +27399,36 @@ if (cbQuality) newSubroles.push('quality_aud');
                             }
                             
                             // (Bỏ cập nhật ảnh/xe vá tuyến)
+                        }
+                        else if (reqType === 'update_route_path' || req.new_data?.request_type === 'update_route_path') {
+                            const d = req.new_data;
+                            const targetRouteName = d.route_name;
+                            const newPaths = d.route_paths;
+
+                            // Lấy thông tin route_info hiện tại
+                            const { data: curRoute } = await window.sb.from('route_info').select('*').eq('route_name', targetRouteName).maybeSingle();
+                            if (curRoute) {
+                                let meta = curRoute.metadata || {};
+                                if (typeof meta === 'string') {
+                                    try { meta = JSON.parse(meta); } catch(e) { meta = {}; }
+                                }
+                                meta.route_paths = newPaths;
+                                const { error: upErr } = await window.sb.from('route_info').update({
+                                    metadata: meta
+                                }).eq('route_name', targetRouteName);
+                                if (upErr) throw upErr;
+                            } else {
+                                const expectedRouteNo = d.route_no || (targetRouteName.includes(' - ') ? targetRouteName.split(' - ')[0].trim() : targetRouteName);
+                                const targetProvince = d.province || (targetRouteName.includes(' - ') ? targetRouteName.split(' - ')[1].trim() : null);
+                                const { error: upErr } = await window.sb.from('route_info').insert({
+                                    route_name: targetRouteName,
+                                    route_no: expectedRouteNo,
+                                    province: targetProvince,
+                                    metadata: { route_paths: newPaths }
+                                });
+                                if (upErr) throw upErr;
+                            }
+                            if (app.route) app.route.cachedRoutes = null;
                         }
                         else if (reqType === 'create_route_info' || req.new_data?.request_type === 'create_route_info') {
                             const d = req.new_data;

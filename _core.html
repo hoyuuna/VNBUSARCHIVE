@@ -2084,6 +2084,16 @@ html.theme-dark .ct-icon {
             z-index: 16;
             opacity: 1;
         }
+        .ruler-line-h {
+            position: absolute;
+            left: 0;
+            right: 0;
+            height: 1px;
+            transform: translateY(-50%);
+            background: rgba(255, 255, 255, 0.75);
+            box-shadow: 0 0 2px rgba(0, 0, 0, 0.95), 0 0 1px rgba(0, 0, 0, 1);
+            pointer-events: none;
+        }
         .ruler-line-v {
             position: absolute;
             top: 0;
@@ -3135,6 +3145,8 @@ html.theme-dark .ct-icon {
                     <div class="grid-3x3-line-h" style="top: 66.6666%;"></div>
                 </div>
                 <div id="admin-zoom-ruler-overlay" class="ruler-horizontal-overlay hidden">
+                    <div class="ruler-line-h" style="top: 33.3333%;"></div>
+                    <div class="ruler-line-h" style="top: 66.6666%;"></div>
                     <div class="ruler-line-v" style="left: 8.3333%;"><span class="ruler-badge ruler-badge-top">5</span><span class="ruler-badge ruler-badge-bottom">5</span></div>
                     <div class="ruler-line-v" style="left: 16.6667%;"><span class="ruler-badge ruler-badge-top">4</span><span class="ruler-badge ruler-badge-bottom">4</span></div>
                     <div class="ruler-line-v" style="left: 25%;"><span class="ruler-badge ruler-badge-top">3</span><span class="ruler-badge ruler-badge-bottom">3</span></div>
