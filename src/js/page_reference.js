@@ -2937,11 +2937,11 @@ window.app.routePath = {
 
         if (tabFwd && tabRet) {
             if (dir === 'forward') {
-                tabFwd.className = 'relative z-10 px-4 py-1.5 rounded text-white dark:text-black transition-colors duration-200 font-bold text-center';
-                tabRet.className = 'relative z-10 px-4 py-1.5 rounded text-zinc-600 dark:text-zinc-400 hover:text-black dark:hover:text-white transition-colors duration-200 font-bold text-center';
+                tabFwd.className = 'relative z-10 flex-1 py-1.5 rounded text-white dark:text-black transition-colors duration-200 font-bold text-center';
+                tabRet.className = 'relative z-10 flex-1 py-1.5 rounded text-zinc-600 dark:text-zinc-400 hover:text-black dark:hover:text-white transition-colors duration-200 font-bold text-center';
             } else {
-                tabRet.className = 'relative z-10 px-4 py-1.5 rounded text-white dark:text-black transition-colors duration-200 font-bold text-center';
-                tabFwd.className = 'relative z-10 px-4 py-1.5 rounded text-zinc-600 dark:text-zinc-400 hover:text-black dark:hover:text-white transition-colors duration-200 font-bold text-center';
+                tabRet.className = 'relative z-10 flex-1 py-1.5 rounded text-white dark:text-black transition-colors duration-200 font-bold text-center';
+                tabFwd.className = 'relative z-10 flex-1 py-1.5 rounded text-zinc-600 dark:text-zinc-400 hover:text-black dark:hover:text-white transition-colors duration-200 font-bold text-center';
             }
         }
         app.routePath.drawExpandedRoute();
