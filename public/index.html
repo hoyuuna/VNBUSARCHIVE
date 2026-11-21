@@ -2255,7 +2255,7 @@ html.theme-dark .ct-icon {
             if (stored === 'system') {
                 theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
             }
-            document.write('<link rel="stylesheet" href="/css/' + theme + '.css?v=1795255443141" id="theme-css">');
+            document.write('<link rel="stylesheet" href="/css/' + theme + '.css?v=1795255644698" id="theme-css">');
             document.documentElement.classList.add('theme-' + theme);
             document.documentElement.style.backgroundColor = theme === 'dark' ? '#18181b' : '#fdfcf8';
 
@@ -6233,9 +6233,9 @@ html.theme-dark .ct-icon {
                             <!-- Khung chứa Leaflet Map (Thumbnail cố định: chỉ hiện overview, bấm vào để mở bản đồ chi tiết) -->
                             <div class="w-full h-64 sm:h-80 md:h-96 rounded-lg border border-black dark:border-white overflow-hidden relative mb-3 bg-zinc-100 dark:bg-zinc-900 group cursor-pointer" onclick="app.routePath.openExpandedView()">
                                 <div id="route-leaflet-map" class="w-full h-full z-0 pointer-events-none"></div>
-                                <div class="absolute inset-0 bg-transparent group-hover:bg-black/5 dark:group-hover:bg-white/5 transition flex items-end justify-end p-2.5 z-10">
-                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-md bg-black text-white dark:bg-white dark:text-black text-[11px] font-bold shadow-md">
-                                        <i class="fa-solid fa-expand"></i> Phóng to xem chi tiết
+                                <div class="absolute inset-x-0 bottom-0 h-10 bg-gradient-to-t from-black/75 to-transparent flex items-center justify-center pointer-events-none z-10 transition-opacity group-hover:opacity-90">
+                                    <span class="text-white text-[11px] font-semibold tracking-wide drop-shadow-sm flex items-center gap-1.5">
+                                        <i class="fa-solid fa-expand text-[10px] opacity-80"></i> Nhấn để xem chi tiết
                                     </span>
                                 </div>
                             </div>
