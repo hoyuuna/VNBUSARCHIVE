@@ -16148,14 +16148,7 @@ window.app.routePath = {
         app.routePath.expandedMap = L.map(container, {
             center: [16.047079, 108.206230],
             zoom: 12,
-            zoomControl: true,
-            rotate: true,
-            touchRotate: true,
-            rotateControl: {
-                position: 'topleft',
-                closeOnZeroBearing: false
-            },
-            bearing: 0
+            zoomControl: true
         });
 
         L.tileLayer(`https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}`, {
