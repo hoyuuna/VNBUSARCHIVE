@@ -9601,6 +9601,8 @@ let currentRouteProvName = null;
                         opUploaderRow.classList.add('hidden');
                     }
                     document.getElementById('operator-desc').classList.add('hidden');
+                    const opDescSec = document.getElementById('operator-desc-section');
+                    if (opDescSec) opDescSec.classList.add('hidden');
                     const parentChildEl = document.getElementById('operator-parent-child');
                     if (parentChildEl) {
                         parentChildEl.innerHTML = '';
@@ -9661,14 +9663,19 @@ let currentRouteProvName = null;
                                 document.getElementById('operator-title').innerText = app.utils.escapeHtml(resolvedOperator);
                                 document.getElementById('operator-badge').innerHTML = inactiveBadge;
                             }
+                            const descSec = document.getElementById('operator-desc-section');
                             if (desc) {
                                 descEl.innerHTML = app.utils.cleanText(desc).replace(/\n/g, '<br>');
                                 descEl.classList.remove('hidden');
+                                if (descSec) descSec.classList.remove('hidden');
                             } else {
                                 descEl.classList.add('hidden');
+                                if (descSec) descSec.classList.add('hidden');
                             }
                         } else {
                             descEl.classList.add('hidden');
+                            const descSec = document.getElementById('operator-desc-section');
+                            if (descSec) descSec.classList.add('hidden');
                         }
                         const ecoEl = document.getElementById('operator-parent-child');
                         let ecoHtml = '';
@@ -13553,6 +13560,8 @@ Object.assign(window.app, {
                         mdlUploaderRow.classList.add('hidden');
                     }
                     document.getElementById('model-desc').classList.add('hidden');
+                    const mdlDescSec = document.getElementById('model-desc-section');
+                    if (mdlDescSec) mdlDescSec.classList.add('hidden');
                     document.getElementById('mdl-stat-photos').innerText = '...';
                     document.getElementById('mdl-stat-vehicles').innerText = '...';
                     document.getElementById('mdl-stat-ops').innerText = '...';
@@ -13580,11 +13589,14 @@ Object.assign(window.app, {
                         } else {
                             logoEl.classList.add('hidden');
                         }
+                        const descSec = document.getElementById('model-desc-section');
                         if (exactInfo && exactInfo.description) {
                             descEl.innerHTML = app.utils.cleanText(exactInfo.description).replace(/\n/g, '<br>');
                             descEl.classList.remove('hidden');
+                            if (descSec) descSec.classList.remove('hidden');
                         } else {
                             descEl.classList.add('hidden');
+                            if (descSec) descSec.classList.add('hidden');
                         }
                         const stats = await app.utils.getCachedStats('mdl_stats_' + modelName, 10 * 60 * 1000, async () => {
                             const rpc = await app.utils.getModelStats(modelName);
@@ -13785,12 +13797,15 @@ Object.assign(window.app, {
                                 app.toast.show('success', 'Thành công', 'Đã lưu và đồng bộ thông tin Dòng xe!');
                                 app.model.closeEditPrompt();
                                 const descEl = document.getElementById('model-desc');
+                                const descSec = document.getElementById('model-desc-section');
                                 if (descEl) {
                                     if (desc) {
                                         descEl.innerHTML = app.utils.cleanText(desc).replace(/\n/g, '<br>');
                                         descEl.classList.remove('hidden');
+                                        if (descSec) descSec.classList.remove('hidden');
                                     } else {
                                         descEl.classList.add('hidden');
+                                        if (descSec) descSec.classList.add('hidden');
                                     }
                                 }
                                 const logoEl = document.getElementById('model-logo');
@@ -13916,6 +13931,10 @@ if (!decodedProvince || decodedProvince.trim() === '') {
                         rteUploaderRow.innerHTML = '';
                         rteUploaderRow.classList.add('hidden');
                     }
+                    const initialRouteDescSec = document.getElementById('route-desc-section');
+                    if (initialRouteDescSec) initialRouteDescSec.classList.add('hidden');
+                    const initialRouteDesc = document.getElementById('route-desc');
+                    if (initialRouteDesc) initialRouteDesc.classList.add('hidden');
                     
                     
                     
@@ -13949,11 +13968,14 @@ if (!decodedProvince || decodedProvince.trim() === '') {
                                 titleText = `${decodedRoute} (${exactInfo.short_path})`;
                             }
                             const descEl = document.getElementById('route-desc');
+                            const descSec = document.getElementById('route-desc-section');
                             if (exactInfo.description) {
                                 descEl.innerHTML = app.utils.cleanText(exactInfo.description).replace(/\n/g, '<br>');
                                 descEl.classList.remove('hidden');
+                                if (descSec) descSec.classList.remove('hidden');
                             } else {
                                 descEl.classList.add('hidden');
+                                if (descSec) descSec.classList.add('hidden');
                             }
                             
                             
@@ -14011,6 +14033,8 @@ if (!decodedProvince || decodedProvince.trim() === '') {
                         } else {
                             const descEl = document.getElementById('route-desc');
                             if (descEl) descEl.classList.add('hidden');
+                            const descSec = document.getElementById('route-desc-section');
+                            if (descSec) descSec.classList.add('hidden');
                             const extraInfoContainer = document.getElementById('route-extra-info');
                             if (extraInfoContainer) {
                                 extraInfoContainer.innerHTML = '';

@@ -2572,6 +2572,8 @@ let currentRouteProvName = null;
                         opUploaderRow.classList.add('hidden');
                     }
                     document.getElementById('operator-desc').classList.add('hidden');
+                    const opDescSec = document.getElementById('operator-desc-section');
+                    if (opDescSec) opDescSec.classList.add('hidden');
                     const parentChildEl = document.getElementById('operator-parent-child');
                     if (parentChildEl) {
                         parentChildEl.innerHTML = '';
@@ -2632,14 +2634,19 @@ let currentRouteProvName = null;
                                 document.getElementById('operator-title').innerText = app.utils.escapeHtml(resolvedOperator);
                                 document.getElementById('operator-badge').innerHTML = inactiveBadge;
                             }
+                            const descSec = document.getElementById('operator-desc-section');
                             if (desc) {
                                 descEl.innerHTML = app.utils.cleanText(desc).replace(/\n/g, '<br>');
                                 descEl.classList.remove('hidden');
+                                if (descSec) descSec.classList.remove('hidden');
                             } else {
                                 descEl.classList.add('hidden');
+                                if (descSec) descSec.classList.add('hidden');
                             }
                         } else {
                             descEl.classList.add('hidden');
+                            const descSec = document.getElementById('operator-desc-section');
+                            if (descSec) descSec.classList.add('hidden');
                         }
                         const ecoEl = document.getElementById('operator-parent-child');
                         let ecoHtml = '';

@@ -5952,7 +5952,12 @@ html.theme-dark .ct-icon {
                     <div id="operator-parent-child" class="mb-3 p-4 rounded-xl border border-gray-100 bg-gray-50 shadow-inner hidden flex flex-col gap-2 text-sm"></div>
                     
                     <!-- Khung mô tả -->
-                    <div id="operator-desc" class="text-sm text-gray-700 mb-3 whitespace-pre-wrap leading-relaxed hidden bg-gray-50 p-4 rounded-xl border border-gray-100 shadow-inner"></div>
+                    <div id="operator-desc-section" class="hidden mb-6">
+                        <h3 class="font-bold text-xs uppercase text-black dark:text-white tracking-wider mb-2.5 px-1 flex items-center gap-1.5">
+                            <i class="fa-solid fa-align-left"></i> Giới thiệu
+                        </h3>
+                        <div id="operator-desc" class="text-sm text-gray-700 whitespace-pre-wrap leading-relaxed bg-gray-50 p-4 rounded-xl border border-gray-100 shadow-inner"></div>
+                    </div>
 
                     <div class="mb-6">
                         <button onclick="app.operator.openEditPrompt()" class="w-full bg-white border border-gray-300 text-gray-700 py-2.5 text-sm font-bold rounded-md hover:bg-gray-50 transition shadow-sm flex justify-center items-center gap-1.5">
@@ -6109,7 +6114,12 @@ html.theme-dark .ct-icon {
 
                 <div class="bg-white border border-vbs-border shadow-sm rounded-lg p-6 md:p-8 mb-6 relative overflow-hidden">
                     <!-- Khung mô tả -->
-                    <div id="model-desc" class="text-sm text-gray-700 mb-3 whitespace-pre-wrap leading-relaxed hidden bg-gray-50 p-4 rounded-xl border border-gray-100 shadow-inner"></div>
+                    <div id="model-desc-section" class="hidden mb-6">
+                        <h3 class="font-bold text-xs uppercase text-black dark:text-white tracking-wider mb-2.5 px-1 flex items-center gap-1.5">
+                            <i class="fa-solid fa-align-left"></i> Giới thiệu
+                        </h3>
+                        <div id="model-desc" class="text-sm text-gray-700 whitespace-pre-wrap leading-relaxed bg-gray-50 p-4 rounded-xl border border-gray-100 shadow-inner"></div>
+                    </div>
 
                     <div class="mb-6">
                         <button onclick="app.model.openEditPrompt()" class="w-full bg-white border border-gray-300 text-gray-700 py-2.5 text-sm font-bold rounded-md hover:bg-gray-50 transition shadow-sm flex justify-center items-center gap-1.5">
@@ -6264,7 +6274,13 @@ html.theme-dark .ct-icon {
                         </div>
                     </div>
 
-                    <div id="route-desc" class="text-sm text-gray-700 mb-6 whitespace-pre-wrap leading-relaxed hidden bg-gray-50 p-4 rounded-xl border border-gray-100 shadow-inner"></div>
+                    <!-- Khung mô tả -->
+                    <div id="route-desc-section" class="hidden mb-6">
+                        <h3 class="font-bold text-xs uppercase text-black dark:text-white tracking-wider mb-2.5 px-1 flex items-center gap-1.5">
+                            <i class="fa-solid fa-align-left"></i> Giới thiệu
+                        </h3>
+                        <div id="route-desc" class="text-sm text-gray-700 whitespace-pre-wrap leading-relaxed bg-gray-50 p-4 rounded-xl border border-gray-100 shadow-inner"></div>
+                    </div>
 
                     <div class="mb-6">
                         <button onclick="app.route.openEditPrompt()" class="w-full bg-white border border-gray-300 text-gray-700 py-2.5 text-sm font-bold rounded-md hover:bg-gray-50 transition shadow-sm flex justify-center items-center gap-1.5">
