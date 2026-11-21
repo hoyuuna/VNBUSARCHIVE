@@ -2255,7 +2255,7 @@ html.theme-dark .ct-icon {
             if (stored === 'system') {
                 theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
             }
-            document.write('<link rel="stylesheet" href="/css/' + theme + '.css?v=1795265155695" id="theme-css">');
+            document.write('<link rel="stylesheet" href="/css/' + theme + '.css?v=1795269438175" id="theme-css">');
             document.documentElement.classList.add('theme-' + theme);
             document.documentElement.style.backgroundColor = theme === 'dark' ? '#18181b' : '#fdfcf8';
 
@@ -6182,10 +6182,8 @@ html.theme-dark .ct-icon {
                                 <div id="route-logo-fallback" class="hidden shrink-0"></div>
                                 <div class="text-left min-w-0">
                                     <p class="text-[11px] sm:text-xs text-zinc-300 uppercase tracking-widest font-bold mb-1" id="route-province-label">Tuyến xe</p>
-                                    <div class="flex items-center gap-2 flex-wrap">
-                                        <h2 id="route-profile-title" class="text-2xl sm:text-3xl md:text-4xl font-black uppercase text-white tracking-tight leading-tight drop-shadow-md break-words">...</h2>
-                                        <div id="route-badge" class="flex items-center"></div>
-                                    </div>
+                                    <h2 id="route-profile-title" class="text-2xl sm:text-3xl md:text-4xl font-black uppercase text-white tracking-tight leading-tight drop-shadow-md break-words">...</h2>
+                                    <div id="route-badge" class="mt-1.5 flex items-center"></div>
                                 </div>
                             </div>
                         </div>
