@@ -16048,7 +16048,7 @@ window.app.routePath = {
         const summaryEl = document.getElementById('route-stops-summary');
         const listBody = document.getElementById('route-stops-list-body');
         if (summaryEl) {
-            summaryEl.innerText = `Danh sách điểm dừng (${visibleStops.length} điểm) · ${isFwd ? 'Chiều đi' : 'Chiều về'}${distText}`;
+            summaryEl.innerText = `${visibleStops.length} điểm dừng · ${isFwd ? 'Chiều đi' : 'Chiều về'}${distText}`;
         }
         if (listBody) {
             if (visibleStops.length === 0) {
@@ -16320,7 +16320,7 @@ window.app.routePath = {
         const countEl = document.getElementById('rpx-stop-count');
         const listEl = document.getElementById('rpx-stops-list');
         if (countEl) {
-            countEl.innerText = `Điểm dừng (${visibleStops.length} điểm) · ${isFwd ? 'Chiều đi' : 'Chiều về'}${distText}`;
+            countEl.innerText = `${visibleStops.length} điểm dừng · ${isFwd ? 'Chiều đi' : 'Chiều về'}${distText}`;
         }
         if (listEl) {
             if (visibleStops.length === 0) {
@@ -16589,7 +16589,8 @@ window.app.routePath = {
         const distText = totalDistanceKm > 0 ? ` · ${totalDistanceKm.toFixed(1)} km` : '';
 
         if (countEl) {
-            countEl.innerText = `Điểm dừng (${realStops.length}${waypointCount > 0 ? ` + ${waypointCount} dẫn đường` : ''}) · ${isFwd ? 'Chiều đi' : 'Chiều về'}${distText}`;
+            const hiddenText = waypointCount > 0 ? ` + ${waypointCount} điểm ẩn` : '';
+            countEl.innerText = `${realStops.length} điểm dừng${hiddenText} · ${isFwd ? 'Chiều đi' : 'Chiều về'}${distText}`;
         }
 
         if (stops.length === 0) {
