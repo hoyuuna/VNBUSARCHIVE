@@ -23150,6 +23150,15 @@ Object.assign(window.app, {
                     this.rulerMode = val ? 2 : 0;
                 },
                 isHideMineEnabled: localStorage.getItem('vbs_admin_hide_mine') === 'true',
+                routePathPreviewMap: {},
+                previewRoutePath: (reqId, dir = 'forward') => {
+                    const item = app.admin.routePathPreviewMap?.[reqId];
+                    if (!item || !app.routePath) return;
+                    app.routePath.currentRouteName = item.routeName || '';
+                    app.routePath.currentRouteData = { metadata: { route_paths: item.paths } };
+                    app.routePath.viewDirection = dir;
+                    app.routePath.openExpandedView();
+                },
                 toggle3x3Grid: () => {
                     app.admin.is3x3Enabled = !app.admin.is3x3Enabled;
                     localStorage.setItem('vbs_admin_grid_3x3', app.admin.is3x3Enabled ? 'true' : 'false');
@@ -25147,6 +25156,9 @@ if (app.admin._activeLoadToken !== currentLoadToken || app.adminTab !== tab) ret
                                     const fwdTerm = fwdLen > 0 ? `${forwardStops[0]?.name || ''} ➔ ${forwardStops[fwdLen - 1]?.name || ''}` : 'Chưa có điểm dừng';
                                     const retTerm = retLen > 0 ? `${returnStops[0]?.name || ''} ➔ ${returnStops[retLen - 1]?.name || ''}` : 'Chưa có điểm dừng';
 
+                                    if (!app.admin.routePathPreviewMap) app.admin.routePathPreviewMap = {};
+                                    app.admin.routePathPreviewMap[r.id] = { routeName: d.route_name, paths: d.route_paths };
+
                                     return `
                                     <div class="admin-card overflow-visible">
                                         <div class="admin-card-header bg-teal-50"><span class="font-bold text-xs uppercase text-teal-600">LỘ TRÌNH & ĐIỂM DỪNG</span><span class="text-xs text-gray-500">${username}</span></div>
@@ -25154,19 +25166,25 @@ if (app.admin._activeLoadToken !== currentLoadToken || app.adminTab !== tab) ret
                                             <p class="font-bold text-sm mb-2 text-black"><i class="fa-solid fa-map-location-dot mr-1 text-teal-600"></i> ${app.utils.escapeAttr(d.route_name)}</p>
                                             
                                             <div class="space-y-2 mb-3">
-                                                <div class="p-2.5 rounded bg-zinc-50 border border-zinc-200">
-                                                    <div class="font-bold text-black flex items-center justify-between mb-1">
-                                                        <span>Chiều đi:</span>
-                                                        <span class="text-zinc-500 text-[10px] font-bold">${fwdLen} điểm dừng</span>
+                                                <div onclick="app.admin.previewRoutePath('${r.id}', 'forward')" class="p-2.5 rounded bg-gray-50 dark:bg-black border border-gray-200 dark:border-white cursor-pointer hover:border-black dark:hover:border-zinc-400 transition group" title="Bấm để xem bản đồ lộ trình chiều đi">
+                                                    <div class="font-bold text-black dark:text-white flex items-center justify-between mb-1">
+                                                        <span class="flex items-center gap-1.5"><i class="fa-solid fa-arrow-right text-[10px] text-teal-600"></i> Chiều đi:</span>
+                                                        <div class="flex items-center gap-2">
+                                                            <span class="text-gray-500 dark:text-zinc-400 text-[10px] font-bold">${fwdLen} điểm dừng</span>
+                                                            <span class="text-[10px] font-semibold text-teal-600 dark:text-teal-400 opacity-80 group-hover:opacity-100 flex items-center gap-1"><i class="fa-solid fa-map"></i> Xem bản đồ</span>
+                                                        </div>
                                                     </div>
-                                                    <div class="text-[11px] text-zinc-600 truncate">${app.utils.escapeHtml(fwdTerm)}</div>
+                                                    <div class="text-[11px] text-gray-600 dark:text-zinc-300 truncate">${app.utils.escapeHtml(fwdTerm)}</div>
                                                 </div>
-                                                <div class="p-2.5 rounded bg-zinc-50 border border-zinc-200">
-                                                    <div class="font-bold text-black flex items-center justify-between mb-1">
-                                                        <span>Chiều về:</span>
-                                                        <span class="text-zinc-500 text-[10px] font-bold">${retLen} điểm dừng</span>
+                                                <div onclick="app.admin.previewRoutePath('${r.id}', 'return')" class="p-2.5 rounded bg-gray-50 dark:bg-black border border-gray-200 dark:border-white cursor-pointer hover:border-black dark:hover:border-zinc-400 transition group" title="Bấm để xem bản đồ lộ trình chiều về">
+                                                    <div class="font-bold text-black dark:text-white flex items-center justify-between mb-1">
+                                                        <span class="flex items-center gap-1.5"><i class="fa-solid fa-arrow-left text-[10px] text-teal-600"></i> Chiều về:</span>
+                                                        <div class="flex items-center gap-2">
+                                                            <span class="text-gray-500 dark:text-zinc-400 text-[10px] font-bold">${retLen} điểm dừng</span>
+                                                            <span class="text-[10px] font-semibold text-teal-600 dark:text-teal-400 opacity-80 group-hover:opacity-100 flex items-center gap-1"><i class="fa-solid fa-map"></i> Xem bản đồ</span>
+                                                        </div>
                                                     </div>
-                                                    <div class="text-[11px] text-zinc-600 truncate">${app.utils.escapeHtml(retTerm)}</div>
+                                                    <div class="text-[11px] text-gray-600 dark:text-zinc-300 truncate">${app.utils.escapeHtml(retTerm)}</div>
                                                 </div>
                                             </div>
 

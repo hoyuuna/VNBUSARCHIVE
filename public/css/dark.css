@@ -20,15 +20,15 @@ body, body.theme-dark, body.theme-light {
 #loading-screen { background-color: #121212 !important; background-image: none !important; }
 
 /* Ép dứt điểm các khối layout đang bị trắng thành Đen Thuần */
-.bg-white, .bg-gray-50, .bg-gray-100 {
+.bg-white, .bg-gray-50, .bg-gray-100, .bg-zinc-50, .bg-zinc-100 {
     background-color: #000000 !important;
     color: #ffffff !important;
 }
 /* Ép các chữ màu tối thành Trắng Tinh */
-.text-black, .text-gray-900, .text-gray-800, .text-gray-700, .text-gray-600 {
+.text-black, .text-gray-900, .text-gray-800, .text-gray-700, .text-gray-600, .text-zinc-900, .text-zinc-800, .text-zinc-700, .text-zinc-600 {
     color: #ffffff !important;
 }
-.text-gray-500, .text-gray-400 { color: #d4d4d8 !important; } /* Chữ phụ sáng lên để dễ đọc */
+.text-gray-500, .text-gray-400, .text-zinc-500, .text-zinc-400 { color: #d4d4d8 !important; } /* Chữ phụ sáng lên để dễ đọc */
 
 
 /* 2. ÉP BORDER TOÀN HỆ THỐNG THÀNH TRẮNG TINH */
@@ -39,7 +39,7 @@ body, body.theme-dark, body.theme-light {
 .rounded-3xl, .rounded-2xl, .rounded-xl, .rounded-lg { border-radius: 8px !important; }
 .rounded-full { border-radius: 9999px !important; }
 
-.border-white, .border-white\/20, .border-white\/30, .border-gray-100, .border-gray-200, .border-gray-300, .border-gray-400, .border-gray-500, .border-gray-600, .border-gray-700, .border-gray-800, .border-vbs-border, .border-\[\#e4e4e7\], .border-black {
+.border-white, .border-white\/20, .border-white\/30, .border-gray-100, .border-gray-200, .border-gray-300, .border-gray-400, .border-gray-500, .border-gray-600, .border-gray-700, .border-gray-800, .border-vbs-border, .border-\[\#e4e4e7\], .border-black, .border-zinc-200, .border-zinc-300 {
     border-color: #ffffff !important;
 }
 
