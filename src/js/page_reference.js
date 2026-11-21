@@ -2737,14 +2737,11 @@ window.app.routePath = {
                 popupAnchor: [0, -11]
             });
 
-            const marker = L.marker([stop.lat, stop.lng], { icon: customIcon }).addTo(app.routePath.viewLayers);
-            const termLabel = idx === 0 ? ' (Bến đầu)' : ' (Bến cuối)';
-            marker.bindPopup(`
-                <div class="route-custom-popup p-2.5 font-sans bg-white dark:bg-[#18181b] text-black dark:text-white rounded border border-black dark:border-white">
-                    <div class="text-[10px] font-bold uppercase tracking-wider" style="color: ${routeColor};">Điểm dừng #${stopNumber}${termLabel} · ${isFwd ? 'Chiều đi' : 'Chiều về'}</div>
-                    <div class="text-xs font-bold mt-1 text-black dark:text-white">${app.utils.escapeHtml(stop.name || 'Điểm dừng')}</div>
-                </div>
-            `, { closeButton: false });
+            const marker = L.marker([stop.lat, stop.lng], {
+                icon: customIcon,
+                interactive: false,
+                keyboard: false
+            }).addTo(app.routePath.viewLayers);
 
             app.routePath.viewStopMarkers[currentStopIdx] = marker;
         });
