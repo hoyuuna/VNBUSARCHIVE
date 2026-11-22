@@ -21,12 +21,7 @@ VNBUSARCHIVE là kho tư liệu chung cho cộng đồng, các tiêu chuẩn duy
   * Xe đã đổi màu sơn hoặc nhận diện thương hiệu mới (ảnh ghi lại màu sơn hoặc logo cũ).
   * Xe đã hết niên hạn sử dụng hoặc bị loại biên.
   * Xe chạy hợp đồng hoặc tăng cường theo sự kiện tạm thời đã kết thúc.
-* **Phạm vi châm chước và giới hạn nhận diện tối thiểu:** 
-  * **Quy chuẩn chất lượng và công nghệ thiết bị:** Hệ thống chỉ chấp nhận chất lượng ảnh ở mức thấp nếu nguyên nhân xuất phát từ giới hạn công nghệ camera thời kỳ trước (ảnh scan từ phim, camera điện thoại/máy ảnh đời cũ độ phân giải thấp, hạt noise tự nhiên hoặc dải nhạy sáng hẹp). Tuyệt đối không chấp nhận ảnh bị rung tay, nhòe chuyển động (motion blur) nặng hoặc out nét mất kiểm soát.
-  * **Yêu cầu nhận diện tổng thể và độ rõ nét:** Dù được áp dụng chính sách ưu tiên, xe trong ảnh **bắt buộc vẫn phải nhìn rõ ràng, sắc nét tương đối và không bị mờ nhòe**. Ảnh có thể chấp nhận bị che khuất nhẹ một phần rất nhỏ (ví dụ: cành cây rìa mép, gương chiếu hậu xe khác lọt vào góc), nhưng **tổng thể đa số thân xe, kiểu dáng phương tiện và nhận diện vẫn phải hiển thị trọn vẹn và rõ nét**. Không chấp nhận các góc chụp xe bị che khuất phần lớn hoặc không nhìn rõ form xe.
-  * **Biển kiểm soát:** **Biển kiểm soát bắt buộc phải nhìn thấy rõ ràng** để đối soát dữ liệu. Hệ thống sẽ từ chối thẳng các ảnh bị mờ nhòe, lóa sáng, che khuất hoặc mất góc dẫn tới không đọc được biển kiểm soát.
-  * Không châm chước các lỗi do thao tác chủ quan như làm mờ ẩu, che lấp thân xe theo quy tắc B4 hoặc ảnh chứa chi tiết phản cảm, rác thải theo quy định tại B1.3.
-  * **Không thỏa hiệp về tính hợp pháp và quy chuẩn tác nghiệp:** Giá trị tư liệu lịch sử không được sử dụng để bao biện cho các hành vi xâm phạm an toàn, trật tự xã hội hoặc quy định pháp luật theo Phần B5. Hình ảnh gửi lên bắt buộc phải được ghi nhận tại nơi công cộng. Mọi hình ảnh liên quan đến tai nạn giao thông có thương vong, chụp lén, leo trèo hoặc xâm nhập trái phép khuôn viên doanh nghiệp vận tải, khu vực quân sự, khu vực cấm hoặc địa bàn nhạy cảm đều bị từ chối phê duyệt. Người dùng vi phạm quy chuẩn tác nghiệp sẽ bị đình chỉ tài khoản.
+* **Phạm vi châm chước:** Có thể được bỏ qua các luật B1.3, B1.4, B2.1, B2.2, B2.3 nhưng không nghiêng quá 4 độ mỗi chiều, B2.4, B2.5, B3.1, B3.5.
 * Ban quản trị giữ quyền áp dụng linh hoạt chính sách ưu tiên tùy thuộc vào giá trị tư liệu thực tế của từng bức ảnh.
 
 ---
