@@ -2050,9 +2050,15 @@ Object.assign(window.app, {
                                     if (matchedZone) {
                                         const isSoft = app.map.isSoftLock ? app.map.isSoftLock(matchedZone) : false;
                                         if (isSoft) {
-                                            // Soft lock: Không chặn, chỉ hiển thị thông báo lưu ý
+                                            // Soft lock: Không chặn, chỉ hiển thị thông báo lưu ý kèm ghi chú admin
+                                            const noteContent = app.map.cleanZoneDescription 
+                                                ? app.map.cleanZoneDescription(matchedZone.description || '') 
+                                                : (matchedZone.description || '').replace(/\[SOFT_LOCK\]\s*/g, '').trim();
+                                            const toastMsg = noteContent 
+                                                ? `Lưu ý tại ${matchedZone.name || 'khu vực này'}: ${noteContent}`
+                                                : `Lưu ý tại ${matchedZone.name || 'khu vực này'}: Khu vực không khuyến cáo chụp ảnh, vui lòng chú ý an ninh và an toàn!`;
                                             if (app.toast && app.toast.show) {
-                                                app.toast.show('warning', 'Khu vực cần lưu ý', `Ảnh chụp tại ${matchedZone.name || 'khu vực không khuyến cáo'}. Vui lòng chú ý an ninh và an toàn!`, 6000);
+                                                app.toast.show('warning', 'Lưu ý khu vực', toastMsg, 7000);
                                             }
                                         } else {
                                             // Hard lock: Chặn tải lên
