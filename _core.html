@@ -6851,6 +6851,30 @@ html.theme-dark .ct-icon {
                                             }
                                             fetchOpts.signal = controller.signal;
 
+                                            // Khi gọi trực tiếp Render PostgREST, nếu Authorization không phải JWT 3 phần hợp lệ (ví dụ Bearer <apikey> giả khi chưa đăng nhập) thì xoá Authorization để PostgREST nhận là anonymous
+                                            if (fetchOpts.headers && (base === RENDER_PRIMARY || base === RENDER_FALLBACK)) {
+                                                let authVal = '';
+                                                if (fetchOpts.headers instanceof Headers) {
+                                                    authVal = fetchOpts.headers.get('Authorization') || '';
+                                                    if (authVal.startsWith('Bearer ')) {
+                                                        const tokenPart = authVal.slice(7).trim();
+                                                        if (tokenPart.split('.').length !== 3) {
+                                                            fetchOpts.headers.delete('Authorization');
+                                                        }
+                                                    }
+                                                } else if (typeof fetchOpts.headers === 'object') {
+                                                    fetchOpts.headers = Object.assign({}, fetchOpts.headers);
+                                                    authVal = fetchOpts.headers['Authorization'] || fetchOpts.headers['authorization'] || '';
+                                                    if (authVal.startsWith('Bearer ')) {
+                                                        const tokenPart = authVal.slice(7).trim();
+                                                        if (tokenPart.split('.').length !== 3) {
+                                                            delete fetchOpts.headers['Authorization'];
+                                                            delete fetchOpts.headers['authorization'];
+                                                        }
+                                                    }
+                                                }
+                                            }
+
                                             console.log(`[DB Debug] -> [${i}] Fetching: ${targetUrl}`);
                                             const resp = await window.fetch(targetUrl, fetchOpts);
                                             clearTimeout(timeoutId);
