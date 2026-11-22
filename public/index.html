@@ -2255,7 +2255,7 @@ html.theme-dark .ct-icon {
             if (stored === 'system') {
                 theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
             }
-            document.write('<link rel="stylesheet" href="/css/' + theme + '.css?v=1795341792484" id="theme-css">');
+            document.write('<link rel="stylesheet" href="/css/' + theme + '.css?v=1795342490151" id="theme-css">');
             document.documentElement.classList.add('theme-' + theme);
             document.documentElement.style.backgroundColor = theme === 'dark' ? '#18181b' : '#fdfcf8';
 
@@ -6851,22 +6851,34 @@ html.theme-dark .ct-icon {
                                             }
                                             fetchOpts.signal = controller.signal;
 
+                                            console.log(`[DB Debug] -> [${i}] Fetching: ${targetUrl}`);
                                             const resp = await window.fetch(targetUrl, fetchOpts);
                                             clearTimeout(timeoutId);
 
+                                            console.log(`[DB Debug] <- [${i}] ${base} Status: ${resp.status} ${resp.statusText}`);
+
                                             // Nếu trả về lỗi máy chủ sập hoặc quota Render (502, 503, 504, 402)
                                             if (resp.status === 502 || resp.status === 503 || resp.status === 504 || resp.status === 402) {
-                                                console.warn(`[Failover] Endpoint ${base} returned status ${resp.status}. Trying next candidate.`);
+                                                const cloned = resp.clone();
+                                                const errText = await cloned.text().catch(() => '');
+                                                console.warn(`[Failover] Endpoint ${base} returned status ${resp.status}. Body: ${errText.slice(0, 150)}. Trying next candidate.`);
                                                 if (i === 0) markRenderFailed(base);
                                                 lastResponse = resp;
                                                 continue;
+                                            }
+
+                                            // Nếu là lỗi 4xx client nhưng có chứa thông báo lỗi PostgREST
+                                            if (!resp.ok) {
+                                                const cloned = resp.clone();
+                                                const errText = await cloned.text().catch(() => '');
+                                                console.warn(`[DB Debug] ${base} returned HTTP ${resp.status}:`, errText);
                                             }
 
                                             // Thành công (hoặc lỗi client 4xx hợp lệ từ DB)
                                             return resp;
                                         } catch (fErr) {
                                             lastFetchErr = fErr;
-                                            console.warn(`[Failover] Connection to ${base} failed (${fErr.name || fErr.message}). Switching to next.`);
+                                            console.warn(`[Failover] Connection to ${base} failed (${fErr.name || fErr.message}). Switching to next.`, fErr);
                                             if (i === 0) markRenderFailed(base);
                                         }
                                     }
