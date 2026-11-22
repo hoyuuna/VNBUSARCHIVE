@@ -290,7 +290,13 @@ Object.assign(window.app, {
                         otherFilters.forEach(f => {
                             let dbFld = fld;
                             if (foreignTbl) dbFld = `${foreignTbl}.${fld}`;
-                            if (f.op === 'eq') q = q.eq(dbFld, f.value);
+                            if (f.op === 'eq') {
+                                if (fld === 'taken_at' && /^\d{4}-\d{2}-\d{2}$/.test(f.value)) {
+                                    q = q.gte(dbFld, `${f.value}T00:00:00+00:00`).lte(dbFld, `${f.value}T23:59:59.999+00:00`);
+                                } else {
+                                    q = q.eq(dbFld, f.value);
+                                }
+                            }
                             else if (f.op === 'neq') q = q.neq(dbFld, f.value);
                             else if (f.op === 'ilike') q = q.ilike(dbFld, `%${f.value}%`);
                             else if (f.op === 'not_ilike') q = q.not('ilike', dbFld, `%${f.value}%`);

@@ -3701,6 +3701,9 @@ cleanupState: () => {
                                 const opMap = { 'eq': '= Bằng', 'neq': '≠ Khác', 'ilike': 'Chứa', 'not_ilike': 'Không chứa', 'gt': '> Sau', 'gte': '≥ Từ', 'lt': '< Trước', 'lte': '≤ Đến' };
                                 let valDisplay = parts[2];
                                 if (parts[0] === 'type') valDisplay = parts[2] === 'bus' ? 'Xe Buýt' : 'Xe Khách';
+                                else if (parts[0] === 'taken_at' && /^\d{4}-\d{2}-\d{2}$/.test(parts[2])) {
+                                    valDisplay = parts[2].split('-').reverse().join('/');
+                                }
                                 return {
                                     id: Date.now().toString() + Math.random().toString(36).substring(2, 5),
                                     field: parts[0],
@@ -3858,9 +3861,14 @@ cleanupState: () => {
                 }
             },
 
-    searchRedirect: (query, filterType = 'all', prefix = '') => {
+    searchRedirect: (query, filterType = 'all', prefix = '', advancedFilters = []) => {
                 let url = `/search?q=${encodeURIComponent(query)}&filter=${filterType}`;
                 if (prefix) url += `&prefix=${encodeURIComponent(prefix)}`;
+                if (advancedFilters && advancedFilters.length > 0) {
+                    advancedFilters.forEach(f => {
+                        url += `&f=${encodeURIComponent(`${f.field}:${f.op}:${f.value}`)}`;
+                    });
+                }
                 app.utils.navigate(url);
             },
 
@@ -4982,7 +4990,8 @@ Object.assign(window.app, {
                     'info-plate': 'plate',
                     'info-operator': 'operator',
                     'info-route': 'route',
-                    'info-camera': 'camera'
+                    'info-camera': 'camera',
+                    'info-date': 'date'
                 };
                 Object.keys(fieldMap).forEach(id => {
                     const el = document.getElementById(id);
@@ -5043,6 +5052,9 @@ Object.assign(window.app, {
                                         app.utils.navigate(`/route/${encodeURIComponent(cleanRoute)}`);
                                     }
                                 }
+                            }
+                            else if (id === 'info-date') {
+                                app.searchRedirect('', 'advanced', '', [{ field: 'taken_at', op: 'eq', value: this.value }]);
                             }
                             else {
                                 app.searchRedirect(this.value, fieldMap[id]);
@@ -10737,7 +10749,13 @@ Object.assign(window.app, {
                         otherFilters.forEach(f => {
                             let dbFld = fld;
                             if (foreignTbl) dbFld = `${foreignTbl}.${fld}`;
-                            if (f.op === 'eq') q = q.eq(dbFld, f.value);
+                            if (f.op === 'eq') {
+                                if (fld === 'taken_at' && /^\d{4}-\d{2}-\d{2}$/.test(f.value)) {
+                                    q = q.gte(dbFld, `${f.value}T00:00:00+00:00`).lte(dbFld, `${f.value}T23:59:59.999+00:00`);
+                                } else {
+                                    q = q.eq(dbFld, f.value);
+                                }
+                            }
                             else if (f.op === 'neq') q = q.neq(dbFld, f.value);
                             else if (f.op === 'ilike') q = q.ilike(dbFld, `%${f.value}%`);
                             else if (f.op === 'not_ilike') q = q.not('ilike', dbFld, `%${f.value}%`);

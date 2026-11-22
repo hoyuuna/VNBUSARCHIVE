@@ -304,7 +304,8 @@ Object.assign(window.app, {
                     'info-plate': 'plate',
                     'info-operator': 'operator',
                     'info-route': 'route',
-                    'info-camera': 'camera'
+                    'info-camera': 'camera',
+                    'info-date': 'date'
                 };
                 Object.keys(fieldMap).forEach(id => {
                     const el = document.getElementById(id);
@@ -365,6 +366,9 @@ Object.assign(window.app, {
                                         app.utils.navigate(`/route/${encodeURIComponent(cleanRoute)}`);
                                     }
                                 }
+                            }
+                            else if (id === 'info-date') {
+                                app.searchRedirect('', 'advanced', '', [{ field: 'taken_at', op: 'eq', value: this.value }]);
                             }
                             else {
                                 app.searchRedirect(this.value, fieldMap[id]);
