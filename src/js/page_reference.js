@@ -3365,7 +3365,7 @@ window.app.routePath = {
                         <div class="flex items-center gap-1.5 flex-wrap">
                             <span class="font-bold truncate text-xs ${isWaypoint ? 'italic text-zinc-500 dark:text-zinc-400' : 'text-black dark:text-white'}">${app.utils.escapeHtml(s.name)}</span>
                             ${isWaypoint ? '<span class="text-[9px] px-1 py-0.2 rounded bg-zinc-200 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400 font-bold shrink-0">Ẩn</span>' : ''}
-                            ${isManualStraight ? '<span class="text-[9px] px-1 py-0.2 rounded bg-amber-100 dark:bg-amber-950/70 text-amber-700 dark:text-amber-300 font-bold shrink-0" title="Nối thẳng từ điểm trước tới điểm này (bỏ qua 1 chiều)"><i class="fa-solid fa-arrows-split-up-and-left text-[8px] mr-0.5"></i>Nối thẳng từ điểm trước</span>' : ''}
+                            ${isManualStraight ? '<span class="text-[9px] px-1.5 py-0.5 rounded bg-amber-100 dark:bg-amber-950/70 text-amber-700 dark:text-amber-300 font-bold shrink-0" title="Nối thẳng từ điểm trước tới điểm này"><i class="fa-solid fa-arrows-split-up-and-left text-[8px] mr-1"></i>Nối thẳng</span>' : ''}
                         </div>
                         <span class="text-[10px] text-zinc-500 dark:text-zinc-400 block truncate mt-0.5">${s.lat.toFixed(5)}, ${s.lng.toFixed(5)}</span>
                     </div>
