@@ -488,6 +488,13 @@ Object.assign(window.app, {
                 },
                 triggerMainSuggestion: async (query, inputId = 'search-input', sugId = 'main-search-suggestions') => {
                     const box = document.getElementById(sugId);
+                    if (!app.suggestionRequestIds) app.suggestionRequestIds = {};
+                    const curReqId = (app.suggestionRequestIds[inputId] || 0) + 1;
+                    app.suggestionRequestIds[inputId] = curReqId;
+                    if (app.suggestionControllers && app.suggestionControllers[inputId]) {
+                        app.suggestionControllers[inputId].abort();
+                        app.suggestionControllers[inputId] = null;
+                    }
                     if (app.suggestionTimeouts[inputId]) clearTimeout(app.suggestionTimeouts[inputId]);
                     if (query.length < 1) {
                         let recents = JSON.parse(localStorage.getItem('vnbus_recent_searches') || '[]');
@@ -515,6 +522,7 @@ Object.assign(window.app, {
                         const controller = new AbortController();
                         if (!app.suggestionControllers) app.suggestionControllers = {};
                         app.suggestionControllers[inputId] = controller;
+                        const thisReqId = curReqId;
                         try {
                             const filter = app.currentFilter;
                             let results = [];
@@ -653,6 +661,9 @@ Object.assign(window.app, {
                                 const { data } = await sbQuery.limit(5).abortSignal(controller.signal);
                                 if (data) results = [...new Set(data.map(item => item.username).filter(Boolean))].map(val => ({ text: val, label: 'Người đăng' }));
                             }
+                            if (app.suggestionRequestIds?.[inputId] !== thisReqId) return;
+                            const currentVal = document.getElementById(inputId)?.value.trim() || '';
+                            if (currentVal !== query.trim()) return;
                             if (results.length > 0) {
                                 // GỌI HÀM SẮP XẾP ĐỐI TƯỢNG {text, label}
                                 results = app.utils.sortMatchesByRelevance(results, query, item => item.text);

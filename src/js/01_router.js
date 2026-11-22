@@ -389,12 +389,12 @@ Object.assign(window.app, {
                     if (e.key === 'Enter') { document.getElementById('main-search-suggestions').classList.remove('active'); app.handleSearch(true, 'search-input'); }
                     if (e.key === 'Escape') clearSearchInput(e.target, 'main-search-suggestions');
                 });
-                document.getElementById('search-input').addEventListener('input', app.utils.debounce(function (e) {
+                document.getElementById('search-input').addEventListener('input', function (e) {
                     const val = e.target.value;
                     const pageInp = document.getElementById('page-search-input');
                     if (pageInp && document.activeElement === e.target) pageInp.value = val;
                     app.search.triggerMainSuggestion(val.trim(), 'search-input', 'main-search-suggestions');
-                }, 300));
+                });
                 document.getElementById('search-input').addEventListener('focus', function (e) {
                     app.search.triggerMainSuggestion(e.target.value.trim(), 'search-input', 'main-search-suggestions');
                 });
@@ -404,12 +404,12 @@ Object.assign(window.app, {
                         if (e.key === 'Enter') { document.getElementById('page-search-suggestions').classList.remove('active'); app.handleSearch(true, 'page-search-input'); }
                         if (e.key === 'Escape') clearSearchInput(e.target, 'page-search-suggestions');
                     });
-                    pageSearchInput.addEventListener('input', app.utils.debounce(function (e) {
+                    pageSearchInput.addEventListener('input', function (e) {
                         const val = e.target.value;
                         const headerInp = document.getElementById('search-input');
                         if (headerInp && document.activeElement === e.target) headerInp.value = val;
                         app.search.triggerMainSuggestion(val.trim(), 'page-search-input', 'page-search-suggestions');
-                    }, 300));
+                    });
                     pageSearchInput.addEventListener('focus', function (e) {
                         app.search.triggerMainSuggestion(e.target.value.trim(), 'page-search-input', 'page-search-suggestions');
                     });
