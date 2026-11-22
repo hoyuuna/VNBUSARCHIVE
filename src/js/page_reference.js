@@ -3418,8 +3418,7 @@ window.app.routePath = {
             // Tạo mới từ click trên map
             if (titleEl) titleEl.innerText = "Thêm điểm dừng mới";
             if (idxInput) idxInput.value = -1;
-            const count = stops.length;
-            if (nameInput) nameInput.value = defaultName || `Điểm dừng #${count + 1}`;
+            if (nameInput) nameInput.value = defaultName || '';
             if (latInput) latInput.value = defaultLat !== null ? Number(defaultLat).toFixed(6) : '';
             if (lngInput) lngInput.value = defaultLng !== null ? Number(defaultLng).toFixed(6) : '';
             if (waypointChk) waypointChk.checked = false;
@@ -3512,17 +3511,8 @@ window.app.routePath = {
     },
 
     promptAddStop: async (lat, lng, suggestedName = '') => {
-        let name = suggestedName;
-        if (!name) {
-            try {
-                const resp = await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}&accept-language=vi`);
-                if (resp.ok) {
-                    const data = await resp.json();
-                    name = data.name || data.address?.road || data.address?.suburb || '';
-                }
-            } catch(e) {}
-        }
-        app.routePath.openStopEditModal(-1, lat, lng, name);
+        // Không tự động gọi reverse geocoding để điền tên nữa, để Admin tự nhập tên chính xác
+        app.routePath.openStopEditModal(-1, lat, lng, suggestedName);
     },
 
     removeStop: (idx) => {
