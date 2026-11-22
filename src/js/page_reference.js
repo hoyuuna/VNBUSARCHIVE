@@ -3148,8 +3148,6 @@ window.app.routePath = {
             return: paths?.return?.geometry ? JSON.parse(JSON.stringify(paths.return.geometry)) : null
         };
         app.routePath.editorDirection = 'forward';
-        app.routePath.isDirectStraightMode = false;
-        app.routePath.updateDirectStraightModeUI();
 
         modal.classList.remove('hidden');
         app.ui.lockScroll();
@@ -3261,36 +3259,6 @@ window.app.routePath = {
         app.routePath.drawEditorRoute(true);
     },
 
-    toggleDirectStraightMode: () => {
-        app.routePath.isDirectStraightMode = !app.routePath.isDirectStraightMode;
-        app.routePath.updateDirectStraightModeUI();
-        app.toast.show(
-            'info',
-            app.routePath.isDirectStraightMode ? 'Chế độ nối thẳng đường chim bay' : 'Chế độ tự động bám đường (OSRM)',
-            app.routePath.isDirectStraightMode 
-                ? 'Tất cả các điểm sẽ được nối thẳng trực tiếp (đường chim bay), bạn có thể click thêm nhiều điểm ảo để nắn cua tự do mà không lo bị ép theo đường 1 chiều!'
-                : 'Đã quay lại chế độ tự động bám đường phố thông qua OSRM.'
-        );
-        app.routePath.calculateRealRoute();
-    },
-
-    updateDirectStraightModeUI: () => {
-        const btn = document.getElementById('btn-toggle-straight-mode');
-        const icon = document.getElementById('icon-straight-mode');
-        const label = document.getElementById('label-straight-mode');
-        if (!btn) return;
-
-        if (app.routePath.isDirectStraightMode) {
-            btn.className = 'px-2.5 py-1.5 text-xs font-bold bg-amber-500 text-white border border-amber-600 rounded-md hover:bg-amber-600 transition flex items-center gap-1.5 shadow-sm';
-            if (icon) icon.className = 'fa-solid fa-bezier-curve text-white text-xs';
-            if (label) label.innerText = 'Nối thẳng (Đường chim bay)';
-        } else {
-            btn.className = 'px-2.5 py-1.5 text-xs font-bold bg-white dark:bg-black border border-black dark:border-white rounded-md hover:bg-zinc-100 dark:hover:bg-zinc-800 text-black dark:text-white transition flex items-center gap-1.5';
-            if (icon) icon.className = 'fa-solid fa-route text-zinc-500 text-xs';
-            if (label) label.innerText = 'Bám đường (OSRM)';
-        }
-    },
-
     // Hoán đổi dữ liệu giữa 2 chiều (nếu người dùng lỡ điền nhầm chiều đi sang chiều về hoặc ngược lại)
     swapDirections: () => {
         const fwdStops = app.routePath.editorStops.forward || [];
@@ -3397,7 +3365,7 @@ window.app.routePath = {
                         <div class="flex items-center gap-1.5 flex-wrap">
                             <span class="font-bold truncate text-xs ${isWaypoint ? 'italic text-zinc-500 dark:text-zinc-400' : 'text-black dark:text-white'}">${app.utils.escapeHtml(s.name)}</span>
                             ${isWaypoint ? '<span class="text-[9px] px-1 py-0.2 rounded bg-zinc-200 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400 font-bold shrink-0">Ẩn</span>' : ''}
-                            ${isManualStraight ? '<span class="text-[9px] px-1 py-0.2 rounded bg-amber-100 dark:bg-amber-950/70 text-amber-700 dark:text-amber-300 font-bold shrink-0" title="Nối thẳng đến điểm tiếp theo (bỏ qua 1 chiều)"><i class="fa-solid fa-arrows-split-up-and-left text-[8px] mr-0.5"></i>Nối thẳng</span>' : ''}
+                            ${isManualStraight ? '<span class="text-[9px] px-1 py-0.2 rounded bg-amber-100 dark:bg-amber-950/70 text-amber-700 dark:text-amber-300 font-bold shrink-0" title="Nối thẳng từ điểm trước tới điểm này (bỏ qua 1 chiều)"><i class="fa-solid fa-arrows-split-up-and-left text-[8px] mr-0.5"></i>Nối thẳng từ điểm trước</span>' : ''}
                         </div>
                         <span class="text-[10px] text-zinc-500 dark:text-zinc-400 block truncate mt-0.5">${s.lat.toFixed(5)}, ${s.lng.toFixed(5)}</span>
                     </div>
@@ -3658,7 +3626,7 @@ window.app.routePath = {
         app.toast.show('info', 'Đã chuyển đến vị trí', `Đã di chuyển bản đồ đến "${shortName}". Bấm lên bản đồ để thêm điểm dừng nếu muốn.`);
     },
 
-    // 4. TỰ ĐỘNG TÍNH TOÁN ĐƯỜNG ĐI THẬT (OSRM ROUTING + HỖ TRỢ CHẶNG NỐI THẲNG MANUAL STRAIGHT / DIRECT MODE)
+    // 4. TỰ ĐỘNG TÍNH TOÁN ĐƯỜNG ĐI THẬT (OSRM ROUTING + HỖ TRỢ CHẶNG NỐI THẲNG TỪ ĐIỂM TRƯỚC ĐẾN ĐIỂM NÀY)
     calculateRealRoute: async () => {
         const stops = app.routePath.editorStops[app.routePath.editorDirection] || [];
         const badge = document.getElementById('rpe-calculating-badge');
@@ -3669,24 +3637,13 @@ window.app.routePath = {
             return;
         }
 
-        // Nếu người dùng bật chế độ Nối thẳng toàn tuyến (Đường chim bay)
-        if (app.routePath.isDirectStraightMode) {
-            app.routePath.editorGeoJSON[app.routePath.editorDirection] = {
-                type: 'LineString',
-                coordinates: stops.map(s => [s.lng, s.lat])
-            };
-            app.routePath.drawEditorRoute();
-            return;
-        }
-
         if (badge) badge.classList.remove('hidden');
         app.routePath.isCalculating = true;
 
         try {
-            // Kiểm tra xem có điểm nào bật nối thẳng hay không
-            // Một chặng giữa stops[i] và stops[i+1] là nối thẳng nếu:
-            // stops[i].manual_straight === true HOẶC stops[i+1].manual_straight === true
-            const hasManualStraight = stops.some(s => s.manual_straight);
+            // Kiểm tra xem có chặng nào nối thẳng không:
+            // Một chặng từ stop[i] tới stop[i+1] là nối thẳng khi stop[i+1].manual_straight === true
+            const hasManualStraight = stops.some((s, idx) => idx > 0 && s.manual_straight);
 
             if (!hasManualStraight) {
                 // Toàn bộ lộ trình đều dùng OSRM routing bình thường (1 request duy nhất)
@@ -3703,8 +3660,8 @@ window.app.routePath = {
                     throw new Error("Không thể định tuyến qua các điểm đã chọn");
                 }
             } else {
-                // Có chặng nối thẳng: Chia các điểm thành các phân đoạn (segments)
-                // Chặng fromStop -> toStop sẽ nối thẳng nếu fromStop.manual_straight hoặc toStop.manual_straight
+                // Có chặng nối thẳng:
+                // Chặng từ stops[i] tới stops[i+1] là nối thẳng NẾU stops[i+1].manual_straight === true
                 const finalCoords = [];
                 let currentSubStops = [stops[0]];
 
@@ -3744,22 +3701,22 @@ window.app.routePath = {
                 for (let i = 0; i < stops.length - 1; i++) {
                     const fromStop = stops[i];
                     const toStop = stops[i + 1];
-                    const isStraight = fromStop.manual_straight || toStop.manual_straight;
 
-                    if (isStraight) {
+                    // Chặng này nối thẳng nếu điểm đích toStop bật manual_straight (nối từ điểm trước đến điểm này)
+                    if (toStop.manual_straight) {
                         // Nếu đang có một sub-segment OSRM gom trước đó, tính OSRM cho nó trước
                         if (currentSubStops.length >= 2) {
                             await routeSubStops(currentSubStops);
                         }
                         currentSubStops = [];
 
-                        // Chặng fromStop -> toStop là nối thẳng (bỏ qua OSRM)
+                        // Chặng fromStop -> toStop là nối thẳng trực tiếp
                         if (finalCoords.length === 0) {
                             finalCoords.push([fromStop.lng, fromStop.lat]);
                         }
                         finalCoords.push([toStop.lng, toStop.lat]);
 
-                        // Bắt đầu gom sub-segment mới từ toStop
+                        // Bắt đầu gom sub-segment OSRM tiếp theo từ toStop
                         currentSubStops = [toStop];
                     } else {
                         // Tiếp tục gom vào sub-segment OSRM

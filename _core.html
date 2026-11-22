@@ -7895,11 +7895,6 @@ html.theme-dark .ct-icon {
                     <button type="button" id="btn-swap-directions" onclick="app.routePath.swapDirections()" class="px-2.5 py-1.5 text-xs font-bold bg-white dark:bg-black border border-black dark:border-white rounded-md hover:bg-zinc-100 dark:hover:bg-zinc-800 text-black dark:text-white transition flex items-center gap-1.5" title="Đảo đổi dữ liệu giữa Chiều đi và Chiều về">
                         <i class="fa-solid fa-arrows-rotate text-zinc-500"></i> <span>Đảo chiều</span>
                     </button>
-
-                    <!-- Nút Chế độ Nối thẳng toàn tuyến (Bypass 100% đường 1 chiều) -->
-                    <button type="button" id="btn-toggle-straight-mode" onclick="app.routePath.toggleDirectStraightMode()" class="px-2.5 py-1.5 text-xs font-bold bg-white dark:bg-black border border-black dark:border-white rounded-md hover:bg-zinc-100 dark:hover:bg-zinc-800 text-black dark:text-white transition flex items-center gap-1.5" title="Chuyển đổi giữa Tự động bám đường và Nối thẳng điểm-nối-điểm (cho phép tạo bao nhiêu điểm ảo tùy thích)">
-                        <i id="icon-straight-mode" class="fa-solid fa-route text-zinc-500"></i> <span id="label-straight-mode">Bám đường (OSRM)</span>
-                    </button>
                 </div>
 
                 <div class="flex items-center gap-2 flex-1 min-w-[280px] max-w-xl relative">
@@ -8001,9 +7996,9 @@ html.theme-dark .ct-icon {
                 <div class="flex items-center justify-between p-3 rounded-md border border-black dark:border-white bg-zinc-50 dark:bg-zinc-900">
                     <div class="pr-2">
                         <span class="text-xs font-bold text-black dark:text-white block flex items-center gap-1.5">
-                            <i class="fa-solid fa-arrows-split-up-and-left text-zinc-500 text-xs"></i> Nối thẳng đường chim bay (Bỏ qua 1 chiều)
+                            <i class="fa-solid fa-arrows-split-up-and-left text-zinc-500 text-xs"></i> Nối thẳng từ điểm trước tới điểm này (Bỏ qua 1 chiều)
                         </span>
-                        <p class="text-[10px] text-zinc-500 dark:text-zinc-400 mt-0.5 leading-snug">Nếu bật, đoạn kết nối quanh điểm này sẽ được nối thẳng theo đường chim bay thay vì bắt OSRM chạy vòng theo luật đường 1 chiều.</p>
+                        <p class="text-[10px] text-zinc-500 dark:text-zinc-400 mt-0.5 leading-snug">Nếu chặng đi từ điểm trước đến điểm này bị bản đồ hiểu sai đường 1 chiều khiến xe bị vòng xa, bật công tắc này để nối thẳng trực tiếp.</p>
                     </div>
                     <label class="relative inline-flex items-center cursor-pointer shrink-0">
                         <input type="checkbox" id="rse-is-manual-straight" class="sr-only peer">
