@@ -29338,10 +29338,12 @@ app.map = {
                 const isSoft = this.isSoftLock(matchedZone);
                 zoneWarning.classList.remove('hidden', 'bg-red-50', 'bg-yellow-50', 'dark:bg-red-950/30', 'dark:bg-yellow-950/30');
                 if (isSoft) {
+                    const noteContent = this.cleanZoneDescription(matchedZone.description || '');
+                    const noteMsg = noteContent ? app.utils.escapeHtml(noteContent) : 'Khu vực không khuyến cáo chụp ảnh do yếu tố an toàn/nội bộ. Bạn vẫn có thể đăng ảnh nhưng vui lòng đảm bảo tuân thủ an toàn.';
                     zoneWarning.classList.add('bg-yellow-50', 'dark:bg-yellow-950/30');
                     zoneWarning.innerHTML = `
                         <p class="text-[11px] text-yellow-800 dark:text-yellow-300 font-bold leading-relaxed">
-                            <i class="fa-solid fa-triangle-exclamation mr-1"></i>Vùng không khuyến cáo (${app.utils.escapeHtml(matchedZone.name)}): Vui lòng tuân thủ quy định an ninh và nội quy tại địa điểm chụp. Để tác nghiệp an toàn, bạn nên di chuyển ra các điểm ngắm/vị trí công cộng lân cận ngoài ranh giới.
+                            <i class="fa-solid fa-triangle-exclamation mr-1"></i>Khu vực cần lưu ý (${app.utils.escapeHtml(matchedZone.name)}): ${noteMsg}
                         </p>
                     `;
                 } else {
