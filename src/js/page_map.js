@@ -274,7 +274,7 @@ app.map = {
                 btnHard.classList.add(...inactiveClasses);
                 btnSoft.classList.remove(...inactiveClasses);
                 btnSoft.classList.add(...activeClasses);
-                if (descEl) descEl.innerText = 'Lưu ý (Soft lock): Hiển thị màu vàng, cảnh báo người dùng nhưng KHÔNG chặn tải ảnh lên.';
+                if (descEl) descEl.innerText = 'Vùng không khuyến cáo: Hiển thị màu vàng, cảnh báo người dùng nhưng KHÔNG chặn tải ảnh lên.';
             } else {
                 btnSoft.classList.remove(...activeClasses);
                 btnSoft.classList.add(...inactiveClasses);
@@ -788,12 +788,10 @@ app.map = {
         const isSoft = this.isSoftLock(zone);
         const cleanDesc = this.cleanZoneDescription(zone.description || '');
         const badge = isSoft 
-            ? `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-bold bg-yellow-100 text-yellow-800 border border-yellow-300 dark:bg-yellow-950 dark:text-yellow-300 dark:border-yellow-700 mb-2"><i class="fa-solid fa-triangle-exclamation"></i> Khu vực cần lưu ý / Không khuyến cáo</span>`
+            ? `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-bold bg-yellow-100 text-yellow-800 border border-yellow-300 dark:bg-yellow-950 dark:text-yellow-300 dark:border-yellow-700 mb-2"><i class="fa-solid fa-triangle-exclamation"></i> Vùng không khuyến cáo</span>`
             : `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-bold bg-red-100 text-red-800 border border-red-300 dark:bg-red-950 dark:text-red-300 dark:border-red-700 mb-2"><i class="fa-solid fa-ban"></i> Vùng cấm chụp ảnh</span>`;
             
-        const noteText = isSoft
-            ? 'Khu vực này không khuyến cáo chụp ảnh do tính chất bến bãi, an ninh nội bộ hoặc giao thông phức tạp. Vui lòng xin phép người quản lý hoặc di chuyển ra ngoài ranh giới để đảm bảo an toàn.'
-            : 'Vui lòng tuân thủ quy định an ninh và nội quy tại địa điểm chụp. Để tác nghiệp an toàn, bạn nên di chuyển ra các điểm ngắm/vị trí công cộng lân cận ngoài ranh giới này.';
+        const noteText = 'Vui lòng tuân thủ quy định an ninh và nội quy tại địa điểm chụp. Để tác nghiệp an toàn, bạn nên di chuyển ra các điểm ngắm/vị trí công cộng lân cận ngoài ranh giới này.';
             
         let msg = `
             <div class="text-left w-full">
@@ -804,7 +802,7 @@ app.map = {
             </div>
         `;
         
-        const titleText = isSoft ? "Khu vực cần lưu ý" : "Vùng cấm chụp ảnh";
+        const titleText = isSoft ? "Vùng không khuyến cáo" : "Vùng cấm chụp ảnh";
         if (this.isAdmin) {
             app.ui.showAlert(msg, () => {
                 this.editZone(zone);
@@ -930,12 +928,10 @@ app.map = {
                 const isSoft = this.isSoftLock(matchedZone);
                 zoneWarning.classList.remove('hidden', 'bg-red-50', 'bg-yellow-50', 'dark:bg-red-950/30', 'dark:bg-yellow-950/30');
                 if (isSoft) {
-                    const noteContent = this.cleanZoneDescription(matchedZone.description || '');
-                    const noteMsg = noteContent ? app.utils.escapeHtml(noteContent) : 'Khu vực không khuyến cáo chụp ảnh do yếu tố an toàn/nội bộ. Bạn vẫn có thể đăng ảnh nhưng vui lòng đảm bảo tuân thủ an toàn.';
                     zoneWarning.classList.add('bg-yellow-50', 'dark:bg-yellow-950/30');
                     zoneWarning.innerHTML = `
                         <p class="text-[11px] text-yellow-800 dark:text-yellow-300 font-bold leading-relaxed">
-                            <i class="fa-solid fa-triangle-exclamation mr-1"></i>Lưu ý tại ${app.utils.escapeHtml(matchedZone.name)}: ${noteMsg}
+                            <i class="fa-solid fa-triangle-exclamation mr-1"></i>Vùng không khuyến cáo (${app.utils.escapeHtml(matchedZone.name)}): Vui lòng tuân thủ quy định an ninh và nội quy tại địa điểm chụp. Để tác nghiệp an toàn, bạn nên di chuyển ra các điểm ngắm/vị trí công cộng lân cận ngoài ranh giới.
                         </p>
                     `;
                 } else {
