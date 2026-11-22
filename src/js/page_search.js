@@ -534,14 +534,17 @@ Object.assign(window.app, {
                             const fetchSugs = async (table, col, label) => {
                                 let selectStr = col;
                                 if (table === 'vehicles') {
-                                    selectStr = `${col}, photos!inner(status${app.preference.current !== 'both' ? ', type' : ''})`;
+                                    selectStr = `${col}, photos!inner(status, profiles!inner(ban_status)${app.preference.current !== 'both' ? ', type' : ''})`;
                                 }
-                                if (table === 'photos' && col === 'route_no') selectStr = 'route_no, borrowed_route, license_plate';
+                                if (table === 'photos') {
+                                    if (col === 'route_no') selectStr = 'route_no, borrowed_route, license_plate, profiles!inner(ban_status)';
+                                    else selectStr = `${col}, profiles!inner(ban_status)`;
+                                }
                                 let sbQuery = window.sb.from(table).select(selectStr);
                                 if (table === 'photos') {
-                                    sbQuery = sbQuery.eq('status', 'approved').not(col, 'is', null).neq(col, '').neq(col, '---');
+                                    sbQuery = sbQuery.eq('status', 'approved').filter('profiles.ban_status->>banned', 'neq', 'true').not(col, 'is', null).neq(col, '').neq(col, '---');
                                 } else if (table === 'vehicles') {
-                                    sbQuery = sbQuery.eq('photos.status', 'approved');
+                                    sbQuery = sbQuery.eq('photos.status', 'approved').filter('photos.profiles.ban_status->>banned', 'neq', 'true');
                                 }
                                 searchWords.forEach(word => {
                                     if (col === 'license_plate') sbQuery = sbQuery.ilike(col, `%${app.utils.normalizePlateQuery(word)}%`);
@@ -656,10 +659,10 @@ Object.assign(window.app, {
                             else if (filter === 'location') results = await fetchSugs('photos', 'location', 'Vị trí');
                             else if (filter === 'camera') results = await fetchSugs('photos', 'camera_model', 'Thiết bị');
                             else if (filter === 'uploader') {
-                                let sbQuery = window.sb.from('profiles').select('username');
+                                let sbQuery = window.sb.from('profiles').select('username, ban_status').filter('ban_status->>banned', 'neq', 'true');
                                 searchWords.forEach(word => { sbQuery = sbQuery.ilike('username', `%${word}%`); });
                                 const { data } = await sbQuery.limit(5).abortSignal(controller.signal);
-                                if (data) results = [...new Set(data.map(item => item.username).filter(Boolean))].map(val => ({ text: val, label: 'Người đăng' }));
+                                if (data) results = [...new Set(data.filter(item => !app.utils.formatProfileDisplay(item).isBanned).map(item => item.username).filter(Boolean))].map(val => ({ text: val, label: 'Người đăng' }));
                             }
                             if (app.suggestionRequestIds?.[inputId] !== thisReqId) return;
                             const currentVal = document.getElementById(inputId)?.value.trim() || '';

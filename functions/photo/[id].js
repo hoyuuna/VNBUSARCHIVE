@@ -15,7 +15,8 @@ export async function onRequest(context) {
     
     if (env.SUPABASE_URL && env.SUPABASE_KEY) {
         const query = new URLSearchParams({
-            select: 'url, license_plate, operator, route_no, vehicles(model), profiles(username)',
+            select: 'url, license_plate, operator, route_no, vehicles(model), profiles!inner(username, ban_status)',
+            'profiles.ban_status->>banned': 'neq.true',
             id: `eq.${photoId}`
         });
         

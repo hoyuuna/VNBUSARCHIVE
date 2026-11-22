@@ -230,7 +230,8 @@ Object.assign(window.app, {
                         }
                         const result = await window.sb
                             .from('photo_comments')
-                            .select('*, profiles(id, username, avatar_url, role, subroles, ban_status)', { count: 'exact' })
+                            .select('*, profiles!inner(id, username, avatar_url, role, subroles, ban_status)', { count: 'exact' })
+                            .filter('profiles.ban_status->>banned', 'neq', 'true')
                             .eq('photo_id', photoId)
                             .is('parent_id', null)
                             .order('created_at', { ascending: false })
@@ -242,7 +243,8 @@ Object.assign(window.app, {
                             useThreads = false;
                             const fallback = await window.sb
                                 .from('photo_comments')
-                                .select('*, profiles(id, username, avatar_url, role, subroles, ban_status)', { count: 'exact' })
+                                .select('*, profiles!inner(id, username, avatar_url, role, subroles, ban_status)', { count: 'exact' })
+                                .filter('profiles.ban_status->>banned', 'neq', 'true')
                                 .eq('photo_id', photoId)
                                 .order('created_at', { ascending: false })
                                 .range(from, to);
@@ -261,7 +263,8 @@ Object.assign(window.app, {
                             const parentIds = parents.map(p => p.id);
                             const { data: replies } = await window.sb
                                 .from('photo_comments')
-                                .select('*, profiles(id, username, avatar_url, role, subroles, ban_status)')
+                                .select('*, profiles!inner(id, username, avatar_url, role, subroles, ban_status)')
+                                .filter('profiles.ban_status->>banned', 'neq', 'true')
                                 .in('parent_id', parentIds)
                                 .order('created_at', { ascending: true });
                             if (replies) {

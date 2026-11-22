@@ -10,7 +10,8 @@ export async function onRequest(context) {
     if (!env.SUPABASE_URL || !env.SUPABASE_KEY) return response;
     
     const query = new URLSearchParams({
-        select: 'username, avatar_url, role',
+        select: 'username, avatar_url, role, ban_status',
+        'ban_status->>banned': 'neq.true',
         id: `eq.${userId}`
     });
     

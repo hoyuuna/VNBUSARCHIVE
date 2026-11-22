@@ -55,6 +55,19 @@ export async function onRequest(context) {
             const { data: photo, error: dbErr } = await query.maybeSingle();
             if (dbErr) throw dbErr;
 
+            if (photo && !isManagerOrAdmin) {
+                let banInfo = null;
+                if (photo.profiles?.ban_status) {
+                    try { banInfo = typeof photo.profiles.ban_status === 'string' ? JSON.parse(photo.profiles.ban_status) : photo.profiles.ban_status; } catch(e){}
+                }
+                if (banInfo && (banInfo.banned === true || banInfo.banned === 'true')) {
+                    return new Response(JSON.stringify({ success: false, error: 'Photo not found' }), {
+                        status: 404,
+                        headers: { 'Content-Type': 'application/json' }
+                    });
+                }
+            }
+
             return new Response(JSON.stringify({ success: true, data: photo }), {
                 status: 200,
                 headers: { 'Content-Type': 'application/json' }

@@ -3457,8 +3457,9 @@ cleanupState: () => {
                         while (fetchMore) {
                             let query = window.sb
                                 .from('photos')
-                                .select('uploader_id, created_at')
+                                .select('uploader_id, created_at, profiles!inner(ban_status)')
                                 .eq('status', 'approved')
+                                .filter('profiles.ban_status->>banned', 'neq', 'true')
                                 .order('created_at', { ascending: false })
                                 .limit(1000);
                             
@@ -4057,7 +4058,7 @@ cleanupState: () => {
                     if (filterType === 'uploader' || filterType === 'all') {
                         cardPromises.push((async () => {
                             try {
-                                let uQuery = window.sb.from('profiles').select('id, username, avatar_url, role, subroles, ban_status');
+                                let uQuery = window.sb.from('profiles').select('id, username, avatar_url, role, subroles, ban_status').filter('ban_status->>banned', 'neq', 'true');
                                 searchWords.forEach(w => { uQuery = uQuery.ilike('username', `%${w}%`); });
                                 const { data: usersData } = await uQuery.limit(5);
                                 if (usersData && usersData.length > 0) {
@@ -4341,10 +4342,8 @@ cleanupState: () => {
                     app.currentSearchCards = [...routeCards, ...operatorCards, ...modelCards, ...plateCards, ...uploaderCards];
                     app.views.loadMoreSearchCards(true);
                     let needsModelJoin = filterType === 'model' || (filterType === 'advanced' && (app.search.advancedFilters || []).some(f => f.field === 'model'));
-                    let profileSelect = (filterType === 'uploader' || (filterType === 'advanced' && (app.search.advancedFilters || []).some(f => f.field === 'uploader'))) 
-                        ? 'profiles!inner(id, username, role, subroles, ban_status)' 
-                        : 'profiles(id, username, role, subroles, ban_status)';
-                    let photoQuery = window.sb.from('photos').select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, borrowed_route, camera_model, location, status, denial_reason, is_documentary, views, ${profileSelect}, vehicles${needsModelJoin ? '!inner' : ''}(model)`, { count: 'exact' }).eq('status', 'approved');
+                    let profileSelect = 'profiles!inner(id, username, role, subroles, ban_status)';
+                    let photoQuery = window.sb.from('photos').select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, borrowed_route, camera_model, location, status, denial_reason, is_documentary, views, ${profileSelect}, vehicles${needsModelJoin ? '!inner' : ''}(model)`, { count: 'exact' }).eq('status', 'approved').filter('profiles.ban_status->>banned', 'neq', 'true');
                     photoQuery = app.preference.applyFilter(photoQuery);
                     if (filterType === 'route') {
                         const prefix = prefixToUrl;
@@ -4380,8 +4379,8 @@ cleanupState: () => {
                     } else if (filterType === 'model') {
                         searchWords.forEach(w => { photoQuery = photoQuery.ilike('vehicles.model', `%${w}%`); });
                     } else {
-                        let mQ = window.sb.from('vehicles').select('license_plate, photos!inner(status)').eq('photos.status', 'approved');
-                        let uQ = window.sb.from('profiles').select('id, ban_status');
+                        let mQ = window.sb.from('vehicles').select('license_plate, photos!inner(status, profiles!inner(ban_status))').eq('photos.status', 'approved').filter('photos.profiles.ban_status->>banned', 'neq', 'true');
+                        let uQ = window.sb.from('profiles').select('id, ban_status').filter('ban_status->>banned', 'neq', 'true');
                         searchWords.forEach(w => {
                             const safeW = w.replace(/"/g, '');
                             mQ = mQ.or(`model.ilike."%${safeW}%",note.ilike."%${safeW}%"`);

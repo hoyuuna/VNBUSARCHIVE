@@ -3459,8 +3459,9 @@ cleanupState: () => {
                         while (fetchMore) {
                             let query = window.sb
                                 .from('photos')
-                                .select('uploader_id, created_at')
+                                .select('uploader_id, created_at, profiles!inner(ban_status)')
                                 .eq('status', 'approved')
+                                .filter('profiles.ban_status->>banned', 'neq', 'true')
                                 .order('created_at', { ascending: false })
                                 .limit(1000);
                             
@@ -4059,7 +4060,7 @@ cleanupState: () => {
                     if (filterType === 'uploader' || filterType === 'all') {
                         cardPromises.push((async () => {
                             try {
-                                let uQuery = window.sb.from('profiles').select('id, username, avatar_url, role, subroles, ban_status');
+                                let uQuery = window.sb.from('profiles').select('id, username, avatar_url, role, subroles, ban_status').filter('ban_status->>banned', 'neq', 'true');
                                 searchWords.forEach(w => { uQuery = uQuery.ilike('username', `%${w}%`); });
                                 const { data: usersData } = await uQuery.limit(5);
                                 if (usersData && usersData.length > 0) {
@@ -4343,10 +4344,8 @@ cleanupState: () => {
                     app.currentSearchCards = [...routeCards, ...operatorCards, ...modelCards, ...plateCards, ...uploaderCards];
                     app.views.loadMoreSearchCards(true);
                     let needsModelJoin = filterType === 'model' || (filterType === 'advanced' && (app.search.advancedFilters || []).some(f => f.field === 'model'));
-                    let profileSelect = (filterType === 'uploader' || (filterType === 'advanced' && (app.search.advancedFilters || []).some(f => f.field === 'uploader'))) 
-                        ? 'profiles!inner(id, username, role, subroles, ban_status)' 
-                        : 'profiles(id, username, role, subroles, ban_status)';
-                    let photoQuery = window.sb.from('photos').select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, borrowed_route, camera_model, location, status, denial_reason, is_documentary, views, ${profileSelect}, vehicles${needsModelJoin ? '!inner' : ''}(model)`, { count: 'exact' }).eq('status', 'approved');
+                    let profileSelect = 'profiles!inner(id, username, role, subroles, ban_status)';
+                    let photoQuery = window.sb.from('photos').select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, borrowed_route, camera_model, location, status, denial_reason, is_documentary, views, ${profileSelect}, vehicles${needsModelJoin ? '!inner' : ''}(model)`, { count: 'exact' }).eq('status', 'approved').filter('profiles.ban_status->>banned', 'neq', 'true');
                     photoQuery = app.preference.applyFilter(photoQuery);
                     if (filterType === 'route') {
                         const prefix = prefixToUrl;
@@ -4382,8 +4381,8 @@ cleanupState: () => {
                     } else if (filterType === 'model') {
                         searchWords.forEach(w => { photoQuery = photoQuery.ilike('vehicles.model', `%${w}%`); });
                     } else {
-                        let mQ = window.sb.from('vehicles').select('license_plate, photos!inner(status)').eq('photos.status', 'approved');
-                        let uQ = window.sb.from('profiles').select('id, ban_status');
+                        let mQ = window.sb.from('vehicles').select('license_plate, photos!inner(status, profiles!inner(ban_status))').eq('photos.status', 'approved').filter('photos.profiles.ban_status->>banned', 'neq', 'true');
+                        let uQ = window.sb.from('profiles').select('id, ban_status').filter('ban_status->>banned', 'neq', 'true');
                         searchWords.forEach(w => {
                             const safeW = w.replace(/"/g, '');
                             mQ = mQ.or(`model.ilike."%${safeW}%",note.ilike."%${safeW}%"`);
@@ -7274,8 +7273,9 @@ Object.assign(window.app, {
                     if (!topPhotos || topPhotos.length === 0) {
                         let topQuery = window.sb
                             .from('photos')
-                            .select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, borrowed_route, camera_model, location, status, denial_reason, is_documentary, views, profiles(id, username, role, subroles, ban_status), vehicles(model)`)
+                            .select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, borrowed_route, camera_model, location, status, denial_reason, is_documentary, views, profiles!inner(id, username, role, subroles, ban_status), vehicles(model)`)
                             .eq('status', 'approved')
+                            .filter('profiles.ban_status->>banned', 'neq', 'true')
                             .order('views', { ascending: false, nullsFirst: false })
                             .limit(5);
                         topQuery = app.preference.applyFilter(topQuery);
@@ -7339,8 +7339,9 @@ Object.assign(window.app, {
                     const homeSize = 20;
                     let gridQuery = window.sb
                         .from('photos')
-                        .select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, borrowed_route, camera_model, location, status, denial_reason, is_documentary, views, profiles(id, username, role, subroles, ban_status), vehicles(model)`, { count: 'exact' })
+                        .select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, borrowed_route, camera_model, location, status, denial_reason, is_documentary, views, profiles!inner(id, username, role, subroles, ban_status), vehicles(model)`, { count: 'exact' })
                         .eq('status', 'approved')
+                        .filter('profiles.ban_status->>banned', 'neq', 'true')
                         .order('created_at', { ascending: false })
                         .range(0, homeSize - 1);
                     gridQuery = app.preference.applyFilter(gridQuery);
@@ -7366,7 +7367,7 @@ Object.assign(window.app, {
                         const stats = await app.utils.getCachedStats('home_stats_' + prefFilter, 10 * 60 * 1000, async () => {
                             const rpc = await app.utils.getHomeStats(prefFilter);
                             if (rpc) return rpc;
-                            let countQuery = window.sb.from('photos').select('id', { count: 'exact', head: true }).eq('status', 'approved');
+                            let countQuery = window.sb.from('photos').select('id, profiles!inner(ban_status)', { count: 'exact', head: true }).eq('status', 'approved').filter('profiles.ban_status->>banned', 'neq', 'true');
                             countQuery = app.preference.applyFilter(countQuery);
                             const { count: photoCount } = await countQuery;
                             return { total_photos: photoCount || 0, total_vehicles: null, total_routes: null };
@@ -7417,7 +7418,7 @@ Object.assign(window.app, {
                     let totalPhotos = photoCount;
                     if (totalPhotos === null || typeof totalPhotos !== 'number') {
                         try {
-                            let countQuery = window.sb.from('photos').select('id', { count: 'exact', head: true }).eq('status', 'approved');
+                            let countQuery = window.sb.from('photos').select('id, profiles!inner(ban_status)', { count: 'exact', head: true }).eq('status', 'approved').filter('profiles.ban_status->>banned', 'neq', 'true');
                             countQuery = app.preference.applyFilter(countQuery);
                             const { count } = await countQuery;
                             totalPhotos = count || 0;
@@ -7493,8 +7494,8 @@ Object.assign(window.app, {
                     const toRow = fromRow + app.searchPageSize - 1;
                     try {
                         const filterType = app.currentFilter;
-                        const profileSelect = (filterType === 'uploader') ? 'profiles!inner(id, username, role, subroles, ban_status)' : 'profiles(id, username, role, subroles, ban_status)';
-                        let sQuery = window.sb.from('photos').select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, borrowed_route, camera_model, location, status, denial_reason, is_documentary, views, ${profileSelect}, vehicles${filterType === 'model' ? '!inner' : ''}(model)`).eq('status', 'approved');
+                        const profileSelect = 'profiles!inner(id, username, role, subroles, ban_status)';
+                        let sQuery = window.sb.from('photos').select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, borrowed_route, camera_model, location, status, denial_reason, is_documentary, views, ${profileSelect}, vehicles${filterType === 'model' ? '!inner' : ''}(model)`).eq('status', 'approved').filter('profiles.ban_status->>banned', 'neq', 'true');
                         sQuery = app.preference.applyFilter(sQuery);
                         const query = (document.getElementById('page-search-input') || document.getElementById('search-input'))?.value.trim() || '';
                         const searchWords = query.toLowerCase().split(/\s+/).filter(w => w.length > 0);
@@ -7585,8 +7586,9 @@ Object.assign(window.app, {
                     try {
                         let moreQuery = window.sb
                             .from('photos')
-                            .select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, borrowed_route, camera_model, location, status, denial_reason, is_documentary, views, profiles(id, username, role, subroles, ban_status), vehicles(model)`)
+                            .select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, borrowed_route, camera_model, location, status, denial_reason, is_documentary, views, profiles!inner(id, username, role, subroles, ban_status), vehicles(model)`)
                             .eq('status', 'approved')
+                            .filter('profiles.ban_status->>banned', 'neq', 'true')
                             .order('created_at', { ascending: false })
                             .range(fromRow, toRow);
                         moreQuery = app.preference.applyFilter(moreQuery);
@@ -7721,14 +7723,19 @@ Object.assign(window.app, {
                         app.ui.showAlert("Không tìm thấy người dùng này.");
                         return app.views.loadHome();
                     }
-                    if (!isOwnProfile && window.location.pathname !== `/user/${profile.id}`) {
-                        window.history.replaceState({}, '', `/user/${profile.id}`);
-                    }
                     let banInfo = null;
                     if (profile.ban_status) {
                         try { banInfo = typeof profile.ban_status === 'string' ? JSON.parse(profile.ban_status) : profile.ban_status; } catch(e){}
                     }
                     const isBannedUser = banInfo && (banInfo.banned === true || banInfo.banned === 'true');
+                    const isManagerOrAdmin = app.role === 'admin' || app.role === 'manager';
+                    if (isBannedUser && !isManagerOrAdmin) {
+                        app.ui.showAlert("Không tìm thấy người dùng này hoặc tài khoản đã bị khóa.");
+                        return app.views.loadHome();
+                    }
+                    if (!isOwnProfile && window.location.pathname !== `/user/${profile.id}`) {
+                        window.history.replaceState({}, '', `/user/${profile.id}`);
+                    }
                     const displayUsername = isBannedUser ? 'Người dùng bị cấm' : profile.username;
                     document.title = isOwnProfile ? 'Tài khoản của tôi | VNBUSARCHIVE' : `Hồ sơ: ${displayUsername} | VNBUSARCHIVE`;
                     const targetUserId = profile.id;
@@ -8442,7 +8449,7 @@ Object.assign(window.app, {
                         grid.style.opacity = '0.5';
                         grid.style.pointerEvents = 'none';
                     }
-                    let query = window.sb.from('photo_likes').select('photo_id, photos!inner(id, url, license_plate, operator, type)', { count: 'exact' }).eq('user_id', app.user.id).order('created_at', { ascending: false });
+                    let query = window.sb.from('photo_likes').select('photo_id, photos!inner(id, url, license_plate, operator, type, profiles!inner(ban_status))', { count: 'exact' }).eq('user_id', app.user.id).filter('photos.profiles.ban_status->>banned', 'neq', 'true').order('created_at', { ascending: false });
                     if (app.preference.current !== 'both') query = query.eq('photos.type', app.preference.current);
                     const { data: likedData, count, error } = await query.range(fromRow, toRow);
                     if (error || !likedData || likedData.length === 0) {
@@ -8561,6 +8568,16 @@ Object.assign(window.app, {
                     }
                     if (window.location.pathname !== `/photo/${photoId}`) return;
                     if (!photo) {
+                        app.ui.showAlert("Ảnh không tồn tại hoặc đã bị xóa khỏi hệ thống.");
+                        return app.views.loadHome();
+                    }
+                    let uploaderBanInfo = null;
+                    if (photo.profiles?.ban_status) {
+                        try { uploaderBanInfo = typeof photo.profiles.ban_status === 'string' ? JSON.parse(photo.profiles.ban_status) : photo.profiles.ban_status; } catch(e){}
+                    }
+                    const isUploaderBanned = uploaderBanInfo && (uploaderBanInfo.banned === true || uploaderBanInfo.banned === 'true');
+                    const isManagerOrAdminDetail = app.role === 'admin' || app.role === 'manager';
+                    if (isUploaderBanned && !isManagerOrAdminDetail) {
                         app.ui.showAlert("Ảnh không tồn tại hoặc đã bị xóa khỏi hệ thống.");
                         return app.views.loadHome();
                     }
@@ -9219,9 +9236,10 @@ Object.assign(window.app, {
                         }
                         const historyPlates = historyRes.data ? historyRes.data.map(h => h.plate).filter(Boolean) : [];
                         const allPlatesToFetch = [...new Set([plate, ...historyPlates])];
-                        let pQuery = window.sb.from('photos').select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, borrowed_route, camera_model, location, status, denial_reason, is_documentary, views, profiles(id, username, avatar_url, role, subroles, ban_status), vehicles(model)`)
+                        let pQuery = window.sb.from('photos').select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, borrowed_route, camera_model, location, status, denial_reason, is_documentary, views, profiles!inner(id, username, avatar_url, role, subroles, ban_status), vehicles(model)`)
                                 .in('license_plate', allPlatesToFetch)
-                                .eq('status', 'approved');
+                                .eq('status', 'approved')
+                                .filter('profiles.ban_status->>banned', 'neq', 'true');
                         pQuery = app.preference.applyFilter(pQuery);
                         const allPhotosRes = await pQuery; 
                     if (window.location.pathname !== `/vehicle/${encodeURIComponent(plate)}`) return;
@@ -9912,8 +9930,9 @@ let currentRouteProvName = null;
                         app.currentOperatorResolved = resolvedOperator;
                         app.views.operatorCurrentPage = 1;
                         const opSize = app.views.OPERATOR_PAGE_SIZE || 12;
-                        let pQuery = window.sb.from('photos').select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, borrowed_route, camera_model, location, status, denial_reason, is_documentary, views, profiles(id, username, avatar_url, role, subroles, ban_status), vehicles(model)`, { count: 'exact' })
+                        let pQuery = window.sb.from('photos').select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, borrowed_route, camera_model, location, status, denial_reason, is_documentary, views, profiles!inner(id, username, avatar_url, role, subroles, ban_status), vehicles(model)`, { count: 'exact' })
                             .eq('status', 'approved')
+                            .filter('profiles.ban_status->>banned', 'neq', 'true')
                             .ilike('operator', resolvedOperator)
                             .or('route_no.neq."Dừng hoạt động",route_no.is.null')
                             .order('taken_at', { ascending: false, nullsFirst: false })
@@ -9931,8 +9950,9 @@ let currentRouteProvName = null;
                             try {
                                 const childNames = childOps.map(c => c.operator_name).filter(Boolean);
                                 if (childNames.length > 0) {
-                                    let cq = window.sb.from('photos').select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, borrowed_route, camera_model, location, status, denial_reason, is_documentary, views, profiles(id, username, avatar_url, role, subroles, ban_status), vehicles(model)`)
+                                    let cq = window.sb.from('photos').select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, borrowed_route, camera_model, location, status, denial_reason, is_documentary, views, profiles!inner(id, username, avatar_url, role, subroles, ban_status), vehicles(model)`)
                                         .eq('status', 'approved')
+                                        .filter('profiles.ban_status->>banned', 'neq', 'true')
                                         .in('operator', childNames)
                                         .or('route_no.neq."Dừng hoạt động",route_no.is.null')
                                         .order('taken_at', { ascending: false, nullsFirst: false })
@@ -10023,8 +10043,9 @@ let currentRouteProvName = null;
                     try {
                         const childPhotosHtml = [];
                         for (const child of pageChildOps) {
-                            let cQuery = window.sb.from('photos').select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, borrowed_route, camera_model, location, status, denial_reason, is_documentary, views, profiles(id, username, avatar_url, role, subroles, ban_status), vehicles(model)`)
+                            let cQuery = window.sb.from('photos').select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, borrowed_route, camera_model, location, status, denial_reason, is_documentary, views, profiles!inner(id, username, avatar_url, role, subroles, ban_status), vehicles(model)`)
                                 .eq('status', 'approved')
+                                .filter('profiles.ban_status->>banned', 'neq', 'true')
                                 .ilike('operator', child.operator_name)
                                 .or('route_no.neq."Dừng hoạt động",route_no.is.null')
                                 .order('taken_at', { ascending: false, nullsFirst: false })
@@ -10097,8 +10118,9 @@ let currentRouteProvName = null;
                     grid.style.opacity = '0.5';
                     grid.style.pointerEvents = 'none';
                     try {
-                        let pQuery = window.sb.from('photos').select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, borrowed_route, camera_model, location, status, denial_reason, is_documentary, views, profiles(id, username, role, subroles, ban_status), vehicles(model)`)
+                        let pQuery = window.sb.from('photos').select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, borrowed_route, camera_model, location, status, denial_reason, is_documentary, views, profiles!inner(id, username, role, subroles, ban_status), vehicles(model)`)
                             .eq('status', 'approved')
+                            .filter('profiles.ban_status->>banned', 'neq', 'true')
                             .ilike('operator', app.currentOperatorResolved)
                             .or('route_no.neq."Dừng hoạt động",route_no.is.null')
                             .order('taken_at', { ascending: false, nullsFirst: false })
@@ -10149,8 +10171,9 @@ let currentRouteProvName = null;
                     grid.style.opacity = '0.5';
                     grid.style.pointerEvents = 'none';
                     try {
-                        let pQuery = window.sb.from('photos').select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, borrowed_route, camera_model, location, status, denial_reason, is_documentary, views, profiles(id, username, role, subroles, ban_status), vehicles!inner(model)`)
+                        let pQuery = window.sb.from('photos').select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, borrowed_route, camera_model, location, status, denial_reason, is_documentary, views, profiles!inner(id, username, role, subroles, ban_status), vehicles!inner(model)`)
                             .eq('status', 'approved')
+                            .filter('profiles.ban_status->>banned', 'neq', 'true')
                             .eq('vehicles.model', app.model.currentModel)
                             .order('taken_at', { ascending: false, nullsFirst: false })
                             .order('created_at', { ascending: false });
@@ -10200,8 +10223,9 @@ let currentRouteProvName = null;
                     grid.style.opacity = '0.5';
                     grid.style.pointerEvents = 'none';
                     try {
-                        let pQuery = window.sb.from('photos').select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, borrowed_route, camera_model, location, status, denial_reason, is_documentary, views, profiles(id, username, role, subroles, ban_status), vehicles(model)`)
+                        let pQuery = window.sb.from('photos').select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, borrowed_route, camera_model, location, status, denial_reason, is_documentary, views, profiles!inner(id, username, role, subroles, ban_status), vehicles(model)`)
                             .eq('status', 'approved')
+                            .filter('profiles.ban_status->>banned', 'neq', 'true')
                             .eq('route_no', app.route.currentRoute)
                             .order('taken_at', { ascending: false, nullsFirst: false })
                             .order('created_at', { ascending: false });
@@ -10957,14 +10981,17 @@ Object.assign(window.app, {
                             const fetchSugs = async (table, col, label) => {
                                 let selectStr = col;
                                 if (table === 'vehicles') {
-                                    selectStr = `${col}, photos!inner(status${app.preference.current !== 'both' ? ', type' : ''})`;
+                                    selectStr = `${col}, photos!inner(status, profiles!inner(ban_status)${app.preference.current !== 'both' ? ', type' : ''})`;
                                 }
-                                if (table === 'photos' && col === 'route_no') selectStr = 'route_no, borrowed_route, license_plate';
+                                if (table === 'photos') {
+                                    if (col === 'route_no') selectStr = 'route_no, borrowed_route, license_plate, profiles!inner(ban_status)';
+                                    else selectStr = `${col}, profiles!inner(ban_status)`;
+                                }
                                 let sbQuery = window.sb.from(table).select(selectStr);
                                 if (table === 'photos') {
-                                    sbQuery = sbQuery.eq('status', 'approved').not(col, 'is', null).neq(col, '').neq(col, '---');
+                                    sbQuery = sbQuery.eq('status', 'approved').filter('profiles.ban_status->>banned', 'neq', 'true').not(col, 'is', null).neq(col, '').neq(col, '---');
                                 } else if (table === 'vehicles') {
-                                    sbQuery = sbQuery.eq('photos.status', 'approved');
+                                    sbQuery = sbQuery.eq('photos.status', 'approved').filter('photos.profiles.ban_status->>banned', 'neq', 'true');
                                 }
                                 searchWords.forEach(word => {
                                     if (col === 'license_plate') sbQuery = sbQuery.ilike(col, `%${app.utils.normalizePlateQuery(word)}%`);
@@ -11079,10 +11106,10 @@ Object.assign(window.app, {
                             else if (filter === 'location') results = await fetchSugs('photos', 'location', 'Vị trí');
                             else if (filter === 'camera') results = await fetchSugs('photos', 'camera_model', 'Thiết bị');
                             else if (filter === 'uploader') {
-                                let sbQuery = window.sb.from('profiles').select('username');
+                                let sbQuery = window.sb.from('profiles').select('username, ban_status').filter('ban_status->>banned', 'neq', 'true');
                                 searchWords.forEach(word => { sbQuery = sbQuery.ilike('username', `%${word}%`); });
                                 const { data } = await sbQuery.limit(5).abortSignal(controller.signal);
-                                if (data) results = [...new Set(data.map(item => item.username).filter(Boolean))].map(val => ({ text: val, label: 'Người đăng' }));
+                                if (data) results = [...new Set(data.filter(item => !app.utils.formatProfileDisplay(item).isBanned).map(item => item.username).filter(Boolean))].map(val => ({ text: val, label: 'Người đăng' }));
                             }
                             if (app.suggestionRequestIds?.[inputId] !== thisReqId) return;
                             const currentVal = document.getElementById(inputId)?.value.trim() || '';
@@ -11157,8 +11184,9 @@ Object.assign(window.app, {
                 while (hasMore) {
                     let query = window.sb
                         .from('photos')
-                        .select('uploader_id, views, created_at')
+                        .select('uploader_id, views, created_at, profiles!inner(ban_status)')
                         .eq('status', 'approved')
+                        .filter('profiles.ban_status->>banned', 'neq', 'true')
                         .order('created_at', { ascending: false })
                         .limit(1000);
                     if (lastCreatedAt) {
@@ -11175,9 +11203,9 @@ Object.assign(window.app, {
                     if (!p.uploader_id) return;
                     viewCounts[p.uploader_id] = (viewCounts[p.uploader_id] || 0) + (Number(p.views) || 0);
                 });
-                const { data: allProfiles, error: prErr } = await window.sb.from('profiles').select('id, username, avatar_url, role, subroles, ban_status');
+                const { data: allProfiles, error: prErr } = await window.sb.from('profiles').select('id, username, avatar_url, role, subroles, ban_status').filter('ban_status->>banned', 'neq', 'true');
                 if (prErr) throw prErr;
-                const activeProfiles = (allProfiles || []).filter(p => p.ban_status !== 'banned' && p.username);
+                const activeProfiles = (allProfiles || []).filter(p => !app.utils.formatProfileDisplay(p).isBanned && p.username);
                 const totalAccounts = activeProfiles.length;
                 activeProfiles.forEach(p => {
                     p.photoCount = counts[p.id] || 0;
@@ -13650,8 +13678,9 @@ Object.assign(window.app, {
                         document.getElementById('mdl-stat-views').innerText = app.utils.formatCompact(totalViews);
                         app.views.modelCurrentPage = 1;
                         const mdlSize = app.views.MODEL_PAGE_SIZE || 12;
-                        let pQuery = window.sb.from('photos').select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, borrowed_route, camera_model, location, status, denial_reason, is_documentary, views, profiles(id, username, avatar_url, role, subroles, ban_status), vehicles!inner(model)`, { count: 'exact' })
+                        let pQuery = window.sb.from('photos').select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, borrowed_route, camera_model, location, status, denial_reason, is_documentary, views, profiles!inner(id, username, avatar_url, role, subroles, ban_status), vehicles!inner(model)`, { count: 'exact' })
                             .eq('status', 'approved')
+                            .filter('profiles.ban_status->>banned', 'neq', 'true')
                             .eq('vehicles.model', modelName)
                             .order('taken_at', { ascending: false, nullsFirst: false })
                             .order('created_at', { ascending: false });
@@ -14071,8 +14100,9 @@ if (!decodedProvince || decodedProvince.trim() === '') {
                     }
                     
                     try {
-                        let pQuery = window.sb.from('photos').select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, borrowed_route, camera_model, location, status, denial_reason, is_documentary, views, profiles(id, username, avatar_url, role, subroles, ban_status), vehicles(model)`)
+                        let pQuery = window.sb.from('photos').select(`id, url, license_plate, operator, type, route_no, taken_at, created_at, uploader_id, note, exif_params, borrowed_route, camera_model, location, status, denial_reason, is_documentary, views, profiles!inner(id, username, avatar_url, role, subroles, ban_status), vehicles(model)`)
                             .eq('status', 'approved')
+                            .filter('profiles.ban_status->>banned', 'neq', 'true')
                             .eq('route_no', decodedRoute);
                             
                         if (decodedProvince) {
@@ -21845,7 +21875,8 @@ Object.assign(window.app, {
                         }
                         const result = await window.sb
                             .from('photo_comments')
-                            .select('*, profiles(id, username, avatar_url, role, subroles, ban_status)', { count: 'exact' })
+                            .select('*, profiles!inner(id, username, avatar_url, role, subroles, ban_status)', { count: 'exact' })
+                            .filter('profiles.ban_status->>banned', 'neq', 'true')
                             .eq('photo_id', photoId)
                             .is('parent_id', null)
                             .order('created_at', { ascending: false })
@@ -21857,7 +21888,8 @@ Object.assign(window.app, {
                             useThreads = false;
                             const fallback = await window.sb
                                 .from('photo_comments')
-                                .select('*, profiles(id, username, avatar_url, role, subroles, ban_status)', { count: 'exact' })
+                                .select('*, profiles!inner(id, username, avatar_url, role, subroles, ban_status)', { count: 'exact' })
+                                .filter('profiles.ban_status->>banned', 'neq', 'true')
                                 .eq('photo_id', photoId)
                                 .order('created_at', { ascending: false })
                                 .range(from, to);
@@ -21876,7 +21908,8 @@ Object.assign(window.app, {
                             const parentIds = parents.map(p => p.id);
                             const { data: replies } = await window.sb
                                 .from('photo_comments')
-                                .select('*, profiles(id, username, avatar_url, role, subroles, ban_status)')
+                                .select('*, profiles!inner(id, username, avatar_url, role, subroles, ban_status)')
+                                .filter('profiles.ban_status->>banned', 'neq', 'true')
                                 .in('parent_id', parentIds)
                                 .order('created_at', { ascending: true });
                             if (replies) {

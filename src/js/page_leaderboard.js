@@ -26,8 +26,9 @@ Object.assign(window.app, {
                 while (hasMore) {
                     let query = window.sb
                         .from('photos')
-                        .select('uploader_id, views, created_at')
+                        .select('uploader_id, views, created_at, profiles!inner(ban_status)')
                         .eq('status', 'approved')
+                        .filter('profiles.ban_status->>banned', 'neq', 'true')
                         .order('created_at', { ascending: false })
                         .limit(1000);
                     if (lastCreatedAt) {
@@ -44,9 +45,9 @@ Object.assign(window.app, {
                     if (!p.uploader_id) return;
                     viewCounts[p.uploader_id] = (viewCounts[p.uploader_id] || 0) + (Number(p.views) || 0);
                 });
-                const { data: allProfiles, error: prErr } = await window.sb.from('profiles').select('id, username, avatar_url, role, subroles, ban_status');
+                const { data: allProfiles, error: prErr } = await window.sb.from('profiles').select('id, username, avatar_url, role, subroles, ban_status').filter('ban_status->>banned', 'neq', 'true');
                 if (prErr) throw prErr;
-                const activeProfiles = (allProfiles || []).filter(p => p.ban_status !== 'banned' && p.username);
+                const activeProfiles = (allProfiles || []).filter(p => !app.utils.formatProfileDisplay(p).isBanned && p.username);
                 const totalAccounts = activeProfiles.length;
                 activeProfiles.forEach(p => {
                     p.photoCount = counts[p.id] || 0;
