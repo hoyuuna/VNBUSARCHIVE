@@ -16606,6 +16606,7 @@ window.app.routePath = {
         let currentRealIdx = 0;
         listEl.innerHTML = stops.map((s, idx) => {
             const isWaypoint = !!s.is_waypoint;
+            const isManualStraight = !!s.manual_straight;
             if (!isWaypoint) currentRealIdx++;
             const badgeHtml = isWaypoint
                 ? `<span class="w-5 h-5 rounded-full flex items-center justify-center font-bold text-[10px] bg-zinc-200 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400 shrink-0 border border-dashed border-zinc-400 dark:border-zinc-600" title="Điểm dẫn đường (ẩn khi xem)"><i class="fa-solid fa-diamond text-[8px]"></i></span>`
@@ -16618,14 +16619,15 @@ window.app.routePath = {
                     </button>
                     ${badgeHtml}
                     <div class="flex-1 min-w-0 pr-1 cursor-pointer" onclick="app.routePath.openStopEditModal(${idx})" title="Click để chỉnh sửa điểm này">
-                        <div class="flex items-center gap-1.5">
+                        <div class="flex items-center gap-1.5 flex-wrap">
                             <span class="font-bold truncate text-xs ${isWaypoint ? 'italic text-zinc-500 dark:text-zinc-400' : 'text-black dark:text-white'}">${app.utils.escapeHtml(s.name)}</span>
                             ${isWaypoint ? '<span class="text-[9px] px-1 py-0.2 rounded bg-zinc-200 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400 font-bold shrink-0">Ẩn</span>' : ''}
+                            ${isManualStraight ? '<span class="text-[9px] px-1 py-0.2 rounded bg-amber-100 dark:bg-amber-950/70 text-amber-700 dark:text-amber-300 font-bold shrink-0" title="Nối thẳng đến điểm tiếp theo (bỏ qua 1 chiều)"><i class="fa-solid fa-arrows-split-up-and-left text-[8px] mr-0.5"></i>Nối thẳng</span>' : ''}
                         </div>
                         <span class="text-[10px] text-zinc-500 dark:text-zinc-400 block truncate mt-0.5">${s.lat.toFixed(5)}, ${s.lng.toFixed(5)}</span>
                     </div>
                     <div class="flex items-center gap-1 shrink-0">
-                        <button type="button" onclick="app.routePath.openStopEditModal(${idx})" class="p-1.5 rounded hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-600 dark:text-zinc-300 hover:text-black dark:hover:text-white transition" title="Chỉnh sửa tên, tọa độ, loại trạm">
+                        <button type="button" onclick="app.routePath.openStopEditModal(${idx})" class="p-1.5 rounded hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-600 dark:text-zinc-300 hover:text-black dark:hover:text-white transition" title="Chỉnh sửa tên, tọa độ, loại trạm, nối thẳng">
                             <i class="fa-solid fa-pen text-xs"></i>
                         </button>
                         <button type="button" onclick="app.routePath.removeStop(${idx})" class="p-1.5 rounded hover:bg-red-50 dark:hover:bg-red-950/40 text-zinc-400 hover:text-red-500 transition" title="Xóa điểm này">
@@ -16652,6 +16654,7 @@ window.app.routePath = {
         const latInput = document.getElementById('rse-input-lat');
         const lngInput = document.getElementById('rse-input-lng');
         const waypointChk = document.getElementById('rse-is-waypoint');
+        const manualStraightChk = document.getElementById('rse-is-manual-straight');
 
         if (isEditing) {
             const stop = stops[idx];
@@ -16661,6 +16664,7 @@ window.app.routePath = {
             if (latInput) latInput.value = stop.lat.toFixed(6);
             if (lngInput) lngInput.value = stop.lng.toFixed(6);
             if (waypointChk) waypointChk.checked = !!stop.is_waypoint;
+            if (manualStraightChk) manualStraightChk.checked = !!stop.manual_straight;
         } else {
             // Tạo mới từ click trên map
             if (titleEl) titleEl.innerText = "Thêm điểm dừng mới";
@@ -16670,6 +16674,7 @@ window.app.routePath = {
             if (latInput) latInput.value = defaultLat !== null ? Number(defaultLat).toFixed(6) : '';
             if (lngInput) lngInput.value = defaultLng !== null ? Number(defaultLng).toFixed(6) : '';
             if (waypointChk) waypointChk.checked = false;
+            if (manualStraightChk) manualStraightChk.checked = false;
         }
 
         modal.classList.remove('hidden');
@@ -16703,6 +16708,7 @@ window.app.routePath = {
         const latVal = parseFloat(document.getElementById('rse-input-lat').value);
         const lngVal = parseFloat(document.getElementById('rse-input-lng').value);
         const isWaypoint = !!document.getElementById('rse-is-waypoint').checked;
+        const isManualStraight = !!document.getElementById('rse-is-manual-straight').checked;
 
         if (!name) {
             app.toast.show('warning', 'Thiếu thông tin', 'Vui lòng nhập tên điểm dừng hoặc mốc dẫn đường.');
@@ -16721,6 +16727,7 @@ window.app.routePath = {
             stops[idx].lat = latVal;
             stops[idx].lng = lngVal;
             stops[idx].is_waypoint = isWaypoint;
+            stops[idx].manual_straight = isManualStraight;
             app.toast.show('success', 'Đã lưu thay đổi', `Đã cập nhật thông tin cho "${name}".`);
         } else {
             // Thêm mới
@@ -16728,7 +16735,8 @@ window.app.routePath = {
                 name: name,
                 lat: latVal,
                 lng: lngVal,
-                is_waypoint: isWaypoint
+                is_waypoint: isWaypoint,
+                manual_straight: isManualStraight
             });
             app.toast.show('success', 'Đã thêm điểm', `Đã thêm "${name}" vào danh sách.`);
         }
@@ -16875,7 +16883,7 @@ window.app.routePath = {
         app.toast.show('info', 'Đã chuyển đến vị trí', `Đã di chuyển bản đồ đến "${shortName}". Bấm lên bản đồ để thêm điểm dừng nếu muốn.`);
     },
 
-    // 4. TỰ ĐỘNG TÍNH TOÁN ĐƯỜNG ĐI THẬT (OSRM ROUTING)
+    // 4. TỰ ĐỘNG TÍNH TOÁN ĐƯỜNG ĐI THẬT (OSRM ROUTING + HỖ TRỢ CHẶNG NỐI THẲNG MANUAL STRAIGHT)
     calculateRealRoute: async () => {
         const stops = app.routePath.editorStops[app.routePath.editorDirection] || [];
         const badge = document.getElementById('rpe-calculating-badge');
@@ -16890,18 +16898,98 @@ window.app.routePath = {
         app.routePath.isCalculating = true;
 
         try {
-            // OSRM format: lng,lat;lng,lat...
-            const coordsStr = stops.map(s => `${s.lng},${s.lat}`).join(';');
-            const osrmUrl = `https://router.project-osrm.org/route/v1/driving/${coordsStr}?overview=full&geometries=geojson`;
+            // Kiểm tra xem có chặng nào được đánh dấu nối thẳng (manual_straight) hay không
+            const hasManualStraight = stops.some((s, i) => i < stops.length - 1 && s.manual_straight);
 
-            const resp = await fetch(osrmUrl);
-            if (!resp.ok) throw new Error("OSRM không phản hồi");
-            const data = await resp.json();
+            if (!hasManualStraight) {
+                // Toàn bộ lộ trình đều dùng OSRM routing bình thường (1 request duy nhất)
+                const coordsStr = stops.map(s => `${s.lng},${s.lat}`).join(';');
+                const osrmUrl = `https://router.project-osrm.org/route/v1/driving/${coordsStr}?overview=full&geometries=geojson`;
 
-            if (data.code === 'Ok' && data.routes && data.routes[0]) {
-                app.routePath.editorGeoJSON[app.routePath.editorDirection] = data.routes[0].geometry;
+                const resp = await fetch(osrmUrl);
+                if (!resp.ok) throw new Error("OSRM không phản hồi");
+                const data = await resp.json();
+
+                if (data.code === 'Ok' && data.routes && data.routes[0]) {
+                    app.routePath.editorGeoJSON[app.routePath.editorDirection] = data.routes[0].geometry;
+                } else {
+                    throw new Error("Không thể định tuyến qua các điểm đã chọn");
+                }
             } else {
-                throw new Error("Không thể định tuyến qua các điểm đã chọn");
+                // Có chặng nối thẳng: Chia các điểm thành các phân đoạn (segments)
+                // Những chặng manual_straight sẽ nối thẳng tọa độ, các chặng còn lại gọi OSRM
+                const finalCoords = [];
+
+                // Duyệt qua từng chặng giữa stop[i] và stop[i+1]
+                let currentSubStops = [stops[0]];
+
+                const routeSubStops = async (subStops) => {
+                    if (subStops.length < 2) return;
+                    const coordsStr = subStops.map(s => `${s.lng},${s.lat}`).join(';');
+                    const osrmUrl = `https://router.project-osrm.org/route/v1/driving/${coordsStr}?overview=full&geometries=geojson`;
+                    try {
+                        const resp = await fetch(osrmUrl);
+                        if (resp.ok) {
+                            const data = await resp.json();
+                            if (data.code === 'Ok' && data.routes && data.routes[0]?.geometry?.coordinates) {
+                                const coords = data.routes[0].geometry.coordinates;
+                                for (let cIdx = 0; cIdx < coords.length; cIdx++) {
+                                    // Tránh duplicate điểm nối giữa các sub-segment
+                                    if (finalCoords.length > 0 && cIdx === 0) {
+                                        const last = finalCoords[finalCoords.length - 1];
+                                        if (Math.abs(last[0] - coords[0][0]) < 1e-6 && Math.abs(last[1] - coords[0][1]) < 1e-6) {
+                                            continue;
+                                        }
+                                    }
+                                    finalCoords.push(coords[cIdx]);
+                                }
+                                return;
+                            }
+                        }
+                    } catch (err) {
+                        console.warn("Lỗi tính toán đoạn OSRM nhỏ, dùng nối thẳng fallback:", err);
+                    }
+                    // Fallback nối thẳng nếu OSRM lỗi
+                    subStops.forEach((s, sIdx) => {
+                        if (finalCoords.length > 0 && sIdx === 0) return;
+                        finalCoords.push([s.lng, s.lat]);
+                    });
+                };
+
+                for (let i = 0; i < stops.length - 1; i++) {
+                    const fromStop = stops[i];
+                    const toStop = stops[i + 1];
+
+                    if (fromStop.manual_straight) {
+                        // Nếu đang có một sub-segment OSRM gom trước đó, tính OSRM cho nó trước
+                        if (currentSubStops.length >= 2) {
+                            await routeSubStops(currentSubStops);
+                        }
+                        currentSubStops = [];
+
+                        // Chặng fromStop -> toStop là nối thẳng (bỏ qua OSRM)
+                        if (finalCoords.length === 0) {
+                            finalCoords.push([fromStop.lng, fromStop.lat]);
+                        }
+                        finalCoords.push([toStop.lng, toStop.lat]);
+
+                        // Bắt đầu gom sub-segment mới từ toStop
+                        currentSubStops = [toStop];
+                    } else {
+                        // Tiếp tục gom vào sub-segment OSRM
+                        currentSubStops.push(toStop);
+                    }
+                }
+
+                // Nếu còn sub-segment OSRM cuối cùng
+                if (currentSubStops.length >= 2) {
+                    await routeSubStops(currentSubStops);
+                }
+
+                app.routePath.editorGeoJSON[app.routePath.editorDirection] = {
+                    type: 'LineString',
+                    coordinates: finalCoords
+                };
             }
         } catch (e) {
             console.warn("OSRM routing fallback:", e);

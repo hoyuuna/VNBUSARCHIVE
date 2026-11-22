@@ -2255,7 +2255,7 @@ html.theme-dark .ct-icon {
             if (stored === 'system') {
                 theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
             }
-            document.write('<link rel="stylesheet" href="/css/' + theme + '.css?v=1795272438369" id="theme-css">');
+            document.write('<link rel="stylesheet" href="/css/' + theme + '.css?v=1795318643950" id="theme-css">');
             document.documentElement.classList.add('theme-' + theme);
             document.documentElement.style.backgroundColor = theme === 'dark' ? '#18181b' : '#fdfcf8';
 
@@ -7991,6 +7991,20 @@ html.theme-dark .ct-icon {
                         <div class="w-11 h-6 bg-zinc-300 dark:bg-zinc-700 peer-checked:bg-black dark:peer-checked:bg-white rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white dark:after:bg-black after:border-zinc-400 dark:after:border-zinc-800 after:border after:rounded-full after:h-5 after:w-5 after:transition-all"></div>
                     </label>
                 </div>
+
+                <!-- CÔNG TẮC CHUYỂN CHẾ ĐỘ NỐI THẲNG CHO CHẶNG NÀY (BYPASS ĐƯỜNG 1 CHIỀU) -->
+                <div class="flex items-center justify-between p-3 rounded-md border border-black dark:border-white bg-zinc-50 dark:bg-zinc-900">
+                    <div class="pr-2">
+                        <span class="text-xs font-bold text-black dark:text-white block flex items-center gap-1.5">
+                            <i class="fa-solid fa-arrows-split-up-and-left text-zinc-500 text-xs"></i> Nối thẳng đến điểm kế tiếp (Bỏ qua 1 chiều)
+                        </span>
+                        <p class="text-[10px] text-zinc-500 dark:text-zinc-400 mt-0.5 leading-snug">Bật nếu đoạn từ điểm này đến điểm tiếp theo bị bản đồ cấm chiều/vòng sai, hệ thống sẽ vẽ đường thẳng trực tiếp thay vì bắt xe quay đầu.</p>
+                    </div>
+                    <label class="relative inline-flex items-center cursor-pointer shrink-0">
+                        <input type="checkbox" id="rse-is-manual-straight" class="sr-only peer">
+                        <div class="w-11 h-6 bg-zinc-300 dark:bg-zinc-700 peer-checked:bg-black dark:peer-checked:bg-white rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white dark:after:bg-black after:border-zinc-400 dark:after:border-zinc-800 after:border after:rounded-full after:h-5 after:w-5 after:transition-all"></div>
+                    </label>
+                </div>
             </div>
             <div class="p-3 sm:p-4 border-t border-black dark:border-white bg-white dark:bg-[#18181b] flex items-center justify-end gap-2 shrink-0">
                 <button type="button" onclick="app.routePath.closeStopEditModal()" class="px-4 py-2 bg-white dark:bg-black border border-black dark:border-white text-xs font-bold text-black dark:text-white rounded-md hover:bg-zinc-100 dark:hover:bg-zinc-900 transition">
@@ -8224,7 +8238,7 @@ html.theme-dark .ct-icon {
 
     <!-- KHAY CHỨA TOAST Z-INDEX CAO NHẤT -->
     <div id="toast-container" class="fixed left-0 w-full flex flex-col items-center gap-2 pointer-events-none z-[99999]" style="z-index: 99999 !important;"></div>
-<script src="/app.c6108af6723a.js" onerror="if(!window.__app_fallback_loaded){window.__app_fallback_loaded=true;var s=document.createElement('script');s.src='/app.js?v=' + Date.now();document.head.appendChild(s);}"></script>
+<script src="/app.48586e174915.js" onerror="if(!window.__app_fallback_loaded){window.__app_fallback_loaded=true;var s=document.createElement('script');s.src='/app.js?v=' + Date.now();document.head.appendChild(s);}"></script>
 </body>
 </html>
 
