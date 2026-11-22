@@ -16721,6 +16721,18 @@ window.app.routePath = {
             if (manualStraightChk) manualStraightChk.checked = false;
         }
 
+        // Tự động gợi ý "Điểm dừng #N" khi bật mốc dẫn đường ẩn (waypoint) nếu chưa có tên
+        if (waypointChk) {
+            waypointChk.onchange = () => {
+                if (waypointChk.checked) {
+                    if (nameInput && !nameInput.value.trim()) {
+                        const count = stops.length;
+                        nameInput.value = `Điểm dừng #${count + 1}`;
+                    }
+                }
+            };
+        }
+
         modal.classList.remove('hidden');
         app.ui.lockScroll();
         setTimeout(() => {
