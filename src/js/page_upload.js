@@ -2054,9 +2054,10 @@ Object.assign(window.app, {
                                             const noteContent = app.map.cleanZoneDescription 
                                                 ? app.map.cleanZoneDescription(matchedZone.description || '') 
                                                 : (matchedZone.description || '').replace(/\[SOFT_LOCK\]\s*/g, '').trim();
+                                            const zoneName = matchedZone.name || 'này';
                                             const toastMsg = noteContent 
-                                                ? `Lưu ý tại ${matchedZone.name || 'khu vực này'}: ${noteContent}`
-                                                : `Lưu ý tại ${matchedZone.name || 'khu vực này'}: Khu vực không khuyến cáo chụp ảnh, vui lòng chú ý an ninh và an toàn!`;
+                                                ? `Khu vực ${zoneName} cần lưu ý: ${noteContent}. Bạn vẫn có thể đăng ảnh nhưng vui lòng đảm bảo tuân thủ an toàn.`
+                                                : `Khu vực ${zoneName} cần lưu ý. Bạn vẫn có thể đăng ảnh nhưng vui lòng đảm bảo tuân thủ an toàn.`;
                                             if (app.toast && app.toast.show) {
                                                 app.toast.show('warning', 'Lưu ý khu vực', toastMsg, 7000);
                                             }

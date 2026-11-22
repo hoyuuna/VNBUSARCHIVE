@@ -19338,9 +19338,10 @@ Object.assign(window.app, {
                                             const noteContent = app.map.cleanZoneDescription 
                                                 ? app.map.cleanZoneDescription(matchedZone.description || '') 
                                                 : (matchedZone.description || '').replace(/\[SOFT_LOCK\]\s*/g, '').trim();
+                                            const zoneName = matchedZone.name || 'này';
                                             const toastMsg = noteContent 
-                                                ? `Lưu ý tại ${matchedZone.name || 'khu vực này'}: ${noteContent}`
-                                                : `Lưu ý tại ${matchedZone.name || 'khu vực này'}: Khu vực không khuyến cáo chụp ảnh, vui lòng chú ý an ninh và an toàn!`;
+                                                ? `Khu vực ${zoneName} cần lưu ý: ${noteContent}. Bạn vẫn có thể đăng ảnh nhưng vui lòng đảm bảo tuân thủ an toàn.`
+                                                : `Khu vực ${zoneName} cần lưu ý. Bạn vẫn có thể đăng ảnh nhưng vui lòng đảm bảo tuân thủ an toàn.`;
                                             if (app.toast && app.toast.show) {
                                                 app.toast.show('warning', 'Lưu ý khu vực', toastMsg, 7000);
                                             }
@@ -29343,7 +29344,7 @@ app.map = {
                     zoneWarning.classList.add('bg-yellow-50', 'dark:bg-yellow-950/30');
                     zoneWarning.innerHTML = `
                         <p class="text-[11px] text-yellow-800 dark:text-yellow-300 font-bold leading-relaxed">
-                            <i class="fa-solid fa-triangle-exclamation mr-1"></i>Khu vực cần lưu ý (${app.utils.escapeHtml(matchedZone.name)}): ${noteMsg}
+                            <i class="fa-solid fa-triangle-exclamation mr-1"></i>Khu vực cần lưu ý: ${noteMsg}
                         </p>
                     `;
                 } else {

@@ -933,7 +933,7 @@ app.map = {
                     zoneWarning.classList.add('bg-yellow-50', 'dark:bg-yellow-950/30');
                     zoneWarning.innerHTML = `
                         <p class="text-[11px] text-yellow-800 dark:text-yellow-300 font-bold leading-relaxed">
-                            <i class="fa-solid fa-triangle-exclamation mr-1"></i>Khu vực cần lưu ý (${app.utils.escapeHtml(matchedZone.name)}): ${noteMsg}
+                            <i class="fa-solid fa-triangle-exclamation mr-1"></i>Khu vực cần lưu ý: ${noteMsg}
                         </p>
                     `;
                 } else {
