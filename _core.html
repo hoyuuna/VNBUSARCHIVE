@@ -6791,10 +6791,13 @@ html.theme-dark .ct-icon {
                     if (savedIdx === 1) activeRenderIndex = 1;
                 } catch (e) {}
 
-                function switchRenderInstance() {
-                    activeRenderIndex = activeRenderIndex === 0 ? 1 : 0;
-                    try { sessionStorage.setItem('VNBA_RENDER_IDX', String(activeRenderIndex)); } catch (e) {}
-                    console.warn('[Failover] Switched active Render PostgREST instance to:', activeRenderPool[activeRenderIndex]);
+                function markRenderFailed(failedBase) {
+                    const failedIndex = activeRenderPool.indexOf(failedBase);
+                    if (failedIndex !== -1 && failedIndex === activeRenderIndex) {
+                        activeRenderIndex = activeRenderIndex === 0 ? 1 : 0;
+                        try { sessionStorage.setItem('VNBA_RENDER_IDX', String(activeRenderIndex)); } catch (e) {}
+                        console.warn('[Failover] Switched active Render PostgREST instance to:', activeRenderPool[activeRenderIndex]);
+                    }
                 }
 
                 window.sb = window.supabase.createClient(config.SUPABASE_URL, config.SUPABASE_KEY, {
@@ -6854,7 +6857,7 @@ html.theme-dark .ct-icon {
                                             // Nếu trả về lỗi máy chủ sập hoặc quota Render (502, 503, 504, 402)
                                             if (resp.status === 502 || resp.status === 503 || resp.status === 504 || resp.status === 402) {
                                                 console.warn(`[Failover] Endpoint ${base} returned status ${resp.status}. Trying next candidate.`);
-                                                if (i === 0) switchRenderInstance();
+                                                if (i === 0) markRenderFailed(base);
                                                 lastResponse = resp;
                                                 continue;
                                             }
@@ -6864,7 +6867,7 @@ html.theme-dark .ct-icon {
                                         } catch (fErr) {
                                             lastFetchErr = fErr;
                                             console.warn(`[Failover] Connection to ${base} failed (${fErr.name || fErr.message}). Switching to next.`);
-                                            if (i === 0) switchRenderInstance();
+                                            if (i === 0) markRenderFailed(base);
                                         }
                                     }
 
