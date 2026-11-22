@@ -2601,19 +2601,23 @@ window.app.routePath = {
             // Cập nhật nút Chiều đi / Chiều về trên view
             const btnFwd = document.getElementById('btn-route-dir-forward');
             const btnRet = document.getElementById('btn-route-dir-return');
+            let targetDir = 'forward';
+            if (hasForward && !hasReturn) {
+                targetDir = 'forward';
+            } else if (!hasForward && hasReturn) {
+                targetDir = 'return';
+            }
             if (btnFwd && btnRet) {
                 if (hasForward && !hasReturn) {
                     btnFwd.disabled = false;
                     btnRet.disabled = true;
                     btnRet.classList.add('opacity-30', 'cursor-not-allowed', 'pointer-events-none');
                     btnFwd.classList.remove('opacity-30', 'cursor-not-allowed', 'pointer-events-none');
-                    app.routePath.viewDirection = 'forward';
                 } else if (!hasForward && hasReturn) {
                     btnRet.disabled = false;
                     btnFwd.disabled = true;
                     btnFwd.classList.add('opacity-30', 'cursor-not-allowed', 'pointer-events-none');
                     btnRet.classList.remove('opacity-30', 'cursor-not-allowed', 'pointer-events-none');
-                    app.routePath.viewDirection = 'return';
                 } else {
                     btnFwd.disabled = false;
                     btnRet.disabled = false;
@@ -2622,7 +2626,7 @@ window.app.routePath = {
                 }
             }
             app.routePath.initViewMap();
-            app.routePath.drawViewRoute();
+            app.routePath.switchDirection(targetDir);
         } else {
             mapWrapper.classList.add('hidden');
             emptyState.classList.remove('hidden');
