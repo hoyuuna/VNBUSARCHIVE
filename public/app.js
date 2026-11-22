@@ -17785,22 +17785,62 @@ Object.assign(window.app, {
                     if (!document.getElementById('upload-quota-text')?.classList.contains('text-red-600') && !app.upload.isBlockedByModelDuplicate) {
                         btnSubmit.disabled = false;
                     }
-                    if (!valPlate || !valDate) return;
+                    if (!valPlate) return;
                     const cleanPlate = valPlate.replace(/[^A-Z0-9-]/gi, '').toUpperCase();
                     app.upload._dupToken = (app.upload._dupToken || 0) + 1;
                     const myToken = app.upload._dupToken;
                     try {
-                        const { data: existingPhotos, error: checkErr } = await window.sb
-                            .from('photos')
-                            .select('taken_at, location')
-                            .eq('uploader_id', app.user.id)
-                            .eq('license_plate', cleanPlate)
-                            .neq('status', 'denied');
+                        const now = new Date();
+                        const year = now.getFullYear();
+                        const month = now.getMonth();
+                        const startOfMonth = new Date(Date.UTC(year, month, 1, 0, 0, 0)).toISOString();
+                        const startOfNextMonth = new Date(Date.UTC(year, month + 1, 1, 0, 0, 0)).toISOString();
+
+                        // Đếm số ảnh của xe này đang nằm trong hàng đợi tải lên cục bộ trong tháng hiện tại
+                        const queuedCount = (app.upload.uploadQueue || []).filter(item => item.plate === cleanPlate).length;
+
+                        const [monthRes, dateRes] = await Promise.all([
+                            window.sb
+                                .from('photos')
+                                .select('id', { count: 'exact' })
+                                .eq('uploader_id', app.user.id)
+                                .eq('license_plate', cleanPlate)
+                                .neq('status', 'denied')
+                                .gte('created_at', startOfMonth)
+                                .lt('created_at', startOfNextMonth),
+                            valDate ? window.sb
+                                .from('photos')
+                                .select('taken_at, location')
+                                .eq('uploader_id', app.user.id)
+                                .eq('license_plate', cleanPlate)
+                                .neq('status', 'denied') : Promise.resolve({ data: [] })
+                        ]);
+
                         if (myToken !== app.upload._dupToken) return;
-                        if (!checkErr && existingPhotos && existingPhotos.length > 0) {
+
+                        const monthPhotosCount = (monthRes.count || (monthRes.data ? monthRes.data.length : 0)) + queuedCount;
+                        if (monthPhotosCount >= 3) {
+                            btnSubmit.disabled = true;
+                            const existing = document.getElementById('duplicate-warning-msg');
+                            if (existing) return;
+                            const warningEl = document.createElement('div');
+                            warningEl.id = 'duplicate-warning-msg';
+                            warningEl.className = 'mt-3 p-3 bg-red-50 border border-red-200 rounded-lg shadow-sm flex items-start gap-2.5 fade-zoom-in';
+                            warningEl.innerHTML = `
+                                <i class="fa-solid fa-triangle-exclamation text-red-500 mt-0.5 text-sm"></i>
+                                <p class="text-[11px] font-bold text-red-700 leading-snug m-0">
+                                    Bạn đã đạt giới hạn tối đa 3 ảnh/tháng cho xe ${cleanPlate} trong tháng ${month + 1}/${year}. Bạn không thể tải thêm ảnh của xe này trong tháng này.
+                                </p>
+                            `;
+                            const plateContainer = plateInput.closest('div[x-data]') || plateInput.parentElement;
+                            plateContainer.appendChild(warningEl);
+                            return;
+                        }
+
+                        if (valDate && dateRes.data && dateRes.data.length > 0) {
                             const valLocation = document.getElementById('up-location').value.trim();
                             const isInterior = valLocation === 'Chụp trong xe';
-                            const isDuplicateDate = existingPhotos.some(p => {
+                            const isDuplicateDate = dateRes.data.some(p => {
                                 if (!p.taken_at) return false;
                                 const pIsInterior = (p.location || '').trim() === 'Chụp trong xe';
                                 return p.taken_at.split('T')[0] === valDate && pIsInterior === isInterior;
@@ -17824,7 +17864,7 @@ Object.assign(window.app, {
                             }
                         }
                     } catch (err) {
-                        console.error("Lỗi realtime trùng ngày:", err);
+                        console.error("Lỗi realtime kiểm tra giới hạn xe:", err);
                     }
                 },
                 toggleInsideVehicle: (checked) => {
@@ -19807,6 +19847,10 @@ Object.assign(window.app, {
                     const q = app.upload.currentQuota;
                     if (q.limit !== null && q.count >= q.limit) {
                         return app.ui.showAlert(`Bạn đã đạt giới hạn tải lên tối đa ${q.limit} ảnh của ngày hôm nay. Vui lòng quay lại sau 7:00 sáng mai!`);
+                    }
+                    if (document.getElementById('duplicate-warning-msg')) {
+                        const msgText = document.getElementById('duplicate-warning-msg').innerText.trim();
+                        return app.ui.showAlert(msgText || "Xe này đã đạt giới hạn đăng tải hoặc bị trùng ngày chụp.", null, null, { title: "Không thể tải lên" });
                     }
                     const valPlate = document.getElementById('up-plate').value.trim();
                     const valOp = document.getElementById('up-operator').value.trim();

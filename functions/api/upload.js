@@ -99,6 +99,49 @@ export async function onRequest(context) {
             return new Response(JSON.stringify({ success: false, error: 'Loại file không hợp lệ (chỉ chấp nhận ảnh và file RAW).' }), { status: 400, headers: { 'Content-Type': 'application/json' }});
         }
 
+        if (!isAvatar) {
+            const cleanPlate = (metadata.plate || '').replace(/[^A-Z0-9-]/gi, '').toUpperCase();
+            if (cleanPlate) {
+                const now = new Date();
+                const year = now.getFullYear();
+                const month = now.getMonth(); // 0-based
+                const startOfMonth = new Date(Date.UTC(year, month, 1, 0, 0, 0)).toISOString();
+                const startOfNextMonth = new Date(Date.UTC(year, month + 1, 1, 0, 0, 0)).toISOString();
+
+                const { data: monthPhotos, error: monthErr } = await sbAdmin
+                    .from('photos')
+                    .select('id, taken_at, location')
+                    .eq('uploader_id', userId)
+                    .eq('license_plate', cleanPlate)
+                    .neq('status', 'denied')
+                    .gte('created_at', startOfMonth)
+                    .lt('created_at', startOfNextMonth);
+
+                if (!monthErr && monthPhotos && monthPhotos.length >= 3) {
+                    return new Response(JSON.stringify({
+                        success: false,
+                        error: `Bạn đã đạt giới hạn tối đa 3 ảnh/tháng cho xe ${cleanPlate} trong tháng ${month + 1}/${year}. Vui lòng đăng xe khác hoặc đợi sang tháng sau.`
+                    }), { status: 400, headers: { 'Content-Type': 'application/json' }});
+                }
+
+                // Kiểm tra trùng ngày chụp cùng 1 xe
+                if (metadata.taken_at && monthPhotos && monthPhotos.length > 0) {
+                    const isInterior = (metadata.location || '').trim() === 'Chụp trong xe';
+                    const isDuplicateDate = monthPhotos.some(p => {
+                        if (!p.taken_at) return false;
+                        const pIsInterior = (p.location || '').trim() === 'Chụp trong xe';
+                        return p.taken_at.split('T')[0] === metadata.taken_at.split('T')[0] && pIsInterior === isInterior;
+                    });
+                    if (isDuplicateDate) {
+                        return new Response(JSON.stringify({
+                            success: false,
+                            error: `Bạn không thể đăng 2 ảnh của cùng 1 xe được chụp cùng ngày.`
+                        }), { status: 400, headers: { 'Content-Type': 'application/json' }});
+                    }
+                }
+            }
+        }
+
         const randomValues = crypto.getRandomValues(new Uint8Array(6));
         const safeHash = Array.from(randomValues).map(b => b.toString(16).padStart(2, '0')).join('');
         const fileName = `img_${Date.now()}_${safeHash}.${fileExtension}`;
