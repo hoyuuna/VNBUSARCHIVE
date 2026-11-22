@@ -19330,10 +19330,19 @@ Object.assign(window.app, {
                             if (!isNaN(latDec) && !isNaN(lonDec)) {
                                 app.currentGps = { lat: latDec, lon: lonDec };
                                 if (app.map && app.map.getPointInZones) {
-                                    const bannedZone = await app.map.getPointInZones(latDec, lonDec);
-                                    if (bannedZone) {
-                                        app.currentGps = null;
-                                        throw `Ảnh được chụp tại tọa độ thuộc khu vực cấm: <b>${app.utils.escapeHtml(bannedZone.name || 'Vùng cấm')}</b>.<br><br>Hệ thống nghiêm cấm tải lên hình ảnh được chụp tại các địa điểm hạn chế, xí nghiệp, bến bãi nội bộ hoặc khu vực cấm. Vui lòng chọn ảnh khác được chụp tại nơi công cộng.`;
+                                    const matchedZone = await app.map.getPointInZones(latDec, lonDec);
+                                    if (matchedZone) {
+                                        const isSoft = app.map.isSoftLock ? app.map.isSoftLock(matchedZone) : false;
+                                        if (isSoft) {
+                                            // Soft lock: Không chặn, chỉ hiển thị thông báo lưu ý
+                                            if (app.toast && app.toast.show) {
+                                                app.toast.show('warning', 'Khu vực cần lưu ý', `Ảnh chụp tại ${matchedZone.name || 'khu vực không khuyến cáo'}. Vui lòng chú ý an ninh và an toàn!`, 6000);
+                                            }
+                                        } else {
+                                            // Hard lock: Chặn tải lên
+                                            app.currentGps = null;
+                                            throw `Ảnh được chụp tại tọa độ thuộc khu vực cấm: <b>${app.utils.escapeHtml(matchedZone.name || 'Vùng cấm')}</b>.<br><br>Hệ thống nghiêm cấm tải lên hình ảnh được chụp tại các địa điểm hạn chế, xí nghiệp, bến bãi nội bộ hoặc khu vực cấm. Vui lòng chọn ảnh khác được chụp tại nơi công cộng.`;
+                                        }
                                     }
                                 }
                             }
@@ -19852,12 +19861,15 @@ Object.assign(window.app, {
                     }
                     if (!app.rawFile) return app.ui.showAlert("Vui lòng chọn ảnh!");
                     if (app.currentGps && typeof app.currentGps.lat === 'number' && typeof app.currentGps.lon === 'number' && app.map && app.map.getPointInZones) {
-                        const bannedZone = await app.map.getPointInZones(app.currentGps.lat, app.currentGps.lon);
-                        if (bannedZone) {
-                            return app.ui.showAlert(
-                                `Ảnh này có tọa độ GPS nằm trong khu vực cấm: <b>${app.utils.escapeHtml(bannedZone.name || 'Vùng cấm')}</b>.<br><br>Hệ thống nghiêm cấm tải lên hình ảnh được chụp tại các địa điểm này. Vui lòng chọn ảnh khác được chụp tại nơi công cộng.`,
-                                null, null, { title: "Vi phạm ranh giới cấm", isError: true }
-                            );
+                        const matchedZone = await app.map.getPointInZones(app.currentGps.lat, app.currentGps.lon);
+                        if (matchedZone) {
+                            const isSoft = app.map.isSoftLock ? app.map.isSoftLock(matchedZone) : false;
+                            if (!isSoft) {
+                                return app.ui.showAlert(
+                                    `Ảnh này có tọa độ GPS nằm trong khu vực cấm: <b>${app.utils.escapeHtml(matchedZone.name || 'Vùng cấm')}</b>.<br><br>Hệ thống nghiêm cấm tải lên hình ảnh được chụp tại các địa điểm này. Vui lòng chọn ảnh khác được chụp tại nơi công cộng.`,
+                                    null, null, { title: "Vi phạm ranh giới cấm", isError: true }
+                                );
+                            }
                         }
                     }
                     app.upload.checkModelWarning && app.upload.checkModelWarning();
@@ -28475,6 +28487,10 @@ app.map = {
               <rect width="10" height="10" fill="rgba(239, 68, 68, 0.2)"/>
               <path d="M-1,1 l2,-2 M0,10 l10,-10 M9,11 l2,-2" stroke="rgba(239, 68, 68, 0.6)" stroke-width="1.5"/>
             </pattern>
+            <pattern id="soft-lock-pattern" patternUnits="userSpaceOnUse" width="10" height="10">
+              <rect width="10" height="10" fill="rgba(234, 179, 8, 0.2)"/>
+              <path d="M-1,1 l2,-2 M0,10 l10,-10 M9,11 l2,-2" stroke="rgba(234, 179, 8, 0.7)" stroke-width="1.5"/>
+            </pattern>
           </defs>
         </svg>
         `;
@@ -28483,6 +28499,7 @@ app.map = {
         const style = document.createElement('style');
         style.innerHTML = `
             .leaflet-interactive.no-photo-zone { fill: url(#no-photo-pattern) !important; fill-opacity: 1 !important; }
+            .leaflet-interactive.soft-lock-zone { fill: url(#soft-lock-pattern) !important; fill-opacity: 1 !important; }
             .leaflet-popup-content-wrapper { background: #ffffff !important; color: #000000 !important; border-radius: 6px !important; border: 1px solid #18181b !important; box-shadow: none !important; padding: 0 !important; }
             .leaflet-popup-tip-container { display: none !important; }
             
@@ -28559,8 +28576,9 @@ app.map = {
                     return;
                 }
                 
-                document.getElementById('map-panel-title').innerText = 'Thêm vùng cấm (Admin)';
+                document.getElementById('map-panel-title').innerText = 'Thêm vùng cấm / lưu ý (Admin)';
                 saveBtn.innerText = 'Lưu Trực Tiếp';
+                this.setPanelLockType(false);
                 
                 // Ẩn nút xóa khi đang thêm mới
                 const deleteBtn = document.getElementById('map-panel-delete-btn');
@@ -28600,10 +28618,11 @@ app.map = {
                     [rectBounds.getSouthEast().lat, rectBounds.getSouthEast().lng]
                 ];
                 
+                const isSoft = !!this._currentPanelIsSoftLock;
                 const poly = L.polygon(polyPoints, {
-                    color: '#ef4444',
+                    color: isSoft ? '#eab308' : '#ef4444',
                     weight: 2,
-                    className: 'no-photo-zone'
+                    className: isSoft ? 'soft-lock-zone' : 'no-photo-zone'
                 });
                 
                 this.addDraftShape(poly);
@@ -28621,6 +28640,63 @@ app.map = {
         
         if (saveBtn) {
             saveBtn.addEventListener('click', () => this.saveDrafts());
+        }
+
+        // Setup Soft Lock / Hard Lock toggle buttons
+        const btnHard = document.getElementById('map-zone-type-hard');
+        const btnSoft = document.getElementById('map-zone-type-soft');
+        if (btnHard && btnSoft) {
+            btnHard.addEventListener('click', () => this.setPanelLockType(false));
+            btnSoft.addEventListener('click', () => this.setPanelLockType(true));
+        }
+    },
+
+    isSoftLock(zone) {
+        if (!zone) return false;
+        if (zone.is_soft_lock === true) return true;
+        const desc = zone.description || '';
+        return desc.startsWith('[SOFT_LOCK]') || desc.includes('[SOFT_LOCK]');
+    },
+
+    cleanZoneDescription(desc) {
+        if (!desc) return '';
+        return desc.replace(/\[SOFT_LOCK\]\s*/g, '').trim();
+    },
+
+    setPanelLockType(isSoft) {
+        this._currentPanelIsSoftLock = !!isSoft;
+        const btnHard = document.getElementById('map-zone-type-hard');
+        const btnSoft = document.getElementById('map-zone-type-soft');
+        const descEl = document.getElementById('map-zone-type-desc');
+        
+        const activeClasses = ['border-black', 'bg-black', 'text-white', 'dark:border-white', 'dark:bg-white', 'dark:text-black'];
+        const inactiveClasses = ['border-gray-300', 'bg-white', 'text-gray-700', 'hover:border-black', 'dark:border-gray-700', 'dark:bg-[#18181b]', 'dark:text-gray-300', 'dark:hover:border-white'];
+
+        if (btnHard && btnSoft) {
+            if (isSoft) {
+                btnHard.classList.remove(...activeClasses);
+                btnHard.classList.add(...inactiveClasses);
+                btnSoft.classList.remove(...inactiveClasses);
+                btnSoft.classList.add(...activeClasses);
+                if (descEl) descEl.innerText = 'Lưu ý (Soft lock): Hiển thị màu vàng, cảnh báo người dùng nhưng KHÔNG chặn tải ảnh lên.';
+            } else {
+                btnSoft.classList.remove(...activeClasses);
+                btnSoft.classList.add(...inactiveClasses);
+                btnHard.classList.remove(...inactiveClasses);
+                btnHard.classList.add(...activeClasses);
+                if (descEl) descEl.innerText = 'Vùng cấm (Hard lock): Hiển thị màu đỏ, CHẶN hoàn toàn việc tải lên ảnh chụp tại đây.';
+            }
+        }
+
+        // Cập nhật màu sắc cho các polygon đang vẽ/draft
+        if (this.currentDraftShapes && this.currentDraftShapes.length > 0) {
+            const color = isSoft ? '#eab308' : '#ef4444';
+            const className = isSoft ? 'soft-lock-zone' : 'no-photo-zone';
+            this.currentDraftShapes.forEach(shape => {
+                if (shape.layer && shape.layer.setStyle) {
+                    shape.layer.setStyle({ color: color, className: className });
+                }
+            });
         }
     },
     
@@ -28875,6 +28951,7 @@ app.map = {
         this.renderDraftList();
         document.getElementById('map-panel-name').value = '';
         document.getElementById('map-panel-desc').value = '';
+        this.setPanelLockType(false);
         
         if (this.editingZoneId) {
             this.editingZoneId = null;
@@ -29049,14 +29126,16 @@ app.map = {
         this.clearDrafts();
         this.editingZoneId = zone.id;
         document.getElementById('map-panel-name').value = zone.name || '';
-        document.getElementById('map-panel-desc').value = zone.description || '';
+        document.getElementById('map-panel-desc').value = this.cleanZoneDescription(zone.description || '');
+        this.setPanelLockType(this.isSoftLock(zone));
         
+        const isSoft = this.isSoftLock(zone);
         const polygons = this.parseZoneBounds(zone.bounds);
         polygons.forEach(polyPoints => {
             const poly = L.polygon(polyPoints, {
-                color: '#ef4444',
+                color: isSoft ? '#eab308' : '#ef4444',
                 weight: 2,
-                className: 'no-photo-zone'
+                className: isSoft ? 'soft-lock-zone' : 'no-photo-zone'
             });
             this.addDraftShape(poly);
         });
@@ -29090,12 +29169,13 @@ app.map = {
             const bounds = zone.bounds;
             if (Array.isArray(bounds) && bounds.length > 0) {
                 const polygons = this.parseZoneBounds(bounds);
+                const isSoft = this.isSoftLock(zone);
                 
                 polygons.forEach(polyPoints => {
                     const poly = L.polygon(polyPoints, {
-                        color: '#ef4444',
+                        color: isSoft ? '#eab308' : '#ef4444',
                         weight: 2,
-                        className: 'no-photo-zone'
+                        className: isSoft ? 'soft-lock-zone' : 'no-photo-zone'
                     });
                     
                     poly.zoneData = zone;
@@ -29109,26 +29189,37 @@ app.map = {
     },
     
     showZoneInfo(zone) {
-        const noteText = 'Vui lòng tuân thủ quy định an ninh và nội quy tại địa điểm chụp. Để tác nghiệp an toàn, bạn nên di chuyển ra các điểm ngắm/vị trí công cộng lân cận ngoài ranh giới này.';
+        const isSoft = this.isSoftLock(zone);
+        const cleanDesc = this.cleanZoneDescription(zone.description || '');
+        const badge = isSoft 
+            ? `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-bold bg-yellow-100 text-yellow-800 border border-yellow-300 dark:bg-yellow-950 dark:text-yellow-300 dark:border-yellow-700 mb-2"><i class="fa-solid fa-triangle-exclamation"></i> Khu vực cần lưu ý / Không khuyến cáo</span>`
+            : `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-bold bg-red-100 text-red-800 border border-red-300 dark:bg-red-950 dark:text-red-300 dark:border-red-700 mb-2"><i class="fa-solid fa-ban"></i> Vùng cấm chụp ảnh</span>`;
+            
+        const noteText = isSoft
+            ? 'Khu vực này không khuyến cáo chụp ảnh do tính chất bến bãi, an ninh nội bộ hoặc giao thông phức tạp. Vui lòng xin phép người quản lý hoặc di chuyển ra ngoài ranh giới để đảm bảo an toàn.'
+            : 'Vui lòng tuân thủ quy định an ninh và nội quy tại địa điểm chụp. Để tác nghiệp an toàn, bạn nên di chuyển ra các điểm ngắm/vị trí công cộng lân cận ngoài ranh giới này.';
+            
         let msg = `
             <div class="text-left w-full">
+                <div>${badge}</div>
                 <h3 class="font-bold text-lg text-black dark:text-white mb-2">${app.utils.escapeHtml(zone.name)}</h3>
-                <p class="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap">${app.utils.escapeHtml(zone.description || 'Không có mô tả.')}</p>
+                <p class="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap">${app.utils.escapeHtml(cleanDesc || 'Không có mô tả.')}</p>
                 <p class="text-xs text-gray-500 dark:text-gray-400 mt-3 leading-relaxed">${noteText}</p>
             </div>
         `;
         
+        const titleText = isSoft ? "Khu vực cần lưu ý" : "Vùng cấm chụp ảnh";
         if (this.isAdmin) {
             app.ui.showAlert(msg, () => {
                 this.editZone(zone);
             }, () => {}, {
-                title: "Vùng cấm/hạn chế chụp ảnh",
+                title: titleText,
                 btnOkText: "Chỉnh sửa",
                 btnCancelText: "Đóng"
             });
         } else {
             app.ui.showAlert(msg, () => {}, null, {
-                title: "Vùng cấm/hạn chế chụp ảnh",
+                title: titleText,
                 btnOkText: "Đóng"
             });
         }
@@ -29138,7 +29229,8 @@ app.map = {
         if (!app.user) return;
         
         const name = document.getElementById('map-panel-name').value.trim();
-        const desc = document.getElementById('map-panel-desc').value.trim();
+        let rawDesc = document.getElementById('map-panel-desc').value.trim();
+        const isSoft = !!this._currentPanelIsSoftLock;
         
         if (!name) {
             app.ui.showAlert('Vui lòng nhập tên khu vực');
@@ -29149,6 +29241,10 @@ app.map = {
             app.ui.showAlert('Vui lòng thêm ít nhất một vùng chọn trên bản đồ');
             return;
         }
+
+        // Đảm bảo prefix [SOFT_LOCK] nếu là soft lock, hoặc loại bỏ nếu là hard lock
+        rawDesc = this.cleanZoneDescription(rawDesc);
+        const desc = isSoft ? (rawDesc ? `[SOFT_LOCK] ${rawDesc}` : '[SOFT_LOCK]') : rawDesc;
         
         // Gộp tất cả các vùng chọn thành mảng polygons
         const allPolygons = this.currentDraftShapes.map(s => {
@@ -29230,12 +29326,28 @@ app.map = {
         document.getElementById('map-loc-name').innerText = name;
         document.getElementById('map-loc-address').innerText = address;
         
-        // Kiểm tra vùng cấm
+        // Kiểm tra vùng cấm / khu vực lưu ý
         const zoneWarning = document.getElementById('map-loc-zone-warning');
         const matchedZone = this.isPointInZones(lat, lon);
         if (zoneWarning) {
             if (matchedZone) {
-                zoneWarning.classList.remove('hidden');
+                const isSoft = this.isSoftLock(matchedZone);
+                zoneWarning.classList.remove('hidden', 'bg-red-50', 'bg-yellow-50', 'dark:bg-red-950/30', 'dark:bg-yellow-950/30');
+                if (isSoft) {
+                    zoneWarning.classList.add('bg-yellow-50', 'dark:bg-yellow-950/30');
+                    zoneWarning.innerHTML = `
+                        <p class="text-[11px] text-yellow-800 dark:text-yellow-300 font-bold leading-relaxed">
+                            <i class="fa-solid fa-triangle-exclamation mr-1"></i>Khu vực cần lưu ý (${app.utils.escapeHtml(matchedZone.name)}): Không khuyến cáo chụp ảnh do yếu tố an toàn/nội bộ. Bạn vẫn có thể đăng ảnh nhưng vui lòng đảm bảo tuân thủ an toàn.
+                        </p>
+                    `;
+                } else {
+                    zoneWarning.classList.add('bg-red-50', 'dark:bg-red-950/30');
+                    zoneWarning.innerHTML = `
+                        <p class="text-[11px] text-red-700 dark:text-red-400 font-bold leading-relaxed">
+                            <i class="fa-solid fa-ban mr-1"></i>Vùng cấm chụp ảnh (${app.utils.escapeHtml(matchedZone.name)}): Nghiêm cấm chụp và tải lên ảnh trong khu vực này.
+                        </p>
+                    `;
+                }
             } else {
                 zoneWarning.classList.add('hidden');
             }

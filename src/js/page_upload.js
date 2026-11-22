@@ -2046,10 +2046,19 @@ Object.assign(window.app, {
                             if (!isNaN(latDec) && !isNaN(lonDec)) {
                                 app.currentGps = { lat: latDec, lon: lonDec };
                                 if (app.map && app.map.getPointInZones) {
-                                    const bannedZone = await app.map.getPointInZones(latDec, lonDec);
-                                    if (bannedZone) {
-                                        app.currentGps = null;
-                                        throw `Ảnh được chụp tại tọa độ thuộc khu vực cấm: <b>${app.utils.escapeHtml(bannedZone.name || 'Vùng cấm')}</b>.<br><br>Hệ thống nghiêm cấm tải lên hình ảnh được chụp tại các địa điểm hạn chế, xí nghiệp, bến bãi nội bộ hoặc khu vực cấm. Vui lòng chọn ảnh khác được chụp tại nơi công cộng.`;
+                                    const matchedZone = await app.map.getPointInZones(latDec, lonDec);
+                                    if (matchedZone) {
+                                        const isSoft = app.map.isSoftLock ? app.map.isSoftLock(matchedZone) : false;
+                                        if (isSoft) {
+                                            // Soft lock: Không chặn, chỉ hiển thị thông báo lưu ý
+                                            if (app.toast && app.toast.show) {
+                                                app.toast.show('warning', 'Khu vực cần lưu ý', `Ảnh chụp tại ${matchedZone.name || 'khu vực không khuyến cáo'}. Vui lòng chú ý an ninh và an toàn!`, 6000);
+                                            }
+                                        } else {
+                                            // Hard lock: Chặn tải lên
+                                            app.currentGps = null;
+                                            throw `Ảnh được chụp tại tọa độ thuộc khu vực cấm: <b>${app.utils.escapeHtml(matchedZone.name || 'Vùng cấm')}</b>.<br><br>Hệ thống nghiêm cấm tải lên hình ảnh được chụp tại các địa điểm hạn chế, xí nghiệp, bến bãi nội bộ hoặc khu vực cấm. Vui lòng chọn ảnh khác được chụp tại nơi công cộng.`;
+                                        }
                                     }
                                 }
                             }
@@ -2568,12 +2577,15 @@ Object.assign(window.app, {
                     }
                     if (!app.rawFile) return app.ui.showAlert("Vui lòng chọn ảnh!");
                     if (app.currentGps && typeof app.currentGps.lat === 'number' && typeof app.currentGps.lon === 'number' && app.map && app.map.getPointInZones) {
-                        const bannedZone = await app.map.getPointInZones(app.currentGps.lat, app.currentGps.lon);
-                        if (bannedZone) {
-                            return app.ui.showAlert(
-                                `Ảnh này có tọa độ GPS nằm trong khu vực cấm: <b>${app.utils.escapeHtml(bannedZone.name || 'Vùng cấm')}</b>.<br><br>Hệ thống nghiêm cấm tải lên hình ảnh được chụp tại các địa điểm này. Vui lòng chọn ảnh khác được chụp tại nơi công cộng.`,
-                                null, null, { title: "Vi phạm ranh giới cấm", isError: true }
-                            );
+                        const matchedZone = await app.map.getPointInZones(app.currentGps.lat, app.currentGps.lon);
+                        if (matchedZone) {
+                            const isSoft = app.map.isSoftLock ? app.map.isSoftLock(matchedZone) : false;
+                            if (!isSoft) {
+                                return app.ui.showAlert(
+                                    `Ảnh này có tọa độ GPS nằm trong khu vực cấm: <b>${app.utils.escapeHtml(matchedZone.name || 'Vùng cấm')}</b>.<br><br>Hệ thống nghiêm cấm tải lên hình ảnh được chụp tại các địa điểm này. Vui lòng chọn ảnh khác được chụp tại nơi công cộng.`,
+                                    null, null, { title: "Vi phạm ranh giới cấm", isError: true }
+                                );
+                            }
                         }
                     }
                     app.upload.checkModelWarning && app.upload.checkModelWarning();

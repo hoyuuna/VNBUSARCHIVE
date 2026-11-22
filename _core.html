@@ -6441,6 +6441,22 @@ html.theme-dark .ct-icon {
 
                             <input type="text" id="map-panel-name" class="w-full bg-white dark:bg-[#18181b] border border-black dark:border-white rounded-md px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-black dark:focus:ring-white dark:text-white" placeholder="Tên khu vực...">
                             
+                            <!-- Loại khu vực: Hard lock (cấm) vs Soft lock (lưu ý) -->
+                            <div class="flex flex-col gap-1.5">
+                                <label class="text-xs font-bold text-gray-700 dark:text-gray-300">Loại khu vực:</label>
+                                <div class="grid grid-cols-2 gap-2">
+                                    <button type="button" id="map-zone-type-hard" class="flex items-center justify-center gap-1.5 px-2.5 py-1.5 rounded-md border text-xs font-bold transition-colors border-black bg-black text-white dark:border-white dark:bg-white dark:text-black">
+                                        <i class="fa-solid fa-ban text-red-500"></i>
+                                        <span>Vùng cấm</span>
+                                    </button>
+                                    <button type="button" id="map-zone-type-soft" class="flex items-center justify-center gap-1.5 px-2.5 py-1.5 rounded-md border text-xs font-bold transition-colors border-gray-300 bg-white text-gray-700 hover:border-black dark:border-gray-700 dark:bg-[#18181b] dark:text-gray-300 dark:hover:border-white">
+                                        <i class="fa-solid fa-triangle-exclamation text-yellow-500"></i>
+                                        <span>Lưu ý (Soft)</span>
+                                    </button>
+                                </div>
+                                <p id="map-zone-type-desc" class="text-[11px] text-gray-500 dark:text-gray-400 italic mt-0.5">Vùng cấm: Chặn tải lên hình ảnh chụp trong khu vực này.</p>
+                            </div>
+                            
                             <textarea id="map-panel-desc" class="w-full bg-white dark:bg-[#18181b] border border-black dark:border-white rounded-md px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-black dark:focus:ring-white h-16 resize-none dark:text-white" placeholder="Mô tả chi tiết..."></textarea>
                             
                             <div class="flex items-center justify-between mt-1">
