@@ -15562,6 +15562,19 @@ if (!decodedProvince || decodedProvince.trim() === '') {
 
                     try {
                         if (app.role === 'admin' || app.role === 'manager') {
+                            // Bảo toàn metadata cũ (đặc biệt là route_paths) nếu đã có
+                            const targetQueryName = (app.route.isEditingExisting && app.route.editingOriginalRouteName) ? app.route.editingOriginalRouteName : routeName;
+                            const { data: curRoute } = await window.sb.from('route_info').select('metadata').eq('route_name', targetQueryName).maybeSingle();
+                            let existingMeta = curRoute?.metadata || {};
+                            if (typeof existingMeta === 'string') {
+                                try { existingMeta = JSON.parse(existingMeta); } catch(e) { existingMeta = {}; }
+                            }
+                            const mergedMeta = { ...existingMeta, ...(metadataObj || {}) };
+                            if (existingMeta.route_paths && !mergedMeta.route_paths) {
+                                mergedMeta.route_paths = existingMeta.route_paths;
+                            }
+                            const finalMetadataObj = Object.keys(mergedMeta).length > 0 ? mergedMeta : null;
+
                             const { error: upsertErr } = await window.sb.from('route_info').upsert({
                                 route_name: routeName,
                                 route_no: routeNo,
@@ -15570,7 +15583,7 @@ if (!decodedProvince || decodedProvince.trim() === '') {
                                 description: isCoach ? null : (desc || null),
                                 is_inactive: isInactive,
                                 is_special: false,
-                                metadata: metadataObj
+                                metadata: finalMetadataObj
                             }, { onConflict: 'route_name' });
                             if (upsertErr) throw upsertErr;
 
@@ -16220,6 +16233,12 @@ window.app.routePath = {
         setTimeout(() => {
             modal.classList.add('hidden');
             app.ui.unlockScroll();
+            if (app.routePath._previewOriginBackup) {
+                app.routePath.currentRouteData = app.routePath._previewOriginBackup.prevRouteData;
+                app.routePath.currentRouteName = app.routePath._previewOriginBackup.prevRouteName;
+                app.routePath.currentProvince = app.routePath._previewOriginBackup.prevProvince;
+                delete app.routePath._previewOriginBackup;
+            }
         }, 200);
     },
 
@@ -16442,20 +16461,32 @@ window.app.routePath = {
     },
 
     // 2. GIAO DIỆN CHỈNH SỬA (MAP EDITOR)
-    openEditor: () => {
+    openEditor: async () => {
         if (!app.user) return app.auth.check();
 
         const modal = document.getElementById('route-path-editor-modal');
         const content = document.getElementById('route-path-editor-content');
         if (!modal || !content) return;
 
+        const routeName = app.routePath.currentRouteName;
         const titleEl = document.getElementById('rpe-modal-title');
         if (titleEl) {
-            titleEl.innerText = `Lộ trình Tuyến ${app.routePath.currentRouteName || ''}`;
+            titleEl.innerText = `Lộ trình Tuyến ${routeName || ''}`;
         }
 
-        // Sao chép dữ liệu hiện có
+        // Luôn fetch dữ liệu mới nhất từ database để đảm bảo đồng bộ 100% với lộ trình hiện có
         let paths = app.routePath.currentRouteData?.metadata?.route_paths;
+        if (routeName) {
+            try {
+                const { data: latestRoute } = await window.sb.from('route_info').select('*').eq('route_name', routeName).maybeSingle();
+                if (latestRoute) {
+                    app.routePath.currentRouteData = latestRoute;
+                    paths = latestRoute.metadata?.route_paths;
+                }
+            } catch (err) {
+                console.warn("Lỗi tải thông tin lộ trình mới nhất:", err);
+            }
+        }
         if (typeof paths === 'string') {
             try { paths = JSON.parse(paths); } catch(e) { paths = null; }
         }
@@ -23373,9 +23404,15 @@ Object.assign(window.app, {
                 previewRoutePath: (reqId, dir = 'forward') => {
                     const item = app.admin.routePathPreviewMap?.[reqId];
                     if (!item || !app.routePath) return;
+                    // Sao lưu lại trạng thái trước khi mở preview từ trang admin để khi đóng không ghi đè dữ liệu của tuyến hiện tại
+                    const prevRouteData = app.routePath.currentRouteData;
+                    const prevRouteName = app.routePath.currentRouteName;
+                    const prevProvince = app.routePath.currentProvince;
+
                     app.routePath.currentRouteName = item.routeName || '';
                     app.routePath.currentRouteData = { metadata: { route_paths: item.paths } };
                     app.routePath.viewDirection = dir;
+                    app.routePath._previewOriginBackup = { prevRouteData, prevRouteName, prevProvince };
                     app.routePath.openExpandedView();
                 },
                 toggle3x3Grid: () => {
@@ -27882,6 +27919,19 @@ if (cbQuality) newSubroles.push('quality_aud');
                                 const { error: delErr } = await window.sb.from('route_info').delete().eq('route_name', targetRouteName);
                                 if (delErr) throw delErr;
                             } else {
+                                // Bảo toàn metadata cũ (đặc biệt là route_paths) nếu đã có
+                                const targetLookupName = (oldRouteName && oldRouteName !== targetRouteName) ? oldRouteName : targetRouteName;
+                                const { data: curRoute } = await window.sb.from('route_info').select('metadata').eq('route_name', targetLookupName).maybeSingle();
+                                let existingMeta = curRoute?.metadata || {};
+                                if (typeof existingMeta === 'string') {
+                                    try { existingMeta = JSON.parse(existingMeta); } catch(e) { existingMeta = {}; }
+                                }
+                                const mergedMeta = { ...existingMeta, ...(metadataObj || {}) };
+                                if (existingMeta.route_paths && !mergedMeta.route_paths) {
+                                    mergedMeta.route_paths = existingMeta.route_paths;
+                                }
+                                const finalMetadataObj = Object.keys(mergedMeta).length > 0 ? mergedMeta : null;
+
                                 const { error: upsertErr } = await window.sb.from('route_info').upsert({
                                     route_name: targetRouteName,
                                     route_no: expectedRouteNo,
@@ -27890,7 +27940,7 @@ if (cbQuality) newSubroles.push('quality_aud');
                                     description: desc || null,
                                     is_inactive: isInactive,
                                     is_special: false,
-                                    metadata: metadataObj
+                                    metadata: finalMetadataObj
                                 }, { onConflict: 'route_name' });
                                 if (upsertErr) throw upsertErr;
                             }
@@ -27974,6 +28024,17 @@ if (cbQuality) newSubroles.push('quality_aud');
 
                             let metadataObj = Object.keys(metadata).length > 0 ? metadata : null;
                             
+                            // Nếu tuyến đã tồn tại trước đó, bảo toàn route_paths nếu có
+                            const { data: curExistingRoute } = await window.sb.from('route_info').select('metadata').eq('route_name', routeName).maybeSingle();
+                            let existingMeta = curExistingRoute?.metadata || {};
+                            if (typeof existingMeta === 'string') {
+                                try { existingMeta = JSON.parse(existingMeta); } catch(e) { existingMeta = {}; }
+                            }
+                            const mergedMeta = { ...existingMeta, ...(metadataObj || {}) };
+                            if (existingMeta.route_paths && !mergedMeta.route_paths) {
+                                mergedMeta.route_paths = existingMeta.route_paths;
+                            }
+                            const finalMetadataObj = Object.keys(mergedMeta).length > 0 ? mergedMeta : null;
 
                             const { error: upsertErr } = await window.sb.from('route_info').upsert({
                                 route_name: routeName,
@@ -27983,7 +28044,7 @@ if (cbQuality) newSubroles.push('quality_aud');
                                 description: desc || null,
                                 is_inactive: isInactive,
                                 is_special: false,
-                                metadata: metadataObj
+                                metadata: finalMetadataObj
                             }, { onConflict: 'route_name' });
                             if (upsertErr) throw upsertErr;
 
