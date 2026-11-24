@@ -127,23 +127,9 @@ Hệ thống tiếp nhận ảnh chụp nội thất (khoang hành khách và bu
   * Toàn bộ khoang xe, lối đi và chất liệu nội thất phải đủ sáng, rõ nét, không bị rung nhòe hay nhiễu hạt quá mức do thiếu sáng.
   * Do đặc thù chụp trong xe có chênh lệch tương phản lớn với ngoài trời, hệ thống châm chước hiện tượng cháy sáng nhẹ ở các ô cửa sổ kính, miễn là nội thất bên trong xe vẫn giữ được chi tiết và màu sắc chuẩn xác.
 
-* **B7.4. Các quy chuẩn ngoại thất ĐƯỢC PHÉP BỎ QUA khi chụp nội thất:**
-  * `B2.1` (Xe phải nằm trọn vẹn trong khung hình, không cắt cụt đầu, đuôi, nóc, bánh xe).
-  * `B2.2` (Khoảng lề giữa thân xe và mép ảnh).
-  * `B2.4` (Góc chụp 3/4 thấy 2 phía của xe hoặc toàn bộ một bên hông).
-  * `B2.5` (Vật cản che khuất xe: cột điện, phương tiện khác bên ngoài).
-  * `B3.5` (Tránh méo góc do ống kính góc siêu rộng): Đối với nội thất, **CHO PHÉP sử dụng ống kính góc rộng (0.5x - 0.6x)** để lấy trọn không gian khoang xe, nhưng cần căn chỉnh cân đối trục lối đi ở giữa, tránh méo mó dị dạng nghiêm trọng.
-  * `B4.1` (Bắt buộc nhìn rõ biển số xe bên ngoài): Ảnh nội thất không bắt buộc thấy biển số, nhưng phương tiện phải được định danh hợp lệ trên hệ thống.
-
-* **B7.5. Tính bắt buộc áp dụng đồng bộ các quy chuẩn còn lại:**
-  * Ngoài các điểm được châm chước nêu trên, **toàn bộ các quy chuẩn khác đều bắt buộc áp dụng nghiêm ngặt như ảnh ngoại thất**, bao gồm:
-    * `Phần A` (A1.1 Phạm vi tiếp nhận, A1.2 Quy định xét duyệt ảnh tư liệu).
-    * `B1.1 - B1.4` (Chỉ xe tại Việt Nam, quy mô xe khách, bối cảnh sạch sẽ, giá trị lưu trữ, không chụp đối phó).
-    * `B2.3` (Tỉ lệ khung hình ngang chuẩn 4:3, 3:2, 16:9; ảnh phải căn thẳng đứng theo trục lối đi hoặc các cột trong xe, không nghiêng ngả).
-    * `B3.1 - B3.4` (Độ nét, không chỉnh sửa lạm dụng/vẽ thêm chi tiết bằng AI, giữ nguyên EXIF gốc, không tự đóng dấu bản quyền).
-    * `B4.2 - B4.3` (Làm mờ bảo vệ quyền riêng tư triệt để).
-    * `B5.1 - B5.4` (Quyền sở hữu, an toàn giao thông, tuân thủ an toàn và đạo đức nghề nghiệp).
-  * **Hạn mức tỷ lệ khoang nội thất (Cơ chế 10%):** Ảnh nội thất chỉ được tiếp nhận tối đa 10% trên tổng số ảnh đã duyệt của xe đó (yêu cầu tối thiểu xe đã có từ 10 ảnh ngoại thất được duyệt để có slot ảnh nội thất đầu tiên, và từ 20 ảnh để có slot thứ hai).
+* **B7.4. Phạm vi châm chước:** 
+  * Có thể được bỏ qua các luật B2.1, B2.2, B2.4, B2.5, B3.5 nhưng cần căn chỉnh cân đối trục lối đi ở giữa (cho phép sử dụng ống kính góc rộng 0.5x - 0.6x), B4.1 nhưng vẫn bắt buộc phải nhìn thấy biển kiểm soát được dán hoặc gắn ở bên trong cabin/buồng lái xe.
+  * Ngoài các điểm châm chước trên, toàn bộ các quy chuẩn còn lại đều bắt buộc áp dụng nghiêm ngặt tương tự như ảnh ngoại thất; đồng thời áp dụng cơ chế hãm tỷ lệ: ảnh nội thất chỉ chiếm tối đa 10% tổng số ảnh đã duyệt của xe đó (tối thiểu 10 ảnh ngoại thất đã duyệt cho ảnh nội thất đầu tiên, 20 ảnh cho ảnh thứ 2).
 
 ---
 
