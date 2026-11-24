@@ -8893,14 +8893,6 @@ Object.assign(window.app, {
                     if (elInfoModel) elInfoModel.value = snapshot.model || 'Đã bị xóa';
                     if (elInfoLocation) {
                         elInfoLocation.value = photo.location || '---';
-                        const warningEl = document.getElementById('info-interior-warning');
-                        if (warningEl) {
-                            if ((photo.location || '').trim() === 'Chụp trong xe') {
-                                warningEl.classList.remove('hidden');
-                            } else {
-                                warningEl.classList.add('hidden');
-                            }
-                        }
                     }
                     if (elInfoNote) {
                         elInfoNote.value = photo.note || '---';
@@ -24056,7 +24048,7 @@ Object.assign(window.app, {
                                         <div class="flex items-center gap-2 flex-wrap">
                                             <span class="font-bold text-sm">${safePlate || ('Ảnh #' + p.id)}</span>
                                             ${plateKey && plateKey !== '---' && !approvedPlateSet.has(plateKey) ? '<span class="badge-xe-moi"><i class="fa-solid fa-sparkles"></i> XE MỚI</span>' : ''}
-                                            <span id="adm-p-badge-interior-${p.id}" class="badge-noi-that ${isInteriorPhoto ? '' : 'hidden'}"><i class="fa-solid fa-chair"></i> NỘI THẤT</span>
+                                            ${isInteriorPhoto ? `<span id="adm-p-badge-interior-${p.id}" class="badge-noi-that"><i class="fa-solid fa-chair"></i> NỘI THẤT</span>` : ''}
                                             ${p.suspected_exif_fraud ? '<span class="bg-red-600 text-white px-1.5 py-0.5 rounded text-[10px] font-bold ml-1 tracking-wider whitespace-nowrap"><i class="fa-solid fa-triangle-exclamation mr-1"></i>Nghi ngờ gian lận</span>' : ''}
                                         </div>
                                         <span class="text-xs text-gray-500">${safeUsername}</span>
@@ -24544,13 +24536,17 @@ Object.assign(window.app, {
                 },
                 toggleInteriorAdmin: (id, checked) => {
                     const locInput = document.getElementById(`adm-p-location-${id}`);
-                    const badge = document.getElementById(`adm-p-badge-interior-${id}`);
+                    const card = document.getElementById(`adm-photo-card-${id}`);
+                    const headerWrap = card?.querySelector('.admin-card-header .flex.items-center');
+                    let badge = document.getElementById(`adm-p-badge-interior-${id}`);
                     if (checked) {
                         if (locInput) locInput.value = 'Chụp trong xe';
-                        if (badge) badge.classList.remove('hidden');
+                        if (!badge && headerWrap) {
+                            headerWrap.insertAdjacentHTML('beforeend', `<span id="adm-p-badge-interior-${id}" class="badge-noi-that"><i class="fa-solid fa-chair"></i> NỘI THẤT</span>`);
+                        }
                     } else {
                         if (locInput && locInput.value.trim() === 'Chụp trong xe') locInput.value = '';
-                        if (badge) badge.classList.add('hidden');
+                        if (badge) badge.remove();
                     }
                     const orig = app.admin.originalData && app.admin.originalData['photo_' + id];
                     if (locInput) {
@@ -24560,12 +24556,17 @@ Object.assign(window.app, {
                 onLocationInputChange: (id) => {
                     const locInput = document.getElementById(`adm-p-location-${id}`);
                     const cb = document.getElementById(`adm-p-interior-${id}`);
-                    const badge = document.getElementById(`adm-p-badge-interior-${id}`);
+                    const card = document.getElementById(`adm-photo-card-${id}`);
+                    const headerWrap = card?.querySelector('.admin-card-header .flex.items-center');
+                    let badge = document.getElementById(`adm-p-badge-interior-${id}`);
                     const isInt = locInput && locInput.value.trim() === 'Chụp trong xe';
                     if (cb) cb.checked = isInt;
-                    if (badge) {
-                        if (isInt) badge.classList.remove('hidden');
-                        else badge.classList.add('hidden');
+                    if (isInt) {
+                        if (!badge && headerWrap) {
+                            headerWrap.insertAdjacentHTML('beforeend', `<span id="adm-p-badge-interior-${id}" class="badge-noi-that"><i class="fa-solid fa-chair"></i> NỘI THẤT</span>`);
+                        }
+                    } else {
+                        if (badge) badge.remove();
                     }
                 },
                 toggleReqProvMenu: (id, pfx, e) => {
