@@ -124,9 +124,29 @@ export async function onRequest(context) {
                     }), { status: 400, headers: { 'Content-Type': 'application/json' }});
                 }
 
+                // Kiểm tra giới hạn ảnh nội thất (chỉ chiếm tối đa 10% tổng số ảnh đã duyệt của xe)
+                const isInterior = (metadata.location || '').trim() === 'Chụp trong xe';
+                if (isInterior) {
+                    const { data: vehicleApprovedPhotos } = await sbAdmin
+                        .from('photos')
+                        .select('id, location')
+                        .eq('license_plate', cleanPlate)
+                        .eq('status', 'approved');
+                    
+                    const totalApproved = (vehicleApprovedPhotos || []).length;
+                    const approvedInterior = (vehicleApprovedPhotos || []).filter(p => (p.location || '').trim() === 'Chụp trong xe').length;
+                    const maxAllowed = Math.floor(totalApproved / 10);
+
+                    if (totalApproved < 10 || approvedInterior >= maxAllowed) {
+                        return new Response(JSON.stringify({
+                            success: false,
+                            error: `Không thể đăng ảnh nội thất: Xe này hiện có ${totalApproved} ảnh đã duyệt (${approvedInterior} ảnh nội thất). Ảnh nội thất chỉ được chiếm tối đa 10% tổng số ảnh của xe (cần tối thiểu 10 ảnh đã duyệt cho ảnh nội thất đầu tiên, 20 ảnh cho ảnh thứ 2).`
+                        }), { status: 400, headers: { 'Content-Type': 'application/json' }});
+                    }
+                }
+
                 // Kiểm tra trùng ngày chụp cùng 1 xe
                 if (metadata.taken_at && monthPhotos && monthPhotos.length > 0) {
-                    const isInterior = (metadata.location || '').trim() === 'Chụp trong xe';
                     const isDuplicateDate = monthPhotos.some(p => {
                         if (!p.taken_at) return false;
                         const pIsInterior = (p.location || '').trim() === 'Chụp trong xe';

@@ -186,6 +186,28 @@ export async function onRequestPost(context) {
         const isSameRoute = (r1, r2) => (r1 || '').trim().toLowerCase() === (r2 || '').trim().toLowerCase();
 
         if (isFinalApprove) {
+            const isInterior = (location || '').trim() === 'Chụp trong xe';
+            const targetPlate = (plate || photo.license_plate || '').replace(/[^A-Z0-9-]/gi, '').toUpperCase();
+            if (isInterior && targetPlate) {
+                const { data: vehicleApprovedPhotos } = await sbAdmin
+                    .from('photos')
+                    .select('id, location')
+                    .eq('license_plate', targetPlate)
+                    .eq('status', 'approved');
+                
+                const otherApproved = (vehicleApprovedPhotos || []).filter(p => p.id !== photoId);
+                const otherInteriorCount = otherApproved.filter(p => (p.location || '').trim() === 'Chụp trong xe').length;
+                const totalAfterApprove = otherApproved.length + 1;
+                const interiorAfterApprove = otherInteriorCount + 1;
+                const maxAllowed = Math.floor(totalAfterApprove / 10);
+
+                if (totalAfterApprove < 10 || interiorAfterApprove > maxAllowed) {
+                    return new Response(JSON.stringify({
+                        error: `Không thể duyệt ảnh nội thất: Xe ${targetPlate} hiện chỉ có ${otherApproved.length} ảnh đã duyệt (${otherInteriorCount} ảnh nội thất). Ảnh nội thất chỉ được chiếm tối đa 10% tổng số ảnh của xe (cần tối thiểu 10 ảnh đã duyệt cho ảnh nội thất đầu tiên, 20 ảnh cho ảnh thứ 2).`
+                    }), { status: 400 });
+                }
+            }
+
             if (plate && plate.includes('-') && model) {
                 const parts = plate.split('-');
                 if (parts.length >= 2 && !isNaN(parts[1])) {

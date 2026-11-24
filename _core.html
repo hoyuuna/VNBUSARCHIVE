@@ -2003,6 +2003,20 @@ html.theme-dark .ct-icon {
             box-shadow: 0 1px 3px rgba(251, 191, 36, 0.4);
             animation: badge-xe-moi-pulse 2s infinite;
         }
+        .badge-noi-that {
+            display: inline-flex;
+            align-items: center;
+            gap: 3px;
+            padding: 2px 8px;
+            font-size: 0.65rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            color: #1e3a8a;
+            background: linear-gradient(135deg, #bfdbfe, #93c5fd);
+            border-radius: 4px;
+            box-shadow: 0 1px 3px rgba(147, 197, 253, 0.4);
+        }
         @keyframes badge-xe-moi-pulse {
             0%, 100% { box-shadow: 0 1px 3px rgba(251, 191, 36, 0.4); }
             50% { box-shadow: 0 1px 8px rgba(251, 191, 36, 0.7); }
@@ -4012,7 +4026,7 @@ html.theme-dark .ct-icon {
 
                         <div id="info-interior-warning" class="hidden mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg shadow-sm flex items-start gap-2.5 fade-zoom-in">
                             <i class="fa-solid fa-triangle-exclamation text-yellow-600 mt-0.5 text-sm"></i>
-                            <p class="text-[11px] font-bold text-yellow-800 leading-snug m-0">Đây là ảnh được đăng tải trước ngày 30/7/2026. Từ ngày 30/7/2026, nền tảng không còn hỗ trợ nhận ảnh nội thất xe.</p>
+                            <p class="text-[11px] font-bold text-yellow-800 leading-snug m-0">Ảnh chụp trong xe (Nội thất). Nền tảng giới hạn ảnh nội thất tối đa 10% tổng số ảnh đã duyệt của xe này.</p>
                         </div>
 
                         <!-- Dropdown Góp ý cải thiện ảnh (Độc lập) -->
@@ -5551,7 +5565,7 @@ html.theme-dark .ct-icon {
                                         </button>
                                     </div>
                                     <div id="up-location-history" class="mt-2 flex flex-wrap gap-1.5 hidden"></div>
-                                    <div class="mt-2.5 hidden">
+                                    <div class="mt-2.5">
                                         <label class="flex items-start cursor-pointer group select-none w-max">
                                             <input type="checkbox" id="up-location-inside" onchange="app.upload.toggleInsideVehicle(this.checked)" class="custom-cb-input sr-only">
                                             <div class="custom-cb-box shrink-0 shadow-sm">

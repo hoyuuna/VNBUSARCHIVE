@@ -17850,7 +17850,10 @@ Object.assign(window.app, {
                         // Đếm số ảnh của xe này đang nằm trong hàng đợi tải lên cục bộ trong tháng hiện tại
                         const queuedCount = (app.upload.uploadQueue || []).filter(item => item.plate === cleanPlate).length;
 
-                        const [monthRes, dateRes] = await Promise.all([
+                        const valLocation = document.getElementById('up-location').value.trim();
+                        const isInterior = valLocation === 'Chụp trong xe';
+
+                        const [monthRes, dateRes, vehicleApprovedRes] = await Promise.all([
                             window.sb
                                 .from('photos')
                                 .select('id', { count: 'exact' })
@@ -17864,10 +17867,40 @@ Object.assign(window.app, {
                                 .select('taken_at, location')
                                 .eq('uploader_id', app.user.id)
                                 .eq('license_plate', cleanPlate)
-                                .neq('status', 'denied') : Promise.resolve({ data: [] })
+                                .neq('status', 'denied') : Promise.resolve({ data: [] }),
+                            isInterior ? window.sb
+                                .from('photos')
+                                .select('id, location')
+                                .eq('license_plate', cleanPlate)
+                                .eq('status', 'approved') : Promise.resolve({ data: [] })
                         ]);
 
                         if (myToken !== app.upload._dupToken) return;
+
+                        if (isInterior) {
+                            const approvedPhotos = vehicleApprovedRes.data || [];
+                            const totalApproved = approvedPhotos.length;
+                            const approvedInterior = approvedPhotos.filter(p => (p.location || '').trim() === 'Chụp trong xe').length;
+                            const maxInteriorAllowed = Math.floor(totalApproved / 10);
+
+                            if (totalApproved < 10 || approvedInterior >= maxInteriorAllowed) {
+                                btnSubmit.disabled = true;
+                                const existing = document.getElementById('duplicate-warning-msg');
+                                if (existing) return;
+                                const warningEl = document.createElement('div');
+                                warningEl.id = 'duplicate-warning-msg';
+                                warningEl.className = 'mt-3 p-3 bg-red-50 border border-red-200 rounded-lg shadow-sm flex items-start gap-2.5 fade-zoom-in';
+                                warningEl.innerHTML = `
+                                    <i class="fa-solid fa-triangle-exclamation text-red-500 mt-0.5 text-sm"></i>
+                                    <p class="text-[11px] font-bold text-red-700 leading-snug m-0">
+                                        Không thể đăng ảnh nội thất: Xe này hiện có ${totalApproved} ảnh đã duyệt (${approvedInterior} ảnh nội thất). Ảnh nội thất chỉ được chiếm tối đa 10% tổng số ảnh của xe (cần tối thiểu 10 ảnh đã duyệt cho ảnh nội thất đầu tiên, 20 ảnh cho ảnh thứ 2).
+                                    </p>
+                                `;
+                                const plateContainer = plateInput.closest('div[x-data]') || plateInput.parentElement;
+                                plateContainer.appendChild(warningEl);
+                                return;
+                            }
+                        }
 
                         const monthPhotosCount = (monthRes.count || (monthRes.data ? monthRes.data.length : 0)) + queuedCount;
                         if (monthPhotosCount >= 3) {
@@ -23990,8 +24023,9 @@ Object.assign(window.app, {
                     const safePlate = app.utils.cleanText(p.license_plate);
                     const plateKey = (safePlate || '').trim().toUpperCase();
                     const isNewVehicle = Boolean(!plateKey || plateKey === '---' || !approvedPlateSet.has(plateKey));
+                    const isInteriorPhoto = (location || '').trim() === 'Chụp trong xe';
                     if (!app.admin.originalData) app.admin.originalData = {};
-                    app.admin.originalData['photo_' + p.id] = { plate: safePlate, operator: op, type: type, route: route, model: model, location: location, isNewVehicle: isNewVehicle };
+                    app.admin.originalData['photo_' + p.id] = { plate: safePlate, operator: op, type: type, route: route, model: model, location: location, isNewVehicle: isNewVehicle, uploaderId: p.uploader_id, takenAt: p.taken_at ? p.taken_at.split('T')[0] : '' };
                     const tagNew = '<span class="bg-black text-white px-1.5 py-0.5 rounded text-[9px] font-bold ml-1 tracking-wider">MỚI</span>';
                     const opKey = app.utils.cleanText(op || '').trim().toLowerCase();
                     const rawRouteKey = app.utils.cleanText(route || '').trim().toLowerCase();
@@ -24018,6 +24052,7 @@ Object.assign(window.app, {
                                         <div class="flex items-center gap-2 flex-wrap">
                                             <span class="font-bold text-sm">${safePlate || ('Ảnh #' + p.id)}</span>
                                             ${plateKey && plateKey !== '---' && !approvedPlateSet.has(plateKey) ? '<span class="badge-xe-moi"><i class="fa-solid fa-sparkles"></i> XE MỚI</span>' : ''}
+                                            <span id="adm-p-badge-interior-${p.id}" class="badge-noi-that ${isInteriorPhoto ? '' : 'hidden'}"><i class="fa-solid fa-chair"></i> NỘI THẤT</span>
                                             ${p.suspected_exif_fraud ? '<span class="bg-red-600 text-white px-1.5 py-0.5 rounded text-[10px] font-bold ml-1 tracking-wider whitespace-nowrap"><i class="fa-solid fa-triangle-exclamation mr-1"></i>Nghi ngờ gian lận</span>' : ''}
                                         </div>
                                         <span class="text-xs text-gray-500">${safeUsername}</span>
@@ -24118,7 +24153,19 @@ Object.assign(window.app, {
                                                         <div id="adm-sug-model-${p.id}" class="suggestion-box"></div>
                                                     </div>
                                                 </div>
-                                                <div><span class="admin-label">Vị trí</span><input type="text" id="adm-p-location-${p.id}" value="${location}" class="admin-input" onchange="app.admin.checkDuplicateDateAdmin('${p.id}', '${p.uploader_id}', '${p.taken_at ? p.taken_at.split('T')[0] : ''}')"></div>
+                                                <div>
+                                                    <span class="admin-label">Vị trí</span>
+                                                    <input type="text" id="adm-p-location-${p.id}" value="${location}" class="admin-input" oninput="app.admin.onLocationInputChange('${p.id}')" onchange="app.admin.checkDuplicateDateAdmin('${p.id}', '${p.uploader_id}', '${p.taken_at ? p.taken_at.split('T')[0] : ''}')">
+                                                    <div class="mt-1.5 flex items-center">
+                                                        <label class="flex items-center cursor-pointer group select-none w-max">
+                                                            <input type="checkbox" id="adm-p-interior-${p.id}" class="custom-cb-input sr-only" ${isInteriorPhoto ? 'checked' : ''} onchange="app.admin.toggleInteriorAdmin('${p.id}', this.checked)">
+                                                            <div class="custom-cb-box shrink-0 shadow-sm">
+                                                                <i class="fa-solid fa-check"></i>
+                                                            </div>
+                                                            <span class="text-xs font-semibold text-gray-800 dark:text-gray-200 group-hover:text-black dark:group-hover:text-white transition leading-relaxed pt-0.5 ml-1">Chụp trong xe</span>
+                                                        </label>
+                                                    </div>
+                                                </div>
                                             </div>
 
                                             <div><span class="admin-label">Ghi chú ảnh (Công khai)</span><textarea id="adm-p-note-${p.id}" rows="2" class="admin-input">${note}</textarea></div>
@@ -24489,6 +24536,32 @@ Object.assign(window.app, {
                         }
                     } catch (err) {
                         console.error('Lỗi checkDuplicateDateAdmin:', err);
+                    }
+                },
+                toggleInteriorAdmin: (id, checked) => {
+                    const locInput = document.getElementById(`adm-p-location-${id}`);
+                    const badge = document.getElementById(`adm-p-badge-interior-${id}`);
+                    if (checked) {
+                        if (locInput) locInput.value = 'Chụp trong xe';
+                        if (badge) badge.classList.remove('hidden');
+                    } else {
+                        if (locInput && locInput.value.trim() === 'Chụp trong xe') locInput.value = '';
+                        if (badge) badge.classList.add('hidden');
+                    }
+                    const orig = app.admin.originalData && app.admin.originalData['photo_' + id];
+                    if (locInput) {
+                        app.admin.checkDuplicateDateAdmin(id, orig?.uploaderId, orig?.takenAt);
+                    }
+                },
+                onLocationInputChange: (id) => {
+                    const locInput = document.getElementById(`adm-p-location-${id}`);
+                    const cb = document.getElementById(`adm-p-interior-${id}`);
+                    const badge = document.getElementById(`adm-p-badge-interior-${id}`);
+                    const isInt = locInput && locInput.value.trim() === 'Chụp trong xe';
+                    if (cb) cb.checked = isInt;
+                    if (badge) {
+                        if (isInt) badge.classList.remove('hidden');
+                        else badge.classList.add('hidden');
                     }
                 },
                 toggleReqProvMenu: (id, pfx, e) => {
@@ -27519,6 +27592,35 @@ if (cbQuality) newSubroles.push('quality_aud');
                         const note = noteEl ? noteEl.value.trim() : '';
                         const provinceEl = document.getElementById(`adm-p-province-${id}`);
                         const province = provinceEl ? provinceEl.value : '';
+
+                        const isInterior = location === 'Chụp trong xe';
+                        const cleanPlate = plate ? plate.replace(/[^A-Z0-9-]/gi, '').toUpperCase() : '';
+                        if (isInterior && cleanPlate) {
+                            const { data: vehicleApprovedPhotos } = await window.sb
+                                .from('photos')
+                                .select('id, location')
+                                .eq('license_plate', cleanPlate)
+                                .eq('status', 'approved');
+
+                            const otherApproved = (vehicleApprovedPhotos || []).filter(p => p.id !== id);
+                            const otherInteriorCount = otherApproved.filter(p => (p.location || '').trim() === 'Chụp trong xe').length;
+                            const totalAfterApprove = otherApproved.length + 1;
+                            const interiorAfterApprove = otherInteriorCount + 1;
+                            const maxAllowed = Math.floor(totalAfterApprove / 10);
+
+                            if (totalAfterApprove < 10 || interiorAfterApprove > maxAllowed) {
+                                if (cardEl && parentEl) {
+                                    if (originalNextSibling && originalNextSibling !== cardEl) parentEl.insertBefore(cardEl, originalNextSibling);
+                                    else parentEl.appendChild(cardEl);
+                                    cardEl.querySelectorAll('input, select, textarea, button').forEach(el => el.disabled = false);
+                                    cardEl.style.opacity = '1';
+                                    cardEl.style.pointerEvents = 'auto';
+                                }
+                                btn.innerText = "DUYỆT"; btn.disabled = false; btn.classList.remove('btn-loading');
+                                return app.ui.showAlert(`Không thể duyệt ảnh nội thất: Xe ${cleanPlate} hiện chỉ có ${otherApproved.length} ảnh đã duyệt (${otherInteriorCount} ảnh nội thất). Ảnh nội thất chỉ được chiếm tối đa 10% tổng số ảnh của xe (cần tối thiểu 10 ảnh đã duyệt cho ảnh nội thất đầu tiên, 20 ảnh cho ảnh thứ 2).`);
+                            }
+                        }
+
                         if (plateEl && modelEl && await app.utils.checkModelDuplicatePolicy(plate, model)) {
                             if (cardEl && parentEl) {
                                 if (originalNextSibling && originalNextSibling !== cardEl) parentEl.insertBefore(cardEl, originalNextSibling);

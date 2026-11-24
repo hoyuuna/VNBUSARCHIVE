@@ -523,6 +523,12 @@ button.bg-black:hover, a.bg-black:hover {
     background-color: #ffffff !important;
     color: #000000 !important;
 }
+.badge-noi-that {
+    background: #1e293b !important;
+    color: #93c5fd !important;
+    border: 1px solid #3b82f6 !important;
+    box-shadow: none !important;
+}
 
 /* Achievement Modal overrides */
 #achievement-content .group:hover .group-hover\:bg-black {

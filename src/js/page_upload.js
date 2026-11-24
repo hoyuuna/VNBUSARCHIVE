@@ -535,7 +535,10 @@ Object.assign(window.app, {
                         // Đếm số ảnh của xe này đang nằm trong hàng đợi tải lên cục bộ trong tháng hiện tại
                         const queuedCount = (app.upload.uploadQueue || []).filter(item => item.plate === cleanPlate).length;
 
-                        const [monthRes, dateRes] = await Promise.all([
+                        const valLocation = document.getElementById('up-location').value.trim();
+                        const isInterior = valLocation === 'Chụp trong xe';
+
+                        const [monthRes, dateRes, vehicleApprovedRes] = await Promise.all([
                             window.sb
                                 .from('photos')
                                 .select('id', { count: 'exact' })
@@ -549,10 +552,40 @@ Object.assign(window.app, {
                                 .select('taken_at, location')
                                 .eq('uploader_id', app.user.id)
                                 .eq('license_plate', cleanPlate)
-                                .neq('status', 'denied') : Promise.resolve({ data: [] })
+                                .neq('status', 'denied') : Promise.resolve({ data: [] }),
+                            isInterior ? window.sb
+                                .from('photos')
+                                .select('id, location')
+                                .eq('license_plate', cleanPlate)
+                                .eq('status', 'approved') : Promise.resolve({ data: [] })
                         ]);
 
                         if (myToken !== app.upload._dupToken) return;
+
+                        if (isInterior) {
+                            const approvedPhotos = vehicleApprovedRes.data || [];
+                            const totalApproved = approvedPhotos.length;
+                            const approvedInterior = approvedPhotos.filter(p => (p.location || '').trim() === 'Chụp trong xe').length;
+                            const maxInteriorAllowed = Math.floor(totalApproved / 10);
+
+                            if (totalApproved < 10 || approvedInterior >= maxInteriorAllowed) {
+                                btnSubmit.disabled = true;
+                                const existing = document.getElementById('duplicate-warning-msg');
+                                if (existing) return;
+                                const warningEl = document.createElement('div');
+                                warningEl.id = 'duplicate-warning-msg';
+                                warningEl.className = 'mt-3 p-3 bg-red-50 border border-red-200 rounded-lg shadow-sm flex items-start gap-2.5 fade-zoom-in';
+                                warningEl.innerHTML = `
+                                    <i class="fa-solid fa-triangle-exclamation text-red-500 mt-0.5 text-sm"></i>
+                                    <p class="text-[11px] font-bold text-red-700 leading-snug m-0">
+                                        Không thể đăng ảnh nội thất: Xe này hiện có ${totalApproved} ảnh đã duyệt (${approvedInterior} ảnh nội thất). Ảnh nội thất chỉ được chiếm tối đa 10% tổng số ảnh của xe (cần tối thiểu 10 ảnh đã duyệt cho ảnh nội thất đầu tiên, 20 ảnh cho ảnh thứ 2).
+                                    </p>
+                                `;
+                                const plateContainer = plateInput.closest('div[x-data]') || plateInput.parentElement;
+                                plateContainer.appendChild(warningEl);
+                                return;
+                            }
+                        }
 
                         const monthPhotosCount = (monthRes.count || (monthRes.data ? monthRes.data.length : 0)) + queuedCount;
                         if (monthPhotosCount >= 3) {
