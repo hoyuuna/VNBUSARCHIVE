@@ -126,7 +126,7 @@ export async function onRequest(context) {
 
                 // Kiểm tra giới hạn ảnh nội thất (chỉ chiếm tối đa 10% tổng số ảnh đã duyệt của xe)
                 const isInterior = (metadata.location || '').trim() === 'Chụp trong xe';
-                if (isInterior) {
+                if (isInterior && !metadata.is_documentary) {
                     const { data: vehicleApprovedPhotos } = await sbAdmin
                         .from('photos')
                         .select('id, location')

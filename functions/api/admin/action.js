@@ -188,7 +188,7 @@ export async function onRequestPost(context) {
         if (isFinalApprove) {
             const isInterior = (location || '').trim() === 'Chụp trong xe';
             const targetPlate = (plate || photo.license_plate || '').replace(/[^A-Z0-9-]/gi, '').toUpperCase();
-            if (isInterior && targetPlate) {
+            if (isInterior && targetPlate && !photo.is_documentary) {
                 const { data: vehicleApprovedPhotos } = await sbAdmin
                     .from('photos')
                     .select('id, location')
