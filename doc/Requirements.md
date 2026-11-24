@@ -21,7 +21,7 @@ VNBUSARCHIVE là kho tư liệu chung cho cộng đồng, các tiêu chuẩn duy
   * Xe đã đổi màu sơn hoặc nhận diện thương hiệu mới (ảnh ghi lại màu sơn hoặc logo cũ).
   * Xe đã hết niên hạn sử dụng hoặc bị loại biên.
   * Xe chạy hợp đồng hoặc tăng cường theo sự kiện tạm thời đã kết thúc.
-* **Phạm vi châm chước:** Có thể được bỏ qua các luật B1.3, B1.4, B2.1, B2.2, B2.3 nhưng không nghiêng quá 4 độ mỗi chiều, B2.4, B2.5, B3.1 nhưng vẫn bắt buộc phải nhìn rõ hình dáng tổng thể và nhận diện phương tiện, B3.5.
+* **Phạm vi châm chước:** Có thể được bỏ qua các luật B1.3, B1.4, B2.1, B2.2, B2.3 nhưng không nghiêng quá 4 độ mỗi chiều, B2.4, B2.5, B3.1 nhưng vẫn bắt buộc phải nhìn rõ hình dáng tổng thể và nhận diện phương tiện, B3.5, B7.1 tuy nhiên vẫn bắt buộc phải làm mờ hoàn toàn khuôn mặt của hành khách, tài xế và nhân viên, B7.3, B7.4.
 * Ban quản trị giữ quyền áp dụng linh hoạt chính sách ưu tiên tùy thuộc vào giá trị tư liệu thực tế của từng bức ảnh.
 
 ---
