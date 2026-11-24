@@ -5630,7 +5630,7 @@ html.theme-dark .ct-icon {
                                     <div class="flex items-center justify-between">
                                         <label class="text-sm font-bold text-gray-700 cursor-pointer select-none flex-1" for="up-is-documentary">Đánh dấu ảnh này là ảnh tư liệu</label>
                                         <label class="relative inline-flex items-center cursor-pointer shrink-0 ml-4 self-center">
-                                            <input type="checkbox" id="up-is-documentary" class="sr-only peer" onchange="document.getElementById('up-doc-alert').classList.toggle('hidden', !this.checked)">
+                                            <input type="checkbox" id="up-is-documentary" class="sr-only peer" onchange="document.getElementById('up-doc-alert').classList.toggle('hidden', !this.checked); if (window.app && app.upload && app.upload.checkDuplicateRealtime) app.upload.checkDuplicateRealtime();">
                                             <div class="w-11 h-6 bg-black rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white dark:after:bg-black after:border-gray-300 dark:after:border-black after:border after:rounded-full after:h-5 after:w-5 after:transition-all shadow-inner"></div>
                                         </label>
                                     </div>

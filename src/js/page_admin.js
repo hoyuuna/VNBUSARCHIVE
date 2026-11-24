@@ -4189,7 +4189,8 @@ if (cbQuality) newSubroles.push('quality_aud');
 
                         const isInterior = location === 'Chụp trong xe';
                         const cleanPlate = plate ? plate.replace(/[^A-Z0-9-]/gi, '').toUpperCase() : '';
-                        if (isInterior && cleanPlate) {
+                        const isDocPhoto = cardEl?.dataset?.isDoc === 'true' || Boolean(app.admin.originalData?.['photo_' + id]?.is_documentary);
+                        if (isInterior && cleanPlate && !isDocPhoto) {
                             const { data: vehicleApprovedPhotos } = await window.sb
                                 .from('photos')
                                 .select('id, location')

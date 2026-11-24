@@ -17849,6 +17849,7 @@ Object.assign(window.app, {
 
                         const valLocation = document.getElementById('up-location').value.trim();
                         const isInterior = valLocation === 'Chụp trong xe';
+                        const isDocChecked = document.getElementById('up-is-documentary')?.checked || false;
 
                         const [monthRes, dateRes, vehicleApprovedRes] = await Promise.all([
                             window.sb
@@ -17865,7 +17866,7 @@ Object.assign(window.app, {
                                 .eq('uploader_id', app.user.id)
                                 .eq('license_plate', cleanPlate)
                                 .neq('status', 'denied') : Promise.resolve({ data: [] }),
-                            isInterior ? window.sb
+                            (isInterior && !isDocChecked) ? window.sb
                                 .from('photos')
                                 .select('id, location')
                                 .eq('license_plate', cleanPlate)
@@ -17874,7 +17875,7 @@ Object.assign(window.app, {
 
                         if (myToken !== app.upload._dupToken) return;
 
-                        if (isInterior) {
+                        if (isInterior && !isDocChecked) {
                             const approvedPhotos = vehicleApprovedRes.data || [];
                             const totalApproved = approvedPhotos.length;
                             const approvedInterior = approvedPhotos.filter(p => (p.location || '').trim() === 'Chụp trong xe').length;
@@ -27600,7 +27601,8 @@ if (cbQuality) newSubroles.push('quality_aud');
 
                         const isInterior = location === 'Chụp trong xe';
                         const cleanPlate = plate ? plate.replace(/[^A-Z0-9-]/gi, '').toUpperCase() : '';
-                        if (isInterior && cleanPlate) {
+                        const isDocPhoto = cardEl?.dataset?.isDoc === 'true' || Boolean(app.admin.originalData?.['photo_' + id]?.is_documentary);
+                        if (isInterior && cleanPlate && !isDocPhoto) {
                             const { data: vehicleApprovedPhotos } = await window.sb
                                 .from('photos')
                                 .select('id, location')

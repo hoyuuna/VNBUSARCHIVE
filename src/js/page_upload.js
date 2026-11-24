@@ -542,6 +542,7 @@ Object.assign(window.app, {
 
                         const valLocation = document.getElementById('up-location').value.trim();
                         const isInterior = valLocation === 'Chụp trong xe';
+                        const isDocChecked = document.getElementById('up-is-documentary')?.checked || false;
 
                         const [monthRes, dateRes, vehicleApprovedRes] = await Promise.all([
                             window.sb
@@ -558,7 +559,7 @@ Object.assign(window.app, {
                                 .eq('uploader_id', app.user.id)
                                 .eq('license_plate', cleanPlate)
                                 .neq('status', 'denied') : Promise.resolve({ data: [] }),
-                            isInterior ? window.sb
+                            (isInterior && !isDocChecked) ? window.sb
                                 .from('photos')
                                 .select('id, location')
                                 .eq('license_plate', cleanPlate)
@@ -567,7 +568,7 @@ Object.assign(window.app, {
 
                         if (myToken !== app.upload._dupToken) return;
 
-                        if (isInterior) {
+                        if (isInterior && !isDocChecked) {
                             const approvedPhotos = vehicleApprovedRes.data || [];
                             const totalApproved = approvedPhotos.length;
                             const approvedInterior = approvedPhotos.filter(p => (p.location || '').trim() === 'Chụp trong xe').length;
