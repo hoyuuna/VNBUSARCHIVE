@@ -127,9 +127,7 @@ Hệ thống tiếp nhận ảnh chụp nội thất (khoang hành khách và bu
   * Toàn bộ khoang xe, lối đi và chất liệu nội thất phải đủ sáng, rõ nét, không bị rung nhòe hay nhiễu hạt quá mức do thiếu sáng.
   * Do đặc thù chụp trong xe có chênh lệch tương phản lớn với ngoài trời, hệ thống châm chước hiện tượng cháy sáng nhẹ ở các ô cửa sổ kính, miễn là nội thất bên trong xe vẫn giữ được chi tiết và màu sắc chuẩn xác.
 
-* **B7.4. Phạm vi châm chước:** 
-  * Có thể được bỏ qua các luật B2.1, B2.2, B2.4, B2.5, B3.5 nhưng cần căn chỉnh cân đối trục lối đi ở giữa (cho phép sử dụng ống kính góc rộng 0.5x - 0.6x), B4.1 nhưng vẫn bắt buộc phải nhìn thấy biển kiểm soát được dán hoặc gắn ở bên trong cabin/buồng lái xe.
-  * Ngoài các điểm châm chước trên, toàn bộ các quy chuẩn còn lại đều bắt buộc áp dụng nghiêm ngặt tương tự như ảnh ngoại thất; đồng thời áp dụng cơ chế hãm tỷ lệ: ảnh nội thất chỉ chiếm tối đa 10% tổng số ảnh đã duyệt của xe đó (tối thiểu 10 ảnh ngoại thất đã duyệt cho ảnh nội thất đầu tiên, 20 ảnh cho ảnh thứ 2).
+* **B7.4. Phạm vi châm chước:** Có thể được bỏ qua các luật B2.1, B2.2, B2.4, B2.5, B3.5 nhưng cần căn chỉnh cân đối trục lối đi ở giữa (cho phép sử dụng ống kính góc rộng 0.5x - 0.6x), B4.1 nhưng vẫn bắt buộc phải nhìn thấy biển kiểm soát được dán hoặc gắn ở bên trong cabin/buồng lái xe. Ngoài các luật trên, toàn bộ các quy chuẩn còn lại đều bắt buộc áp dụng tương tự như ảnh ngoại thất.
 
 ---
 
