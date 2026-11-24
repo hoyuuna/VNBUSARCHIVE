@@ -577,7 +577,7 @@ Object.assign(window.app, {
                                 app.upload.isBlockedByInteriorLimit = true;
                                 btnSubmit.disabled = true;
                                 if (interiorAlertEl && interiorAlertMsg) {
-                                    interiorAlertMsg.innerText = `Chưa đủ điều kiện đăng ảnh nội thất: Xe ${cleanPlate} hiện có ${totalApproved} ảnh đã duyệt (${approvedInterior} ảnh nội thất). Ảnh nội thất chỉ được chiếm tối đa 10% tổng số ảnh của xe (cần tối thiểu 10 ảnh đã duyệt cho ảnh nội thất đầu tiên, 20 ảnh cho ảnh thứ 2).`;
+                                    interiorAlertMsg.innerText = `Chưa đủ điều kiện đăng ảnh nội thất: Ảnh nội thất chỉ được chiếm tối đa 10% tổng số ảnh của xe và cần tối thiểu 10 ảnh đã duyệt cho ảnh đầu tiên.`;
                                     interiorAlertEl.classList.remove('hidden');
                                 }
                                 return;
