@@ -2269,7 +2269,7 @@ html.theme-dark .ct-icon {
             if (stored === 'system') {
                 theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
             }
-            document.write('<link rel="stylesheet" href="/css/' + theme + '.css?v=1795526053995" id="theme-css">');
+            document.write('<link rel="stylesheet" href="/css/' + theme + '.css?v=1795526222393" id="theme-css">');
             document.documentElement.classList.add('theme-' + theme);
             document.documentElement.style.backgroundColor = theme === 'dark' ? '#18181b' : '#fdfcf8';
 
@@ -3022,6 +3022,14 @@ html.theme-dark .ct-icon {
                                     <span class="text-sm text-gray-700 group-hover:text-black transition leading-snug">[B4.4] Bỏ sót vùng làm mờ: Bắt buộc che/làm mờ BKS nếu phương tiện khác xuất hiện trong ảnh đang có hành vi vi phạm giao thông.</span>
                                 </label>
                                     <label class="flex items-start gap-2 cursor-pointer group">
+                                    <input type="checkbox" value="[B7.1] Vi phạm người trong xe: Xuất hiện hành khách trên xe, chụp ảnh selfie hoặc chụp kỷ niệm cá nhân." class="deny-quick-cb mt-0.5 cursor-pointer accent-red-600">
+                                    <span class="text-sm text-gray-700 group-hover:text-black transition leading-snug">[B7.1] Vi phạm người trong xe: Xuất hiện hành khách trên xe, chụp ảnh selfie hoặc chụp kỷ niệm cá nhân.</span>
+                                </label>
+                                    <label class="flex items-start gap-2 cursor-pointer group">
+                                    <input type="checkbox" value="[B7.1] Vi phạm quyền riêng tư nội thất: Chưa làm mờ khuôn mặt của tài xế hoặc nhân viên phục vụ/lơ xe." class="deny-quick-cb mt-0.5 cursor-pointer accent-red-600">
+                                    <span class="text-sm text-gray-700 group-hover:text-black transition leading-snug">[B7.1] Vi phạm quyền riêng tư nội thất: Chưa làm mờ khuôn mặt của tài xế hoặc nhân viên phục vụ/lơ xe.</span>
+                                </label>
+                                    <label class="flex items-start gap-2 cursor-pointer group">
                                     <input type="checkbox" value="[B7.2] Không thể hiện không gian tổng thể: Chỉ chụp chi tiết vụn vặt đơn lẻ hoặc góc máy không phản ánh cấu trúc khoang xe." class="deny-quick-cb mt-0.5 cursor-pointer accent-red-600">
                                     <span class="text-sm text-gray-700 group-hover:text-black transition leading-snug">[B7.2] Không thể hiện không gian tổng thể: Chỉ chụp chi tiết vụn vặt đơn lẻ hoặc góc máy không phản ánh cấu trúc khoang xe.</span>
                                 </label>
@@ -3054,14 +3062,6 @@ html.theme-dark .ct-icon {
                                     <label class="flex items-start gap-2 cursor-pointer group">
                                     <input type="checkbox" value="[B4.2] Vi phạm quyền riêng tư: Chưa thực hiện che chắn / làm mờ khuôn mặt của tài xế hoặc hành khách." class="deny-quick-cb mt-0.5 cursor-pointer accent-red-600">
                                     <span class="text-sm text-gray-700 group-hover:text-black transition leading-snug">[B4.2] Vi phạm quyền riêng tư: Chưa thực hiện che chắn / làm mờ khuôn mặt của tài xế hoặc hành khách.</span>
-                                </label>
-                                    <label class="flex items-start gap-2 cursor-pointer group">
-                                    <input type="checkbox" value="[B7.1] Vi phạm người trong xe: Xuất hiện hành khách trên xe, chụp ảnh selfie hoặc chụp kỷ niệm cá nhân." class="deny-quick-cb mt-0.5 cursor-pointer accent-red-600">
-                                    <span class="text-sm text-gray-700 group-hover:text-black transition leading-snug">[B7.1] Vi phạm người trong xe: Xuất hiện hành khách trên xe, chụp ảnh selfie hoặc chụp kỷ niệm cá nhân.</span>
-                                </label>
-                                    <label class="flex items-start gap-2 cursor-pointer group">
-                                    <input type="checkbox" value="[B7.1] Vi phạm quyền riêng tư nội thất: Chưa làm mờ khuôn mặt của tài xế hoặc nhân viên phục vụ/lơ xe." class="deny-quick-cb mt-0.5 cursor-pointer accent-red-600">
-                                    <span class="text-sm text-gray-700 group-hover:text-black transition leading-snug">[B7.1] Vi phạm quyền riêng tư nội thất: Chưa làm mờ khuôn mặt của tài xế hoặc nhân viên phục vụ/lơ xe.</span>
                                 </label>
                                     <label class="flex items-start gap-2 cursor-pointer group">
                                     <input type="checkbox" value="[B7.4] Không thể nhận diện phương tiện: Không nhìn thấy biển kiểm soát được dán hoặc gắn ở bên trong cabin/buồng lái xe." class="deny-quick-cb mt-0.5 cursor-pointer accent-red-600">
