@@ -472,7 +472,7 @@ Object.assign(window.app, {
                         warningEl.classList.remove('flex');
                         if (app.upload.isBlockedByModelDuplicate) {
                             app.upload.isBlockedByModelDuplicate = false;
-                            if (btnSubmit && !document.getElementById('upload-quota-text')?.classList.contains('text-red-600') && !document.getElementById('duplicate-warning-msg')) {
+                            if (btnSubmit && !document.getElementById('upload-quota-text')?.classList.contains('text-red-600') && !document.getElementById('duplicate-warning-msg') && !app.upload.isBlockedByInteriorLimit) {
                                 btnSubmit.disabled = false;
                             }
                         }
@@ -518,6 +518,11 @@ Object.assign(window.app, {
                     const valDate = dateInput.value;
                     const oldWarning = document.getElementById('duplicate-warning-msg');
                     if (oldWarning) oldWarning.remove();
+                    const interiorAlertEl = document.getElementById('up-interior-alert');
+                    const interiorAlertMsg = document.getElementById('up-interior-alert-msg');
+                    if (interiorAlertEl) interiorAlertEl.classList.add('hidden');
+                    app.upload.isBlockedByInteriorLimit = false;
+
                     if (!document.getElementById('upload-quota-text')?.classList.contains('text-red-600') && !app.upload.isBlockedByModelDuplicate) {
                         btnSubmit.disabled = false;
                     }
@@ -569,20 +574,12 @@ Object.assign(window.app, {
                             const maxInteriorAllowed = Math.floor(totalApproved / 10);
 
                             if (totalApproved < 10 || approvedInterior >= maxInteriorAllowed) {
+                                app.upload.isBlockedByInteriorLimit = true;
                                 btnSubmit.disabled = true;
-                                const existing = document.getElementById('duplicate-warning-msg');
-                                if (existing) return;
-                                const warningEl = document.createElement('div');
-                                warningEl.id = 'duplicate-warning-msg';
-                                warningEl.className = 'mt-3 p-3 bg-red-50 border border-red-200 rounded-lg shadow-sm flex items-start gap-2.5 fade-zoom-in';
-                                warningEl.innerHTML = `
-                                    <i class="fa-solid fa-triangle-exclamation text-red-500 mt-0.5 text-sm"></i>
-                                    <p class="text-[11px] font-bold text-red-700 leading-snug m-0">
-                                        Không thể đăng ảnh nội thất: Xe này hiện có ${totalApproved} ảnh đã duyệt (${approvedInterior} ảnh nội thất). Ảnh nội thất chỉ được chiếm tối đa 10% tổng số ảnh của xe (cần tối thiểu 10 ảnh đã duyệt cho ảnh nội thất đầu tiên, 20 ảnh cho ảnh thứ 2).
-                                    </p>
-                                `;
-                                const plateContainer = plateInput.closest('div[x-data]') || plateInput.parentElement;
-                                plateContainer.appendChild(warningEl);
+                                if (interiorAlertEl && interiorAlertMsg) {
+                                    interiorAlertMsg.innerText = `Chưa đủ điều kiện đăng ảnh nội thất: Xe ${cleanPlate} hiện có ${totalApproved} ảnh đã duyệt (${approvedInterior} ảnh nội thất). Ảnh nội thất chỉ được chiếm tối đa 10% tổng số ảnh của xe (cần tối thiểu 10 ảnh đã duyệt cho ảnh nội thất đầu tiên, 20 ảnh cho ảnh thứ 2).`;
+                                    interiorAlertEl.classList.remove('hidden');
+                                }
                                 return;
                             }
                         }
@@ -639,6 +636,7 @@ Object.assign(window.app, {
                 toggleInsideVehicle: (checked) => {
                     const locInput = document.getElementById('up-location');
                     const warningEl = document.getElementById('up-interior-warning');
+                    const interiorAlertEl = document.getElementById('up-interior-alert');
                     if (checked) {
                         locInput.value = 'Chụp trong xe';
                         locInput.disabled = true;
@@ -647,6 +645,8 @@ Object.assign(window.app, {
                         if (locInput.value === 'Chụp trong xe') locInput.value = '';
                         locInput.disabled = false;
                         if (warningEl) warningEl.classList.add('hidden');
+                        if (interiorAlertEl) interiorAlertEl.classList.add('hidden');
+                        app.upload.isBlockedByInteriorLimit = false;
                     }
                     app.upload.checkDuplicateRealtime();
                 },
@@ -985,7 +985,7 @@ Object.assign(window.app, {
                         const btnCoach = document.getElementById('btn-type-coach');
                         if(btnBus) btnBus.classList.remove('opacity-60', 'opacity-80', 'cursor-not-allowed');
                         if(btnCoach) btnCoach.classList.remove('opacity-60', 'opacity-80', 'cursor-not-allowed');
-                        if(btnSubmit && !document.getElementById('upload-quota-text')?.classList.contains('text-red-600')) btnSubmit.disabled = false;
+                        if(btnSubmit && !document.getElementById('upload-quota-text')?.classList.contains('text-red-600') && !app.upload.isBlockedByInteriorLimit) btnSubmit.disabled = false;
                     };
                     if (rawPlate.startsWith('80')) {
                         unlockUI();
@@ -1103,7 +1103,7 @@ Object.assign(window.app, {
                                             if(btnCoach) btnCoach.classList.remove('opacity-50', 'pointer-events-none');
                                             app.upload.selectType(dbType, true);
                                             const submitBtn = document.getElementById('btn-submit');
-                                            if(submitBtn && !document.getElementById('upload-quota-text')?.classList.contains('text-red-600')) submitBtn.disabled = false;
+                                            if(submitBtn && !document.getElementById('upload-quota-text')?.classList.contains('text-red-600') && !app.upload.isBlockedByInteriorLimit) submitBtn.disabled = false;
                                         },
                                         () => {
                                             const submitBtn = document.getElementById('btn-submit');
@@ -2631,6 +2631,10 @@ Object.assign(window.app, {
                     app.upload.checkModelWarning && app.upload.checkModelWarning();
                     if (app.upload.isBlockedByModelDuplicate) {
                         return app.ui.showAlert("Xe định danh phụ không được trùng dòng xe với xe khác cùng biển kiểm soát.", null, null, { title: "Từ chối tải lên" });
+                    }
+                    if (app.upload.isBlockedByInteriorLimit) {
+                        const alertMsg = document.getElementById('up-interior-alert-msg')?.innerText.trim();
+                        return app.ui.showAlert(alertMsg || "Xe này chưa đủ điều kiện để tải lên ảnh nội thất.", null, null, { title: "Chưa đủ điều kiện" });
                     }
                     const q = app.upload.currentQuota;
                     if (q.limit !== null && q.count >= q.limit) {
