@@ -2269,7 +2269,7 @@ html.theme-dark .ct-icon {
             if (stored === 'system') {
                 theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
             }
-            document.write('<link rel="stylesheet" href="/css/' + theme + '.css?v=1795525321461" id="theme-css">');
+            document.write('<link rel="stylesheet" href="/css/' + theme + '.css?v=1795526053995" id="theme-css">');
             document.documentElement.classList.add('theme-' + theme);
             document.documentElement.style.backgroundColor = theme === 'dark' ? '#18181b' : '#fdfcf8';
 
@@ -3021,6 +3021,18 @@ html.theme-dark .ct-icon {
                                     <input type="checkbox" value="[B4.4] Bỏ sót vùng làm mờ: Bắt buộc che/làm mờ BKS nếu phương tiện khác xuất hiện trong ảnh đang có hành vi vi phạm giao thông." class="deny-quick-cb mt-0.5 cursor-pointer accent-red-600">
                                     <span class="text-sm text-gray-700 group-hover:text-black transition leading-snug">[B4.4] Bỏ sót vùng làm mờ: Bắt buộc che/làm mờ BKS nếu phương tiện khác xuất hiện trong ảnh đang có hành vi vi phạm giao thông.</span>
                                 </label>
+                                    <label class="flex items-start gap-2 cursor-pointer group">
+                                    <input type="checkbox" value="[B7.2] Không thể hiện không gian tổng thể: Chỉ chụp chi tiết vụn vặt đơn lẻ hoặc góc máy không phản ánh cấu trúc khoang xe." class="deny-quick-cb mt-0.5 cursor-pointer accent-red-600">
+                                    <span class="text-sm text-gray-700 group-hover:text-black transition leading-snug">[B7.2] Không thể hiện không gian tổng thể: Chỉ chụp chi tiết vụn vặt đơn lẻ hoặc góc máy không phản ánh cấu trúc khoang xe.</span>
+                                </label>
+                                    <label class="flex items-start gap-2 cursor-pointer group">
+                                    <input type="checkbox" value="[B7.3] Chất lượng ánh sáng trong xe kém: Khoang xe thiếu sáng, rung nhòe, nhiễu hạt nặng hoặc ngược sáng làm mất chi tiết nội thất." class="deny-quick-cb mt-0.5 cursor-pointer accent-red-600">
+                                    <span class="text-sm text-gray-700 group-hover:text-black transition leading-snug">[B7.3] Chất lượng ánh sáng trong xe kém: Khoang xe thiếu sáng, rung nhòe, nhiễu hạt nặng hoặc ngược sáng làm mất chi tiết nội thất.</span>
+                                </label>
+                                    <label class="flex items-start gap-2 cursor-pointer group">
+                                    <input type="checkbox" value="[B7.4] Bố cục nội thất mất cân đối: Trục lối đi hoặc cột xe bị nghiêng ngả, méo lệch dị dạng quá mức do góc đặt máy." class="deny-quick-cb mt-0.5 cursor-pointer accent-red-600">
+                                    <span class="text-sm text-gray-700 group-hover:text-black transition leading-snug">[B7.4] Bố cục nội thất mất cân đối: Trục lối đi hoặc cột xe bị nghiêng ngả, méo lệch dị dạng quá mức do góc đặt máy.</span>
+                                </label>
                                 </div>
                             </div>
                             
@@ -3042,6 +3054,18 @@ html.theme-dark .ct-icon {
                                     <label class="flex items-start gap-2 cursor-pointer group">
                                     <input type="checkbox" value="[B4.2] Vi phạm quyền riêng tư: Chưa thực hiện che chắn / làm mờ khuôn mặt của tài xế hoặc hành khách." class="deny-quick-cb mt-0.5 cursor-pointer accent-red-600">
                                     <span class="text-sm text-gray-700 group-hover:text-black transition leading-snug">[B4.2] Vi phạm quyền riêng tư: Chưa thực hiện che chắn / làm mờ khuôn mặt của tài xế hoặc hành khách.</span>
+                                </label>
+                                    <label class="flex items-start gap-2 cursor-pointer group">
+                                    <input type="checkbox" value="[B7.1] Vi phạm người trong xe: Xuất hiện hành khách trên xe, chụp ảnh selfie hoặc chụp kỷ niệm cá nhân." class="deny-quick-cb mt-0.5 cursor-pointer accent-red-600">
+                                    <span class="text-sm text-gray-700 group-hover:text-black transition leading-snug">[B7.1] Vi phạm người trong xe: Xuất hiện hành khách trên xe, chụp ảnh selfie hoặc chụp kỷ niệm cá nhân.</span>
+                                </label>
+                                    <label class="flex items-start gap-2 cursor-pointer group">
+                                    <input type="checkbox" value="[B7.1] Vi phạm quyền riêng tư nội thất: Chưa làm mờ khuôn mặt của tài xế hoặc nhân viên phục vụ/lơ xe." class="deny-quick-cb mt-0.5 cursor-pointer accent-red-600">
+                                    <span class="text-sm text-gray-700 group-hover:text-black transition leading-snug">[B7.1] Vi phạm quyền riêng tư nội thất: Chưa làm mờ khuôn mặt của tài xế hoặc nhân viên phục vụ/lơ xe.</span>
+                                </label>
+                                    <label class="flex items-start gap-2 cursor-pointer group">
+                                    <input type="checkbox" value="[B7.4] Không thể nhận diện phương tiện: Không nhìn thấy biển kiểm soát được dán hoặc gắn ở bên trong cabin/buồng lái xe." class="deny-quick-cb mt-0.5 cursor-pointer accent-red-600">
+                                    <span class="text-sm text-gray-700 group-hover:text-black transition leading-snug">[B7.4] Không thể nhận diện phương tiện: Không nhìn thấy biển kiểm soát được dán hoặc gắn ở bên trong cabin/buồng lái xe.</span>
                                 </label>
                                     <label class="flex items-start gap-2 cursor-pointer group">
                                     <input type="checkbox" value="[B5.1] Vi phạm bản quyền: Dữ liệu hình ảnh không thuộc quyền sở hữu trực tiếp của tài khoản tải lên." class="deny-quick-cb mt-0.5 cursor-pointer accent-red-600">
