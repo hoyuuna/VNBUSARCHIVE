@@ -74,7 +74,21 @@ async function handleLogIp(request, env) {
             const { data: userData, error: userError } = await supabaseAdmin.auth.getUser(token);
             if (!userError && userData?.user?.id) {
                 const userId = userData.user.id;
-                await supabaseAdmin.from('users').update({ ip_address: clientIp }).eq('id', userId);
+                const { data: profile } = await supabaseAdmin
+                    .from('profiles')
+                    .select('known_ips')
+                    .eq('id', userId)
+                    .maybeSingle();
+
+                if (profile) {
+                    const currentIps = Array.isArray(profile.known_ips) ? profile.known_ips : [];
+                    if (!currentIps.includes(clientIp)) {
+                        await supabaseAdmin
+                            .from('profiles')
+                            .update({ known_ips: [...currentIps, clientIp] })
+                            .eq('id', userId);
+                    }
+                }
             }
         }
     } catch (e) { }
