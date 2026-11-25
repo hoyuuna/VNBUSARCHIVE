@@ -52,6 +52,9 @@ export async function onRequest(context) {
         const token = authHeader.replace(/^Bearer\s+/i, '').trim();
         const { data: { user }, error: authErr } = await supabase.auth.getUser(token);
         if (authErr || !user) return new Response(JSON.stringify({ success: false, error: 'Phiên đăng nhập không hợp lệ.', details: authErr ? authErr.message : 'User is null' }), { status: 401, headers: { 'Content-Type': 'application/json' }});
+        if (!user.email_confirmed_at) {
+            return new Response(JSON.stringify({ success: false, error: 'Tài khoản chưa xác minh email. Vui lòng xác minh email trước khi tải ảnh lên.' }), { status: 403, headers: { 'Content-Type': 'application/json' }});
+        }
         const userId = user.id;
 
         const formData = await request.formData();
