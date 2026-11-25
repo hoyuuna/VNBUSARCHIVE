@@ -4612,6 +4612,7 @@ if (cbQuality) newSubroles.push('quality_aud');
                             const targetProvince = isReqCoach ? null : (provEl ? provEl.value.trim() : (req.new_data.province || (req.new_data.route_name.includes(' - ') ? req.new_data.route_name.split(' - ')[1].trim() : null)));
                             const targetRouteName = (isReqCoach || !targetProvince) ? expectedRouteNo : `${expectedRouteNo} - ${targetProvince}`;
 
+                            const oldRouteName = req.new_data.old_route_name || req.new_data.route_name;
                             if (!desc && !shortPath && !isInactive && !metadataObj) {
                                 const { error: delErr } = await window.sb.from('route_info').delete().eq('route_name', targetRouteName);
                                 if (delErr) throw delErr;
@@ -4644,7 +4645,6 @@ if (cbQuality) newSubroles.push('quality_aud');
                             if (app.route) app.route.cachedRoutes = null;
                             
                             // Nếu đổi tên tuyến hoặc đổi tỉnh thành, di chuyển dữ liệu ảnh & lịch sử từ tuyến cũ sang tuyến mới và xóa tuyến cũ
-                            const oldRouteName = req.new_data.old_route_name || req.new_data.route_name;
                             if (oldRouteName && oldRouteName !== targetRouteName) {
                                 if (app.route && app.route.migrateRouteData) {
                                     await app.route.migrateRouteData(oldRouteName, targetRouteName, expectedRouteNo, targetProvince);
