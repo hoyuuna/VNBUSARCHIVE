@@ -2637,6 +2637,10 @@ Object.assign(window.app, {
                         const alertMsg = document.getElementById('up-interior-alert-msg')?.innerText.trim();
                         return app.ui.showAlert(alertMsg || "Xe này chưa đủ điều kiện để tải lên ảnh nội thất.", null, null, { title: "Chưa đủ điều kiện" });
                     }
+                    const faceBlurCb = document.getElementById('up-face-blur-confirm');
+                    if (faceBlurCb && !faceBlurCb.checked) {
+                        return app.ui.showAlert("Vui lòng xác nhận đã làm mờ khuôn mặt của tài xế, hành khách hoặc người đi đường (nếu có) trước khi tải ảnh lên.", null, null, { title: "Chưa xác nhận làm mờ" });
+                    }
                     const q = app.upload.currentQuota;
                     if (q.limit !== null && q.count >= q.limit) {
                         return app.ui.showAlert(`Bạn đã đạt giới hạn tải lên tối đa ${q.limit} ảnh của ngày hôm nay. Vui lòng quay lại sau 7:00 sáng mai!`);

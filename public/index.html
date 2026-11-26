@@ -2269,7 +2269,7 @@ html.theme-dark .ct-icon {
             if (stored === 'system') {
                 theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
             }
-            document.write('<link rel="stylesheet" href="/css/' + theme + '.css?v=1795685485272" id="theme-css">');
+            document.write('<link rel="stylesheet" href="/css/' + theme + '.css?v=1795685836808" id="theme-css">');
             document.documentElement.classList.add('theme-' + theme);
             document.documentElement.style.backgroundColor = theme === 'dark' ? '#18181b' : '#fdfcf8';
 
@@ -5155,9 +5155,10 @@ html.theme-dark .ct-icon {
                                     </div>
                                 </div>
 
-                                <div class="bg-red-50 border border-red-200 text-red-700 px-3 py-2.5 rounded-md mt-3 text-xs font-bold flex items-start shadow-sm">
-                                    <i class="fa-solid fa-triangle-exclamation mr-2 mt-0.5"></i> <span>Lưu ý làm mờ khuôn mặt của tài xế, hành khách hoặc người đi đường.</span>
-                                </div>
+                                <label for="up-face-blur-confirm" class="bg-red-50 border border-red-200 text-red-700 px-3 py-2.5 rounded-md mt-3 text-xs font-bold flex items-start gap-2.5 shadow-sm cursor-pointer select-none">
+                                    <input type="checkbox" id="up-face-blur-confirm" class="mt-0.5 w-4 h-4 accent-red-600 cursor-pointer shrink-0">
+                                    <span>Tôi xác nhận đã làm mờ khuôn mặt của tài xế, hành khách hoặc người đi đường (nếu có).</span>
+                                </label>
 
                                 <!-- Toolbar Chỉnh sửa & Upload -->
                             <div id="vnbus-editor-toolbar" class="mt-4">
@@ -8331,7 +8332,7 @@ html.theme-dark .ct-icon {
 
     <!-- KHAY CHỨA TOAST Z-INDEX CAO NHẤT -->
     <div id="toast-container" class="fixed left-0 w-full flex flex-col items-center gap-2 pointer-events-none z-[99999]" style="z-index: 99999 !important;"></div>
-<script src="/app.e07e67290525.js" onerror="if(!window.__app_fallback_loaded){window.__app_fallback_loaded=true;var s=document.createElement('script');s.src='/app.js?v=' + Date.now();document.head.appendChild(s);}"></script>
+<script src="/app.50107c30b05b.js" onerror="if(!window.__app_fallback_loaded){window.__app_fallback_loaded=true;var s=document.createElement('script');s.src='/app.js?v=' + Date.now();document.head.appendChild(s);}"></script>
 </body>
 </html>
 
