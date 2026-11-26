@@ -12075,8 +12075,12 @@ Object.assign(window.app, {
                 } else if (topic === 'policy_violation') {
                     if (data.status !== 'approved') throw new Error("Chỉ có thể báo cáo các tác phẩm đã được duyệt trên hệ thống.");
                 }
+                const proxyUrl = app.utils.getProxiedUrl(data.url, 'preview.jpg', 'thumb');
+                if (!proxyUrl || proxyUrl === 'SANDBOX_DELETED') {
+                    throw new Error("Ảnh đã bị xóa khỏi hệ thống.");
+                }
                 app.contact.currentPreviewId = photoId;
-                imgEl.src = app.utils.getProxiedUrl(data.url, 'preview.jpg', 'thumb');
+                imgEl.src = proxyUrl;
                 document.getElementById('contact-preview-plate').innerText = app.utils.displayPlate(data.license_plate);
                 document.getElementById('contact-preview-op').innerText = data.operator || 'N/A';
             } catch (err) {
@@ -12116,8 +12120,12 @@ Object.assign(window.app, {
                 if (!app.user || data.uploader_id !== app.user.id) {
                     throw new Error("Đây không phải là ảnh do bạn đăng tải! Vui lòng chỉ chọn link ảnh của chính bạn trên hệ thống.");
                 }
+                const proxyUrl = app.utils.getProxiedUrl(data.url, 'preview.jpg', 'thumb');
+                if (!proxyUrl || proxyUrl === 'SANDBOX_DELETED') {
+                    throw new Error("Ảnh đã bị xóa khỏi hệ thống.");
+                }
                 app.contact.currentOrigPreviewId = photoId;
-                if (imgEl) imgEl.src = app.utils.getProxiedUrl(data.url, 'preview.jpg', 'thumb');
+                if (imgEl) imgEl.src = proxyUrl;
                 document.getElementById('contact-orig-preview-plate').innerText = app.utils.displayPlate(data.license_plate);
                 document.getElementById('contact-orig-preview-op').innerText = data.operator || 'N/A';
             } catch (err) {
