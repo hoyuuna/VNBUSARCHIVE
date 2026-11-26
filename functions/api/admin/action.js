@@ -266,7 +266,7 @@ export async function onRequestPost(context) {
                 note: note,
                 location: location,
                 mod_note: null,
-                is_documentary: false,
+                is_documentary: Boolean(photo.is_documentary),
                 status: 'approved',
                 operator: op,
                 type: type,
