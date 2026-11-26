@@ -2403,12 +2403,13 @@ cleanupState: () => {
                 },
                 formatPlateInput: (el) => {
                     let val = el.value;
-                    const upperVal = val.toUpperCase();
-                    if (val !== upperVal) {
+                    const cleanedVal = val.replace(/\s+/g, '').toUpperCase();
+                    if (val !== cleanedVal) {
                         const start = el.selectionStart;
-                        const end = el.selectionEnd;
-                        el.value = upperVal;
-                        el.setSelectionRange(start, end);
+                        const diff = val.length - cleanedVal.length;
+                        el.value = cleanedVal;
+                        const newPos = Math.max(0, (start || 0) - diff);
+                        el.setSelectionRange(newPos, newPos);
                     }
                 },
                 formatDateInput: (el) => {

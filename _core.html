@@ -5465,6 +5465,7 @@ html.theme-dark .ct-icon {
                                     <label class="text-xs text-gray-500 font-bold block mb-1.5 uppercase">Biển kiểm soát
                                         <span class="text-red-500">*</span></label>
                                     <input type="text" id="up-plate" oninput="app.utils.formatPlateInput(this)"
+                                        onkeydown="if(event.key === ' ' || event.code === 'Space') event.preventDefault()"
                                         x-on:input.debounce.500ms="app.upload.checkPlate($el.value)"
                                         placeholder="VD: 51B12345" tabindex="1"
                                         class="w-full border border-gray-300 p-2.5 text-sm uppercase rounded-md focus:ring-2 focus:ring-black focus:border-transparent outline-none transition"
