@@ -944,6 +944,10 @@ Object.assign(window.app, {
                 },
                 updateBlurBtn: () => {
                     const count = document.querySelectorAll('.blur-panel').length;
+                    const faceBlurCb = document.getElementById('up-face-blur-confirm');
+                    if (faceBlurCb) {
+                        faceBlurCb.checked = count > 0;
+                    }
                     const btn = document.getElementById('btn-add-blur');
                     if (btn) {
                         btn.innerHTML = `<i class="fa-solid fa-droplet-slash"></i> Làm mờ`;
