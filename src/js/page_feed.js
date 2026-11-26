@@ -2424,7 +2424,7 @@ let currentRouteProvName = null;
                                 <span id="crumb-vehicle-profile" class="font-bold text-black shrink min-w-0 block">${app.utils.displayPlate(vehicle.license_plate)}</span>
                             </div>
                             <div class="vehicle-hero-banner rounded-lg border border-black dark:border-white bg-black text-white relative overflow-hidden mb-3 shadow-sm">
-                                <div class="relative w-full min-h-[180px] sm:min-h-[220px] md:min-h-[260px] bg-black overflow-hidden flex items-center justify-center">
+                                <div class="relative w-full min-h-[180px] sm:min-h-[220px] md:min-h-[260px] bg-black overflow-hidden flex items-end justify-center">
                                     ${topPhoto ? `
                                     <img loading="lazy" decoding="async" src="${app.utils.getProxiedUrl(topPhoto.url, 'vehicle-top.jpg', 'full')}" onerror="app.utils.fallbackHeroImage(this, 'vehiclePhotosCache', 0)" onclick="app.views.loadDetail(${topPhoto.id})" class="absolute inset-0 w-full h-full object-cover object-center block cursor-pointer transition duration-300">
                                     ` : `
