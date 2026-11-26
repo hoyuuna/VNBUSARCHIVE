@@ -39,6 +39,8 @@ Khi tải ảnh lên hệ thống, bạn cần tuân thủ các quy chuẩn sau:
 * **Xử lý bản quyền khi tài khoản bị khóa:**
   * **Đối với ảnh đã gắn watermark hệ thống:** VNBUSARCHIVE tiếp tục duy trì lưu trữ và hiển thị các bức ảnh đã duyệt để bảo đảm tính liên tục của dữ liệu lịch sử.
   * **Đối với tệp ảnh gốc:** Bạn vẫn toàn quyền sở hữu và định đoạt tệp ảnh gốc bên ngoài hệ thống. VNBUSARCHIVE không can thiệp hay chịu trách nhiệm đối với ảnh gốc ngoài nền tảng.
+* **Xin phép sử dụng ảnh từ tác giả:** Người dùng có nhu cầu xin ảnh (đặc biệt là ảnh gốc hoặc sử dụng ngoài phạm vi hiển thị công khai trên hệ thống) **bắt buộc phải trực tiếp liên hệ và xin phép chủ sở hữu ảnh**. Đây hoàn toàn là thỏa thuận giữa chủ ảnh và người xin, không thông qua và không liên quan đến trách nhiệm của VNBUSARCHIVE.
+* **Mã nguồn mở và các bản sao (Fork):** Dự án sử dụng mã nguồn mở theo giấy phép **AGPL-3.0** tại [https://github.com/hoyuuna/VNBUSARCHIVE](https://github.com/hoyuuna/VNBUSARCHIVE). Mọi bản sao (fork) hoặc hệ thống triển khai lại từ mã nguồn này **bắt buộc phải tuân thủ đầy đủ giấy phép AGPL-3.0 và luật bản quyền**. Đội ngũ vận hành VNBUSARCHIVE chính thức không chịu trách nhiệm đối với các trang web fork này; mọi hành vi vi phạm giấy phép hoặc bản quyền sẽ bị khiếu nại và xử lý theo quy định.
 
 ### 5. Kiểm duyệt và chỉnh sửa dữ liệu
 * Ảnh tải lên, thông tin bổ sung và lịch sử phương tiện đều được kiểm duyệt thủ công bởi ban quản trị.
