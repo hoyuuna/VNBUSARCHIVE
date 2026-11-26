@@ -105,7 +105,7 @@ Object.assign(window.app, {
                         const hoursSinceUpload = (Date.now() - uploadedTime) / (1000 * 60 * 60);
                         if (hoursSinceUpload < 24) {
                             const remainingHours = Math.ceil(24 - hoursSinceUpload);
-                            return app.ui.showAlert(`Ảnh này mới được đăng tải. Bạn chỉ có thể xóa hoặc yêu cầu xóa ảnh sau khi đã trôi qua 24 giờ kể từ lúc đăng (Vui lòng quay lại sau khoảng ${remainingHours} tiếng nữa).`);
+                            return app.ui.showAlert(`Ảnh này mới được đăng tải. Bạn chỉ có thể xóa hoặc yêu cầu xóa ảnh sau khi đã trôi qua 24 giờ kể từ lúc đăng (Vui lòng quay lại sau khoảng ${remainingHours} tiếng nữa). <a href="https://www.vnbusarchive.io.vn/help/1575389370343620640" target="_blank" rel="noopener noreferrer" class="underline font-bold">Tại saooo???</a>`);
                         }
                     }
 
