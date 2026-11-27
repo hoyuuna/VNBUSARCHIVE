@@ -17,29 +17,42 @@ const cleanLicensePlateForDisplay = (plate) => {
 
 async function fetchAllData(supabase, table, select, conditions = {}) {
   const step = 1000;
-  const maxPages = 15; // Hỗ trợ tới 15,000 bản ghi mỗi bảng
-  const pagePromises = [];
-
-  for (let i = 0; i < maxPages; i++) {
-    const from = i * step;
-    const to = from + step - 1;
-    let query = supabase.from(table).select(select).range(from, to);
-    if (conditions.column && conditions.value !== undefined) {
-      query = query.eq(conditions.column, conditions.value);
-    }
-    pagePromises.push(query);
-  }
-
-  const results = await Promise.all(pagePromises);
+  const maxPages = 20; // Hỗ trợ tới 20,000 bản ghi mỗi bảng
+  const batchSize = 2; // Giới hạn 2 request song song mỗi lượt để tránh quá tải PostgREST/middleware
   let allData = [];
-  for (const res of results) {
-    if (res.error) {
-      console.error(`Lỗi lấy dữ liệu bảng ${table}:`, JSON.stringify(res.error));
-      break;
+
+  for (let startPage = 0; startPage < maxPages; startPage += batchSize) {
+    const pagePromises = [];
+    for (let j = 0; j < batchSize && (startPage + j) < maxPages; j++) {
+      const i = startPage + j;
+      const from = i * step;
+      const to = from + step - 1;
+      let query = supabase.from(table).select(select).range(from, to);
+      if (conditions.column && conditions.value !== undefined) {
+        query = query.eq(conditions.column, conditions.value);
+      }
+      pagePromises.push(query);
     }
-    if (!res.data || res.data.length === 0) break;
-    allData = allData.concat(res.data);
-    if (res.data.length < step) break;
+
+    const results = await Promise.all(pagePromises);
+    let reachedEnd = false;
+
+    for (const res of results) {
+      if (res.error) {
+        throw new Error(`Lỗi lấy dữ liệu bảng ${table}: ${JSON.stringify(res.error)}`);
+      }
+      if (!res.data || res.data.length === 0) {
+        reachedEnd = true;
+        break;
+      }
+      allData = allData.concat(res.data);
+      if (res.data.length < step) {
+        reachedEnd = true;
+        break;
+      }
+    }
+
+    if (reachedEnd) break;
   }
   return allData;
 }
@@ -65,12 +78,15 @@ export async function onRequest(context) {
   const key = env.SUPABASE_SERVICE_ROLE_KEY || env.SUPABASE_KEY || env.SUPABASE_ANON_KEY;
   if (!env.SUPABASE_URL || !key) {
     console.error("Thiếu SUPABASE_URL hoặc SUPABASE_KEY cho sitemap");
-    return new Response('', { status: 500 });
+    return new Response('', { status: 500, headers: { 'Cache-Control': 'no-store' } });
   }
   const supabase = createClient(env.SUPABASE_URL, key);
 
   try {
     const vehicles = await fetchAllData(supabase, 'vehicles', 'license_plate, photos!inner(status)', { column: 'photos.status', value: 'approved' });
+    if (!vehicles || vehicles.length === 0) {
+      throw new Error('Sitemap vehicles query returned empty result');
+    }
 
     const xmlChunks = [];
 
@@ -81,15 +97,6 @@ export async function onRequest(context) {
         <priority>1.0</priority>
         <changefreq>daily</changefreq>
       </url>`);
-
-    ['tos', 'ar', 'cr', 'intro'].forEach(slug => {
-      xmlChunks.push(`
-      <url>
-        <loc>${escapeXML(baseUrl)}/${slug}</loc>
-        <priority>0.5</priority>
-        <changefreq>monthly</changefreq>
-      </url>`);
-    });
 
     vehicles.forEach(v => {
       if (v && v.license_plate) {
@@ -119,6 +126,6 @@ export async function onRequest(context) {
 
   } catch (error) {
     console.error("Lỗi tạo sitemap:", error);
-    return new Response('', { status: 500 });
+    return new Response('', { status: 500, headers: { 'Cache-Control': 'no-store' } });
   }
 }
